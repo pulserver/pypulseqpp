@@ -2,6 +2,7 @@
 
 import ast
 import importlib
+import inspect
 import sys
 from pathlib import Path
 
@@ -36,9 +37,10 @@ def test_every_family_has_a_heading_and_a_table_in_the_catalogue():
 @pytest.mark.parametrize(
     "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
 )
-def test_a_catalogue_row_repeats_the_application_own_summary_line(doc):
+def test_a_catalogue_row_repeats_the_entry_point_own_summary_line(doc):
     module = importlib.import_module(f"pypulseqpp.sequences.sequence.{doc.module}")
-    summary = (module.main.__doc__ or "").strip().split("\n\n")[0].replace("\n", " ")
+    docstring = inspect.cleandoc(module.main.__doc__ or "")
+    summary = docstring.split("\n\n")[0].replace("\n", " ")
     assert sequence_reference.summary(doc) == summary
     assert summary in sequence_reference.catalogue_table(doc.family)
 

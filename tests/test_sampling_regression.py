@@ -1,8 +1,9 @@
 """The shipped sequences acquire the same views, in the same order, with the same labels.
 
 `sampling_regression.json` holds fingerprints of each configuration below:
-the sampling attributes the application stores (lines, views, partitions,
-calibration, trains, shots), every label evaluated at every acquisition, and
+the sampling attributes an application stores (lines, views, partitions,
+calibration, trains, shots; a sequence function stores none), every label
+evaluated at every acquisition, and
 the results of direct calls of the support, traversal and EPI routines. The
 sequence fingerprints and the lattice calls were first recorded from the
 sampling routines before their rename and are unchanged by it. The Poisson
@@ -51,56 +52,47 @@ ACCELERATED_3D = {
 FSE = {"n_x": 32, "n_y": 16, "n_z": 8, "etl": 8, "te": 20e-3, "tr": 300e-3}
 MPRAGE = {"n_x": 32, "n_y": 16, "n_z": 8, "ti": 100e-3, "tr": 300e-3}
 
-#: ``name: (module, application class, keyword arguments)``.
+#: ``name: (module, keyword arguments)``.
 CONFIGURATIONS = {
-    "gre2D": ("gre2D_sequence", "Gre2DApp", CARTESIAN_2D),
+    "gre2D": ("gre2D_sequence", CARTESIAN_2D),
     "gre2D-accelerated": (
         "gre2D_sequence",
-        "Gre2DApp",
         {**CARTESIAN_2D, "ry": 2, "n_acs_y": 4, "partial_fourier_y": 0.75},
     ),
     "se2D-accelerated": (
         "se2D_sequence",
-        "Se2DApp",
         {**CARTESIAN_2D, "ry": 2, "n_acs_y": 4, "tr": None},
     ),
     "bssfp2D-accelerated": (
         "bssfp2D_sequence",
-        "Bssfp2DApp",
         {"n_x": 64, "n_y": 16, "readout_bandwidth_hz": 50e3, "ry": 2, "n_acs_y": 4},
     ),
     "gre_multiecho2D-accelerated": (
         "gre_multiecho2D_sequence",
-        "GreMultiecho2DApp",
         {**CARTESIAN_2D, "n_echoes": 2, "ry": 2, "n_acs_y": 4},
     ),
-    "gre3D": ("gre3D_sequence", "Gre3DApp", CARTESIAN_3D),
-    "gre3D-caipi": ("gre3D_sequence", "Gre3DApp", ACCELERATED_3D),
+    "gre3D": ("gre3D_sequence", CARTESIAN_3D),
+    "gre3D-caipi": ("gre3D_sequence", ACCELERATED_3D),
     "gre3D-elliptical": (
         "gre3D_sequence",
-        "Gre3DApp",
         {**ACCELERATED_3D, "elliptical_sampling": True, "elliptical_acs": True},
     ),
-    "se3D-caipi": ("se3D_sequence", "Se3DApp", {**ACCELERATED_3D, "tr": None}),
+    "se3D-caipi": ("se3D_sequence", {**ACCELERATED_3D, "tr": None}),
     "bssfp3D-caipi": (
         "bssfp3D_sequence",
-        "Bssfp3DApp",
         {"n_x": 64, "n_y": 16, "n_z": 4, "ry": 2, "rz": 2, "caipi_shift": 1},
     ),
     "gre_multiecho3D-caipi": (
         "gre_multiecho3D_sequence",
-        "GreMultiecho3DApp",
         {**ACCELERATED_3D, "n_echoes": 2},
     ),
-    "mprage3D-radial": ("mprage3D_sequence", "Mprage3DApp", MPRAGE),
+    "mprage3D-radial": ("mprage3D_sequence", MPRAGE),
     "mprage3D-caipi": (
         "mprage3D_sequence",
-        "Mprage3DApp",
         {**MPRAGE, "ry": 2, "rz": 2, "caipi_shift": 1, "n_acs_y": 4, "n_acs_z": 2},
     ),
     "mprage3D-shuffling": (
         "mprage3D_sequence",
-        "Mprage3DApp",
         {
             **MPRAGE,
             "ry": 2,
@@ -112,57 +104,46 @@ CONFIGURATIONS = {
     ),
     "fse3D-radial": (
         "fse3D_sequence",
-        "Fse3DApp",
         {**FSE, "ry": 2, "rz": 2, "n_acs_y": 4, "n_acs_z": 2},
     ),
     "fse3D-shuffling": (
         "fse3D_sequence",
-        "Fse3DApp",
         {**FSE, "ry": 2, "rz": 2, "n_acs_y": 4, "n_acs_z": 2, "ordering": "shuffling"},
     ),
     "fse3D-individual": (
         "fse3D_sequence",
-        "Fse3DApp",
         {**FSE, "tr_periphery": 150e-3, "etl_periphery": 5},
     ),
     "gre_stack_of_stars3D": (
         "gre_stack_of_stars3D_sequence",
-        "GreStackOfStars3DApp",
         {"n": 32, "n_z": 8, "rz": 2, "n_acs_z": 2},
     ),
     "se_stack_of_stars3D": (
         "se_stack_of_stars3D_sequence",
-        "SeStackOfStars3DApp",
         {"n": 32, "n_z": 8, "rz": 2, "n_acs_z": 2, "tr": None},
     ),
     "gre_stack_of_spirals3D": (
         "gre_stack_of_spirals3D_sequence",
-        "GreStackOfSpirals3DApp",
         {"n": 32, "n_z": 8, "n_shots": 4, "rz": 2, "n_acs_z": 2},
     ),
     "se_stack_of_spirals3D": (
         "se_stack_of_spirals3D_sequence",
-        "SeStackOfSpirals3DApp",
         {"n": 32, "n_z": 8, "n_shots": 4, "rz": 2, "n_acs_z": 2, "tr": None},
     ),
     "gre_stack_of_blades3D": (
         "gre_stack_of_blades3D_sequence",
-        "GreStackOfBlades3DApp",
         {"n": 32, "n_z": 8, "blade_width": 8, "rz": 2, "n_acs_z": 2},
     ),
     "se_stack_of_blades3D": (
         "se_stack_of_blades3D_sequence",
-        "SeStackOfBlades3DApp",
         {"n": 32, "n_z": 8, "blade_width": 8, "rz": 2, "n_acs_z": 2, "tr": None},
     ),
     "mprage_stack_of_stars3D": (
         "mprage_stack_of_stars3D_sequence",
-        "MprageStackOfStars3DApp",
         {"n": 32, "n_z": 8, "rz": 2, "n_acs_z": 2, "ti": 100e-3, "tr": 500e-3},
     ),
     "mprage_stack_of_spirals3D": (
         "mprage_stack_of_spirals3D_sequence",
-        "MprageStackOfSpirals3DApp",
         {
             "n": 32,
             "n_z": 8,
@@ -175,7 +156,6 @@ CONFIGURATIONS = {
     ),
     "se_epi_propeller2D": (
         "se_epi_propeller2D_sequence",
-        "SeEpiPropeller2DApp",
         {
             "n_x": 32,
             "blade_width": 8,
@@ -188,12 +168,10 @@ CONFIGURATIONS = {
     ),
     "epi2D-segmented": (
         "epi2D_sequence",
-        "Epi2DApp",
         {"n_x": 32, "n_y": 16, "n_dummy": 0, "n_shots": 2, "ry": 2},
     ),
     "epi3D-caipi": (
         "epi3D_sequence",
-        "Epi3DApp",
         {"n_x": 32, "n_y": 16, "n_z": 8, "n_dummy": 0, "ry": 2, "rz": 2},
     ),
 }
@@ -217,18 +195,24 @@ def _plain(value):
 
 
 def fingerprint(name: str) -> dict:
-    """Digest the stored sampling attributes and the acquisition labels."""
+    """Digest the sampling attributes an application stores and the acquisition labels."""
+    import zoo
+
     import pypulseqpp as pp
     from pypulseqpp import sequences
 
-    module, application, kwargs = CONFIGURATIONS[name]
-    app = getattr(getattr(sequences, module), application)(pp.Opts(), **kwargs)
-    seq = app.design()
-    found = {
-        attribute: _digest(_plain(getattr(app, attribute)))
-        for attribute in ATTRIBUTES
-        if not callable(getattr(app, attribute, print))
-    }
+    module, kwargs = CONFIGURATIONS[name]
+    found = {}
+    if zoo.is_application(module):
+        app = zoo.application(module)(pp.Opts(), **kwargs)
+        seq = app.design()
+        found = {
+            attribute: _digest(_plain(getattr(app, attribute)))
+            for attribute in ATTRIBUTES
+            if not callable(getattr(app, attribute, print))
+        }
+    else:
+        seq = getattr(sequences, module).main(pp.Opts(), **kwargs)
     labels = seq.evaluate_labels(evolution="adc")
     for label in sorted(labels):
         found[f"label:{label}"] = _digest(np.atleast_1d(labels[label]).tolist())

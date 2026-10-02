@@ -19,8 +19,9 @@ SMALL_3D = {"n_x": 64, "n_y": 16, "n_z": 4}
 CINE = {"views_per_segment": 4, "heart_rate_bpm": 300}
 
 
-def app2d(**kwargs):
-    return bssfp2d.Bssfp2DApp(pp.Opts(), **{**SMALL_2D, **kwargs})
+def built_2d(**kwargs):
+    """The 2D sequence the small prescription designs, with ``kwargs`` changed."""
+    return bssfp2d.main(**{**SMALL_2D, **kwargs})
 
 
 def app3d(**kwargs):
@@ -72,8 +73,7 @@ def final_moments(seq):
     ids=["ungated", "retrospective", "prospective"],
 )
 def test_each_slice_is_one_repetition_of_the_scan(prescription):
-    built = app2d(n_slices=3, slice_spacing=1e-3, **prescription)
-    seq = built.design()
+    seq = built_2d(n_slices=3, slice_spacing=1e-3, **prescription)
     size, start = seq.repetition()
 
     assert seq.check_timing()[0]
@@ -82,7 +82,7 @@ def test_each_slice_is_one_repetition_of_the_scan(prescription):
 
 
 def test_once_marks_each_slice_half_flip_and_closing_rewind():
-    seq = app2d(n_slices=2).design()
+    seq = built_2d(n_slices=2)
     (once,) = labels(seq, "ONCE", evolution="blocks")
 
     for chunk in np.split(once, 2):
@@ -92,8 +92,8 @@ def test_once_marks_each_slice_half_flip_and_closing_rewind():
 
 
 def test_the_phase_alternates_after_an_opposite_half_flip():
-    built = app2d(n_slices=2, slice_spacing=1e-3)
-    seq = built.design()
+    seq = built_2d(n_slices=2, slice_spacing=1e-3)
+    tr = np.atleast_1d(seq.definitions["TR"])[0]
     rows = excitations(seq)
     per_slice = len(rows) // 2
     offsets = [time for time, _, _ in rows]
@@ -107,48 +107,48 @@ def test_the_phase_alternates_after_an_opposite_half_flip():
             [0.0] + [np.pi * ((k + 1) % 2) for k in range(per_slice - 1)],
         )
         assert peaks[start] == pytest.approx(0.5 * peaks[start + 1])
-        assert offsets[start + 1] - offsets[start] == pytest.approx(
-            0.5 * built.ro.tr, abs=1e-9
-        )
+        assert offsets[start + 1] - offsets[start] == pytest.approx(0.5 * tr, abs=1e-9)
 
 
 @pytest.mark.parametrize("ry", [1, 2])
 def test_every_line_of_every_slice_is_read_once_when_ungated(ry):
-    built = app2d(n_slices=2, ry=ry, n_acs_y=4)
-    lin, slc, ima = labels(built.design(), "LIN", "SLC", "IMA")
+    seq = built_2d(n_slices=2, ry=ry, n_acs_y=4)
+    lin, slc, ima = labels(seq, "LIN", "SLC", "IMA")
+    calibrating, imaging = pp.make_cartesian_axis_sampling(
+        16, ry, 4, partial_fourier=1.0
+    )
 
     assert list(zip(lin, slc, strict=True)) == [
-        (line, s) for s in range(2) for line in built.lines
+        (line, s) for s in range(2) for line in [*calibrating, *imaging]
     ]
-    assert list(ima) == [int(line in built.calibration) for line in lin]
+    assert list(ima) == [int(line in calibrating) for line in lin]
 
 
 def test_a_retrospective_heartbeat_cycles_its_segment():
-    built = app2d(gating="retrospective", **CINE)
-    lin, seg, phs = labels(built.design(), "LIN", "SEG", "PHS")
-    cycles = max(1, round(0.2 / (4 * built.ro.tr)))
+    seq = built_2d(gating="retrospective", **CINE)
+    lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
+    cycles = max(1, round(0.2 / (4 * np.atleast_1d(seq.definitions["TR"])[0])))
     expected = [
         (line, s, c)
         for s, start in enumerate(range(0, 16, 4))
         for c in range(cycles)
-        for line in built.lines[start : start + 4]
+        for line in range(start, start + 4)
     ]
 
     assert cycles > 1
     assert list(zip(lin, seg, phs, strict=True)) == expected
-    assert not any(getattr(block, "trig", None) for block in blocks(built.design()))
+    assert not any(getattr(block, "trig", None) for block in blocks(seq))
 
 
 def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
-    built = app2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
-    seq = built.design()
+    seq = built_2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
     triggers = [block.trig for block in blocks(seq) if getattr(block, "trig", None)]
     expected = [
         (line, s, f)
         for s, start in enumerate(range(0, 16, 4))
         for f in range(3)
-        for line in built.lines[start : start + 4]
+        for line in range(start, start + 4)
     ]
 
     assert list(zip(lin, seg, phs, strict=True)) == expected
@@ -160,8 +160,9 @@ def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
 
 @pytest.mark.parametrize("n_dummy", [0, 3])
 def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
-    built = app2d(gating="prospective", n_phases=2, n_slices=2, n_dummy=n_dummy, **CINE)
-    seq = built.design()
+    seq = built_2d(
+        gating="prospective", n_phases=2, n_slices=2, n_dummy=n_dummy, **CINE
+    )
     listed = blocks(seq)
     (once,) = labels(seq, "ONCE", evolution="blocks")
     size = len(listed) // 2
@@ -175,15 +176,15 @@ def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
 
 
 def test_a_single_shot_slice_has_one_trigger():
-    built = app2d(gating="prospective", n_phases=1, views_per_segment=16, n_slices=2)
-    triggers = [b for b in blocks(built.design()) if getattr(b, "trig", None)]
+    seq = built_2d(gating="prospective", n_phases=1, views_per_segment=16, n_slices=2)
+    triggers = [b for b in blocks(seq) if getattr(b, "trig", None)]
 
-    assert built.n_segments == 1
+    assert seq.definitions["NumSegments"] == pytest.approx([1])
     assert len(triggers) == 2
 
 
 def test_every_trigger_falls_between_two_balanced_repetitions():
-    seq = app2d(gating="prospective", n_phases=2, **CINE).design()
+    seq = built_2d(gating="prospective", n_phases=2, **CINE)
     listed = blocks(seq)
     for index, block in enumerate(listed):
         if getattr(block, "trig", None):
@@ -207,7 +208,7 @@ def test_every_trigger_falls_between_two_balanced_repetitions():
 )
 def test_a_2d_train_that_cannot_be_played_is_refused(prescription, match):
     with pytest.raises(ValueError, match=match):
-        app2d(**prescription)
+        built_2d(**prescription)
 
 
 # -- 3D ------------------------------------------------------------------------

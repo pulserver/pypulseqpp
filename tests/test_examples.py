@@ -1,5 +1,6 @@
 """Sequence examples, recorded prescriptions and generated command-line interfaces."""
 
+import inspect
 import subprocess
 import sys
 from itertools import pairwise
@@ -7,10 +8,18 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from zoo import SMALL, application
+from zoo import (
+    FUNCTIONS,
+    SMALL,
+    application,
+    is_application,
+    legacy_application,
+    packets,
+)
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp._prescription import documented
 
 
 def test_every_zoo_entry_has_a_small_prescription():
@@ -39,8 +48,11 @@ def test_a_zoo_entry_takes_its_dummies_and_names_the_axis_of_its_calibration(nam
 
 @pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_zoo_entry_accepts_its_default_protocol(name):
-    """``init_sequence`` refuses a TE, a spacing or a TR the design cannot meet."""
-    application(name)(pp.Opts())
+    """The design refuses a TE, a spacing or a TR it cannot meet."""
+    if is_application(name):
+        application(name)(pp.Opts())
+    else:
+        getattr(sequences, name).main(pp.Opts())
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
@@ -50,6 +62,59 @@ def test_a_zoo_entry_builds_a_sequence_that_passes_its_timing_check(name):
     assert isinstance(seq, pp.Sequence)
     is_ok, errors = seq.check_timing()
     assert is_ok, errors
+
+
+@pytest.mark.parametrize("name", FUNCTIONS)
+def test_a_function_takes_the_system_first_and_the_protocol_as_keywords(name):
+    first, *protocol = inspect.signature(
+        getattr(sequences, name).main
+    ).parameters.values()
+
+    assert (first.name, first.default) == ("system", None)
+    assert {parameter.kind for parameter in protocol} == {
+        inspect.Parameter.KEYWORD_ONLY
+    }
+
+
+@pytest.mark.parametrize("name", FUNCTIONS)
+def test_a_function_states_the_limits_it_holds_the_system_to(name):
+    module = getattr(sequences, name)
+    _, entry = documented(inspect.getdoc(module.main))["system"]
+
+    assert f"({module.MAX_GRAD:g} mT/m)" in entry
+    assert f"({module.MAX_SLEW:g} T/m/s)" in entry
+
+
+@pytest.mark.parametrize("name", FUNCTIONS)
+def test_a_function_lowers_the_system_to_its_limits_and_never_raises_it(name):
+    module = getattr(sequences, name)
+
+    def hardware(scale):
+        return pp.Opts(
+            max_grad=scale * module.MAX_GRAD,
+            grad_unit="mT/m",
+            max_slew=scale * module.MAX_SLEW,
+            slew_unit="T/m/s",
+        )
+
+    above = module.main(hardware(2), **SMALL[name]).system
+    below = module.main(hardware(0.5), **SMALL[name]).system
+
+    assert above.max_grad == pytest.approx(hardware(1).max_grad)
+    assert above.max_slew == pytest.approx(hardware(1).max_slew)
+    assert below.max_grad == pytest.approx(hardware(0.5).max_grad)
+    assert below.max_slew == pytest.approx(hardware(0.5).max_slew)
+
+
+@pytest.mark.parametrize("name", FUNCTIONS)
+def test_a_function_called_twice_writes_the_same_file(tmp_path, name):
+    """Nothing a call builds outlives it: label state, caches, module constants."""
+    module = getattr(sequences, name)
+    paths = [tmp_path / "first.seq", tmp_path / "second.seq"]
+    for path in paths:
+        pp.io.write(module.main(**SMALL[name]), path)
+
+    assert paths[0].read_bytes() == paths[1].read_bytes()
 
 
 def adc_labels(seq, *names):
@@ -66,8 +131,8 @@ def gre(**kwargs):
 
 
 def gre_app(**kwargs):
-    """The 2D gradient echo, without dummies unless asked for."""
-    app = sequences.gre2D_sequence.Gre2DApp
+    """The 2D gradient echo as a SequenceApp, without dummies unless asked for."""
+    app = legacy_application("gre2D_sequence")
     return app(pp.Opts(), **{**SMALL["gre2D_sequence"], "n_dummy": 0, **kwargs})
 
 
@@ -88,19 +153,19 @@ def test_the_prescription_asked_for_is_the_one_written_down():
 
 def test_the_slices_of_a_packet_are_not_neighbours():
     """A TR too short for every slice deals them into packets, spread out."""
-    app = gre_app(n_slices=8, tr=40e-3)
+    played = packets(gre(n_slices=8, tr=40e-3, n_dummy=0))
 
-    assert len(app.packets) > 1
-    for packet in app.packets:
+    assert len(played) > 1
+    for packet in played:
         # Every slice of one packet is a whole packet count away from the next,
         # so no two neighbours in the slab are excited in the same packet.
-        assert all(b - a >= len(app.packets) for a, b in pairwise(sorted(packet)))
+        assert all(b - a >= len(played) for a, b in pairwise(sorted(packet)))
 
 
 def test_the_even_slices_of_a_packet_are_excited_before_the_odd_ones():
-    app = gre_app(n_slices=10, tr=None)
+    played = packets(gre(n_slices=10, tr=None, n_dummy=0))
 
-    assert app.packets == [[0, 2, 4, 6, 8, 1, 3, 5, 7, 9]]
+    assert played == [[0, 2, 4, 6, 8, 1, 3, 5, 7, 9]]
 
 
 @pytest.mark.parametrize(
@@ -122,13 +187,21 @@ def test_the_scan_repeats_from_its_first_block_whatever_the_slices_divide_into(
 def test_every_slice_is_excited_at_the_repetition_time_asked_for():
     """Including the odd packet, which holds a slice more and waits less."""
     lines, tr = 8, 0.25
-    app = gre_app(n_x=256, n_y=lines, n_slices=120, tr=tr, readout_oversampling=1.0)
-    excited = np.asarray(app.design().rf_times()[0])
+    seq = gre(
+        n_x=256,
+        n_y=lines,
+        n_slices=120,
+        tr=tr,
+        readout_oversampling=1.0,
+        n_dummy=0,
+    )
+    played = packets(seq)
+    excited = np.asarray(seq.rf_times()[0])
 
-    assert len({len(packet) for packet in app.packets}) == 2  # the case worth asking
+    assert len({len(packet) for packet in played}) == 2  # the case worth asking
 
     at = 0
-    for packet in app.packets:
+    for packet in played:
         # A slice's repetition time is the gap between its own excitations.
         spacing = np.diff(excited[at : at + len(packet) * lines][:: len(packet)])
         assert spacing == pytest.approx(tr, abs=1e-9)
@@ -136,38 +209,36 @@ def test_every_slice_is_excited_at_the_repetition_time_asked_for():
 
 
 def test_the_repetition_time_written_is_the_spacing_of_one_slices_excitations():
-    app = gre_app(n_slices=3, tr=0.05)
-    seq = app.design()
+    seq = gre(n_slices=3, tr=0.05, n_dummy=0)
     excited = np.asarray(seq.rf_times()[0])
 
     assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(0.05)
     assert excited[3] - excited[0] == pytest.approx(0.05)
 
 
-def test_the_resolved_slice_thickness_is_the_one_excited_and_the_gap_keeps_the_centres():
+def test_the_slice_thickness_written_is_the_one_excited_and_the_gap_keeps_the_centres():
     """The thickness is the pulse's bandwidth over its selection gradient."""
-    app = gre_app(n_slices=3, slice_thickness=4e-3, slice_spacing=1e-3)
-    seq = app.design()
+    seq = gre(n_slices=3, slice_thickness=4e-3, slice_spacing=1e-3, n_dummy=0)
     blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
     excitations = [block for block in blocks if block.rf is not None]
     selection = abs(excitations[0].gz.amplitude)
     centres = sorted({round(b.rf.freq_offset / selection, 9) for b in excitations})
-    resolved = app.resolved
+    thickness = np.atleast_1d(seq.definitions["SliceThickness"])[0]
+    gap = np.atleast_1d(seq.definitions["SliceGap"])[0]
 
-    assert resolved["slice_thickness"] == pytest.approx(
+    assert thickness == pytest.approx(
         pp.calc_rf_bandwidth(excitations[0].rf) / selection
     )
-    assert resolved["slice_thickness"] == pytest.approx(4e-3)
-    assert np.diff(centres) == pytest.approx(
-        resolved["slice_thickness"] + resolved["slice_spacing"]
-    )
+    assert thickness == pytest.approx(4e-3)
+    assert np.diff(centres) == pytest.approx(thickness + gap)
 
 
 def test_a_repetition_that_holds_whole_shots_takes_that_many_slices_a_packet():
-    shot = gre_app().ro.duration + pp.Opts().block_duration_raster
-    app = gre_app(n_slices=4, tr=2 * shot)
+    """With one slice and the shortest TR, the TR written is one shot."""
+    shot = np.atleast_1d(gre(n_slices=1, tr=None, n_dummy=0).definitions["TR"])[0]
+    played = packets(gre(n_slices=4, tr=2 * shot, n_dummy=0))
 
-    assert [len(packet) for packet in app.packets] == [2, 2]
+    assert [len(packet) for packet in played] == [2, 2]
 
 
 def test_a_shorter_echo_than_the_readout_admits_is_refused():
@@ -185,28 +256,28 @@ def test_undersampling_acquires_fewer_lines_than_it_encodes():
 @pytest.mark.parametrize("n_y", [32, 33])
 @pytest.mark.parametrize("ry", [2, 3, 4, 5])
 def test_undersampling_always_acquires_the_centre_line(n_y, ry):
-    app = gre_app(n_y=n_y, ry=ry, n_acs_y=0)
+    (lines,) = adc_labels(gre(n_y=n_y, ry=ry, n_acs_y=0, n_dummy=0), "LIN")
 
-    assert n_y // 2 in app.lines
-    assert all((line - n_y // 2) % ry == 0 for line in app.lines)
+    assert n_y // 2 in lines
+    assert all((line - n_y // 2) % ry == 0 for line in lines)
 
 
 def test_partial_fourier_drops_lines_before_the_centre_only():
-    app = gre_app(n_y=32, partial_fourier_y=0.75)
+    (lines,) = adc_labels(gre(n_y=32, partial_fourier_y=0.75, n_dummy=0), "LIN")
 
-    assert app.lines == list(range(8, 32))
+    assert list(lines) == list(range(8, 32))
 
 
 @pytest.mark.parametrize("name", ["partial_fourier_x", "partial_fourier_y"])
 @pytest.mark.parametrize("fraction", [0.7, 1.01])
 def test_a_partial_fourier_fraction_outside_its_range_is_refused(name, fraction):
     with pytest.raises(ValueError, match=name):
-        gre_app(**{name: fraction})
+        gre(**{name: fraction})
 
 
 def test_every_slice_is_rf_spoiled_by_its_own_excitation_count():
     """Consecutive excitations of one slice step their phase by a growing 117 degrees."""
-    seq = gre_app(n_slices=3, n_y=8, tr=None).design()
+    seq = gre(n_slices=3, n_y=8, tr=None, n_dummy=0)
     phases = {}
     for index in range(1, len(seq.block_events) + 1):
         rf = getattr(seq.get_block(index), "rf", None)
@@ -224,28 +295,31 @@ def test_every_slice_is_rf_spoiled_by_its_own_excitation_count():
 
 def test_the_calibration_block_leads_the_scan():
     """A reconstruction calibrates while the rest of the scan is arriving."""
-    app = gre_app(n_y=32, ry=2, n_acs_y=8)
+    lin, ima = adc_labels(gre(n_y=32, ry=2, n_acs_y=8, n_dummy=0), "LIN", "IMA")
 
-    assert list(app.lines[:8]) == sorted(app.calibration)
+    assert list(ima) == [1] * 8 + [0] * (len(ima) - 8)
+    assert list(lin[:8]) == sorted(lin[ima == 1])
 
 
 def test_a_fully_sampled_scan_has_no_calibration_block():
-    app = gre_app(n_y=32, ry=1, n_acs_y=8)
+    lin, ima = adc_labels(gre(n_y=32, ry=1, n_acs_y=8, n_dummy=0), "LIN", "IMA")
 
-    assert app.calibration == set()
-    assert app.lines == list(range(32))
+    assert not ima.any()
+    assert list(lin) == list(range(32))
 
 
 def test_each_acquisition_carries_the_line_and_slice_it_encodes():
-    app = gre_app(n_dummy=2, n_y=16, n_slices=3, ry=2, n_acs_y=4)
-    lin, slc, ima, seg = adc_labels(app.design(), "LIN", "SLC", "IMA", "SEG")
+    seq = gre(n_dummy=2, n_y=16, n_slices=3, ry=2, n_acs_y=4)
+    lin, slc, ima, seg = adc_labels(seq, "LIN", "SLC", "IMA", "SEG")
+    calibrating, imaging = pp.make_cartesian_axis_sampling(
+        16, 2, 4, partial_fourier=1.0
+    )
+    # One packet, whose even slices are excited before its odd ones.
+    expected = [(line, s) for line in [*calibrating, *imaging] for s in (0, 2, 1)]
 
-    expected = [
-        (line, s) for packet in app.packets for line in app.lines for s in packet
-    ]
     assert list(zip(lin, slc, strict=True)) == expected
-    assert list(ima) == [int(line in app.calibration) for line, _ in expected]
-    assert list(seg) == [1 - int(line in app.calibration) for line, _ in expected]
+    assert list(ima) == [int(line in calibrating) for line, _ in expected]
+    assert list(seg) == [1 - int(line in calibrating) for line, _ in expected]
 
 
 # -- the application contract ----------------------------------------------
@@ -267,7 +341,7 @@ def test_an_application_states_its_gradient_limits():
 
 
 def test_a_subclass_changes_a_setting_and_nothing_else():
-    class Gentle(sequences.gre2D_sequence.Gre2DApp):
+    class Gentle(legacy_application("gre2D_sequence")):
         MAX_SLEW = 100.0
 
     assert Gentle(pp.Opts(), **SMALL["gre2D_sequence"]).system.max_slew < (
@@ -276,7 +350,7 @@ def test_a_subclass_changes_a_setting_and_nothing_else():
 
 
 def test_the_protocol_is_the_prescription_with_its_defaults():
-    protocol = sequences.gre2D_sequence.Gre2DApp.protocol()
+    protocol = legacy_application("gre2D_sequence").protocol()
 
     assert protocol["n_y"] == 128
     assert protocol["tr"] == 250e-3
@@ -325,7 +399,7 @@ def test_a_label_set_before_a_change_of_once_is_written_again_after_it():
 
 
 def test_a_prescan_is_written_first_and_names_the_main_sequence_next(tmp_path):
-    class Prescanned(sequences.gre2D_sequence.Gre2DApp):
+    class Prescanned(legacy_application("gre2D_sequence")):
         def prescans(self):
             return {"calibration": lambda: self.kernel(0, 8, 0.0, self.raster)}
 

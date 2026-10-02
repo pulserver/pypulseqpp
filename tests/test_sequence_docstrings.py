@@ -24,16 +24,18 @@ def entry_point(request):
 
 
 def test_an_entry_point_returns_a_sequence(entry_point):
-    assert inspect.signature(entry_point).return_annotation is pp.Sequence
+    signature = inspect.signature(entry_point.main, eval_str=True)
+
+    assert signature.return_annotation is pp.Sequence
 
 
 def test_the_returns_section_holds_the_return_value_and_nothing_else(entry_point):
-    sections = dict(_split_sections(entry_point.__doc__ or "")[2])
+    sections = dict(_split_sections(inspect.getdoc(entry_point) or "")[2])
     assert sections["Returns"] == RETURNS
 
 
 def test_the_sections_are_independent_and_ordered(entry_point):
-    order = [name for name, _ in _split_sections(entry_point.__doc__ or "")[2]]
+    order = [name for name, _ in _split_sections(inspect.getdoc(entry_point) or "")[2]]
     assert order[: len(LEADING)] == list(LEADING)
     assert len(order) == len(set(order))
     assert order[-1] == "Examples"
@@ -42,7 +44,7 @@ def test_the_sections_are_independent_and_ordered(entry_point):
 
 def test_the_description_precedes_the_parameters(entry_point):
     """A class's extended description belongs above Parameters, not below Returns."""
-    summary, description, _ = _split_sections(entry_point.__doc__ or "")
+    summary, description, _ = _split_sections(inspect.getdoc(entry_point) or "")
     assert summary and not summary.endswith("-")
     assert "\n\n" not in summary
     assert "Returns" not in description
@@ -50,12 +52,13 @@ def test_the_description_precedes_the_parameters(entry_point):
 
 def test_the_docstring_parses_as_numpy(entry_point):
     """Napoleon turns each section into its own field list rather than one blob."""
-    rendered = str(NumpyDocstring(entry_point.__doc__ or "", Config()))
+    doc = inspect.getdoc(entry_point) or ""
+    rendered = str(NumpyDocstring(doc, Config()))
     returns = rendered.partition(":returns:")[2].partition("\n:")[0]
     assert "The designed sequence." in returns
     assert ">>>" not in returns
     assert ":rtype: pypulseqpp.Sequence" in rendered
-    if "Raises" in dict(_split_sections(entry_point.__doc__ or "")[2]):
+    if "Raises" in dict(_split_sections(doc)[2]):
         assert ":raises" in rendered
     assert ".. rubric:: Examples" in rendered
 

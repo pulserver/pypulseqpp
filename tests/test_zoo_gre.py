@@ -5,6 +5,7 @@ from itertools import pairwise
 
 import numpy as np
 import pytest
+from zoo import packets
 
 import pypulseqpp as pp
 from pypulseqpp import cli
@@ -23,11 +24,14 @@ SMALL = {
     },
 }
 
+#: The sequences written as applications, by the class their module defines.
 APPS = {
     "gre3D_sequence": "Gre3DApp",
-    "gre_multiecho2D_sequence": "GreMultiecho2DApp",
     "gre_multiecho3D_sequence": "GreMultiecho3DApp",
 }
+
+#: The definition that records each prescribed time.
+RECORDED = {"te": "TE", "tr": "TR"}
 
 MULTIECHO = ["gre_multiecho2D_sequence", "gre_multiecho3D_sequence"]
 
@@ -40,6 +44,11 @@ def app(name, **kwargs):
     """The application ``name``, without dummies unless asked for."""
     cls = getattr(module(name), APPS[name])
     return cls(pp.Opts(), **{**SMALL[name], "n_dummy": 0, **kwargs})
+
+
+def built(name, **kwargs):
+    """The sequence ``name`` designs, without dummies unless asked for."""
+    return module(name).main(**{**SMALL[name], "n_dummy": 0, **kwargs})
 
 
 def gre3d(**kwargs):
@@ -75,17 +84,18 @@ def test_an_echo_or_repetition_shorter_than_the_readout_is_refused(name, prescri
 
 @pytest.mark.parametrize("name", SMALL)
 @pytest.mark.parametrize("parameter", ["te", "tr"])
-def test_an_echo_or_repetition_left_to_the_design_resolves_to_the_shortest_one(
+def test_an_echo_or_repetition_left_to_the_design_is_written_as_the_shortest_one(
     name, parameter
 ):
-    shortest = app(name, **{parameter: None}).resolved[parameter]
+    def written(**kwargs):
+        return np.atleast_1d(built(name, **kwargs).definitions[RECORDED[parameter]])[0]
+
+    shortest = written(**{parameter: None})
     raster = pp.Opts().block_duration_raster
 
-    assert app(name, **{parameter: shortest}).resolved[parameter] == pytest.approx(
-        shortest
-    )
+    assert written(**{parameter: shortest}) == pytest.approx(shortest)
     with pytest.raises(ValueError, match="shorter than"):
-        app(name, **{parameter: shortest - raster})
+        built(name, **{parameter: shortest - raster})
 
 
 @pytest.mark.parametrize(
@@ -198,18 +208,21 @@ def test_every_partition_is_encoded_at_the_step_its_label_names():
 
 
 def test_each_2d_acquisition_carries_the_line_slice_and_echo_it_reads():
-    a = app("gre_multiecho2D_sequence", n_dummy=2, n_slices=3, ry=2, n_acs_y=4)
-    lin, slc, eco, ima = adc_labels(a.design(), "LIN", "SLC", "ECO", "IMA")
-
+    seq = built("gre_multiecho2D_sequence", n_dummy=2, n_slices=3, ry=2, n_acs_y=4)
+    lin, slc, eco, ima = adc_labels(seq, "LIN", "SLC", "ECO", "IMA")
+    calibrating, imaging = pp.make_cartesian_axis_sampling(
+        16, 2, 4, partial_fourier=1.0
+    )
+    # One packet, whose even slices are excited before its odd ones.
     expected = [
         (line, s, echo)
-        for packet in a.packets
-        for line in a.lines
-        for s in packet
-        for echo in range(a.n_echoes)
+        for line in [*calibrating, *imaging]
+        for s in (0, 2, 1)
+        for echo in range(3)
     ]
+
     assert list(zip(lin, slc, eco, strict=True)) == expected
-    assert list(ima) == [int(line in a.calibration) for line, _, _ in expected]
+    assert list(ima) == [int(line in calibrating) for line, _, _ in expected]
 
 
 def test_each_3d_acquisition_carries_the_view_and_echo_it_reads():
@@ -228,11 +241,11 @@ def test_each_3d_acquisition_carries_the_view_and_echo_it_reads():
 def test_the_echo_times_written_are_the_first_plus_whole_spacings(
     name, flyback, echo_spacing
 ):
-    a = app(name, n_echoes=4, flyback=flyback, echo_spacing=echo_spacing)
-    written = np.atleast_1d(a.design().definitions["TE"])
-    spacing = a.ro.echo_spacing
+    seq = built(name, n_echoes=4, flyback=flyback, echo_spacing=echo_spacing)
+    written = np.atleast_1d(seq.definitions["TE"])
+    spacing = written[1] - written[0]
 
-    assert written == pytest.approx(a.ro.echo_time + spacing * np.arange(4))
+    assert written == pytest.approx(written[0] + spacing * np.arange(4))
     if echo_spacing is not None:
         assert spacing == pytest.approx(echo_spacing)
 
@@ -240,10 +253,10 @@ def test_the_echo_times_written_are_the_first_plus_whole_spacings(
 @pytest.mark.parametrize("name", MULTIECHO)
 @pytest.mark.parametrize("flyback", [True, False], ids=["monopolar", "bipolar"])
 def test_every_echo_crosses_k_zero_at_the_echo_time_written(name, flyback):
-    a = app(name, n_dummy=0, n_echoes=3, flyback=flyback, echo_spacing=3e-3)
-    seq = a.design()
+    seq = built(name, n_dummy=0, n_echoes=3, flyback=flyback, echo_spacing=3e-3)
+    adc = acquisitions(seq)[0].adc
     k, _, t_excitation, _, t_adc = seq.calculate_kspace()
-    n = int(a.ro.adc.num_samples)
+    n = int(adc.num_samples)
     kx, t_adc = k[0, : 3 * n].reshape(3, n), np.asarray(t_adc)[: 3 * n].reshape(3, n)
     written = np.atleast_1d(seq.definitions["TE"])
 
@@ -252,14 +265,14 @@ def test_every_echo_crosses_k_zero_at_the_echo_time_written(name, flyback):
         # nearer one.
         nearest = int(np.argmin(np.abs(kx[echo])))
         assert t_adc[echo, nearest] - t_excitation[0] == pytest.approx(
-            written[echo], abs=0.5 * float(a.ro.adc.dwell) + 1e-9
+            written[echo], abs=0.5 * float(adc.dwell) + 1e-9
         )
 
 
 @pytest.mark.parametrize("name", MULTIECHO)
 def test_a_bipolar_train_reads_alternate_echoes_backwards(name):
-    a = app(name, n_echoes=4, flyback=False)
-    signs = [np.sign(b.gx.amplitude) for b in acquisitions(a.design())]
+    seq = built(name, n_echoes=4, flyback=False)
+    signs = [np.sign(b.gx.amplitude) for b in acquisitions(seq)]
 
     assert signs[:4] == [1, -1, 1, -1]
     assert len(set(map(tuple, np.reshape(signs, (-1, 4))))) == 1
@@ -267,17 +280,16 @@ def test_a_bipolar_train_reads_alternate_echoes_backwards(name):
 
 @pytest.mark.parametrize("name", MULTIECHO)
 def test_a_bipolar_train_spaces_its_echoes_closer_than_a_monopolar_one(name):
-    mono = app(name, n_echoes=3)
-    bi = app(name, n_echoes=3, flyback=False)
+    mono = np.diff(built(name, n_echoes=3).definitions["TE"])
+    bi = np.diff(built(name, n_echoes=3, flyback=False).definitions["TE"])
 
-    assert bi.ro.echo_spacing < mono.ro.echo_spacing
+    assert bi[0] < mono[0]
 
 
 @pytest.mark.parametrize("name", MULTIECHO)
 @pytest.mark.parametrize("flyback", [True, False], ids=["monopolar", "bipolar"])
 def test_a_longer_echo_spacing_waits_after_every_echo_but_the_last(name, flyback):
-    a = app(name, n_echoes=3, flyback=flyback, echo_spacing=5e-3)
-    seq = a.design()
+    seq = built(name, n_echoes=3, flyback=flyback, echo_spacing=5e-3)
     blocks = [seq.get_block(i) for i in range(1, len(seq.block_events) + 1)]
     reads = [i for i, block in enumerate(blocks) if block.adc is not None][:3]
 
@@ -287,7 +299,8 @@ def test_a_longer_echo_spacing_waits_after_every_echo_but_the_last(name, flyback
         assert len(between) == (2 if flyback else 1)
         assert between[-1].gx is None and between[-1].adc is None
         if flyback:
-            assert between[0].gx.amplitude == pytest.approx(a.ro.gx_flyback.amplitude)
+            # The flyback rewinds the area of the lobe just read.
+            assert between[0].gx.area == pytest.approx(-blocks[first].gx.area)
 
 
 @pytest.mark.parametrize("name", MULTIECHO)
@@ -305,7 +318,7 @@ def test_a_bipolar_train_with_a_partial_echo_is_refused(name):
 @pytest.mark.parametrize("name", MULTIECHO)
 @pytest.mark.parametrize("flyback", [True, False], ids=["monopolar", "bipolar"])
 def test_a_multiecho_scan_repeats_from_its_first_block(name, flyback):
-    seq = app(name, n_dummy=2, flyback=flyback, echo_spacing=4e-3, ry=2).design()
+    seq = built(name, n_dummy=2, flyback=flyback, echo_spacing=4e-3, ry=2)
 
     _size, start = seq.repetition()
 
@@ -315,14 +328,14 @@ def test_a_multiecho_scan_repeats_from_its_first_block(name, flyback):
 def test_every_slice_is_excited_at_the_repetition_time_written():
     """Including the smaller packet, which waits longer."""
     tr, lines = 30e-3, 16
-    a = app("gre_multiecho2D_sequence", n_slices=7, tr=tr)
-    seq = a.design()
+    seq = built("gre_multiecho2D_sequence", n_slices=7, tr=tr)
+    dealt = packets(seq)
     excited = np.asarray(seq.rf_times()[0])
 
-    assert len({len(packet) for packet in a.packets}) == 2
+    assert len({len(packet) for packet in dealt}) == 2
     assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(tr)
     at = 0
-    for packet in a.packets:
+    for packet in dealt:
         spacing = np.diff(excited[at : at + len(packet) * lines][:: len(packet)])
         assert spacing == pytest.approx(tr, abs=1e-9)
         at += len(packet) * lines

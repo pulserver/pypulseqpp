@@ -4,7 +4,7 @@ import inspect
 from pathlib import Path
 
 import pytest
-from zoo import SMALL, application
+from zoo import APPLICATIONS, SMALL, application, is_application, legacy_application
 
 import pypulseqpp as pp
 from pypulseqpp import _ext, cli, sequences
@@ -22,6 +22,11 @@ def delay(seconds, name=None):
 def events(written):
     """Each label event as its label, its type and its value."""
     return [(event.label, event.type, event.value) for event in written]
+
+
+def app_class(name):
+    """The SequenceApp subclass of ``name``, as shipped or as ``tests/legacy`` keeps it."""
+    return application(name) if is_application(name) else legacy_application(name)
 
 
 # -- labels ------------------------------------------------------------------
@@ -51,7 +56,7 @@ WRITTEN = [
 
 
 def test_labels_emit_what_sequence_app_labels_emit():
-    app = application("gre2D_sequence")(pp.Opts(), **SMALL["gre2D_sequence"])
+    app = app_class("gre2D_sequence")(pp.Opts(), **SMALL["gre2D_sequence"])
     labels = sequences.Labels()
 
     assert [events(labels(**values)) for values in SERIES] == WRITTEN
@@ -222,7 +227,7 @@ def test_the_system_is_not_a_protocol_parameter():
     assert (protocol["n"].type, protocol["n"].optional) == (int, True)
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
+@pytest.mark.parametrize("name", APPLICATIONS)
 def test_parameters_of_a_function_match_those_of_its_class(name):
     app = application(name)
 
@@ -230,7 +235,7 @@ def test_parameters_of_a_function_match_those_of_its_class(name):
 
 
 def test_a_class_as_a_function_takes_the_system_then_the_protocol_as_keywords():
-    app = application("gre2D_sequence")
+    app = app_class("gre2D_sequence")
     function = app.function()
 
     first, *protocol = inspect.signature(function).parameters.values()
@@ -248,9 +253,9 @@ def test_a_class_as_a_function_takes_the_system_then_the_protocol_as_keywords():
 @pytest.mark.parametrize("name", ["gre2D_sequence", "epi2D_sequence"])
 def test_a_class_as_a_function_designs_what_main_designs(tmp_path, name):
     """The chain is the prescans in play order and then the main sequence."""
-    app = application(name)(pp.Opts(), **SMALL[name])
+    app = app_class(name)(pp.Opts(), **SMALL[name])
     designed = [app.design(prescan) for prescan in app.prescans()] + [app.design()]
-    returned = application(name).function()(pp.Opts(), **SMALL[name])
+    returned = app_class(name).function()(pp.Opts(), **SMALL[name])
     for directory in ("class", "function"):
         (tmp_path / directory).mkdir()
 
@@ -268,7 +273,7 @@ def test_the_cli_writes_the_same_main_sequence_for_a_class_function_and_main(
     tmp_path, capsys, name
 ):
     """The main sequence is the last file of a chain, whichever name each route gives it."""
-    app = application(name)
+    app = app_class(name)
     flags = [
         part
         for key, value in SMALL[name].items()

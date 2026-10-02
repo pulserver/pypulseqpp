@@ -1,13 +1,11 @@
 {
  "bssfp2D-accelerated": {
-  "calibration": "3f4f1a9e175e4dbf",
   "label:IMA": "eb27c5568079334f",
   "label:LIN": "d7b6d01f4d84b926",
   "label:ONCE": "94d0e6543843bb74",
   "label:PHS": "94d0e6543843bb74",
   "label:SEG": "94d0e6543843bb74",
-  "label:SLC": "94d0e6543843bb74",
-  "lines": "d7b6d01f4d84b926"
+  "label:SLC": "94d0e6543843bb74"
  },
  "bssfp3D-caipi": {
   "calibration": "4997e74f94bc5a9e",
@@ -185,22 +183,18 @@
   "trains": "8bb6a8ce8c2ce222"
  },
  "gre2D": {
-  "calibration": "4f53cda18c2baa0c",
   "label:IMA": "90b44c0fdcab6576",
   "label:LIN": "be2af200787b297a",
   "label:ONCE": "90b44c0fdcab6576",
   "label:SEG": "fec767fc54c7c1b6",
-  "label:SLC": "90b44c0fdcab6576",
-  "lines": "be2af200787b297a"
+  "label:SLC": "90b44c0fdcab6576"
  },
  "gre2D-accelerated": {
-  "calibration": "3f4f1a9e175e4dbf",
   "label:IMA": "71feeed0446218e8",
   "label:LIN": "cd48ae08fb1d2eb5",
   "label:ONCE": "c14bc7d02c76f1ae",
   "label:SEG": "f919733d549a9e33",
-  "label:SLC": "c14bc7d02c76f1ae",
-  "lines": "cd48ae08fb1d2eb5"
+  "label:SLC": "c14bc7d02c76f1ae"
  },
  "gre3D": {
   "calibration": "4f53cda18c2baa0c",
@@ -233,14 +227,12 @@
   "views": "a4306d43247caf51"
  },
  "gre_multiecho2D-accelerated": {
-  "calibration": "3f4f1a9e175e4dbf",
   "label:ECO": "d81e08e622cec03a",
   "label:IMA": "5bcddd4e51433a44",
   "label:LIN": "5df8c0c56b06f861",
   "label:ONCE": "298b7784d13a28bc",
   "label:SEG": "2fd73be9f2f099ce",
-  "label:SLC": "298b7784d13a28bc",
-  "lines": "d7b6d01f4d84b926"
+  "label:SLC": "298b7784d13a28bc"
  },
  "gre_multiecho3D-caipi": {
   "calibration": "f16d3b2a4b3fea6e",
@@ -330,13 +322,11 @@
   "partitions": "80c4d2ddd1ea8e5b"
  },
  "se2D-accelerated": {
-  "calibration": "3f4f1a9e175e4dbf",
   "label:IMA": "eb27c5568079334f",
   "label:LIN": "d7b6d01f4d84b926",
   "label:ONCE": "94d0e6543843bb74",
   "label:SEG": "358d693441be9a74",
-  "label:SLC": "94d0e6543843bb74",
-  "lines": "d7b6d01f4d84b926"
+  "label:SLC": "94d0e6543843bb74"
  },
  "se3D-caipi": {
   "calibration": "f16d3b2a4b3fea6e",

@@ -9,7 +9,7 @@ under ``docs/examples/built-in-sequences``.
 
 :data:`SEQUENCES` is the single place a sequence's classification is stated. The
 catalogue tables under ``docs/sequences.md`` are written from the same table,
-with each description read from the application's own summary line.
+with each description read from the summary line of the entry point's docstring.
 """
 
 from __future__ import annotations
@@ -317,19 +317,10 @@ SEQUENCES: tuple[SequenceDoc, ...] = (
 
 
 
-def _app(doc: SequenceDoc) -> type:
-    """Return the ``SequenceApp`` subclass ``doc`` documents."""
-    module = importlib.import_module(f"pypulseqpp.sequences.sequence.{doc.module}")
-    return next(
-        value
-        for name, value in vars(module).items()
-        if name.endswith("App") and isinstance(value, type)
-    )
-
-
 def summary(doc: SequenceDoc) -> str:
-    """Return the application's own summary line, as the catalogue reports it."""
-    return (inspect.getdoc(_app(doc)) or "").split("\n\n")[0].replace("\n", " ")
+    """Return the sequence's own summary line, as the catalogue reports it."""
+    module = importlib.import_module(f"pypulseqpp.sequences.sequence.{doc.module}")
+    return (inspect.getdoc(module.main) or "").split("\n\n")[0].replace("\n", " ")
 
 
 def _related(doc: SequenceDoc) -> tuple[list[SequenceDoc], list[SequenceDoc]]:
