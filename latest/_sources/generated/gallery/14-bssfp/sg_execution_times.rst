@@ -33,8 +33,8 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp3D_sequence.py` (``bssfp3D_sequence.py``)
-     - 00:23.238
+     - 00:23.222
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_14-bssfp_bssfp2D_sequence.py` (``bssfp2D_sequence.py``)
-     - 00:01.396
+     - 00:01.412
      - 0.0
