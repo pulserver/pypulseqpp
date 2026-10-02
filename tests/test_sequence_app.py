@@ -1,38 +1,50 @@
-"""The prescription an application exposes, resolves and times."""
+"""The prescription a shipped sequence exposes, and what an application resolves and times."""
+
+import inspect
 
 import numpy as np
 import pytest
-from zoo import SMALL, application
+from zoo import APPLICATIONS, FUNCTIONS, SMALL, application, parameters
 
 import pypulseqpp as pp
 from pypulseqpp import sequences
 
 
 def test_a_parameter_carries_its_type_default_unit_and_description():
-    parameters = sequences.gre2D_sequence.Gre2DApp.parameters()
-    te, n_x = parameters["te"], parameters["n_x"]
+    main = sequences.gre2D_sequence.main
+    protocol = sequences.parameters(main)
+    te, n_x = protocol["te"], protocol["n_x"]
 
-    assert list(parameters) == list(sequences.gre2D_sequence.Gre2DApp.protocol())
+    assert list(protocol) == [
+        name for name in inspect.signature(main).parameters if name != "system"
+    ]
     assert (te.type, te.default, te.optional, te.unit) == (float, 8e-3, True, "s")
     assert te.description.startswith("Echo time (s). ``None`` is as short as")
     assert (n_x.type, n_x.optional, n_x.unit) == (int, False, "")
-    assert parameters["flip_angle_deg"].unit == "degrees"
-    assert parameters["fov_x"].unit == parameters["fov_y"].unit == "m"
+    assert protocol["flip_angle_deg"].unit == "degrees"
+    assert protocol["fov_x"].unit == protocol["fov_y"].unit == "m"
 
 
 def test_the_choices_of_a_parameter_are_the_values_its_type_lists_in_order():
-    parameters = sequences.fse3D_sequence.Fse3DApp.parameters()
+    protocol = sequences.fse3D_sequence.Fse3DApp.parameters()
 
-    assert parameters["excitation"].choices == ("slab", "nonselective")
-    assert parameters["wave"].choices == ("phase", "partition", "both")
-    assert parameters["n_x"].choices == ()
+    assert protocol["excitation"].choices == ("slab", "nonselective")
+    assert protocol["wave"].choices == ("phase", "partition", "both")
+    assert protocol["n_x"].choices == ()
+
+
+def test_the_choices_of_a_function_parameter_are_the_values_its_type_lists():
+    protocol = sequences.parameters(sequences.bssfp2D_sequence.main)
+
+    assert protocol["gating"].choices == ("none", "retrospective", "prospective")
+    assert protocol["n_x"].choices == ()
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
 def test_every_prescribed_parameter_is_described_and_a_string_lists_its_choices(
     name,
 ):
-    for parameter in application(name).parameters().values():
+    for parameter in parameters(name).values():
         assert parameter.description, parameter.name
         assert parameter.type is not None, parameter.name
         assert parameter.type is not str or parameter.choices, parameter.name
@@ -42,7 +54,7 @@ def test_the_units_the_shipped_sequences_state_are_the_package_units():
     stated = {
         parameter.unit
         for name in sequences.ZOO
-        for parameter in application(name).parameters().values()
+        for parameter in parameters(name).values()
     }
 
     assert stated <= {"", "m", "s", "Hz", "degrees", "T/m", "beats per minute"}
@@ -110,7 +122,7 @@ def test_without_a_stated_scan_time_the_whole_chain_is_designed_and_timed():
     assert app.seq.duration()[0] == pytest.approx(40e-3)
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
+@pytest.mark.parametrize("name", APPLICATIONS)
 def test_the_scan_time_is_the_time_the_designed_chain_plays(name):
     app = application(name)(pp.Opts(), **SMALL[name])
     stated = app.scan_time()
@@ -119,7 +131,7 @@ def test_the_scan_time_is_the_time_the_designed_chain_plays(name):
     assert stated == pytest.approx(sum(designed) + app.design().duration()[0])
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
+@pytest.mark.parametrize("name", APPLICATIONS)
 def test_every_shipped_application_states_its_scan_time(name):
     assert application(name)(pp.Opts(), **SMALL[name]).duration is not None
 
@@ -139,7 +151,7 @@ RECORDED = {
 }
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
+@pytest.mark.parametrize("name", APPLICATIONS)
 def test_the_resolved_prescription_is_what_the_file_records(name):
     """A multi-echo ``TE`` lists every echo: ``te``, then one ``echo_spacing`` apart."""
     app = application(name)(pp.Opts(), **SMALL[name])
@@ -160,7 +172,7 @@ def test_the_resolved_prescription_is_what_the_file_records(name):
         )
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
+@pytest.mark.parametrize("name", APPLICATIONS)
 def test_the_resolved_prescription_resolves_to_itself(name):
     """Prescribing what a design resolved to designs it again."""
     app = application(name)(pp.Opts(), **SMALL[name])
@@ -170,7 +182,7 @@ def test_the_resolved_prescription_resolves_to_itself(name):
         assert again.resolved[parameter] == pytest.approx(value, rel=1e-9), parameter
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
+@pytest.mark.parametrize("name", APPLICATIONS)
 def test_every_acquisition_samples_at_the_resolved_receiver_bandwidth(name):
     app = application(name)(pp.Opts(), **SMALL[name])
     seq = app.design()
@@ -178,3 +190,36 @@ def test_every_acquisition_samples_at_the_resolved_receiver_bandwidth(name):
     (dwell,) = {float(block.adc.dwell) for block in blocks if block.adc is not None}
 
     assert 1 / dwell == pytest.approx(app.resolved["readout_bandwidth_hz"])
+
+
+# -- a sequence function records its design in the file ----------------------
+
+
+@pytest.mark.parametrize("name", FUNCTIONS)
+def test_a_function_designs_the_definitions_it_wrote_again_from_them(name):
+    """Prescribing what a design wrote down designs it again."""
+    main = getattr(sequences, name).main
+    written = main(**SMALL[name]).definitions
+    prescribed = {
+        parameter: np.atleast_1d(written[key])[0]
+        for parameter, key in RECORDED.items()
+        if parameter in parameters(name) and key in written
+    }
+    again = main(**{**SMALL[name], **prescribed}).definitions
+
+    assert "tr" in prescribed
+    for parameter, key in RECORDED.items():
+        if parameter in prescribed:
+            assert np.atleast_1d(again[key]) == pytest.approx(
+                np.atleast_1d(written[key]), rel=1e-9
+            ), parameter
+
+
+@pytest.mark.parametrize("name", FUNCTIONS)
+def test_every_acquisition_of_a_function_samples_at_one_receiver_bandwidth(name):
+    seq = getattr(sequences, name).main(**SMALL[name])
+    blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
+    dwells = {float(block.adc.dwell) for block in blocks if block.adc is not None}
+
+    assert len(dwells) == 1
+    assert min(dwells) > 0

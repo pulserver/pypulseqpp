@@ -5,6 +5,7 @@ from itertools import pairwise
 
 import numpy as np
 import pytest
+from zoo import packets
 
 import pypulseqpp as pp
 from pypulseqpp import cli
@@ -27,10 +28,16 @@ SMALL = {
     },
 }
 
-APPS = {
-    "se2D_sequence": se2D.Se2DApp,
-    "se3D_sequence": se3D.Se3DApp,
-}
+#: The ``Name`` definition each sequence writes.
+NAMES = {"se2D_sequence": se2D.NAME, "se3D_sequence": se3D.Se3DApp.NAME}
+
+#: The sequences written as applications.
+APPS = {"se3D_sequence": se3D.Se3DApp}
+
+
+def built(name, **kwargs):
+    """The sequence ``name`` designs from its small prescription."""
+    return MODULES[name].main(**{**SMALL[name], **kwargs})
 
 
 def app(name, **kwargs):
@@ -64,71 +71,74 @@ def test_a_small_prescription_builds_and_passes_its_timing_check(name):
 
     is_ok, errors = seq.check_timing()
     assert is_ok, errors
-    assert seq.definitions["Name"] == APPS[name].NAME
+    assert seq.definitions["Name"] == NAMES[name]
 
 
 # -- 2D spin echo ------------------------------------------------------------
 
 
 def test_each_spin_echo_acquisition_carries_its_line_and_slice_in_play_order():
-    se = app("se2D_sequence", n_slices=4, tr=40e-3, ry=2, n_acs_y=4)
-    lin, slc, ima, seg = adc_labels(se.design(), "LIN", "SLC", "IMA", "SEG")
+    seq = built("se2D_sequence", n_slices=4, tr=40e-3, ry=2, n_acs_y=4)
+    lin, slc, ima, seg = adc_labels(seq, "LIN", "SLC", "IMA", "SEG")
+    calibrating, imaging = pp.make_cartesian_axis_sampling(
+        16, 2, 4, partial_fourier=1.0
+    )
+    # Four slices dealt round-robin into two packets, even slices first.
+    dealt = [[0, 2], [1, 3]]
+    expected = [
+        (line, s)
+        for packet in dealt
+        for line in [*calibrating, *imaging]
+        for s in packet
+    ]
 
-    assert len(se.packets) == 2
-    expected = [(line, s) for packet in se.packets for line in se.lines for s in packet]
+    assert packets(seq) == dealt
     assert list(zip(lin, slc, strict=True)) == expected
-    assert list(ima) == [int(line in se.calibration) for line, _ in expected]
-    assert list(seg) == [1 - int(line in se.calibration) for line, _ in expected]
+    assert list(ima) == [int(line in calibrating) for line, _ in expected]
+    assert list(seg) == [1 - int(line in calibrating) for line, _ in expected]
 
 
 def test_the_slices_of_a_spin_echo_packet_are_not_neighbours_and_keep_the_tr():
-    se = app("se2D_sequence", n_slices=6, tr=40e-3)
-    seq = se.design()
+    seq = built("se2D_sequence", n_slices=6, tr=40e-3)
+    dealt = packets(seq)
 
-    assert len(se.packets) > 1
-    for packet in se.packets:
-        assert all(b - a >= len(se.packets) for a, b in pairwise(sorted(packet)))
+    assert len(dealt) > 1
+    for packet in dealt:
+        assert all(b - a >= len(dealt) for a, b in pairwise(sorted(packet)))
     assert np.atleast_1d(seq.definitions["TR"])[0] == pytest.approx(40e-3)
 
 
 def test_every_refocusing_pulse_selects_the_slice_its_excitation_does():
-    """Refocusing offset = excitation offset x the ratio of selection amplitudes.
+    """Each pulse's frequency offset over the gradient at its centre is its slice position.
 
-    The refocusing pulse selects on the plateau between its crushers, its
-    ``selection_amplitude``, not on the crusher peak its gradient's
-    ``amplitude`` reports.
+    The refocusing pulse selects on the plateau between its crushers, not on the
+    crusher peak its gradient event's ``amplitude`` reports.
     """
-    thickness = 4e-3
-    sequence = app(
-        "se2D_sequence", n_slices=3, slice_thickness=thickness, slice_spacing=1e-3
-    )
-    pulses, _ = played(sequence.design())
-    excitation = sequence.exc.selection_amplitude
-    refocusing = sequence.ref.selection_amplitude
+    seq = built("se2D_sequence", n_slices=3, slice_thickness=4e-3, slice_spacing=1e-3)
+    waves, excitations, refocusings = seq.waveforms_and_times()[:3]
+    times, gz = np.asarray(waves[2])
+    selected = {
+        use: freq / np.interp(time, times, gz)
+        for use, (time, freq, _) in (
+            ("excitation", np.asarray(excitations)),
+            ("refocusing", np.asarray(refocusings)),
+        )
+    }
+    blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
+    crusher = next(b.gz.amplitude for b in blocks if b.rf and b.rf.use == "refocusing")
+    plateau = np.interp(refocusings[0][0], times, gz)
 
-    assert refocusing != pytest.approx(sequence.ref.gz.amplitude)
-
-    excited, pairs = [], []
-    for _, use, offset in pulses:
-        if use == "excitation":
-            excited.append(offset)
-        else:
-            pairs.append((offset, excited[-1]))
-
-    assert pairs
-    assert all(
-        ref == pytest.approx(exc * refocusing / excitation, abs=1e-6)
-        for ref, exc in pairs
+    assert abs(plateau) < abs(crusher)
+    assert selected["refocusing"] == pytest.approx(selected["excitation"], abs=1e-9)
+    assert sorted({round(p, 9) for p in selected["excitation"]}) == pytest.approx(
+        sorted(seq.definitions["SlicePositions"])
     )
-    assert sorted({round(f / excitation, 9) for f in excited}) == pytest.approx(
-        sorted(sequence.positions)
-    )
-    assert any(exc != 0.0 for _, exc in pairs)
+    assert any(position != 0.0 for position in selected["refocusing"])
 
 
 @pytest.mark.parametrize("name", ["se2D_sequence", "se3D_sequence"])
 def test_a_spin_echo_forms_at_the_te_asked_for_with_the_180_midway(name):
-    seq = app(name, te=20e-3).design()
+    seq = built(name, te=20e-3)
     pulses, echoes = played(seq)
     excitation, refocusing = pulses[0][0], pulses[1][0]
 
@@ -169,9 +179,8 @@ def test_each_3d_acquisition_carries_its_view_calibration_rectangle_first():
 def test_the_180_sits_midway_for_a_te_off_the_raster(name, excitation):
     """The TE is rounded up onto the raster rather than the 180 moved off midway."""
     kind = {} if name == "se2D_sequence" else {"excitation": excitation}
-    requested = app(name, **kind).echo_time + 4.013e-3
-    built = app(name, **kind, te=requested)
-    seq = built.design()
+    requested = np.atleast_1d(built(name, **kind).definitions["TE"])[0] + 4.013e-3
+    seq = built(name, **kind, te=requested)
     pulses, echoes = played(seq)
     (excitation_time, _, _), (refocusing_time, use, _) = pulses[:2]
     written = np.atleast_1d(seq.definitions["TE"])[0]
@@ -180,7 +189,7 @@ def test_the_180_sits_midway_for_a_te_off_the_raster(name, excitation):
     assert use == "refocusing"
     assert echoes[0] - excitation_time == pytest.approx(written, abs=1e-9)
     assert refocusing_time - excitation_time == pytest.approx(written / 2, abs=1e-9)
-    raster = built.system.block_duration_raster
+    raster = seq.system.block_duration_raster
     assert requested - 1e-9 <= written <= requested + 2 * raster
 
 

@@ -99,8 +99,8 @@ class SequenceApp(ABC):
     that changes one, and nothing else, is the same sequence under a different
     setting::
 
-        class GentleGre2D(Gre2DApp):
-            MAX_SLEW = 120.0
+        class GentlePulseTrain(HardPulseTrain):
+            MAX_SLEW = 100.0
 
     Attributes
     ----------
@@ -338,11 +338,23 @@ class SequenceApp(ABC):
         Examples
         --------
         >>> from pypulseqpp import sequences
-        >>> te = sequences.gre2D_sequence.Gre2DApp.parameters()["te"]
-        >>> te.type, te.default, te.optional, te.unit
-        (<class 'float'>, 0.008, True, 's')
-        >>> te.description
-        'Echo time (s). ``None`` is as short as the readout admits.'
+        >>> class Pause(sequences.SequenceApp):
+        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0
+        ...     def init_sequence(self, tr: float | None = None):
+        ...         '''Design a pause.
+        ...
+        ...         Parameters
+        ...         ----------
+        ...         tr : float | None, default=None
+        ...             Repetition time (s). ``None`` is as short as possible.
+        ...         '''
+        ...     def loop(self): ...
+        ...     def kernel(self): ...
+        >>> tr = Pause.parameters()["tr"]
+        >>> tr.type, tr.default, tr.optional, tr.unit
+        (<class 'float'>, None, True, 's')
+        >>> tr.description
+        'Repetition time (s). ``None`` is as short as possible.'
         """
         return parameters(cls.init_sequence)
 
@@ -416,12 +428,23 @@ class SequenceApp(ABC):
 
         Examples
         --------
+        >>> import pypulseqpp as pp
         >>> from pypulseqpp import sequences
-        >>> app = sequences.gre2D_sequence.Gre2DApp(n_x=32, n_y=16, tr=50e-3, n_dummy=0)
+        >>> class Pause(sequences.SequenceApp):
+        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0
+        ...     def init_sequence(self, n: int = 4):
+        ...         self.n = n
+        ...         self.duration = n * 10e-3
+        ...     def loop(self):
+        ...         for _ in range(self.n):
+        ...             self.kernel()
+        ...     def kernel(self):
+        ...         self.seq.add_block(pp.make_delay(10e-3))
+        >>> app = Pause(n=4)
         >>> app.scan_time()
-        0.8
+        0.04
         >>> round(app.design().duration()[0], 9)
-        0.8
+        0.04
         """
         if self.duration is not None:
             return float(self.duration)
@@ -450,16 +473,34 @@ class SequenceApp(ABC):
 
         Examples
         --------
+        >>> import pypulseqpp as pp
         >>> from pypulseqpp import sequences
-        >>> gre = sequences.gre2D_sequence.Gre2DApp.function()
-        >>> gre(n_x=32, n_y=16, n_acs_y=0).definitions["Matrix"]
-        [32.0, 16.0, 1.0]
+        >>> class Delays(sequences.SequenceApp):
+        ...     MAX_GRAD, MAX_SLEW = 40.0, 150.0
+        ...     def init_sequence(self, n: int = 2):
+        ...         self.n = n
+        ...     def loop(self):
+        ...         for _ in range(self.n):
+        ...             self.kernel()
+        ...     def kernel(self):
+        ...         self.seq.add_block(pp.make_delay(1e-3))
+        ...     def finalize(self):
+        ...         self.seq.set_definition("Name", "delays")
+        >>> delays = Delays.function()
+        >>> delays(n=3).num_blocks
+        3
 
         An application with prescans returns its chain:
 
-        >>> epi = sequences.epi2D_sequence.Epi2DApp.function()
-        >>> [seq.get_definition("Name") for seq in epi(n_x=32, n_y=16)]
-        ['epi_2d_reference', 'epi_2d']
+        >>> class PrimedDelays(Delays):
+        ...     def prescans(self):
+        ...         def reference():
+        ...             self.seq.add_block(pp.make_delay(2e-3))
+        ...             self.seq.set_definition("Name", "reference")
+        ...         return {"reference": reference}
+        >>> primed = PrimedDelays.function()
+        >>> [seq.get_definition("Name") for seq in primed(n=3)]
+        ['reference', 'delays']
         """
 
         def sequence(system: pp.Opts | None = None, **protocol: Any):
