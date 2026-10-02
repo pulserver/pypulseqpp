@@ -212,7 +212,7 @@ def fingerprint(name: str) -> dict:
             if not callable(getattr(app, attribute, print))
         }
     else:
-        seq = getattr(sequences, module).main(pp.Opts(), **kwargs)
+        seq = zoo.chain(getattr(sequences, module).main(pp.Opts(), **kwargs))[-1]
     labels = seq.evaluate_labels(evolution="adc")
     for label in sorted(labels):
         found[f"label:{label}"] = _digest(np.atleast_1d(labels[label]).tolist())

@@ -34,12 +34,13 @@ plt.rcParams.update(
 # -------------------------
 #
 # Every ``(line, partition)`` view inside the ellipse inscribed in the
-# phase-encode plane is acquired.
+# phase-encode plane is acquired. The function returns the sequences in play
+# order: the half-flip catalyst, then the train.
 
 import pypulseqpp as pp
 from pypulseqpp.sequences import bssfp3D_sequence
 
-baseline = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, tr=None)
+catalyst, baseline = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, tr=None)
 print(f"{baseline.num_blocks} blocks, {baseline.duration()[0]:.2f} s")
 
 
@@ -65,7 +66,7 @@ pp.plot.plot_kspace(baseline, color_by="order", plane="yz", show_trajectory=Fals
 # TR, flip angle, RF phase alternation and the balanced gradient moments of
 # each repetition are unchanged, so the steady state is the same.
 
-alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
+_, alternative = bssfp3D_sequence(n_x=160, n_y=160, n_z=32, ry=2, rz=2, tr=None)
 
 # sphinx_gallery_start_ignore
 print(f"{'':16} {'blocks':>8} {'duration (s)':>13} {'acquisitions':>13}")

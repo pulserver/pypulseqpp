@@ -4,7 +4,7 @@ import inspect
 from pathlib import Path
 
 import pytest
-from zoo import APPLICATIONS, SMALL, application, is_application, legacy_application
+from zoo import SMALL, app_class
 
 import pypulseqpp as pp
 from pypulseqpp import _ext, cli, sequences
@@ -22,11 +22,6 @@ def delay(seconds, name=None):
 def events(written):
     """Each label event as its label, its type and its value."""
     return [(event.label, event.type, event.value) for event in written]
-
-
-def app_class(name):
-    """The SequenceApp subclass of ``name``, as shipped or as ``tests/legacy`` keeps it."""
-    return application(name) if is_application(name) else legacy_application(name)
 
 
 # -- labels ------------------------------------------------------------------
@@ -95,6 +90,39 @@ def test_a_chain_is_written_with_next_sequence_links(tmp_path, offline):
     links = [pp.io.read(path).get_definition("NextSequence") for path in written]
     assert links == ["scan_1.seq", "scan_scan.seq", ""]
     assert [path.name for path, _ in pp.io.read_chain(written[0])] == names
+
+
+@pytest.mark.parametrize(
+    ("names", "files"),
+    [
+        (
+            ["calibration", "scan", "calibration", "scan"],
+            ["scan.seq", "scan_scan.seq", "scan_calibration.seq", "scan_scan_3.seq"],
+        ),
+        (
+            ["calibration", "scan", "scan_3", "scan"],
+            ["scan.seq", "scan_scan.seq", "scan_scan_3.seq", "scan_scan_3_3.seq"],
+        ),
+    ],
+    ids=["alternating names", "a suffixed name that is taken"],
+)
+def test_a_chain_whose_names_repeat_writes_one_file_per_sequence(
+    tmp_path, names, files
+):
+    """The first file stays at the path; a later file whose name is taken ends in its position."""
+    durations = [1e-3, 2e-3, 3e-3, 4e-3]
+    chain = [
+        delay(seconds, name) for seconds, name in zip(durations, names, strict=True)
+    ]
+
+    written = sequences.write(tmp_path / "scan.seq", chain)
+
+    assert [Path(path).name for path in written] == files
+    assert sorted(path.name for path in tmp_path.iterdir()) == sorted(files)
+    played = pp.io.read_chain(written[0])
+    assert [path.name for path, _ in played] == files
+    assert [seq.get_definition("Name") for _, seq in played] == names
+    assert [seq.duration()[0] for _, seq in played] == pytest.approx(durations)
 
 
 def test_a_link_is_recorded_in_the_files_and_not_on_the_sequences(tmp_path):
@@ -227,9 +255,9 @@ def test_the_system_is_not_a_protocol_parameter():
     assert (protocol["n"].type, protocol["n"].optional) == (int, True)
 
 
-@pytest.mark.parametrize("name", APPLICATIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_parameters_of_a_function_match_those_of_its_class(name):
-    app = application(name)
+    app = app_class(name)
 
     assert sequences.parameters(app.function()) == app.parameters()
 

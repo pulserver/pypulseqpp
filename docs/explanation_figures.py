@@ -370,7 +370,7 @@ def pns_response():
         tr=None,
         fat_saturation=False,
         readout_bandwidth_hz=500e3,
-    )
+    )[-1]
     model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
     _, report = safety.check_pns(seq, model, trace=True)
     figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
@@ -414,7 +414,7 @@ def gradient_spectra():
         ),
         "single-shot echo planar": sequences.epi2D_sequence(
             n_x=64, n_y=64, n_slices=1, tr=None, n_dummy=0, fat_saturation=False
-        ),
+        )[-1],
     }
 
     figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))

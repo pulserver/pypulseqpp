@@ -20,10 +20,10 @@
   files, each naming the next with `NextSequence`, so each file retains a single
   repeating unit. {func}`~pypulseqpp.sequences.duration` is the time the chain
   plays.
-- {class}`~pypulseqpp.sequences.SequenceApp`, the base class of the shipped
-  sequences, divides the function into the prescription (`init_sequence`), the
-  sampling order (`loop`), one repetition (`kernel`) and the Pulseq definitions
-  required by reconstruction (`finalize`). Construction checks a prescription
+- {class}`~pypulseqpp.sequences.SequenceApp` divides the function into the
+  prescription (`init_sequence`), the sampling order (`loop`), one repetition
+  (`kernel`) and the Pulseq definitions required by reconstruction
+  (`finalize`). Construction checks a prescription
   and records the resolved prescription and the scan time without playing the
   loop, and {meth}`~pypulseqpp.sequences.SequenceApp.function` returns a
   subclass as a sequence function.
@@ -93,8 +93,10 @@ acquisition. A sequence function returns it ahead of the main sequence in a
 list. {func}`~pypulseqpp.sequences.write` writes the list as separate files: the
 first at the given path, and each later one beside it as `<stem>_<Name>.seq`,
 where `Name` is the sequence's `Name` definition, or its position in the list,
-counted from 0 at the first, when it has none. Each file but the last names the
-next with `NextSequence`. The chain represents one acquisition while retaining
+counted from 0 at the first, when it has none. A later file whose name an
+earlier file has taken is written as `<stem>_<Name>_<position>.seq`, so every
+sequence has a file of its own. Each file but the last names the next with
+`NextSequence`. The chain represents one acquisition while retaining
 a single repeating unit per file for repetition-based analyses.
 {func}`~pypulseqpp.sequences.duration` is the sum of the durations of the
 sequences in the chain.
@@ -123,10 +125,11 @@ The `init_sequence` signature is the prescription exposed by `protocol`,
 `parameters`, the command line, and protocol editors. Its NumPy-style Parameters
 section defines units and defaults. Fixed design choices are class attributes.
 Every concrete application specifies `MAX_GRAD` and `MAX_SLEW`; construction
-caps the supplied system limits to these values.
+caps the supplied system limits to these values. A subclass of a concrete
+application, `BaseApp` below, assigns the attribute to change a limit.
 
 ```python
-class GentleEpi(Epi2DApp):
+class LowSlewApp(BaseApp):
     MAX_SLEW = 60.0
 ```
 

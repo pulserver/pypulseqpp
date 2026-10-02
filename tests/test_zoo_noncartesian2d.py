@@ -1,8 +1,4 @@
-"""The 2D non-Cartesian example sequences: radial, spiral and PROPELLER, gradient and spin echo.
-
-The radial, spiral and PROPELLER sequences are functions, and the echo-planar
-PROPELLER is a ``SequenceApp`` subclass.
-"""
+"""The 2D non-Cartesian example sequences: radial, spiral and PROPELLER, gradient and spin echo."""
 
 import importlib
 import math
@@ -63,23 +59,14 @@ def module(name):
     return importlib.import_module(f"pypulseqpp.sequences.sequence.{name}")
 
 
-def app_class(name):
-    """The ``SequenceApp`` subclass a module defines."""
-    mod = module(name)
-    return next(
-        value
-        for key, value in vars(mod).items()
-        if key.endswith("App") and getattr(value, "__module__", None) == mod.__name__
-    )
-
-
-def app(name, **kwargs):
-    """The entry's application, built from its small prescription."""
-    return app_class(name)(pp.Opts(), **{**SMALL[name], **kwargs})
-
-
 def built(name, **kwargs):
     """The sequence a function entry designs from its small prescription."""
+    return module(name).main(**{**SMALL[name], **kwargs})
+
+
+def se_epi(**kwargs):
+    """The PROPELLER spin echo with EPI blades, built from its small prescription."""
+    name = "se_epi_propeller2D_sequence"
     return module(name).main(**{**SMALL[name], **kwargs})
 
 
@@ -224,28 +211,32 @@ def test_each_blade_line_carries_its_line_blade_and_slice_in_play_order(name):
 
 
 def test_each_line_of_an_epi_blade_carries_its_line_blade_and_slice():
-    built = app("se_epi_propeller2D_sequence", n_slices=2, n_dummy=1)
-    lin, slc, seg = adc_labels(built.design(), "LIN", "SLC", "SEG")
+    seq = se_epi(n_slices=2, n_dummy=1)
+    lin, slc, seg = adc_labels(seq, "LIN", "SLC", "SEG")
 
-    width = built.blade.etl
+    small = SMALL["se_epi_propeller2D_sequence"]
+    # One pass holds both slices, and each is excited once per blade.
     expected = [
         (line, s, b)
-        for group in built.passes
-        for b in range(built.blade.n_blades)
-        for s in group
-        for line in range(width)
+        for b in range(small["n_blades"])
+        for s in pp.make_traversal_order(2, "interleaved")
+        for line in range(small["blade_width"])
     ]
     assert list(zip(lin, slc, seg, strict=True)) == expected
 
 
 @pytest.mark.parametrize("scheme", ["uniform", "golden"])
 def test_every_encoding_block_of_an_epi_blade_is_turned_by_its_angle(scheme):
-    built = app("se_epi_propeller2D_sequence", angle_scheme=scheme, n_dummy=1)
-    angles = built.blade.blade_angles
+    n_blades, n_dummy = SMALL["se_epi_propeller2D_sequence"]["n_blades"], 1
+    angles = (
+        pp.calc_uniform_angles(n_blades, span=np.pi)
+        if scheme == "uniform"
+        else pp.calc_golden_angles(n_blades)
+    )
 
-    shots = iter([0] * built.n_dummy + list(range(len(angles))))
+    shots = iter([0] * n_dummy + list(range(n_blades)))
     played, intended = [], []
-    for block in blocks(built.design()):
+    for block in blocks(se_epi(angle_scheme=scheme, n_dummy=n_dummy)):
         if block.rf is not None and block.rf.use == "excitation":
             angle = angles[next(shots)]
         elif in_plane(block):
@@ -293,35 +284,34 @@ def test_a_spin_echo_samples_its_centre_where_the_180_refocuses(name, offset):
     "te", [None, 60e-3, 60.0047e-3], ids=["shortest", "on raster", "off raster"]
 )
 def test_an_epi_blade_reads_its_central_line_at_the_resolved_echo_time(te):
-    built = app("se_epi_propeller2D_sequence", te=te)
-    seq = built.design()
+    seq = se_epi(te=te)
     k, _, t_excitation, _, t_adc = seq.calculate_kspace()
-    n, centre = int(built.blade.adc.num_samples), built.blade.blade_width // 2
+    n = int(next(b.adc.num_samples for b in blocks(seq) if b.adc is not None))
+    centre = SMALL["se_epi_propeller2D_sequence"]["blade_width"] // 2
     kx = np.asarray(k)[0, centre * n : (centre + 1) * n]
     t = np.asarray(t_adc)[centre * n : (centre + 1) * n]
     # The first blade reads along x, and crosses k = 0 between two samples.
     i = int(np.flatnonzero(np.diff(np.sign(kx)))[0])
     crossing = t[i] - kx[i] * (t[i + 1] - t[i]) / (kx[i + 1] - kx[i])
+    written = np.atleast_1d(seq.definitions["TE"])[0]
 
-    assert crossing - t_excitation[0] == pytest.approx(built.resolved["te"], abs=1e-9)
-    assert np.atleast_1d(seq.definitions["TE"])[0] == pytest.approx(
-        built.resolved["te"]
-    )
+    assert crossing - t_excitation[0] == pytest.approx(written, abs=1e-9)
+    if te is not None:
+        assert written == pytest.approx(te, abs=2 * seq.system.block_duration_raster)
 
 
 def test_a_blade_count_left_to_the_design_resolves_to_the_nyquist_set_played():
-    built = app("se_epi_propeller2D_sequence", n_blades=None)
-    (seg,) = adc_labels(built.design(), "SEG")
+    seq = se_epi(n_blades=None)
+    (seg,) = adc_labels(seq, "SEG")
+    n_blades = math.ceil(np.pi * 32 / (2 * 8))
 
-    assert built.resolved["n_blades"] == math.ceil(np.pi * 32 / (2 * 8))
-    assert sorted(set(seg)) == list(range(built.resolved["n_blades"]))
+    assert np.atleast_1d(seq.definitions["NumBlades"])[0] == n_blades
+    assert sorted(set(seg)) == list(range(n_blades))
 
 
 def test_a_gain_calibration_left_to_the_design_resolves_to_one_readout_per_slice():
-    built = app("se_epi_propeller2D_sequence", n_slices=3)
-    written = built.design().definitions["NumGainCalibrationReadouts"]
+    written = se_epi(n_slices=3).definitions["NumGainCalibrationReadouts"]
 
-    assert built.resolved["n_gain_calibration_readouts"] == 3
     assert np.atleast_1d(written)[0] == 3
 
 
@@ -367,16 +357,11 @@ def area(event):
     return float(np.trapezoid(np.asarray(event.waveform), np.asarray(event.tt)))
 
 
-@pytest.mark.parametrize("name", [*TILTED, "se_epi_propeller2D_sequence"])
+@pytest.mark.parametrize("name", TILTED)
 def test_every_shot_closes_its_in_plane_gradient_moment(name):
     """A residual moment would turn with the shot and differ from one to the next."""
-    if name in TILTED:
-        seq, shots = built(name, n_dummy=1), len(planned_tilts(name, n_dummy=1))
-        fov = np.atleast_1d(seq.definitions["FOV"])[0]
-    else:
-        epi = app(name, n_dummy=1)
-        seq, shots, fov = epi.design(), epi.n_dummy + epi.blade.n_blades, epi.fov
-    delta_k = 1.0 / fov
+    seq, shots = built(name, n_dummy=1), len(planned_tilts(name, n_dummy=1))
+    delta_k = 1.0 / np.atleast_1d(seq.definitions["FOV"])[0]
 
     # Nothing in-plane plays before a refocusing pulse, so a shot's moment is
     # the plain integral of the played physical waveforms between excitations.
@@ -392,6 +377,28 @@ def test_every_shot_closes_its_in_plane_gradient_moment(name):
     moments = [[moment(axis, a, b) for axis in (0, 1)] for a, b in pairwise(edges)]
 
     assert len(moments) == shots
+    assert np.abs(moments).max() < 1e-3 * delta_k
+
+
+def test_every_shot_of_an_epi_blade_closes_its_in_plane_gradient_moment():
+    """A residual moment would turn with the blade and differ from one to the next."""
+    seq = se_epi(n_dummy=1)
+    delta_k = 1.0 / seq.definitions["FOV"][0]
+
+    # Nothing in-plane plays before the refocusing pulse, so a shot's moment is
+    # the plain integral of the played physical waveforms between excitations.
+    waveforms = seq.waveforms()
+    excitations = np.asarray(seq.rf_times()[0])
+    edges = [*excitations, seq.duration()[0]]
+
+    def moment(axis, start, stop):
+        t, g = (np.asarray(v, dtype=float) for v in waveforms[axis][:2])
+        grid = np.unique(np.concatenate([t[(t > start) & (t < stop)], [start, stop]]))
+        return np.trapezoid(np.interp(grid, t, g, left=0.0, right=0.0), grid)
+
+    moments = [[moment(axis, a, b) for axis in (0, 1)] for a, b in pairwise(edges)]
+
+    assert len(moments) == 1 + SMALL["se_epi_propeller2D_sequence"]["n_blades"]
     assert np.abs(moments).max() < 1e-3 * delta_k
 
 

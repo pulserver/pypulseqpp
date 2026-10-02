@@ -24,12 +24,6 @@ SMALL = {
     },
 }
 
-#: The sequences written as applications, by the class their module defines.
-APPS = {
-    "gre3D_sequence": "Gre3DApp",
-    "gre_multiecho3D_sequence": "GreMultiecho3DApp",
-}
-
 #: The definition that records each prescribed time.
 RECORDED = {"te": "TE", "tr": "TR"}
 
@@ -40,19 +34,14 @@ def module(name):
     return importlib.import_module(f"pypulseqpp.sequences.sequence.{name}")
 
 
-def app(name, **kwargs):
-    """The application ``name``, without dummies unless asked for."""
-    cls = getattr(module(name), APPS[name])
-    return cls(pp.Opts(), **{**SMALL[name], "n_dummy": 0, **kwargs})
-
-
 def built(name, **kwargs):
     """The sequence ``name`` designs, without dummies unless asked for."""
     return module(name).main(**{**SMALL[name], "n_dummy": 0, **kwargs})
 
 
 def gre3d(**kwargs):
-    return app("gre3D_sequence", **kwargs)
+    """The 3D gradient echo, without dummies unless asked for."""
+    return built("gre3D_sequence", **kwargs)
 
 
 def adc_labels(seq, *names):
@@ -122,15 +111,20 @@ def test_a_flag_is_named_and_described_by_the_function_it_runs(
 
 
 def test_every_sampled_view_is_acquired_in_order_with_its_calibration_flags():
-    a = gre3d(n_dummy=3, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
-    lin, par, ima, seg = adc_labels(a.design(), "LIN", "PAR", "IMA", "SEG")
-    calibrating = [int(view in a.calibration) for view in a.views]
+    seq = gre3d(n_dummy=3, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
+    lin, par, ima, seg = adc_labels(seq, "LIN", "PAR", "IMA", "SEG")
+    shape = (SMALL["gre3D_sequence"]["n_y"], SMALL["gre3D_sequence"]["n_z"])
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, (2, 2), (4, 2), elliptical=True
+    )
+    views = [*calibration, *imaging]
+    marked = [int(view in calibration) for view in views]
 
-    assert a.calibration
-    assert a.views[: len(a.calibration)] == sorted(a.calibration)
-    assert list(zip(lin, par, strict=True)) == a.views
-    assert list(ima) == calibrating
-    assert list(seg) == [1 - c for c in calibrating]
+    assert calibration
+    assert views[: len(calibration)] == sorted(calibration)
+    assert list(zip(lin, par, strict=True)) == views
+    assert list(ima) == marked
+    assert list(seg) == [1 - mark for mark in marked]
 
 
 @pytest.mark.parametrize("n_z", [8, 9])
@@ -140,26 +134,31 @@ def test_every_sampled_view_is_acquired_in_order_with_its_calibration_flags():
 def test_the_caipirinha_lattice_always_holds_the_centre_and_climbs_per_line(
     ry, rz, shift, n_z
 ):
-    a = gre3d(n_y=16, n_z=n_z, ry=ry, rz=rz, caipi_shift=shift, n_acs_y=0, n_acs_z=0)
-    n_y = a.matrix[1]
+    n_y = 16
+    seq = gre3d(n_y=n_y, n_z=n_z, ry=ry, rz=rz, caipi_shift=shift, n_acs_y=0, n_acs_z=0)
+    lin, par = adc_labels(seq, "LIN", "PAR")
+    views = list(zip(lin.tolist(), par.tolist(), strict=True))
 
-    assert (n_y // 2, n_z // 2) in a.views
-    assert all((y - n_y // 2) % ry == 0 for y, _ in a.views)
+    assert (n_y // 2, n_z // 2) in views
+    assert all((y - n_y // 2) % ry == 0 for y, _ in views)
     assert all(
-        (z - n_z // 2 - shift * ((y - n_y // 2) // ry)) % rz == 0 for y, z in a.views
+        (z - n_z // 2 - shift * ((y - n_y // 2) // ry)) % rz == 0 for y, z in views
     )
 
 
 def test_partial_fourier_drops_the_lines_and_partitions_before_the_centre():
-    a = gre3d(
+    seq = gre3d(
         n_y=16,
         n_z=8,
         partial_fourier_y=0.75,
         partial_fourier_z=0.75,
         elliptical_sampling=False,
     )
+    lin, par = adc_labels(seq, "LIN", "PAR")
 
-    assert a.views == [(y, z) for y in range(4, 16) for z in range(2, 8)]
+    assert list(zip(lin, par, strict=True)) == [
+        (y, z) for y in range(4, 16) for z in range(2, 8)
+    ]
 
 
 @pytest.mark.parametrize(
@@ -181,27 +180,25 @@ def test_an_out_of_range_3d_prescription_is_refused(prescription):
 def test_every_excitation_builds_a_3d_gradient_echo_that_passes_its_timing_check(
     excitation,
 ):
-    seq = gre3d(excitation=excitation).design()
+    seq = gre3d(excitation=excitation)
 
     assert seq.check_timing()[0]
     assert seq.definitions["Excitation"] == excitation
 
 
 def test_every_partition_is_encoded_at_the_step_its_label_names():
-    a = gre3d()
-    seq = a.design()
+    """The pre-phasing area before a read is the label's offset from the centre, over the FOV."""
+    n_z, fov_z = SMALL["gre3D_sequence"]["n_z"], 0.1
+    seq = gre3d(fov_z=fov_z)
     (par,) = adc_labels(seq, "PAR")
-    n_z = a.matrix[2]
 
     blocks = [seq.get_block(i) for i in range(1, len(seq.block_events) + 1)]
-    steps = [
-        blocks[i - 1].gz.amplitude / a.ro.gz_pre.amplitude
-        for i, block in enumerate(blocks)
-        if block.adc is not None
+    areas = [
+        blocks[i - 1].gz.area for i, block in enumerate(blocks) if block.adc is not None
     ]
 
     assert sorted(set(par)) == list(range(n_z))
-    assert steps == pytest.approx((par - n_z // 2) / (n_z / 2))
+    assert areas == pytest.approx((par - n_z // 2) / fov_z)
 
 
 # -- multi-echo: every view read at each echo time ----------------------------
@@ -226,13 +223,22 @@ def test_each_2d_acquisition_carries_the_line_slice_and_echo_it_reads():
 
 
 def test_each_3d_acquisition_carries_the_view_and_echo_it_reads():
-    a = app("gre_multiecho3D_sequence", n_dummy=3, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
-    lin, par, eco, ima = adc_labels(a.design(), "LIN", "PAR", "ECO", "IMA")
+    name = "gre_multiecho3D_sequence"
+    seq = built(name, n_dummy=3, ry=2, rz=2, n_acs_y=4, n_acs_z=2)
+    lin, par, eco, ima = adc_labels(seq, "LIN", "PAR", "ECO", "IMA")
+    shape = (SMALL[name]["n_y"], SMALL[name]["n_z"])
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, (2, 2), (4, 2), elliptical=True
+    )
 
-    expected = [(*view, echo) for view in a.views for echo in range(a.n_echoes)]
-    assert a.calibration
+    expected = [
+        (*view, echo)
+        for view in [*calibration, *imaging]
+        for echo in range(SMALL[name]["n_echoes"])
+    ]
+    assert calibration
     assert list(zip(lin, par, eco, strict=True)) == expected
-    assert list(ima) == [int((y, z) in a.calibration) for y, z, _ in expected]
+    assert list(ima) == [int((y, z) in calibration) for y, z, _ in expected]
 
 
 @pytest.mark.parametrize("name", MULTIECHO)

@@ -134,7 +134,54 @@ def shell_bases(n: int, rz: int, partial_fourier: float) -> list[int]:
     return sorted(bases, key=lambda b: (abs(b + (rz - 1) / 2 - n // 2), b))
 
 
-class Epi3DApp(sequences.SequenceApp):
+NAME = "epi_3d"
+MAX_GRAD = 80.0
+MAX_SLEW = 200.0
+#: SLR design of the slab-selective pulse.
+PULSE_DURATION = 3e-3
+TIME_BW_PRODUCT = 4.0
+#: Duration of the nonselective hard pulse (s).
+HARD_PULSE_DURATION = 0.5e-3
+#: Fat methylene shift from water (ppm), converted against ``system.B0``
+#: when the spectral-spatial pulse is built.
+FAT_SHIFT_PPM = -3.4
+#: Centre lines read without blips at the start of every shot.
+NAVIGATOR_LINES = 3
+#: Dephasing left on the readout axis at the end of each shot, in cycles
+#: across one voxel.
+SPOILING_CYCLES = 4.0
+#: Digital output marking every volume under ``volume_output``, and how
+#: long it lasts (s); it never outlasts the excitation block it rides.
+OUTPUT_CHANNEL = "ext1"
+OUTPUT_DURATION = 1e-3
+
+
+def epi3d(
+    system: pp.Opts | None = None,
+    *,
+    fov_x: float = 220e-3,
+    fov_y: float = 220e-3,
+    fov_z: float = 96e-3,
+    n_x: int = 128,
+    n_y: int = 128,
+    n_z: int = 32,
+    flip_angle_deg: float = 20.0,
+    te: float | None = None,
+    tr: float | None = None,
+    n_frames: int = 1,
+    readout_bandwidth_hz: float = 500e3,
+    ry: int = 1,
+    rz: int = 1,
+    partial_fourier_y: float = 1.0,
+    partial_fourier_z: float = 1.0,
+    n_shots: int = 1,
+    n_dummy: int = 2,
+    excitation: str = "slab",
+    readout_oversampling: float = 1.0,
+    n_acs_y: int = 24,
+    n_acs_z: int = 16,
+    volume_output: bool = False,
+) -> list[pp.Sequence]:
     """3D gradient-echo EPI: one train per ``(shot, shell)``, skipped-CAIPI sampled.
 
     The views sampled form a CAIPIRINHA lattice holding the centre of
@@ -148,396 +195,286 @@ class Epi3DApp(sequences.SequenceApp):
     doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI. A volume is
     every shot of every shell, shots outer and shells centre-out inner.
 
-    Every shot reads :attr:`NAVIGATOR_LINES` centre lines without blips
+    Every shot reads ``NAVIGATOR_LINES`` centre lines without blips
     (``NAV``) before its train, every line carries ``REV`` for its read
     polarity, and shots are delayed by successive fractions of the echo
     spacing so the echo time grows smoothly across the lines; ``te`` is the
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,
     ``SEG`` (the shot) and ``REP``.
 
-    Two prescans are linked ahead of the imaging (:meth:`prescans`): the
+    Two prescans are linked ahead of the imaging: the
     ``calibration``, when undersampled, a Cartesian gradient echo over the
     central ``n_acs_y x n_acs_z`` rectangle (``REF``); and the ``reference``,
     one volume with the phase encode reversed (``SET = 1``), for distortion
     correction.
 
+    Parameters
+    ----------
+    system : pypulseqpp.Opts, default=None
+        System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
+        ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
+    fov_x : float, default=0.22
+        Field of view along the readout, the phase encode and the
+        partition encode (m). The slab excited is ``fov_z`` thick.
+    fov_y : float, default=0.22
+        Field of view along the readout, the phase encode and the
+        partition encode (m). The slab excited is ``fov_z`` thick.
+    fov_z : float, default=0.096
+        Field of view along the readout, the phase encode and the
+        partition encode (m). The slab excited is ``fov_z`` thick.
+    n_x : int, default=128
+        Matrix size along the readout, the phase encode and the partition
+        encode.
+    n_y : int, default=128
+        Matrix size along the readout, the phase encode and the partition
+        encode.
+    n_z : int, default=32
+        Matrix size along the readout, the phase encode and the partition
+        encode.
+    flip_angle_deg : float, default=20.0
+        Excitation flip angle (degrees).
+    te : float | None, default=None
+        Echo time of the centre line (s). ``None`` is as short as the
+        navigator and the train admit.
+    tr : float | None, default=None
+        Volume repetition time (s): every shot of every shell. ``None`` is
+        as short as possible.
+    n_frames : int, default=1
+        Volumes in the time series, each carrying its ``REP`` counter.
+    readout_bandwidth_hz : float, default=500000.0
+        Requested receiver bandwidth (Hz).
+    ry, rz : int, default=1
+        Undersampling along the phase and the partition encode; ``rz`` is
+        also the shell height.
+    partial_fourier_y, partial_fourier_z : float, default=1.0
+        Fraction of the phase- and partition-encode extent read, in
+        ``[0.5, 1]``. Truncates the lines and the shells before the centre.
+    n_shots : int, default=1
+        Interleaved shots each shell's lines are split into.
+    n_dummy : int, default=2
+        Non-acquiring volumes before a time series; with one frame,
+        non-acquiring shots.
+    excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
+        A slab-selective SLR pulse, a hard pulse, or a slab- and
+        water-selective spectral-spatial pulse.
+    readout_oversampling : float, default=1.0
+        Readout oversampling factor, at least one.
+    n_acs_y : int, default=24
+        Extent of the gradient-echo calibration rectangle along the phase
+        and the partition encode.
+    n_acs_z : int, default=16
+        Extent of the gradient-echo calibration rectangle along the phase
+        and the partition encode.
+    volume_output : bool, default=False
+        Play a digital output on ``OUTPUT_CHANNEL`` at the first
+        excitation of every volume, dummy volumes included.
+
+    Returns
+    -------
+    list of pypulseqpp.Sequence
+        The designed sequences in play order: the ``calibration`` when
+        undersampled, the ``reference``, then the scan, which is the main
+        sequence. ``sequences.write`` writes them as files linked through
+        ``NextSequence``.
+
+    Raises
+    ------
+    ValueError
+        If ``excitation`` is unknown, a partial Fourier fraction is outside
+        ``[0.5, 1]``, a count is below one, the shots cannot share the lines
+        or the partitions hold no shell, or the TE or TR is shorter than
+        the shots take.
+
     Examples
     --------
     >>> from pypulseqpp import sequences
-    >>> seq = sequences.epi3D_sequence(n_x=32, n_y=16, n_z=4, n_dummy=0)
+    >>> *prescans, seq = sequences.epi3D_sequence(n_x=32, n_y=16, n_z=4, n_dummy=0)
+    >>> [prescan.definitions["Name"] for prescan in prescans]
+    ['epi_3d_reference']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["Matrix"], seq.definitions["Name"]
     ([32.0, 16.0, 4.0], 'epi_3d')
     """
-
-    NAME = "epi_3d"
-    MAX_GRAD = 80.0
-    MAX_SLEW = 200.0
-    #: SLR design of the slab-selective pulse.
-    PULSE_DURATION = 3e-3
-    TIME_BW_PRODUCT = 4.0
-    #: Duration of the nonselective hard pulse (s).
-    HARD_PULSE_DURATION = 0.5e-3
-    #: Fat methylene shift from water (ppm), converted against ``system.B0``
-    #: when the spectral-spatial pulse is built.
-    FAT_SHIFT_PPM = -3.4
-    #: Centre lines read without blips at the start of every shot.
-    NAVIGATOR_LINES = 3
-    #: Dephasing left on the readout axis at the end of each shot, in cycles
-    #: across one voxel.
-    SPOILING_CYCLES = 4.0
-    #: Digital output marking every volume under ``volume_output``, and how
-    #: long it lasts (s); it never outlasts the excitation block it rides.
-    OUTPUT_CHANNEL = "ext1"
-    OUTPUT_DURATION = 1e-3
-
-    def init_sequence(
-        self,
-        fov_x: float = 220e-3,
-        fov_y: float = 220e-3,
-        fov_z: float = 96e-3,
-        n_x: int = 128,
-        n_y: int = 128,
-        n_z: int = 32,
-        flip_angle_deg: float = 20.0,
-        te: float | None = None,
-        tr: float | None = None,
-        n_frames: int = 1,
-        readout_bandwidth_hz: float = 500e3,
-        ry: int = 1,
-        rz: int = 1,
-        partial_fourier_y: float = 1.0,
-        partial_fourier_z: float = 1.0,
-        n_shots: int = 1,
-        *,
-        n_dummy: int = 2,
-        excitation: str = "slab",
-        readout_oversampling: float = 1.0,
-        n_acs_y: int = 24,
-        n_acs_z: int = 16,
-        volume_output: bool = False,
-    ) -> None:
-        """Design the excitation, the trains, the shells and the shot order.
-
-        Parameters
-        ----------
-        fov_x : float, default=0.22
-            Field of view along the readout, the phase encode and the
-            partition encode (m). The slab excited is ``fov_z`` thick.
-        fov_y : float, default=0.22
-            Field of view along the readout, the phase encode and the
-            partition encode (m). The slab excited is ``fov_z`` thick.
-        fov_z : float, default=0.096
-            Field of view along the readout, the phase encode and the
-            partition encode (m). The slab excited is ``fov_z`` thick.
-        n_x : int, default=128
-            Matrix size along the readout, the phase encode and the partition
-            encode.
-        n_y : int, default=128
-            Matrix size along the readout, the phase encode and the partition
-            encode.
-        n_z : int, default=32
-            Matrix size along the readout, the phase encode and the partition
-            encode.
-        flip_angle_deg : float, default=20.0
-            Excitation flip angle (degrees).
-        te : float | None, default=None
-            Echo time of the centre line (s). ``None`` is as short as the
-            navigator and the train admit.
-        tr : float | None, default=None
-            Volume repetition time (s): every shot of every shell. ``None`` is
-            as short as possible.
-        n_frames : int, default=1
-            Volumes in the time series, each carrying its ``REP`` counter.
-        readout_bandwidth_hz : float, default=500000.0
-            Requested receiver bandwidth (Hz).
-        ry, rz : int, default=1
-            Undersampling along the phase and the partition encode; ``rz`` is
-            also the shell height.
-        partial_fourier_y, partial_fourier_z : float, default=1.0
-            Fraction of the phase- and partition-encode extent read, in
-            ``[0.5, 1]``. Truncates the lines and the shells before the centre.
-        n_shots : int, default=1
-            Interleaved shots each shell's lines are split into.
-        n_dummy : int, default=2
-            Non-acquiring volumes before a time series; with one frame,
-            non-acquiring shots.
-        excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
-            A slab-selective SLR pulse, a hard pulse, or a slab- and
-            water-selective spectral-spatial pulse.
-        readout_oversampling : float, default=1.0
-            Readout oversampling factor, at least one.
-        n_acs_y : int, default=24
-            Extent of the gradient-echo calibration rectangle along the phase
-            and the partition encode.
-        n_acs_z : int, default=16
-            Extent of the gradient-echo calibration rectangle along the phase
-            and the partition encode.
-        volume_output : bool, default=False
-            Play a digital output on :attr:`OUTPUT_CHANNEL` at the first
-            excitation of every volume, dummy volumes included.
-
-        Raises
-        ------
-        ValueError
-            If ``excitation`` is unknown, a partial Fourier fraction is outside
-            ``[0.5, 1]``, a count is below one, the shots cannot share the lines
-            or the partitions hold no shell, or the TE or TR is shorter than
-            the shots take.
-        """
-        if excitation not in sequences.EXCITATIONS:
-            raise ValueError(
-                f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
-            )
-        for name, fraction in (
-            ("partial_fourier_y", partial_fourier_y),
-            ("partial_fourier_z", partial_fourier_z),
-        ):
-            if not 0.5 <= fraction <= 1.0:
-                raise ValueError(f"{name} must lie in [0.5, 1], got {fraction}")
-        for name, count in (
-            ("ry", ry),
-            ("rz", rz),
-            ("n_shots", n_shots),
-            ("n_frames", n_frames),
-        ):
-            if count < 1:
-                raise ValueError(f"{name} must be at least 1, got {count}")
-
-        system = self.system
-        self.fov = (fov_x, fov_y, fov_z)
-        self.matrix = (n_x, n_y, n_z)
-        self.excitation = excitation
-        self.n_frames, self.n_shots = n_frames, n_shots
-        self.n_dummy, self.volume_output = n_dummy, volume_output
-        self.raster = system.block_duration_raster
-        self.exc = sequences.make_excitation(
-            system,
-            excitation,
-            flip_angle_deg,
-            fov_z,
-            duration_s=self.PULSE_DURATION,
-            time_bw_product=self.TIME_BW_PRODUCT,
-            hard_duration_s=self.HARD_PULSE_DURATION,
-            fat_shift_ppm=self.FAT_SHIFT_PPM,
+    system = pp.cap_system(
+        pp.Opts() if system is None else system,
+        max_grad=MAX_GRAD,
+        max_slew=MAX_SLEW,
+    )
+    if excitation not in sequences.EXCITATIONS:
+        raise ValueError(
+            f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
         )
-        self.gz = getattr(self.exc, "gz", None)
+    for name, fraction in (
+        ("partial_fourier_y", partial_fourier_y),
+        ("partial_fourier_z", partial_fourier_z),
+    ):
+        if not 0.5 <= fraction <= 1.0:
+            raise ValueError(f"{name} must lie in [0.5, 1], got {fraction}")
+    for name, count in (
+        ("ry", ry),
+        ("rz", rz),
+        ("n_shots", n_shots),
+        ("n_frames", n_frames),
+    ):
+        if count < 1:
+            raise ValueError(f"{name} must be at least 1, got {count}")
 
-        # Shot s reads lattice lines s, s + n_shots, ...; the centre line is the
-        # c-th, echoed at the (c / n_shots)-th line of the unshifted train.
-        start, etl = train_lines(n_y, ry, n_shots, partial_fourier_y)
-        self.origins = [start + s * ry for s in range(n_shots)]
-        self.shells = shell_bases(n_z, rz, partial_fourier_z)
-        self.shift = caipi_shift(ry, rz)
-        steps = np.arange(etl) * n_shots * ry
-        # Every shell starts at the same residue modulo rz, so a shot's offsets
-        # within its shell depend on the shot alone.
-        trains = {}
-        self.shot_trains = []
-        for s in range(n_shots):
-            lines = start + (s + np.arange(etl) * n_shots) * ry
-            lattice = n_z // 2 + self.shift * ((lines - n_y // 2) // ry)
-            offsets = (lattice - self.shells[0]) % rz
-            key = tuple(offsets)
-            if key not in trains:
-                trains[key] = sequences.EpiReadout3D(
-                    system,
-                    self.exc.rf,
-                    self.gz,
-                    order=np.column_stack((steps, offsets)),
-                    te=te,
-                    te_line=(n_y // 2 - start) // ry / n_shots,
-                    navigator_lines=self.NAVIGATOR_LINES,
-                    echo_shifts=n_shots,
-                    fov=self.fov,
-                    matrix=self.matrix,
-                    oversampling=readout_oversampling,
-                    readout_bandwidth_hz=readout_bandwidth_hz,
-                    spoiling_cycles=self.SPOILING_CYCLES,
-                    labels=("LIN", "PAR"),
-                )
-            self.shot_trains.append(trains[key])
-        self.epi = self.shot_trains[0]
-        self.echo_time = self.epi.echo_time
+    fov = (fov_x, fov_y, fov_z)
+    matrix = (n_x, n_y, n_z)
+    raster = system.block_duration_raster
+    exc = sequences.make_excitation(
+        system,
+        excitation,
+        flip_angle_deg,
+        fov_z,
+        duration_s=PULSE_DURATION,
+        time_bw_product=TIME_BW_PRODUCT,
+        hard_duration_s=HARD_PULSE_DURATION,
+        fat_shift_ppm=FAT_SHIFT_PPM,
+    )
+    gz = getattr(exc, "gz", None)
 
-        # A shot is the train and a closing delay of at least one raster.
-        self.volume = [(s, b) for s in range(n_shots) for b in self.shells]
-        shot = self.epi.duration + self.raster
-        self.pad = self.raster
-        if tr is not None:
-            per_shot = tr / len(self.volume)
-            if per_shot < shot - 1e-9:
-                raise ValueError(
-                    f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
-                    f"{len(self.volume) * shot * 1e3:.3f} ms the "
-                    f"{len(self.volume)} shots of a volume take"
-                )
-            self.pad += pp.round_to_raster(per_shot - shot, self.raster)
-        self.shot_duration = shot - self.raster + self.pad
-        self.repetition_time = len(self.volume) * self.shot_duration
-        n_dummy_shots = n_dummy * (len(self.volume) if n_frames > 1 else 1)
-        self.dummies = [self.volume[i % len(self.volume)] for i in range(n_dummy_shots)]
-        self.output = pp.make_digital_output_pulse(
-            self.OUTPUT_CHANNEL,
-            duration=min(
-                self.OUTPUT_DURATION,
-                pp.calc_duration(self.exc.rf, *([] if self.gz is None else [self.gz])),
-            ),
-            system=system,
-        )
-
-        # A gradient echo keeps EPI distortion out of the coil maps.
-        undersampled = (
-            ry > 1 or rz > 1 or partial_fourier_y < 1 or partial_fourier_z < 1
-        )
-        self.calibration = []
-        if undersampled:
-            low_y, low_z = n_y // 2 - n_acs_y // 2, n_z // 2 - n_acs_z // 2
-            self.calibration = [
-                (y, z)
-                for y in range(max(low_y, 0), min(low_y + n_acs_y, n_y))
-                for z in range(max(low_z, 0), min(low_z + n_acs_z, n_z))
-            ]
-        self.gre = None
-        if self.calibration:
-            self.gre = sequences.LineReadout3D(
+    # Shot s reads lattice lines s, s + n_shots, ...; the centre line is the
+    # c-th, echoed at the (c / n_shots)-th line of the unshifted train.
+    start, etl = train_lines(n_y, ry, n_shots, partial_fourier_y)
+    origins = [start + s * ry for s in range(n_shots)]
+    shells = shell_bases(n_z, rz, partial_fourier_z)
+    shift = caipi_shift(ry, rz)
+    steps = np.arange(etl) * n_shots * ry
+    # Every shell starts at the same residue modulo rz, so a shot's offsets
+    # within its shell depend on the shot alone.
+    trains = {}
+    shot_trains = []
+    for s in range(n_shots):
+        lines = start + (s + np.arange(etl) * n_shots) * ry
+        lattice = n_z // 2 + shift * ((lines - n_y // 2) // ry)
+        offsets = (lattice - shells[0]) % rz
+        key = tuple(offsets)
+        if key not in trains:
+            trains[key] = sequences.EpiReadout3D(
                 system,
-                self.exc.rf,
-                self.gz,
-                fov=self.fov,
-                matrix=self.matrix,
+                exc.rf,
+                gz,
+                order=np.column_stack((steps, offsets)),
+                te=te,
+                te_line=(n_y // 2 - start) // ry / n_shots,
+                navigator_lines=NAVIGATOR_LINES,
+                echo_shifts=n_shots,
+                fov=fov,
+                matrix=matrix,
                 oversampling=readout_oversampling,
                 readout_bandwidth_hz=readout_bandwidth_hz,
-                spoiling_cycles=self.SPOILING_CYCLES,
+                spoiling_cycles=SPOILING_CYCLES,
                 labels=("LIN", "PAR"),
             )
+        shot_trains.append(trains[key])
+    epi = shot_trains[0]
+    echo_time = epi.echo_time
 
-        # The reference and the scan each open with the dummy shots; the
-        # calibration is one gradient echo per view.
-        self.duration = (
-            2 * len(self.dummies) + (1 + n_frames) * len(self.volume)
-        ) * self.shot_duration
-        if self.gre is not None:
-            self.duration += len(self.calibration) * self.gre.duration
-        self.resolve(
-            te=self.echo_time,
-            tr=self.repetition_time,
-            readout_bandwidth_hz=self.epi.bandwidth_hz,
+    # A shot is the train and a closing delay of at least one raster.
+    volume = [(s, b) for s in range(n_shots) for b in shells]
+    shortest_shot = epi.duration + raster
+    pad = raster
+    if tr is not None:
+        per_shot = tr / len(volume)
+        if per_shot < shortest_shot - 1e-9:
+            raise ValueError(
+                f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
+                f"{len(volume) * shortest_shot * 1e3:.3f} ms the "
+                f"{len(volume)} shots of a volume take"
+            )
+        pad += pp.round_to_raster(per_shot - shortest_shot, raster)
+    shot_duration = shortest_shot - raster + pad
+    repetition_time = len(volume) * shot_duration
+    n_dummy_shots = n_dummy * (len(volume) if n_frames > 1 else 1)
+    dummies = [volume[i % len(volume)] for i in range(n_dummy_shots)]
+    output_pulse = pp.make_digital_output_pulse(
+        OUTPUT_CHANNEL,
+        duration=min(
+            OUTPUT_DURATION,
+            pp.calc_duration(exc.rf, *([] if gz is None else [gz])),
+        ),
+        system=system,
+    )
+
+    # A gradient echo keeps EPI distortion out of the coil maps.
+    undersampled = ry > 1 or rz > 1 or partial_fourier_y < 1 or partial_fourier_z < 1
+    calibration = []
+    if undersampled:
+        low_y, low_z = n_y // 2 - n_acs_y // 2, n_z // 2 - n_acs_z // 2
+        calibration = [
+            (y, z)
+            for y in range(max(low_y, 0), min(low_y + n_acs_y, n_y))
+            for z in range(max(low_z, 0), min(low_z + n_acs_z, n_z))
+        ]
+    gre = None
+    if calibration:
+        gre = sequences.LineReadout3D(
+            system,
+            exc.rf,
+            gz,
+            fov=fov,
+            matrix=matrix,
+            oversampling=readout_oversampling,
+            readout_bandwidth_hz=readout_bandwidth_hz,
+            spoiling_cycles=SPOILING_CYCLES,
+            labels=("LIN", "PAR"),
         )
 
-    def prescans(self) -> dict:
-        """Return ``calibration`` (when undersampled) and ``reference``.
+    def define(seq: pp.Sequence, **definitions) -> None:
+        for key, value in {
+            "FOV": list(fov),
+            "Matrix": list(matrix),
+            **definitions,
+        }.items():
+            seq.set_definition(key=key, value=value)
 
-        Returns
-        -------
-        dict
-            One loop per prescan, in play order.
-        """
-        chain = {"calibration": self.calibrate} if self.gre is not None else {}
-        return {**chain, "reference": self.reference}
-
-    def calibrate(self) -> None:
-        """Play the gradient-echo calibration over the central rectangle."""
-        for view in self.calibration:
-            self.calibration_kernel(view)
-        self._define(Name=f"{self.NAME}_calibration")
-
-    def calibration_kernel(self, view: tuple[int, int]) -> None:
-        """One gradient echo at ``(line, partition)``.
-
-        Parameters
-        ----------
-        view : tuple of int
-            The phase-encode line and the partition to acquire.
-        """
-        ro, seq = self.gre, self.seq
-        n_y, n_z = self.matrix[1:]
+    def calibration_kernel(
+        seq: pp.Sequence, labels: sequences.Labels, view: tuple[int, int]
+    ) -> None:
+        """Add one gradient echo at ``(line, partition)``."""
         line, partition = view
-        ro.adc_labels[0].value, ro.adc_labels[1].value = line, partition
+        gre.adc_labels[0].value, gre.adc_labels[1].value = line, partition
         ky = (line - n_y // 2) / (n_y / 2)
         kz = (partition - n_z // 2) / (n_z / 2)
-        seq.add_block(
-            ro.rf, *([] if self.gz is None else [self.gz]), *self.labels(REF=1)
-        )
-        wait_te = getattr(ro, "wait_te", None)
+        seq.add_block(gre.rf, *([] if gz is None else [gz]), *labels(REF=1))
+        wait_te = getattr(gre, "wait_te", None)
         if wait_te is not None:
             seq.add_block(wait_te)
         seq.add_block(
-            ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), pp.scale_grad(ro.gz_pre, kz)
+            gre.gx_pre, pp.scale_grad(gre.gy_pre, ky), pp.scale_grad(gre.gz_pre, kz)
         )
-        seq.add_block(ro.gx, ro.adc, *ro.adc_labels)
+        seq.add_block(gre.gx, gre.adc, *gre.adc_labels)
         seq.add_block(
-            ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), pp.scale_grad(ro.gz_rew, kz)
+            gre.gx_spoil, pp.scale_grad(gre.gy_rew, ky), pp.scale_grad(gre.gz_rew, kz)
         )
 
-    def reference(self) -> None:
-        """Play one volume with the phase encode reversed, after its dummies."""
-        self.play(frames=[0], reversed_encode=True)
-        self._define(Name=f"{self.NAME}_reference", EchoSpacing=self.epi.esp)
-
-    def _define(self, **definitions) -> None:
-        for key, value in {
-            "FOV": list(self.fov),
-            "Matrix": list(self.matrix),
-            **definitions,
-        }.items():
-            self.seq.set_definition(key=key, value=value)
-
-    def loop(self) -> None:
-        """Play the dummies, then every frame, shot by shot."""
-        self.play(frames=range(self.n_frames))
-
-    def play(self, frames, reversed_encode: bool = False) -> None:
-        """Play the dummies and then ``frames``.
-
-        Parameters
-        ----------
-        frames : iterable of int
-            The frames to acquire, in play order.
-        reversed_encode : bool, default=False
-            Negate every line encode, as in the reference prescan.
-        """
-        shots = [(None, view) for view in self.dummies]
-        shots += [(frame, view) for frame in frames for view in self.volume]
-        for frame, (shot, base) in shots:
-            output = (
-                self.volume_output
-                and not reversed_encode
-                and (shot, base) == self.volume[0]
-            )
-            self.kernel(shot, base, frame, output, reversed_encode)
+    def calibrate() -> pp.Sequence:
+        """Design the gradient-echo calibration over the central rectangle."""
+        seq, labels = pp.Sequence(system), sequences.Labels()
+        for view in calibration:
+            calibration_kernel(seq, labels, view)
+        define(seq, Name=f"{NAME}_calibration")
+        return seq
 
     def kernel(
-        self,
+        seq: pp.Sequence,
+        labels: sequences.Labels,
         shot: int,
         base: int,
         frame: int | None,
         output: bool = False,
         reversed_encode: bool = False,
     ) -> None:
-        """One shot of the shell starting at partition ``base``; ``frame=None`` plays a dummy.
+        """Add one shot of the shell starting at partition ``base``; ``frame=None`` is a dummy.
 
         ``reversed_encode`` negates every line encode and keeps the labels of
         the forward shot.
-
-        Parameters
-        ----------
-        shot : int
-            Which segment of the phase-encode lattice this shot reads.
-        base : int
-            The shell's first partition.
-        frame : int or None
-            The frame to acquire, or None for a dummy.
-        output : bool, default=False
-            Play the digital output that marks the start of a volume.
-        reversed_encode : bool, default=False
-            Negate every line encode.
         """
-        seq, epi = self.seq, self.shot_trains[shot]
-        n_y, n_z = self.matrix[1:]
+        train = shot_trains[shot]
         sign = -1.0 if reversed_encode else 1.0
-        line, partition = self.origins[shot], base + int(epi.order[0, 1])
+        line, partition = origins[shot], base + int(train.order[0, 1])
         acquire = frame is not None
 
         if not acquire:
@@ -546,37 +483,37 @@ class Epi3DApp(sequences.SequenceApp):
             flags = {"REP": frame, "SEG": shot, "ONCE": 0}
             if reversed_encode:
                 flags["SET"] = 1
-            if not self.n_dummy:
+            if not n_dummy:
                 del flags["ONCE"]
-        labels = self.labels(**flags)
-        epi.shot_labels[0].value, epi.shot_labels[1].value = line, partition
+        label_events = labels(**flags)
+        train.shot_labels[0].value, train.shot_labels[1].value = line, partition
 
         # The prewinders and the rewinders closing the shot are scaled alike.
         ky = sign * (line - n_y // 2) / (n_y / 2)
         kz = (partition - n_z // 2) / (n_z / 2)
         swap = {
-            id(epi.gy_pre): pp.scale_grad(epi.gy_pre, ky),
-            id(epi.gy_rew): pp.scale_grad(epi.gy_rew, ky),
-            id(epi.gz_pre): pp.scale_grad(epi.gz_pre, kz),
-            id(epi.gz_rew): pp.scale_grad(epi.gz_rew, kz),
+            id(train.gy_pre): pp.scale_grad(train.gy_pre, ky),
+            id(train.gy_rew): pp.scale_grad(train.gy_rew, ky),
+            id(train.gz_pre): pp.scale_grad(train.gz_pre, kz),
+            id(train.gz_rew): pp.scale_grad(train.gz_rew, kz),
         }
         if reversed_encode:
             swap.update(
                 (id(blip), pp.scale_grad(blip, -1.0))
-                for blip in epi.gy_blips
+                for blip in train.gy_blips
                 if blip is not None
             )
-        step = shot * epi.echo_shift_step
-        wait_shift = getattr(epi, "wait_shift", None)
+        step = shot * train.echo_shift_step
+        wait_shift = getattr(train, "wait_shift", None)
         if wait_shift is not None:
             swap[id(wait_shift)] = pp.make_delay(wait_shift.delay + step)
-        wait_tr = getattr(epi, "wait_tr", None)
-        closing = self.pad + (0.0 if wait_tr is None else wait_tr.delay) - step
+        wait_tr = getattr(train, "wait_tr", None)
+        closing = pad + (0.0 if wait_tr is None else wait_tr.delay) - step
 
-        navigator = {id(event) for event in getattr(epi, "gx_navigator", ())}
-        lines = {id(event) for event in epi.gx}
+        navigator = {id(event) for event in getattr(train, "gx_navigator", ())}
+        readouts = {id(event) for event in train.gx}
         polarity = 0
-        for index, block in enumerate(epi.blocks):
+        for index, block in enumerate(train.blocks):
             head = block[0]
             if head is wait_tr:
                 continue
@@ -586,38 +523,56 @@ class Epi3DApp(sequences.SequenceApp):
                 if acquire or event.type != "adc"
             ]
             if index == 0:
-                events += [*labels, *([self.output] if output else [])]
-            elif id(head) in navigator or id(head) in lines:
+                events += [*label_events, *([output_pulse] if output else [])]
+            elif id(head) in navigator or id(head) in readouts:
                 if acquire:
-                    events += self.labels(NAV=int(id(head) in navigator), REV=polarity)
+                    events += labels(NAV=int(id(head) in navigator), REV=polarity)
                 polarity ^= 1
             seq.add_block(*events)
         seq.add_block(pp.make_delay(closing))
 
-    def finalize(self) -> None:
-        """Write the prescription and the train's timing as definitions."""
-        # The volume's offset is applied to the finished sequence with
-        # pp.TransformFOV (compat=False: the lines are sampled on the ramps).
-        n_x, n_y, n_z = self.matrix
-        definitions = {
-            "FOV": list(self.fov),
-            "Matrix": [n_x, n_y, n_z],
-            "Name": self.NAME,
-            "TE": self.echo_time,
-            "TR": self.repetition_time,
-            "EchoSpacing": self.epi.esp,
-            "EPIFactor": self.epi.etl,
-            "Excitation": self.excitation,
-            "CaipiShift": self.shift,
-            "kSpaceCenterLine": n_y // 2,
-            "kSpaceCenterPartition": n_z // 2,
-            "SliceThickness": self.fov[2],
-        }
-        for key, value in definitions.items():
-            self.seq.set_definition(key=key, value=value)
+    def play(frames, reversed_encode: bool = False) -> pp.Sequence:
+        """Design the dummies and then ``frames``, shot by shot."""
+        seq, labels = pp.Sequence(system), sequences.Labels()
+        shots = [(None, view) for view in dummies]
+        shots += [(frame, view) for frame in frames for view in volume]
+        for frame, (shot, base) in shots:
+            output = volume_output and not reversed_encode and (shot, base) == volume[0]
+            kernel(seq, labels, shot, base, frame, output, reversed_encode)
+        return seq
+
+    def reference() -> pp.Sequence:
+        """Design one volume with the phase encode reversed, after its dummies."""
+        seq = play(frames=[0], reversed_encode=True)
+        define(seq, Name=f"{NAME}_reference", EchoSpacing=epi.esp)
+        return seq
+
+    prescans = [calibrate()] if gre is not None else []
+    prescans.append(reference())
+    seq = play(frames=range(n_frames))
+
+    # The volume's offset is applied to the finished sequence with
+    # pp.TransformFOV (compat=False: the lines are sampled on the ramps).
+    definitions = {
+        "FOV": list(fov),
+        "Matrix": [n_x, n_y, n_z],
+        "Name": NAME,
+        "TE": echo_time,
+        "TR": repetition_time,
+        "EchoSpacing": epi.esp,
+        "EPIFactor": epi.etl,
+        "Excitation": excitation,
+        "CaipiShift": shift,
+        "kSpaceCenterLine": n_y // 2,
+        "kSpaceCenterPartition": n_z // 2,
+        "SliceThickness": fov[2],
+    }
+    for key, value in definitions.items():
+        seq.set_definition(key=key, value=value)
+    return [*prescans, seq]
 
 
-main = Epi3DApp.main
+main = epi3d
 
 if __name__ == "__main__":
     raise SystemExit(cli.run(main, sys.argv[1:], default_output="epi_3d.seq"))

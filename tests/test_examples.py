@@ -12,6 +12,7 @@ from zoo import (
     FUNCTIONS,
     SMALL,
     application,
+    chain,
     is_application,
     legacy_application,
     packets,
@@ -56,12 +57,13 @@ def test_a_zoo_entry_accepts_its_default_protocol(name):
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
-def test_a_zoo_entry_builds_a_sequence_that_passes_its_timing_check(name):
-    seq = getattr(sequences, name)(**SMALL[name])
+def test_every_sequence_a_zoo_entry_builds_passes_its_timing_check(name):
+    built = chain(getattr(sequences, name)(**SMALL[name]))
 
-    assert isinstance(seq, pp.Sequence)
-    is_ok, errors = seq.check_timing()
-    assert is_ok, errors
+    assert all(isinstance(seq, pp.Sequence) for seq in built)
+    for seq in built:
+        is_ok, errors = seq.check_timing()
+        assert is_ok, errors
 
 
 @pytest.mark.parametrize("name", FUNCTIONS)
@@ -97,8 +99,8 @@ def test_a_function_lowers_the_system_to_its_limits_and_never_raises_it(name):
             slew_unit="T/m/s",
         )
 
-    above = module.main(hardware(2), **SMALL[name]).system
-    below = module.main(hardware(0.5), **SMALL[name]).system
+    above = chain(module.main(hardware(2), **SMALL[name]))[-1].system
+    below = chain(module.main(hardware(0.5), **SMALL[name]))[-1].system
 
     assert above.max_grad == pytest.approx(hardware(1).max_grad)
     assert above.max_slew == pytest.approx(hardware(1).max_slew)
@@ -107,14 +109,16 @@ def test_a_function_lowers_the_system_to_its_limits_and_never_raises_it(name):
 
 
 @pytest.mark.parametrize("name", FUNCTIONS)
-def test_a_function_called_twice_writes_the_same_file(tmp_path, name):
+def test_a_function_called_twice_writes_the_same_files(tmp_path, name):
     """Nothing a call builds outlives it: label state, caches, module constants."""
     module = getattr(sequences, name)
-    paths = [tmp_path / "first.seq", tmp_path / "second.seq"]
-    for path in paths:
-        pp.io.write(module.main(**SMALL[name]), path)
+    written = []
+    for run in ("first", "second"):
+        (tmp_path / run).mkdir()
+        paths = sequences.write(tmp_path / run / "scan.seq", module.main(**SMALL[name]))
+        written.append([(Path(path).name, Path(path).read_bytes()) for path in paths])
 
-    assert paths[0].read_bytes() == paths[1].read_bytes()
+    assert written[0] == written[1]
 
 
 def adc_labels(seq, *names):

@@ -97,6 +97,9 @@ def coverage_figure(designs, n_y):
 # Every phase-encode line is acquired after one excitation. Echo-train length
 # equals the number of acquired lines and determines the accumulated
 # off-resonance phase across k-space.
+#
+# ``epi2D_sequence`` returns the prescans in play order and then the scan, so
+# each design below is the last element of the returned list.
 
 from pypulseqpp.sequences import epi2D_sequence
 
@@ -108,8 +111,8 @@ diagram = epi2D_sequence(
     n_dummy=0,
     fat_saturation=True,
     tr=None,
-)
-single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)
+)[-1]
+single = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=1, n_dummy=0)[-1]
 print(
     f"{diagram.num_blocks} blocks, {diagram.duration()[0] * 1e3:.1f} ms, "
     f"TE {diagram.get_definition('TE')[0] * 1e3:.2f} ms"
@@ -136,8 +139,8 @@ diagram.paper_plot()
 # :math:`N_\mathrm{etl}` is the echo-train length. Both segmentation and
 # acceleration reduce :math:`N_\mathrm{etl}` and therefore the displacement.
 
-segmented = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=3, n_dummy=0)
-accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_y=0)
+segmented = epi2D_sequence(n_x=96, n_y=96, n_slices=1, n_shots=3, n_dummy=0)[-1]
+accelerated = epi2D_sequence(n_x=96, n_y=96, n_slices=1, ry=3, n_dummy=0, n_acs_y=0)[-1]
 
 designs = {"1 shot": single, "3 shots": segmented, "ry = 3": accelerated}
 
@@ -204,7 +207,7 @@ fmri = epi2D_sequence(
     n_dummy=0,
     fat_saturation=False,
     tr=1.0,
-)
+)[-1]
 labels = fmri.evaluate_labels(evolution="adc")
 # sphinx_gallery_start_ignore
 blocks = np.asarray(fmri._native.block_events())

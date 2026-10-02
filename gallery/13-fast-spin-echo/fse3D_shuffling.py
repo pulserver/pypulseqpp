@@ -35,8 +35,6 @@ plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
 # sphinx_gallery_end_ignore
 from pypulseqpp import sequences
 
-Fse3DApp = sequences.fse3D_sequence.Fse3DApp
-
 P = {
     "n_x": 128,
     "n_y": 96,
@@ -56,8 +54,7 @@ P = {
     "flip_modulation": "optimized",
     "wave_amplitude": 0.0,
 }
-app = Fse3DApp(**P)
-seq = app.design()
+seq = sequences.fse3D_sequence(**P)
 
 # %%
 # Variable-density sampling
@@ -74,7 +71,7 @@ labels = seq.evaluate_labels(evolution="adc")
 echo = np.asarray(labels["ECO"])
 ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
 kz = np.asarray(labels["PAR"]) - P["n_z"] // 2
-te_ms = (echo + 1) * app.fse.esp * 1e3
+te_ms = (echo + 1) * seq.get_definition("EchoSpacing")[0] * 1e3
 fig, axes = plt.subplots(
     1, 2, figsize=(PAGE_WIDTH, 3.0), sharey=True, layout="constrained"
 )

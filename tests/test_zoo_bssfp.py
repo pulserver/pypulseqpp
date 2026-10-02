@@ -24,8 +24,19 @@ def built_2d(**kwargs):
     return bssfp2d.main(**{**SMALL_2D, **kwargs})
 
 
-def app3d(**kwargs):
-    return bssfp3d.Bssfp3DApp(pp.Opts(), **{**SMALL_3D, **kwargs})
+def chain_3d(**kwargs):
+    """The sequences the small 3D prescription designs, in play order, with ``kwargs`` changed."""
+    return bssfp3d.main(**{**SMALL_3D, **kwargs})
+
+
+def main_3d(**kwargs):
+    """The last cycle's train of the small 3D prescription, with ``kwargs`` changed."""
+    return chain_3d(**kwargs)[-1]
+
+
+def recorded(seq, key):
+    """The first value of the definition ``key`` of ``seq``."""
+    return np.atleast_1d(seq.definitions[key])[0]
 
 
 def labels(seq, *names, evolution="adc"):
@@ -214,62 +225,68 @@ def test_a_2d_train_that_cannot_be_played_is_refused(prescription, match):
 # -- 3D ------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    ("prescription", "files"),
-    [
-        ({}, [("scan.seq", "bssfp_3d_catalyst"), ("scan_main.seq", "bssfp_3d")]),
-        (
-            {"n_phase_cycles": 2},
-            [
-                ("scan.seq", "bssfp_3d_catalyst"),
-                ("scan_cycle_0.seq", "bssfp_3d"),
-                ("scan_catalyst_1.seq", "bssfp_3d_catalyst"),
-                ("scan_main.seq", "bssfp_3d"),
-            ],
-        ),
-    ],
-    ids=["one cycle", "two cycles"],
-)
-def test_the_chain_alternates_catalysts_and_cycles(tmp_path, prescription, files):
-    built = app3d(**prescription)
-    paths = built.write(tmp_path / "scan.seq")
+@pytest.mark.parametrize("n_cycles", [1, 2, 3])
+def test_the_chain_alternates_catalysts_and_cycles(n_cycles):
+    chain = chain_3d(n_phase_cycles=n_cycles)
 
-    assert [Path(p).name for p in paths] == [name for name, _ in files]
-    for i, path in enumerate(paths):
-        seq = pp.Sequence(system=built.system)
-        seq.read(path)
-        following = files[i + 1][0] if i + 1 < len(files) else None
-        assert seq.definitions["Name"] == files[i][1]
-        assert seq.definitions.get("NextSequence") == following
+    assert [seq.definitions["Name"] for seq in chain] == [
+        "bssfp_3d_catalyst",
+        "bssfp_3d",
+    ] * n_cycles
+    assert [recorded(seq, "PhaseCycle") for seq in chain] == [
+        k for k in range(n_cycles) for _ in range(2)
+    ]
+    for seq in chain:
         assert seq.check_timing()[0]
         assert seq.repetition()[1] == 1
 
 
-def test_a_tr_off_the_raster_resolves_to_the_tr_the_excitations_are_spaced_by():
-    """The TR moves from the shortest in steps of two rasters, keeping TE = TR/2 on it."""
-    shortest = app3d().resolved["tr"]
-    built = app3d(tr=shortest + 63.3e-6)
-    times = [time for time, _, _ in excitations(built.design())]
-    steps = (built.resolved["tr"] - shortest) / (2 * built.system.block_duration_raster)
+def test_the_chain_is_written_as_files_linked_through_next_sequence(tmp_path):
+    chain = chain_3d()
+    paths = sequences.write(tmp_path / "scan.seq", chain)
+    files = []
+    for path in paths:
+        seq = pp.Sequence(system=chain[0].system)
+        seq.read(path)
+        files.append(seq)
 
-    assert np.diff(times) == pytest.approx(built.resolved["tr"], abs=1e-9)
+    assert [Path(p).name for p in paths] == ["scan.seq", "scan_bssfp_3d.seq"]
+    assert [seq.definitions["Name"] for seq in files] == [
+        "bssfp_3d_catalyst",
+        "bssfp_3d",
+    ]
+    assert files[0].definitions["NextSequence"] == "scan_bssfp_3d.seq"
+    assert "NextSequence" not in files[1].definitions
+    for seq in files:
+        assert seq.check_timing()[0]
+        assert seq.repetition()[1] == 1
+
+
+def test_a_tr_off_the_raster_is_written_as_the_tr_the_excitations_are_spaced_by():
+    """The TR moves from the shortest in steps of two rasters, keeping TE = TR/2 on it."""
+    shortest = recorded(main_3d(), "TR")
+    seq = main_3d(tr=shortest + 63.3e-6)
+    tr = recorded(seq, "TR")
+    times = [time for time, _, _ in excitations(seq)]
+    steps = (tr - shortest) / (2 * seq.system.block_duration_raster)
+
+    assert np.diff(times) == pytest.approx(tr, abs=1e-9)
     assert steps == pytest.approx(round(steps))
     assert round(steps) > 0
 
 
 @pytest.mark.parametrize("excitation", ["nonselective", "slab"])
 def test_a_cycle_repeats_one_balanced_repetition_from_its_first_excitation(excitation):
-    built = app3d(excitation=excitation, ry=2, n_acs_y=4, n_acs_z=2)
-    seq = built.design()
+    seq = main_3d(excitation=excitation, ry=2, n_acs_y=4, n_acs_z=2)
     rows = excitations(seq)
 
     assert seq.repetition() == (3, 1)
     assert seq.get_block(1).rf is not None
-    assert np.diff([time for time, _, _ in rows]) == pytest.approx(built.ro.tr)
+    assert np.diff([time for time, _, _ in rows]) == pytest.approx(recorded(seq, "TR"))
 
 
 def test_every_repetition_returns_its_gradient_moments_to_zero():
-    seq = app3d(ry=2, n_acs_y=4, n_acs_z=2).design()
+    seq = main_3d(ry=2, n_acs_y=4, n_acs_z=2)
     waves, pulses = seq.waveforms_and_times()[:2]
     edges = np.asarray(pulses)[0]
     for channel in waves:
@@ -286,9 +303,7 @@ def test_every_repetition_returns_its_gradient_moments_to_zero():
 
 @pytest.mark.parametrize("n_cycles", [1, 2, 4])
 def test_each_cycle_steps_its_phase_by_its_own_increment(n_cycles):
-    built = app3d(n_phase_cycles=n_cycles)
-    for k in range(n_cycles):
-        seq = built.design(None if k == n_cycles - 1 else f"cycle_{k}")
+    for k, seq in enumerate(chain_3d(n_phase_cycles=n_cycles)[1::2]):
         rows = excitations(seq)
         increment = np.pi + 2 * np.pi * k / n_cycles
         adc = [block.adc.phase_offset for block in blocks(seq) if block.adc is not None]
@@ -298,34 +313,38 @@ def test_each_cycle_steps_its_phase_by_its_own_increment(n_cycles):
             [p for _, p, _ in rows], increment * np.arange(1, len(rows) + 1)
         )
         assert same_phase(adc, [p for _, p, _ in rows])
+        assert recorded(seq, "PhaseIncrement") == pytest.approx(np.rad2deg(increment))
         assert set(cycle) == {k}
 
 
 def test_a_catalyst_is_a_half_flip_half_a_repetition_before_its_cycle():
-    built = app3d()
-    catalyst = built.design("catalyst_0")
-    cycle = built.design()
+    catalyst, cycle = chain_3d()
     (half,) = excitations(catalyst)
     first = excitations(cycle)[0]
+    increment = np.deg2rad(recorded(cycle, "PhaseIncrement"))
 
     assert half[2] == pytest.approx(0.5 * first[2])
-    assert same_phase(half[1], first[1] - built.increments[0])
+    assert same_phase(half[1], first[1] - increment)
     lead = catalyst.duration()[0] - half[0]
-    assert lead + first[0] == pytest.approx(0.5 * built.ro.tr, abs=1e-9)
+    assert lead + first[0] == pytest.approx(0.5 * recorded(cycle, "TR"), abs=1e-9)
 
 
 def test_every_view_is_read_once_inside_the_ellipse_back_and_forth():
-    built = app3d(ry=2, rz=2, n_z=8, n_acs_y=4, n_acs_z=2)
-    lin, par, ima = labels(built.design(), "LIN", "PAR", "IMA")
+    n_y, n_z = SMALL_3D["n_y"], 8
+    seq = main_3d(ry=2, rz=2, n_z=n_z, n_acs_y=4, n_acs_z=2)
+    lin, par, ima = labels(seq, "LIN", "PAR", "IMA")
     views = list(zip(lin, par, strict=True))
+    calibrating, imaging = pp.make_cartesian_plane_sampling(
+        (n_y, n_z), (2, 2), (4, 2), elliptical=True
+    )
 
-    assert views == built.views
+    assert views == sorted({*calibrating, *imaging})
     assert len(set(views)) == len(views)
     assert all(
-        ((y - 8) / 16) ** 2 + ((z - 4) / 8) ** 2 <= 0.25 or (y, z) in built.calibration
+        ((y - 8) / 16) ** 2 + ((z - 4) / 8) ** 2 <= 0.25 or (y, z) in calibrating
         for y, z in views
     )
-    assert list(ima) == [int(view in built.calibration) for view in views]
+    assert list(ima) == [int(view in calibrating) for view in views]
     steps = [abs(b[1] - a[1]) for a, b in pairwise(views)]
     assert max(steps) <= 4
 
@@ -337,7 +356,7 @@ def test_every_view_is_read_once_inside_the_ellipse_back_and_forth():
 )
 def test_a_3d_prescription_that_cannot_be_played_is_refused(prescription):
     with pytest.raises(ValueError):
-        app3d(**prescription)
+        chain_3d(**prescription)
 
 
 @pytest.mark.parametrize(

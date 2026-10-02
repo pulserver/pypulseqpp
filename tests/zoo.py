@@ -51,9 +51,21 @@ SMALL = {
         "n_blades": 4,
         "te": None,
         "tr": None,
+        "readout_bandwidth_hz": 50e3,
     },
-    "epi2D_sequence": {"n_x": 32, "n_y": 16, "n_dummy": 0},
-    "epi3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 4, "n_dummy": 0},
+    "epi2D_sequence": {
+        "n_x": 32,
+        "n_y": 16,
+        "readout_bandwidth_hz": 50e3,
+        "n_dummy": 0,
+    },
+    "epi3D_sequence": {
+        "n_x": 32,
+        "n_y": 16,
+        "n_z": 4,
+        "readout_bandwidth_hz": 50e3,
+        "n_dummy": 0,
+    },
     "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
     "se3D_sequence": {
         "n_x": 32,
@@ -145,6 +157,11 @@ def legacy_application(name):
     return app
 
 
+def app_class(name):
+    """The ``SequenceApp`` subclass of ``name``, as shipped or as ``tests/legacy`` keeps it."""
+    return application(name) if is_application(name) else legacy_application(name)
+
+
 def function(name):
     """The sequence function of the sequence ``name``, ``function(system, **protocol)``."""
     if is_application(name):
@@ -155,6 +172,11 @@ def function(name):
 def parameters(name):
     """The protocol of the sequence ``name``, as ``sequences.parameters`` reads it."""
     return sequences.parameters(function(name))
+
+
+def chain(result):
+    """The sequences a sequence function returned, in play order, main sequence last."""
+    return result if isinstance(result, list) else [result]
 
 
 def packets(seq):
