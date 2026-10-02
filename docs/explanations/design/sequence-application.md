@@ -20,10 +20,10 @@
   files, each naming the next with `NextSequence`, so each file retains a single
   repeating unit. {func}`~pypulseqpp.sequences.duration` is the time the chain
   plays.
-- {class}`~pypulseqpp.sequences.SequenceApp`, the base class of the shipped
-  sequences, divides the function into the prescription (`init_sequence`), the
-  sampling order (`loop`), one repetition (`kernel`) and the Pulseq definitions
-  required by reconstruction (`finalize`). Construction checks a prescription
+- {class}`~pypulseqpp.sequences.SequenceApp` divides the function into the
+  prescription (`init_sequence`), the sampling order (`loop`), one repetition
+  (`kernel`) and the Pulseq definitions required by reconstruction
+  (`finalize`). Construction checks a prescription
   and records the resolved prescription and the scan time without playing the
   loop, and {meth}`~pypulseqpp.sequences.SequenceApp.function` returns a
   subclass as a sequence function.
