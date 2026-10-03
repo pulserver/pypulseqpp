@@ -17,7 +17,7 @@
 - Poisson-disc sampling determines which views are acquired; T2 Shuffling
   determines when already selected views are acquired along the echo train.
   Either can be used without the other.
-- Label events are created only by the sequence application, in `kernel`.
+- Label events are created only by the sequence function, in its scan loop.
   {meth}`~pypulseqpp.Sequence.evaluate_labels` recovers the labels actually
   written, per acquisition.
 ```
@@ -26,8 +26,8 @@ A Cartesian acquisition is specified by two independent choices: its
 **support**, the set of phase- and partition-encoding views that are acquired,
 and its **temporal ordering**, the repetition, shot and echo at which each
 acquired view is played. The sampling routines keep the two separate, and
-neither creates events or labels. A {class}`~pypulseqpp.sequences.SequenceApp`
-combines them in its scan loop.
+neither creates events or labels. A sequence function combines them in its
+scan loop.
 
 ```text
 acquisition prescription     matrix, acceleration, ACS, partial Fourier, CAIPI
@@ -39,7 +39,7 @@ acquired support             encoded view indices (y, z), split into
 temporal ordering            loop order, or [shot][echo] indices into the views
         │
         ▼
-SequenceApp.loop / kernel    one call per repetition
+scan loop                    one iteration per repetition
         │
         ├─▶ gradient scaling      phase and partition encodes from (y, z)
         └─▶ Pulseq labels         LIN, PAR, ECO, SEG, IMA, ...
@@ -79,9 +79,9 @@ trains = pp.make_radial_adaptive_order(       # D: [shot][echo] indices
 view_of = [[tuple(views[i]) for i in train] for train in trains]
 ```
 
-The same indices `i` select the encoded view `views[i]`, from which the kernel
-scales the phase-encoding gradient and writes the `LIN` and `PAR` labels. A
-boolean mask enters the same way, through `np.argwhere(mask)`.
+The same indices `i` select the encoded view `views[i]`, from which the scan
+loop scales the phase-encoding gradient and writes the `LIN` and `PAR` labels.
+A boolean mask enters the same way, through `np.argwhere(mask)`.
 
 ## Poisson-disc support and T2 Shuffling
 
@@ -94,23 +94,25 @@ answer different questions.
 | Routine | `make_cartesian_plane_sampling(..., sampling='poisson')`, {func}`~pypulseqpp.make_poisson_disc_mask` | {func}`~pypulseqpp.make_shuffling_order` |
 | Output | encoded views, or a boolean mask | `trains[shot][echo]` indices |
 
-The shipped fast-spin-echo application combines them under
-`ordering='shuffling'`. The MPRAGE application's `ordering='shuffling'` pairs
+The shipped fast-spin-echo sequence combines them under
+`ordering='shuffling'`. The MPRAGE sequence's `ordering='shuffling'` pairs
 the same Poisson-disc support with a random line order within each partition.
 Either choice can be used without the other.
 
 ## Labels
 
-Label events are created only by the sequence application. In each call of
-`kernel` it writes `LIN` and `PAR` from the encoded view, `ECO` from the echo
-index, `IMA` from membership of the calibration list, and `SEG`, `SLC`, `SET`
-or `REP` from its position in the loop. The sampling routines return plain
-Python and NumPy values; which calibration views are played first, and whether
-the support is reordered before acquisition, is decided by the application.
+Label events are created only by the sequence function. In each repetition of
+its scan loop it writes `LIN` and `PAR` from the encoded view, `ECO` from the
+echo index, `IMA` from membership of the calibration list, and `SEG`, `SLC`,
+`SET` or `REP` from its position in the loop. The sampling routines return
+plain Python and NumPy values; which calibration views are played first, and
+whether the support is reordered before acquisition, is decided by the
+sequence function.
 {meth}`~pypulseqpp.Sequence.evaluate_labels` recovers the labels actually
 written, per acquisition.
 
 ## See also
 
 * {doc}`../../api/sampling`: the routines, their inputs and returns.
-* {doc}`sequence-application`: the loop and kernel that consume them.
+* {doc}`sequence-application`: the sequence function whose scan loop consumes
+  them.

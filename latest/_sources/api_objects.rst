@@ -19,7 +19,6 @@ from.
    Labels
    write
    duration
-   SequenceApp
 
 .. currentmodule:: pypulseqpp.cli
 

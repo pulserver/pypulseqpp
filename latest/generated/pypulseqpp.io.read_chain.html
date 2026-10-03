@@ -219,7 +219,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -261,7 +261,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -543,11 +543,9 @@
 <dt class="sig sig-object py" id="pypulseqpp.io.read_chain">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.io.</span></span><span class="sig-name descname"><span class="pre">read_chain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/io.html#read_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.io.read_chain" title="Link to this definition">#</a></dt>
 <dd><p>Read a sequence file and every file its <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> definitions name, in play order.</p>
-<p><a class="reference internal" href="pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.sequences.write()</span></code></a> and
-<a class="reference internal" href="pypulseqpp.sequences.SequenceApp.write.html#pypulseqpp.sequences.SequenceApp.write" title="pypulseqpp.sequences.SequenceApp.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pypulseqpp.sequences.SequenceApp.write()</span></code></a> write a scan with prescans
-as such a chain. A <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> name is relative to the directory of
-the file naming it. Each file is read by <a class="reference internal" href="pypulseqpp.io.read.html#pypulseqpp.io.read" title="pypulseqpp.io.read"><code class="xref py py-func docutils literal notranslate"><span class="pre">read()</span></code></a>, onto a system built
-from it.</p>
+<p><a class="reference internal" href="pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.sequences.write()</span></code></a> writes a scan with prescans as such a
+chain. A <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> name is relative to the directory of the file
+naming it. Each file is read by <a class="reference internal" href="pypulseqpp.io.read.html#pypulseqpp.io.read" title="pypulseqpp.io.read"><code class="xref py py-func docutils literal notranslate"><span class="pre">read()</span></code></a>, onto a system built from it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -709,9 +709,9 @@ as a verb, and public API identifiers are not renamed for this guide.</p></li>
 <li><p><strong>prewinder</strong> or <strong>prephasing gradient</strong>; <strong>rewinder</strong> or <strong>rephasing
 gradient</strong>. Not “bridge”.</p></li>
 <li><p><strong>example sequences</strong>, <strong>sequence implementations</strong>, <strong>sequence library</strong>.
-Not “zoo”. <code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code> is a class name; refer to it by name or as the base
-class for complete, runnable sequence implementations. “App” is not project
-vocabulary.</p></li>
+Not “zoo”. A complete, runnable sequence implementation is a <strong>sequence
+function</strong>, <code class="docutils literal notranslate"><span class="pre">sequence(system,</span> <span class="pre">**protocol)</span></code>; it is not called an “app” or an
+“application”.</p></li>
 <li><p><strong>wave-encoding gradients</strong> for the events; <strong>corkscrew trajectory</strong> for the
 k-space path they produce.</p></li>
 <li><p><strong>k-space</strong> coordinates are written in <strong>1/m</strong>. State once, where it helps,

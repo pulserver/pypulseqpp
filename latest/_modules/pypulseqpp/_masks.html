@@ -220,7 +220,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -262,7 +262,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -470,7 +470,7 @@
 <span class="sd">return either explicit zero-based encoded coordinates or a boolean mask whose</span>
 <span class="sd">``True`` entries are the acquired views. They assign no temporal order, no</span>
 <span class="sd">shot or echo index and no label; :mod:`pypulseqpp._ordering` orders a</span>
-<span class="sd">selected set, and the sequence application scales its phase-encoding</span>
+<span class="sd">selected set, and the sequence function scales its phase-encoding</span>
 <span class="sd">gradients and writes its labels from the coordinates.</span>
 
 <span class="sd">References</span>
@@ -542,7 +542,7 @@
 <span class="sd">    imaging : list of int</span>
 <span class="sd">        Lattice views not in ``calibration``, ascending. The two lists are</span>
 <span class="sd">        disjoint; the acquired support is their union. Neither list is an</span>
-<span class="sd">        acquisition order: the sequence application decides when each view is</span>
+<span class="sd">        acquisition order: the sequence function decides when each view is</span>
 <span class="sd">        acquired, and creates its labels.</span>
 
 <span class="sd">    Raises</span>
@@ -558,7 +558,7 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    The two groups are returned separately so that a sequence application</span>
+<span class="sd">    The two groups are returned separately so that a sequence function</span>
 <span class="sd">    can treat them differently, for example by acquiring the calibration</span>
 <span class="sd">    views first or marking them with the ``IMA`` label. Both lists are in</span>
 <span class="sd">    ascending order; ``sorted(calibration + imaging)`` is the whole support in</span>
@@ -678,7 +678,7 @@
 <span class="sd">    imaging : list of tuple of int</span>
 <span class="sd">        Acquired views ``(y, z)`` not in ``calibration``, in the same order.</span>
 <span class="sd">        The two lists are disjoint; the acquired support is their union.</span>
-<span class="sd">        Neither list is an acquisition order: the sequence application</span>
+<span class="sd">        Neither list is an acquisition order: the sequence function</span>
 <span class="sd">        decides when each view is acquired, and creates its labels.</span>
 
 <span class="sd">    Raises</span>

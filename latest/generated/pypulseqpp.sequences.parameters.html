@@ -219,7 +219,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -261,7 +261,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -542,7 +542,7 @@
 <h1>parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.parameters">
-<span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_app.html#parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.parameters" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_parameters.html#parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.parameters" title="Link to this definition">#</a></dt>
 <dd><p>Return each protocol parameter of a sequence function with its type, default, unit and description.</p>
 <p>The protocol is every parameter after the first, which is <code class="docutils literal notranslate"><span class="pre">system</span></code>. Its
 type, default and whether it admits None are read from the annotation and
@@ -580,9 +580,9 @@ the default; its unit, choices and description from the NumPy
 
 <section id="examples-using-parameters">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">parameters</span></code><a class="headerlink" href="#examples-using-parameters" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence application is a function of the system limits and a prescription: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns."><img alt="" src="../_images/sphx_glr_03_sequence_app_thumb.png" />
-<p><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html"><span class="doc">A sequence application</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A sequence application</div>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence function takes the system limits and a protocol: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns."><img alt="" src="../_images/sphx_glr_03_sequence_app_thumb.png" />
+<p><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html"><span class="doc">A sequence function</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A sequence function</div>
 </div></div></section>
 </section>
 

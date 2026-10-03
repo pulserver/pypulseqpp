@@ -219,7 +219,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -261,7 +261,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -529,16 +529,16 @@
                   
   <section id="sequence-modules">
 <span id="sphx-glr-generated-gallery-05-sequence-modules"></span><h1>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h1>
-<p>The excitation and readout designers the package builds sequences from, and the application that plays them.</p>
+<p>The excitation and readout designers the package builds sequences from, and the sequence function that plays them.</p>
 <div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The earlier sections built slice-selective excitations by hand with a pulse factory. This lesson designs them with the excitation module, and measures how the three numbers that specify a selective pulse — flip angle, slice thickness and time-bandwidth product — affect the slice profile, the selection gradient and the peak B_1, and which combinations of them the gradient system permits."><img alt="" src="../../../_images/sphx_glr_01_excitation_thumb.png" />
 <p><a class="reference internal" href="01_excitation.html"><span class="doc">Excitation modules</span></a></p>
   <div class="sphx-glr-thumbnail-title">Excitation modules</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="The previous lesson replaced the hand-built excitation with a module. This lesson replaces the hand-built readout of the first sections with the readout module, and uses two prescriptions that the earlier lessons solved by hand — a partial echo and a multi-echo train — to check that the module reaches the same results and reports them."><img alt="" src="../../../_images/sphx_glr_02_readout_thumb.png" />
 <p><a class="reference internal" href="02_readout.html"><span class="doc">Readout modules</span></a></p>
   <div class="sphx-glr-thumbnail-title">Readout modules</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence application is a function of the system limits and a prescription: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns."><img alt="" src="../../../_images/sphx_glr_03_sequence_app_thumb.png" />
-<p><a class="reference internal" href="03_sequence_app.html"><span class="doc">A sequence application</span></a></p>
-  <div class="sphx-glr-thumbnail-title">A sequence application</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence function takes the system limits and a protocol: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns."><img alt="" src="../../../_images/sphx_glr_03_sequence_app_thumb.png" />
+<p><a class="reference internal" href="03_sequence_app.html"><span class="doc">A sequence function</span></a></p>
+  <div class="sphx-glr-thumbnail-title">A sequence function</div>
 </div></div><div class="toctree-wrapper compound">
 </div>
 </section>

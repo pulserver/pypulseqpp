@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -550,8 +550,8 @@
 <p>Routines that select the Cartesian views an acquisition encodes, order an
 already selected set into loop, shot and echo positions, and supply the
 per-shot orientations and per-repetition RF values of a scan loop. None of
-them creates events or labels: the sequence application scales the gradients
-and creates the <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, <code class="docutils literal notranslate"><span class="pre">ECO</span></code> and other labels from their results, as
+them creates events or labels: a sequence function scales the gradients and
+creates the <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, <code class="docutils literal notranslate"><span class="pre">ECO</span></code> and other labels from their results, as
 <a class="reference internal" href="../explanations/design/sampling.html"><span class="doc">Sampling support and ordering</span></a> describes.</p>
 <section id="cartesian-sampling-support">
 <h2>Cartesian sampling support<a class="headerlink" href="#cartesian-sampling-support" title="Link to this heading">#</a></h2>

@@ -222,7 +222,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -264,7 +264,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -564,7 +564,7 @@
 <p>pypulseqpp provides Pulseq sequence design and analysis through a
 PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
 and trajectory design, reusable sequence modules, complete sequence
-applications, and timing, gradient, PNS, mechanical-resonance and SAR checks.
+functions, and timing, gradient, PNS, mechanical-resonance and SAR checks.
 Its event factories and <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> methods keep PyPulseq’s signatures and event
 conventions; it reads Pulseq text files from version 1.2 onward and writes
 Pulseq 1.5.1 text and binary files, or 1.4.1 text for older interpreters. Not
@@ -594,7 +594,7 @@ Passing these checks does not establish scanner or patient safety.</p>
 </pre></div>
 </div>
 <p>A PyPulseq script runs with <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pypulseqpp</span> <span class="pre">as</span> <span class="pre">pp</span></code>; <a class="reference internal" href="user-guide/from-pypulseq.html"><span class="std std-doc">from a PyPulseq script</span></a>
-shows the same script as a sequence application.</p>
+shows the same script as a sequence function.</p>
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>

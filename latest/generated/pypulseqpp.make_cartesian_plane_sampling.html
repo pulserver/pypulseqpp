@@ -219,7 +219,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -261,7 +261,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -590,7 +590,7 @@ variable-density Poisson-disc draw.</p></li>
 Empty when there is no calibration region.</p></li>
 <li><p><strong>imaging</strong> (<em>list of tuple of int</em>) – Acquired views <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code> not in <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, in the same order.
 The two lists are disjoint; the acquired support is their union.
-Neither list is an acquisition order: the sequence application
+Neither list is an acquisition order: the sequence function
 decides when each view is acquired, and creates its labels.</p></li>
 </ul>
 </p>

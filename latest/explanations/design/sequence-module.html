@@ -67,7 +67,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/explanations/design/sequence-module.html" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Sequence applications" href="sequence-application.html" />
+    <link rel="next" title="Sequence functions" href="sequence-application.html" />
     <link rel="prev" title="Sequence design in pypulseqpp" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -223,7 +223,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Sequence design in pypulseqpp</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -265,7 +265,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -567,7 +567,7 @@ achieved values.</p></li>
 <li><p>Module construction separates fixed waveform and timing design from per-view
 encoding, which mirrors the Pulseq distinction between event definitions and
 playout instances. Sampling order and repetition structure belong to the
-sequence application.</p></li>
+sequence function.</p></li>
 </ul>
 </div>
 <p>A <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> solves a reusable block layout
@@ -632,7 +632,7 @@ reported by the module.</p>
 <p>Module construction separates fixed waveform and timing design from per-view
 encoding. This mirrors the Pulseq distinction between event definitions and
 playout instances; see <a class="reference internal" href="../pulseq/libraries-and-shapes.html"><span class="doc">Storage, deduplication and file revisions</span></a>. Sampling order
-and repetition structure belong to <a class="reference internal" href="sequence-application.html"><span class="doc">Sequence applications</span></a>.</p>
+and repetition structure belong to <a class="reference internal" href="sequence-application.html"><span class="doc">Sequence functions</span></a>.</p>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
@@ -668,7 +668,7 @@ and repetition structure belong to <a class="reference internal" href="sequence-
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Sequence applications</p>
+        <p class="prev-next-title">Sequence functions</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

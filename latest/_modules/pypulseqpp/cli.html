@@ -220,7 +220,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -262,7 +262,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -557,10 +557,7 @@
 <span class="sd">    ``--report`` prints each sequence's test report.</span>
 
 <span class="sd">    The sequence a script's ``main`` returns is written to ``--output`` with</span>
-<span class="sd">    :func:`pypulseqpp.io.write`, in binary form under ``--binary``. The</span>
-<span class="sd">    ``main`` of a :class:`~pypulseqpp.sequences.SequenceApp` subclass instead</span>
-<span class="sd">    writes the application's chain of prescan and main-sequence files through</span>
-<span class="sd">    :meth:`~pypulseqpp.sequences.SequenceApp.write`.</span>
+<span class="sd">    :func:`pypulseqpp.io.write`, in binary form under ``--binary``.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -673,13 +670,6 @@
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="o">**</span><span class="n">limits</span><span class="p">)</span> <span class="k">if</span> <span class="n">limits</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="s2">"test_report"</span> <span class="ow">in</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">"test_report"</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">report</span>
-
-    <span class="c1"># An application writes its own chain of linked files.</span>
-    <span class="n">write_to</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="s2">"write_to"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">write_to</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">write_to</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">offline</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">binary</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wrote sequence: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="k">return</span> <span class="mi">0</span>
 
     <span class="n">seq</span> <span class="o">=</span> <span class="n">main</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">_pp</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">binary</span><span class="p">)</span>

@@ -219,7 +219,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -261,7 +261,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -541,16 +541,16 @@
 <h1>ProtocolParameter<a class="headerlink" href="#protocolparameter" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.ProtocolParameter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">ProtocolParameter</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_app.html#ProtocolParameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.ProtocolParameter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">ProtocolParameter</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_parameters.html#ProtocolParameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.ProtocolParameter" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>One protocol parameter, as a sequence function or <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> declares and documents it.</p>
+<p>One protocol parameter, as a sequence function declares and documents it.</p>
 </dd></dl>
 
 <p class="rubric">Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.name.html#pypulseqpp.sequences.ProtocolParameter.name" title="pypulseqpp.sequences.ProtocolParameter.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
-<td><p>The keyword the sequence function or <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> takes.</p></td>
+<td><p>The keyword the sequence function takes.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.type.html#pypulseqpp.sequences.ProtocolParameter.type" title="pypulseqpp.sequences.ProtocolParameter.type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code></a></p></td>
 <td><p>The scalar the annotation names, bool, int, float or str; None for any other annotation.</p></td>
@@ -562,7 +562,7 @@
 <td><p>Whether the annotation admits None, which leaves the value to the design.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.unit.html#pypulseqpp.sequences.ProtocolParameter.unit" title="pypulseqpp.sequences.ProtocolParameter.unit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit</span></code></a></p></td>
-<td><p>The first parenthesised group of the description's first sentence, the form the shipped applications state units in, as in <code class="docutils literal notranslate"><span class="pre">Echo</span> <span class="pre">time</span> <span class="pre">(s).</span></code>; empty where there is none.</p></td>
+<td><p>The first parenthesised group of the description's first sentence, the form the shipped sequences state units in, as in <code class="docutils literal notranslate"><span class="pre">Echo</span> <span class="pre">time</span> <span class="pre">(s).</span></code>; empty where there is none.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.ProtocolParameter.choices.html#pypulseqpp.sequences.ProtocolParameter.choices" title="pypulseqpp.sequences.ProtocolParameter.choices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">choices</span></code></a></p></td>
 <td><p>The values the documented type lists in braces, as in <code class="docutils literal notranslate"><span class="pre">{'slab',</span> <span class="pre">'nonselective'}</span></code>, in the order listed; empty otherwise.</p></td>

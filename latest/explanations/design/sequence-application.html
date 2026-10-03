@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Sequence applications &#8212; pypulseqpp documentation</title>
+    <title>Sequence functions &#8212; pypulseqpp documentation</title>
   
   
   
@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Sequence design in pypulseqpp</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Sequence applications</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -517,7 +517,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Sequence applications</h1>
+    <h1>Sequence functions</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -531,12 +531,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol">Protocol</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-labels">Encoding labels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans">Prescans</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequenceapp-base-class">SequenceApp base class</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings">Settings</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-a-prescription">Checking a prescription</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#function-form">Function form</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-a-prescription">Checking a prescription</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
             </nav>
@@ -549,8 +544,8 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="sequence-applications">
-<h1>Sequence applications<a class="headerlink" href="#sequence-applications" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="sequence-functions">
+<h1>Sequence functions<a class="headerlink" href="#sequence-functions" title="Link to this heading">#</a></h1>
 <div class="tldr admonition">
 <p class="admonition-title">TL;DR</p>
 <ul class="simple">
@@ -571,18 +566,11 @@ order.</p></li>
 files, each naming the next with <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>, so each file retains a single
 repeating unit. <a class="reference internal" href="../../generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-func docutils literal notranslate"><span class="pre">duration()</span></code></a> is the time the chain
 plays.</p></li>
-<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> divides the function into the
-prescription (<code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>), the sampling order (<code class="docutils literal notranslate"><span class="pre">loop</span></code>), one repetition
-(<code class="docutils literal notranslate"><span class="pre">kernel</span></code>) and the Pulseq definitions required by reconstruction
-(<code class="docutils literal notranslate"><span class="pre">finalize</span></code>). Construction checks a prescription
-and records the resolved prescription and the scan time without playing the
-loop, and <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.function.html#pypulseqpp.sequences.SequenceApp.function" title="pypulseqpp.sequences.SequenceApp.function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">function()</span></code></a> returns a
-subclass as a sequence function.</p></li>
 </ul>
 </div>
 <p>A complete sequence is designed from the system limits and a prescription: the
 field of view, matrix, timing, flip angle and sampling order of the
-acquisition. A sequence application is that design as a callable, from which a
+acquisition. A sequence function is that design as a callable, from which a
 script, the command line and a protocol editor obtain the sequence and the
 prescription.</p>
 <section id="sequence-function">
@@ -598,41 +586,37 @@ scan with prescans, a list of sequences in play order.</p>
 <thead>
 <tr class="row-odd"><th class="head"><p>Concern</p></th>
 <th class="head"><p>Sequence function</p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Prescription</p></td>
 <td><p>Keyword parameters after <code class="docutils literal notranslate"><span class="pre">system</span></code>, documented in the Parameters section</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> signature and Parameters section</p></td>
 </tr>
 <tr class="row-odd"><td><p>System limits</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, capped to the design’s limits with <code class="docutils literal notranslate"><span class="pre">cap_system</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, capped to <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> at construction</p></td>
 </tr>
 <tr class="row-even"><td><p>Modules, timing and sampling arrays</p></td>
 <td><p>The body, before the loop</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">init_sequence</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Sampling order</p></td>
 <td><p>The loop</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">loop</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>One repetition</p></td>
 <td><p>The body of the loop</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">kernel</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Pulseq definitions required by reconstruction</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">set_definition</span></code> after the loop</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">finalize</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Prescans</p></td>
 <td><p>The elements of the returned list before the main sequence</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">prescans</span></code>, each designed by <code class="docutils literal notranslate"><span class="pre">design(name)</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>A shipped sequence module defines its design limits as the constants
+<code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (mT/m) and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (T/m/s). Changing one redesigns the gradient
+waveforms and may alter echo spacing, acquisition duration, and constraint
+estimates.</p>
 </section>
 <section id="protocol">
 <h2>Protocol<a class="headerlink" href="#protocol" title="Link to this heading">#</a></h2>
@@ -679,77 +663,19 @@ a single repeating unit per file for repetition-based analyses.
 <a class="reference internal" href="../../generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-func docutils literal notranslate"><span class="pre">duration()</span></code></a> is the sum of the durations of the
 sequences in the chain.</p>
 </section>
-<section id="sequenceapp-base-class">
-<h2>SequenceApp base class<a class="headerlink" href="#sequenceapp-base-class" title="Link to this heading">#</a></h2>
-<p>A <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a> divides the function along the
-rows of the table above, so that a prescription can be checked without playing
-the loop. <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> designs the modules, the timing and the sampling
-arrays. <code class="docutils literal notranslate"><span class="pre">loop</span></code> plays the repetitions in the order of the complete acquisition,
-and <code class="docutils literal notranslate"><span class="pre">kernel</span></code> adds the blocks and labels of one shot or TR. <code class="docutils literal notranslate"><span class="pre">finalize</span></code> records
-the Pulseq definitions required by reconstruction.</p>
-<p>Construction runs <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> without adding acquisition blocks.
-<a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.design.html#pypulseqpp.sequences.SequenceApp.design" title="pypulseqpp.sequences.SequenceApp.design"><code class="xref py py-meth docutils literal notranslate"><span class="pre">design()</span></code></a> creates a fresh sequence,
-runs <code class="docutils literal notranslate"><span class="pre">loop</span></code>, and applies <code class="docutils literal notranslate"><span class="pre">finalize</span></code>. Direct application calls add one kernel,
-so single-repetition inspection and complete design use the same code path.
-The loops returned by <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.prescans.html#pypulseqpp.sequences.SequenceApp.prescans" title="pypulseqpp.sequences.SequenceApp.prescans"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prescans()</span></code></a> are
-designed by <code class="docutils literal notranslate"><span class="pre">design(name)</span></code> and written by
-<a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.write.html#pypulseqpp.sequences.SequenceApp.write" title="pypulseqpp.sequences.SequenceApp.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SequenceApp.write</span></code></a> as a chain of
-linked files ahead of the main sequence.</p>
-<section id="settings">
-<h3>Settings<a class="headerlink" href="#settings" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> signature is the prescription exposed by <code class="docutils literal notranslate"><span class="pre">protocol</span></code>,
-<code class="docutils literal notranslate"><span class="pre">parameters</span></code>, the command line, and protocol editors. Its NumPy-style Parameters
-section defines units and defaults. Fixed design choices are class attributes.
-Every concrete application specifies <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code>; construction
-caps the supplied system limits to these values. A subclass of a concrete
-application, <code class="docutils literal notranslate"><span class="pre">BaseApp</span></code> below, assigns the attribute to change a limit.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LowSlewApp</span><span class="p">(</span><span class="n">BaseApp</span><span class="p">):</span>
-    <span class="n">MAX_SLEW</span> <span class="o">=</span> <span class="mf">60.0</span>
-</pre></div>
-</div>
-<p>Changing a design limit redesigns the gradient waveforms and may alter echo
-spacing, acquisition duration, and constraint estimates.</p>
-</section>
 <section id="checking-a-prescription">
-<h3>Checking a prescription<a class="headerlink" href="#checking-a-prescription" title="Link to this heading">#</a></h3>
-<p>A protocol editor checks a prescription whenever a value changes, and shows
-the resulting timing before anything is written. A sequence function designs
-every block when it is called, and the number of blocks grows with the matrix.
-Construction of a <code class="docutils literal notranslate"><span class="pre">SequenceApp</span></code> is the check without the loop: <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>
-designs the events and the timing, and raises when the prescription cannot be
-designed. The loop contributes only the blocks, so the check ends at
-construction. It does not evaluate the waveforms against gradient, PNS or SAR
-limits, which take the designed sequence (<a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>).</p>
-<p>Two results are read from the constructed application:</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.resolved.html#pypulseqpp.sequences.SequenceApp.resolved" title="pypulseqpp.sequences.SequenceApp.resolved"><code class="xref py py-attr docutils literal notranslate"><span class="pre">resolved</span></code></a>, the prescription as
-designed. A value the design chooses, such as the shortest echo time for
-<code class="docutils literal notranslate"><span class="pre">te=None</span></code>, or adjusts, such as a receiver bandwidth whose dwell time is
-rounded to the ADC raster, is recorded by <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> with
-<a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.resolve.html#pypulseqpp.sequences.SequenceApp.resolve" title="pypulseqpp.sequences.SequenceApp.resolve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">resolve()</span></code></a> and reported in place of
-the requested value.</p></li>
-<li><p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.scan_time.html#pypulseqpp.sequences.SequenceApp.scan_time" title="pypulseqpp.sequences.SequenceApp.scan_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scan_time()</span></code></a>, the duration of the
-whole chain, prescans included. <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code> computes it from the timing
-it designed and stores it as <code class="docutils literal notranslate"><span class="pre">duration</span></code>; without it, the chain is designed
-and timed, at the cost of writing it.</p></li>
-</ul>
-<p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.parameters.html#pypulseqpp.sequences.SequenceApp.parameters" title="pypulseqpp.sequences.SequenceApp.parameters"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SequenceApp.parameters</span></code></a>
-describes the prescription to the editor as
-<a class="reference internal" href="../../generated/pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters" title="pypulseqpp.sequences.parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">sequences.parameters</span></code></a> does for a
-function.</p>
-</section>
-<section id="function-form">
-<h3>Function form<a class="headerlink" href="#function-form" title="Link to this heading">#</a></h3>
-<p><a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.function.html#pypulseqpp.sequences.SequenceApp.function" title="pypulseqpp.sequences.SequenceApp.function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">function()</span></code></a> returns a subclass as a
-sequence function. Its signature is <code class="docutils literal notranslate"><span class="pre">system=None</span></code> followed by the keyword
-parameters of <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>, and its documentation is the class’s with the
-Parameters section of <code class="docutils literal notranslate"><span class="pre">init_sequence</span></code>. Calling it constructs the application and
-returns <code class="docutils literal notranslate"><span class="pre">design()</span></code>, or, for an application with prescans, the list of the
-designed prescans in the order <code class="docutils literal notranslate"><span class="pre">prescans</span></code> lists them followed by the main
-sequence. <code class="docutils literal notranslate"><span class="pre">sequences.parameters</span></code> of the function equals
-<code class="docutils literal notranslate"><span class="pre">SequenceApp.parameters()</span></code> of the class, and <a class="reference internal" href="../../generated/pypulseqpp.cli.run.html#pypulseqpp.cli.run" title="pypulseqpp.cli.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.cli.run()</span></code></a> accepts
-the function.</p>
-</section>
+<h2>Checking a prescription<a class="headerlink" href="#checking-a-prescription" title="Link to this heading">#</a></h2>
+<p>Calling a sequence function designs every block, and the number of blocks grows
+with the matrix. A prescription the design cannot meet, such as an echo time
+shorter than the readout admits, raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. The call does not evaluate
+the waveforms against gradient, PNS or SAR limits, which take the designed
+sequence (<a class="reference internal" href="../safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a>).</p>
+<p>The function records the prescription as designed in the definitions it sets
+after the loop. A value the design chooses, such as the shortest echo time for
+<code class="docutils literal notranslate"><span class="pre">te=None</span></code>, is recorded as <code class="docutils literal notranslate"><span class="pre">TE</span></code>, and prescribing the recorded value as <code class="docutils literal notranslate"><span class="pre">te</span></code>
+designs a sequence that records the same <code class="docutils literal notranslate"><span class="pre">TE</span></code>. The receiver bandwidth as
+designed is the reciprocal of the dwell time of the ADC events, which is
+rounded to the ADC raster.</p>
 </section>
 <section id="see-also">
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
@@ -758,7 +684,7 @@ the function.</p>
 <li><p><a class="reference internal" href="sampling.html"><span class="doc">Sampling support and ordering</span></a> — acquired support and temporal ordering.</p></li>
 <li><p><a class="reference internal" href="../../user-guide/from-pypulseq.html"><span class="doc">From a PyPulseq script</span></a> — a PyPulseq script as a sequence
 function.</p></li>
-<li><p><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html"><span class="doc">A sequence application</span></a> — a sequence
+<li><p><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html"><span class="doc">A sequence function</span></a> — a sequence
 function assembled from modules.</p></li>
 <li><p><a class="reference internal" href="../../api/apps.html"><span class="doc">Complete sequences</span></a> — exact interface.</p></li>
 <li><p><a class="reference internal" href="../../sequences.html"><span class="doc">Sequence catalogue</span></a> — shipped complete sequences.</p></li>
@@ -817,12 +743,7 @@ function assembled from modules.</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol">Protocol</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-labels">Encoding labels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans">Prescans</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequenceapp-base-class">SequenceApp base class</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#settings">Settings</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-a-prescription">Checking a prescription</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#function-form">Function form</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-a-prescription">Checking a prescription</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See also</a></li>
 </ul>
   </nav></div>

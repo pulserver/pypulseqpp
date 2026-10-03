@@ -18,24 +18,23 @@
 .. _sphx_glr_generated_gallery_05-sequence-modules_03_sequence_app.py:
 
 
-=========================
-A sequence application
-=========================
+===================
+A sequence function
+===================
 
 The two previous lessons designed an excitation and a readout with modules.
-This lesson assembles them into a complete acquisition. A sequence application
-is a function of the system limits and a prescription: it designs the modules,
-plays one repetition per line of k-space and returns the sequence. The function
-records the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
+This lesson assembles them into a complete acquisition. A sequence function
+takes the system limits and a protocol: it designs the modules, plays one
+repetition per line of k-space and returns the sequence. The function records
+the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
 :func:`~pypulseqpp.sequences.parameters` reads its protocol, and
 :func:`~pypulseqpp.sequences.write` writes the sequence it returns.
 
 The sequence is the RF-spoiled slice-selective gradient echo of
 :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as a sequence
 function rather than as a loop over events. Each sequence in :doc:`/sequences` is
-available as such a function through :meth:`SequenceApp.function()
-<pypulseqpp.sequences.SequenceApp.function>`. The structure is described in
-:doc:`/explanations/design/sequence-application`.
+such a function, in its own module of ``pypulseqpp.sequences``. The structure is
+described in :doc:`/explanations/design/sequence-application`.
 
 Learning objectives
 -------------------
@@ -53,7 +52,7 @@ After this lesson, you should be able to:
   from the same signature, and write what it returns with
   :func:`~pypulseqpp.sequences.write`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-52
+.. GENERATED FROM PYTHON SOURCE LINES 38-51
 
 Sequence function
 -----------------
@@ -69,7 +68,7 @@ k-space. A label keeps its value until an event changes it, so
 needs. After the loop, the geometry a reconstruction reads is recorded as
 definitions and the function returns the sequence.
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-128
+.. GENERATED FROM PYTHON SOURCE LINES 51-127
 
 .. code-block:: Python
 
@@ -156,7 +155,7 @@ definitions and the function returns the sequence.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-135
+.. GENERATED FROM PYTHON SOURCE LINES 128-134
 
 Sequence construction
 ---------------------
@@ -165,7 +164,7 @@ Calling the function designs the whole scan. The system is the default
 :class:`~pypulseqpp.Opts`, whose limits the function lowers to at most
 40 mT/m and 150 T/m/s.
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-141
+.. GENERATED FROM PYTHON SOURCE LINES 134-140
 
 .. code-block:: Python
 
@@ -190,12 +189,12 @@ Calling the function designs the whole scan. The system is the default
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-144
+.. GENERATED FROM PYTHON SOURCE LINES 141-143
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 144-147
+.. GENERATED FROM PYTHON SOURCE LINES 143-146
 
 .. code-block:: Python
 
@@ -214,7 +213,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 148-153
+.. GENERATED FROM PYTHON SOURCE LINES 147-152
 
 Acquisition order
 -----------------
@@ -222,7 +221,7 @@ Acquisition order
 The first change of a label is a SET, a change that repeats the previous
 change is an INC, and an unchanged value writes no event.
 
-.. GENERATED FROM PYTHON SOURCE LINES 153-158
+.. GENERATED FROM PYTHON SOURCE LINES 152-157
 
 .. code-block:: Python
 
@@ -248,12 +247,12 @@ change is an INC, and an unchanged value writes no event.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-161
+.. GENERATED FROM PYTHON SOURCE LINES 158-160
 
 Every acquisition of the sequence carries its ``LIN`` label, so the order the
 loop played is read back from the sequence rather than reconstructed.
 
-.. GENERATED FROM PYTHON SOURCE LINES 161-164
+.. GENERATED FROM PYTHON SOURCE LINES 160-163
 
 .. code-block:: Python
 
@@ -272,7 +271,7 @@ loop played is read back from the sequence rather than reconstructed.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 165-172
+.. GENERATED FROM PYTHON SOURCE LINES 164-171
 
 Protocol
 --------
@@ -282,7 +281,7 @@ its unit from the first parenthesised group of its description in the
 ``Parameters`` section. A protocol editor reads this record, and the command
 line derives its options from the same signature and ``Parameters`` section.
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-179
+.. GENERATED FROM PYTHON SOURCE LINES 171-178
 
 .. code-block:: Python
 
@@ -311,7 +310,7 @@ line derives its options from the same signature and ``Parameters`` section.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 180-196
+.. GENERATED FROM PYTHON SOURCE LINES 179-195
 
 Command-line interface
 ----------------------
@@ -330,7 +329,7 @@ is run as ``python gre.py --matrix 64 --te 5e-3 -o gre.seq``. A function that
 returns a list of sequences is written as a chain of files, each naming the
 next with ``NextSequence``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 196-202
+.. GENERATED FROM PYTHON SOURCE LINES 195-201
 
 .. code-block:: Python
 
@@ -356,7 +355,7 @@ next with ``NextSequence``.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.347 seconds)
+   **Total running time of the script:** (0 minutes 0.466 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_05-sequence-modules_03_sequence_app.py:

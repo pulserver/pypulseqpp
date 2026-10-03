@@ -1,7 +1,7 @@
 # Sequence modules
 
 The designers the package solves excitations and readouts with, and the
-application that gives one a prescription, a sampling order and a loop.
+sequence function that gives one a prescription, a sampling order and a loop.
 These lessons apply them to the prescriptions that the earlier lessons
 solved by hand.
 

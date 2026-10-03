@@ -65,7 +65,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/gallery/05-sequence-modules/02_readout.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="A sequence application" href="03_sequence_app.html" />
+    <link rel="next" title="A sequence function" href="03_sequence_app.html" />
     <link rel="prev" title="Excitation modules" href="01_excitation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/sequence-modules.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -561,7 +561,7 @@ same results and reports them.</p>
 repetition and a prescription, and solves the gradients, the acquisition
 window and the timing from them. The order in which lines are acquired is not
 part of the module; it belongs to the loop, which is the subject of
-<a class="reference internal" href="03_sequence_app.html"><span class="doc">A sequence application</span></a>. The module
+<a class="reference internal" href="03_sequence_app.html"><span class="doc">A sequence function</span></a>. The module
 concept, and the reason the design is divided in this way, are described in
 <a class="reference internal" href="../../../explanations/design/sequence-module.html"><span class="doc">Sequence modules</span></a>.</p>
 <section id="learning-objectives">
@@ -733,7 +733,7 @@ second echo runs backwards. The choice between them follows from the
 relationship measured in the earlier lesson: the bipolar train is shorter, and any delay between the gradient
 and the acquisition enters it as a difference between the odd and the even
 echoes rather than as a shift common to all of them.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.231 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.330 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-05-sequence-modules-02-readout-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/eea805bdfaa167da22fce1dfed36444e/02_readout.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">02_readout.ipynb</span></code></a></p>
@@ -774,7 +774,7 @@ echoes rather than as a shift common to all of them.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">A sequence application</p>
+        <p class="prev-next-title">A sequence function</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

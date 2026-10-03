@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Gradient, PNS and SAR constraints" href="../safety/index.html" />
-    <link rel="prev" title="Sequence applications" href="sequence-application.html" />
+    <link rel="prev" title="Sequence functions" href="sequence-application.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Sequence design in pypulseqpp</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -561,7 +561,7 @@ the centroid of the acquired views is not the centre.</p></li>
 <li><p>Poisson-disc sampling determines which views are acquired; T2 Shuffling
 determines when already selected views are acquired along the echo train.
 Either can be used without the other.</p></li>
-<li><p>Label events are created only by the sequence application, in <code class="docutils literal notranslate"><span class="pre">kernel</span></code>.
+<li><p>Label events are created only by the sequence function, in its scan loop.
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluate_labels()</span></code></a> recovers the labels actually
 written, per acquisition.</p></li>
 </ul>
@@ -570,8 +570,8 @@ written, per acquisition.</p></li>
 <strong>support</strong>, the set of phase- and partition-encoding views that are acquired,
 and its <strong>temporal ordering</strong>, the repetition, shot and echo at which each
 acquired view is played. The sampling routines keep the two separate, and
-neither creates events or labels. A <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceApp.html#pypulseqpp.sequences.SequenceApp" title="pypulseqpp.sequences.SequenceApp"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceApp</span></code></a>
-combines them in its scan loop.</p>
+neither creates events or labels. A sequence function combines them in its
+scan loop.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>acquisition prescription     matrix, acceleration, ACS, partial Fourier, CAIPI
         │
         ▼
@@ -581,7 +581,7 @@ acquired support             encoded view indices (y, z), split into
 temporal ordering            loop order, or [shot][echo] indices into the views
         │
         ▼
-SequenceApp.loop / kernel    one call per repetition
+scan loop                    one iteration per repetition
         │
         ├─▶ gradient scaling      phase and partition encodes from (y, z)
         └─▶ Pulseq labels         LIN, PAR, ECO, SEG, IMA, ...
@@ -655,9 +655,9 @@ at the target echo. The conversion is explicit:</p>
 <span class="n">view_of</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">views</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train</span><span class="p">]</span> <span class="k">for</span> <span class="n">train</span> <span class="ow">in</span> <span class="n">trains</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>The same indices <code class="docutils literal notranslate"><span class="pre">i</span></code> select the encoded view <code class="docutils literal notranslate"><span class="pre">views[i]</span></code>, from which the kernel
-scales the phase-encoding gradient and writes the <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code> labels. A
-boolean mask enters the same way, through <code class="docutils literal notranslate"><span class="pre">np.argwhere(mask)</span></code>.</p>
+<p>The same indices <code class="docutils literal notranslate"><span class="pre">i</span></code> select the encoded view <code class="docutils literal notranslate"><span class="pre">views[i]</span></code>, from which the scan
+loop scales the phase-encoding gradient and writes the <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code> labels.
+A boolean mask enters the same way, through <code class="docutils literal notranslate"><span class="pre">np.argwhere(mask)</span></code>.</p>
 </section>
 <section id="poisson-disc-support-and-t2-shuffling">
 <h2>Poisson-disc support and T2 Shuffling<a class="headerlink" href="#poisson-disc-support-and-t2-shuffling" title="Link to this heading">#</a></h2>
@@ -686,19 +686,20 @@ answer different questions.</p>
 </tbody>
 </table>
 </div>
-<p>The shipped fast-spin-echo application combines them under
-<code class="docutils literal notranslate"><span class="pre">ordering='shuffling'</span></code>. The MPRAGE application’s <code class="docutils literal notranslate"><span class="pre">ordering='shuffling'</span></code> pairs
+<p>The shipped fast-spin-echo sequence combines them under
+<code class="docutils literal notranslate"><span class="pre">ordering='shuffling'</span></code>. The MPRAGE sequence’s <code class="docutils literal notranslate"><span class="pre">ordering='shuffling'</span></code> pairs
 the same Poisson-disc support with a random line order within each partition.
 Either choice can be used without the other.</p>
 </section>
 <section id="labels">
 <h2>Labels<a class="headerlink" href="#labels" title="Link to this heading">#</a></h2>
-<p>Label events are created only by the sequence application. In each call of
-<code class="docutils literal notranslate"><span class="pre">kernel</span></code> it writes <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code> from the encoded view, <code class="docutils literal notranslate"><span class="pre">ECO</span></code> from the echo
-index, <code class="docutils literal notranslate"><span class="pre">IMA</span></code> from membership of the calibration list, and <code class="docutils literal notranslate"><span class="pre">SEG</span></code>, <code class="docutils literal notranslate"><span class="pre">SLC</span></code>, <code class="docutils literal notranslate"><span class="pre">SET</span></code>
-or <code class="docutils literal notranslate"><span class="pre">REP</span></code> from its position in the loop. The sampling routines return plain
-Python and NumPy values; which calibration views are played first, and whether
-the support is reordered before acquisition, is decided by the application.
+<p>Label events are created only by the sequence function. In each repetition of
+its scan loop it writes <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code> from the encoded view, <code class="docutils literal notranslate"><span class="pre">ECO</span></code> from the
+echo index, <code class="docutils literal notranslate"><span class="pre">IMA</span></code> from membership of the calibration list, and <code class="docutils literal notranslate"><span class="pre">SEG</span></code>, <code class="docutils literal notranslate"><span class="pre">SLC</span></code>,
+<code class="docutils literal notranslate"><span class="pre">SET</span></code> or <code class="docutils literal notranslate"><span class="pre">REP</span></code> from its position in the loop. The sampling routines return
+plain Python and NumPy values; which calibration views are played first, and
+whether the support is reordered before acquisition, is decided by the
+sequence function.
 <a class="reference internal" href="../../generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluate_labels()</span></code></a> recovers the labels actually
 written, per acquisition.</p>
 </section>
@@ -706,7 +707,8 @@ written, per acquisition.</p>
 <h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="../../api/sampling.html"><span class="doc">Sampling and scan-loop schedules</span></a>: the routines, their inputs and returns.</p></li>
-<li><p><a class="reference internal" href="sequence-application.html"><span class="doc">Sequence applications</span></a>: the loop and kernel that consume them.</p></li>
+<li><p><a class="reference internal" href="sequence-application.html"><span class="doc">Sequence functions</span></a>: the sequence function whose scan loop consumes
+them.</p></li>
 </ul>
 </section>
 </section>
@@ -728,7 +730,7 @@ written, per acquisition.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Sequence applications</p>
+        <p class="prev-next-title">Sequence functions</p>
       </div>
     </a>
     <a class="right-next"

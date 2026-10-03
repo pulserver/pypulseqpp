@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Sequence design in pypulseqpp</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -533,10 +533,10 @@
 <h1>Sequence design in pypulseqpp<a class="headerlink" href="#sequence-design-in-pypulseqpp" title="Link to this heading">#</a></h1>
 <p>The abstractions the package places above the flat block list of
 <a class="reference internal" href="../pulseq/index.html"><span class="doc">Pulseq representation</span></a>: a reusable block layout whose timing and gradient
-waveforms are solved once, an application that adds a prescription, a sampling
-order and a scan loop, and the sampling routines that feed it. None of them is
-part of the file format; a sequence written through them is an ordinary <code class="docutils literal notranslate"><span class="pre">.seq</span></code>
-file.</p>
+waveforms are solved once, a sequence function that adds a prescription, a
+sampling order and a scan loop, and the sampling routines that feed it. None
+of them is part of the file format; a sequence written through them is an
+ordinary <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Concept</p></th>
@@ -547,7 +547,7 @@ file.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="sequence-module.html"><span class="doc">Sequence modules</span></a></p></td>
 <td><p>What a module publishes, the <code class="docutils literal notranslate"><span class="pre">center</span></code> reference its timing is measured from, and what excitation, preparation and readout modules are each responsible for.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="sequence-application.html"><span class="doc">Sequence applications</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="sequence-application.html"><span class="doc">Sequence functions</span></a></p></td>
 <td><p>How a prescription becomes a sequence function that returns a sequence or a prescan chain, how its protocol is read, and how encoding labels and the files of a chain are written.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="sampling.html"><span class="doc">Sampling support and ordering</span></a></p></td>

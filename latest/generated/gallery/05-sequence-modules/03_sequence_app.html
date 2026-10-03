@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>A sequence application &#8212; pypulseqpp documentation</title>
+    <title>A sequence function &#8212; pypulseqpp documentation</title>
   
   
   
@@ -221,7 +221,7 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence applications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
 </ul>
 </details></li>
@@ -263,7 +263,7 @@
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/sequence-modules.html">Sequence modules</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="01_excitation.html">Excitation modules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="02_readout.html">Readout modules</a></li>
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">A sequence application</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -517,7 +517,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>A sequence application</h1>
+    <h1>A sequence function</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -550,22 +550,22 @@
 <p><a class="reference internal" href="#sphx-glr-download-generated-gallery-05-sequence-modules-03-sequence-app-py"><span class="std std-ref">Go to the end</span></a>
 to download the full example code.</p>
 </div>
-<section class="sphx-glr-example-title" id="a-sequence-application">
-<span id="sphx-glr-generated-gallery-05-sequence-modules-03-sequence-app-py"></span><h1>A sequence application<a class="headerlink" href="#a-sequence-application" title="Link to this heading">#</a></h1>
+<section class="sphx-glr-example-title" id="a-sequence-function">
+<span id="sphx-glr-generated-gallery-05-sequence-modules-03-sequence-app-py"></span><h1>A sequence function<a class="headerlink" href="#a-sequence-function" title="Link to this heading">#</a></h1>
 <a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/05-sequence-modules/03_sequence_app.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>The two previous lessons designed an excitation and a readout with modules.
-This lesson assembles them into a complete acquisition. A sequence application
-is a function of the system limits and a prescription: it designs the modules,
-plays one repetition per line of k-space and returns the sequence. The function
-records the encoding labels with <a class="reference internal" href="../../pypulseqpp.sequences.Labels.html#pypulseqpp.sequences.Labels" title="pypulseqpp.sequences.Labels"><code class="xref py py-class docutils literal notranslate"><span class="pre">Labels</span></code></a>.
+This lesson assembles them into a complete acquisition. A sequence function
+takes the system limits and a protocol: it designs the modules, plays one
+repetition per line of k-space and returns the sequence. The function records
+the encoding labels with <a class="reference internal" href="../../pypulseqpp.sequences.Labels.html#pypulseqpp.sequences.Labels" title="pypulseqpp.sequences.Labels"><code class="xref py py-class docutils literal notranslate"><span class="pre">Labels</span></code></a>.
 <a class="reference internal" href="../../pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters" title="pypulseqpp.sequences.parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameters()</span></code></a> reads its protocol, and
 <a class="reference internal" href="../../pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-func docutils literal notranslate"><span class="pre">write()</span></code></a> writes the sequence it returns.</p>
 <p>The sequence is the RF-spoiled slice-selective gradient echo of
 <a class="reference internal" href="../02-spoiling/02_rf_spoiling.html"><span class="doc">RF spoiling</span></a>, expressed as a sequence
 function rather than as a loop over events. Each sequence in <a class="reference internal" href="../../../sequences.html"><span class="doc">Sequence catalogue</span></a> is
-available as such a function through <a class="reference internal" href="../../pypulseqpp.sequences.SequenceApp.function.html#pypulseqpp.sequences.SequenceApp.function" title="pypulseqpp.sequences.SequenceApp.function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SequenceApp.function()</span></code></a>. The structure is described in
-<a class="reference internal" href="../../../explanations/design/sequence-application.html"><span class="doc">Sequence applications</span></a>.</p>
+such a function, in its own module of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>. The structure is
+described in <a class="reference internal" href="../../../explanations/design/sequence-application.html"><span class="doc">Sequence functions</span></a>.</p>
 <section id="learning-objectives">
 <h2>Learning objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h2>
 <p>After this lesson, you should be able to:</p>
@@ -752,7 +752,7 @@ next with <code class="docutils literal notranslate"><span class="pre">NextSeque
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>['tour_gre_2d.seq']
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.347 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.466 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-05-sequence-modules-03-sequence-app-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/3dd5f43975d2afa507dbc6163beb5d5e/03_sequence_app.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">03_sequence_app.ipynb</span></code></a></p>

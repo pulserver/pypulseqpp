@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.002** total execution time for 3 files **from generated/gallery/07-custom-modules**:
+**00:01.304** total execution time for 3 files **from generated/gallery/07-custom-modules**:
 
 .. container::
 
@@ -33,11 +33,11 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_07-custom-modules_01_excitation_module.py` (``01_excitation_module.py``)
-     - 00:00.619
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_07-custom-modules_03_noncartesian_readout.py` (``03_noncartesian_readout.py``)
-     - 00:00.197
+     - 00:00.773
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_07-custom-modules_02_cartesian_readout.py` (``02_cartesian_readout.py``)
-     - 00:00.186
+     - 00:00.268
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_07-custom-modules_03_noncartesian_readout.py` (``03_noncartesian_readout.py``)
+     - 00:00.264
      - 0.0
