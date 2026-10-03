@@ -15,6 +15,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
+#include <unordered_map>
 
 #if defined(__SSE__) || defined(_M_X64)
 #include <xmmintrin.h>
@@ -25,9 +27,6 @@ namespace pulseq
 
     namespace
     {
-
-        /** Chronaxies of c / (c + t)^2 kept before the tail is cut. */
-        constexpr double kChronaxieKernelSpan = 20.0;
 
         /** Samples read per pass over the raster. */
         constexpr int64_t kChunk = 4096;
@@ -56,8 +55,8 @@ namespace pulseq
         class Safe
         {
         public:
-            /** Its memory never ends, so a silent stretch is read sample by sample. */
-            static constexpr bool kEnds = false;
+            static constexpr bool kLinear = false;
+            static constexpr int kStates = 3;
 
             Safe(const std::array<SafeAxis, 3>& axes, double dt) : axes_(axes)
             {
@@ -91,153 +90,94 @@ namespace pulseq
          *
          * Each node is one exponential, so the kernel integrated over a raster
          * interval is a sum of first-order recursions. In u the nodes do not
-         * depend on c or the raster; over 20 chronaxies the sum is within
-         * 1e-5 of the kernel's unit area, in total absolute error per tap.
+         * depend on c or the raster; the sum is within 1e-5 of the kernel's
+         * unit area, in total absolute error per tap, out to 2000 chronaxies.
          */
-        constexpr double kNodeFirst = -7.0;
+        constexpr double kNodeFirst = -11.0;
         constexpr double kNodeStep = 0.6;
-        constexpr int kNodes = 17;
+        constexpr int kNodes = 24;
 
-        /** The chronaxie kernel over each axis's slew history, cut after its span. */
+        /** The chronaxie kernel over each axis's slew history. */
         class Chronaxie
         {
         public:
-            /** The response is exactly zero once a span of samples has no slew. */
-            static constexpr bool kEnds = true;
+            /** The response is a linear function of the filter state and the slews. */
+            static constexpr bool kLinear = true;
+            static constexpr int kStates = kNodes;
 
             Chronaxie(double chronaxie, const double (&rheobase)[3],
                       const double (&alpha)[3], double dt)
             {
-                length_ = static_cast<size_t>(kChronaxieKernelSpan * chronaxie / dt) + 1;
                 for (int k = 0; k < kNodes; ++k)
                 {
                     const double s =
                         std::exp(kNodeFirst + kNodeStep * static_cast<double>(k)) / chronaxie;
+                    log_decay_[k] = -s * dt;
                     decay_[k] = std::exp(-s * dt);
                     weight_[k] = chronaxie * kNodeStep * s * std::exp(-s * chronaxie) *
                         -std::expm1(-s * dt);
-                    /* What a slew contributes once it is `length_` samples old,
-                     * subtracted then so the kernel ends where the cut is. */
-                    expired_[k] = weight_[k] * std::pow(decay_[k], static_cast<double>(length_));
-                }
-                /* Powers of each decay up to the span, for silent stretches. */
-                powers_.resize(static_cast<size_t>(kNodes) * (length_ + 1));
-                for (int k = 0; k < kNodes; ++k)
-                {
-                    double power = 1.0;
-                    for (size_t d = 0; d <= length_; ++d, power *= decay_[k])
-                        powers_[static_cast<size_t>(k) * (length_ + 1) + d] = power;
-                    expired_sum_ += expired_[k];
                 }
                 for (int axis = 0; axis < 3; ++axis)
-                {
                     scale_[axis] = alpha[axis] / rheobase[axis];
-                    history_[axis].assign(length_, 0.0);
-                }
             }
 
             double respond(int axis, double slew)
             {
-                std::vector<double>& history = history_[axis];
-                size_t& at = at_[axis];
-                const double oldest = history[at];
-                history[at] = slew;
-                at = at + 1 == length_ ? 0 : at + 1;
                 double* state = state_[axis];
                 double sum = 0.0;
                 for (int k = 0; k < kNodes; ++k)
                 {
-                    state[k] = decay_[k] * state[k] + weight_[k] * slew - expired_[k] * oldest;
+                    state[k] = decay_[k] * state[k] + weight_[k] * slew;
                     sum += state[k];
                 }
-                held_[axis] += std::fabs(slew) - std::fabs(oldest);
                 return std::fabs(sum) * scale_[axis];
             }
 
+            /** The state after one more sample of slew @p slew, without the response. */
+            void advanced(int axis, double slew, double* out) const
+            {
+                for (int k = 0; k < kNodes; ++k)
+                    out[k] = decay_[k] * state_[axis][k] + weight_[k] * slew;
+            }
+
+            double* state(int axis)
+            {
+                return state_[axis];
+            }
+
+            /** Each decay raised to @p count. */
+            void decayed(int64_t count, double* out) const
+            {
+                for (int k = 0; k < kNodes; ++k)
+                    out[k] = std::exp(log_decay_[k] * static_cast<double>(count));
+            }
+
             /**
-             * Upper bound on the response at every later sample while the slew is zero.
-             *
-             * Without the cut, the response is the positive states' sum less
-             * the negative states' magnitude, each decaying, so neither
-             * exceeds its present value. What the cut takes away is at most
-             * the expiry weights times the slew magnitude still held.
+             * Upper bound, over every later sample with no slew, on the response
+             * to the state @p state: the sum of its positive entries less the
+             * magnitude of its negative ones, each decaying, so the response
+             * stays within the larger of the two at present.
              */
-            double quiet_bound(int axis) const
+            double bound(int axis, const double* state) const
             {
                 double positive = 0.0;
                 double negative = 0.0;
                 for (int k = 0; k < kNodes; ++k)
                 {
-                    if (state_[axis][k] > 0.0)
-                        positive += state_[axis][k];
+                    if (state[k] > 0.0)
+                        positive += state[k];
                     else
-                        negative -= state_[axis][k];
+                        negative -= state[k];
                 }
-                const double cut = expired_sum_ * std::max(held_[axis], 0.0);
-                return (std::max(positive, negative) + cut) * scale_[axis] * (1.0 + 1e-12);
-            }
-
-            /** Samples of zero slew after which the response is zero. */
-            int64_t span() const
-            {
-                return static_cast<int64_t>(length_);
-            }
-
-            /** Rest, as after a span of zero slew. */
-            void clear()
-            {
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    std::fill(history_[axis].begin(), history_[axis].end(), 0.0);
-                    std::fill(state_[axis], state_[axis] + kNodes, 0.0);
-                    held_[axis] = 0.0;
-                }
-            }
-
-            /**
-             * The filter after @p count samples of zero slew, fewer than the span,
-             * without their responses: only the slews leaving the history cost work.
-             */
-            void rest(int64_t count)
-            {
-                const size_t m = static_cast<size_t>(count);
-                const size_t stride = length_ + 1;
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    std::vector<double>& history = history_[axis];
-                    size_t& at = at_[axis];
-                    double leaving[kNodes] = {};
-                    for (size_t j = 0; j < m; ++j)
-                    {
-                        const double oldest = history[at];
-                        if (oldest != 0.0)
-                        {
-                            history[at] = 0.0;
-                            held_[axis] -= std::fabs(oldest);
-                            for (int k = 0; k < kNodes; ++k)
-                                leaving[k] += oldest * powers_[static_cast<size_t>(k) * stride + m - 1 - j];
-                        }
-                        at = at + 1 == length_ ? 0 : at + 1;
-                    }
-                    for (int k = 0; k < kNodes; ++k)
-                        state_[axis][k] = powers_[static_cast<size_t>(k) * stride + m] * state_[axis][k] -
-                            expired_[k] * leaving[k];
-                }
+                return std::max(positive, negative) * scale_[axis];
             }
 
         private:
-            size_t length_ = 0;
+            double log_decay_[kNodes];
             double decay_[kNodes];
             double weight_[kNodes];
-            double expired_[kNodes];
             double state_[3][kNodes] = {};
-            std::vector<double> powers_;
-            double expired_sum_ = 0.0;
-            /** Sum of |slew| over each axis's history. */
-            double held_[3] = {0.0, 0.0, 0.0};
             double scale_[3] = {0.0, 0.0, 0.0};
-            std::vector<double> history_[3];
-            size_t at_[3] = {0, 0, 0};
         };
 
         void note(PnsPeak& peak, double value, double time, int block)
@@ -250,12 +190,71 @@ namespace pulseq
             }
         }
 
+        /** What makes two blocks play one physical gradient over their samples. */
+        struct BlockKey
+        {
+            int32_t gradient[3];
+            int32_t rotation;
+            int64_t samples;
+            /** Time from the block's start to its first sample centre, in ps. */
+            int64_t offset;
+
+            bool operator==(const BlockKey& other) const
+            {
+                return gradient[0] == other.gradient[0] && gradient[1] == other.gradient[1] &&
+                    gradient[2] == other.gradient[2] && rotation == other.rotation &&
+                    samples == other.samples && offset == other.offset;
+            }
+        };
+
+        struct BlockKeyHash
+        {
+            size_t operator()(const BlockKey& key) const
+            {
+                uint64_t h = 1469598103934665603ull;
+                const auto mix = [&h](uint64_t v) { h = (h ^ v) * 1099511628211ull; };
+                for (int32_t g : key.gradient)
+                    mix(static_cast<uint32_t>(g));
+                mix(static_cast<uint32_t>(key.rotation));
+                mix(static_cast<uint64_t>(key.samples));
+                mix(static_cast<uint64_t>(key.offset));
+                return static_cast<size_t>(h);
+            }
+        };
+
+        /**
+         * One block's response by linearity, from its last full evaluation.
+         *
+         * With the state c after the block's first sample split into what the
+         * block brings from rest and what it carries in, the response at its
+         * n-th sample is sum_k decay_k^n c_k plus the response of the block
+         * from rest, and the state it leaves is decay^(N-1) c plus that
+         * response's final state. A block whose carried state differs from the
+         * remembered one by d responds within the bound on d of what it did.
+         */
+        template <int States>
+        struct Remembered
+        {
+            double carried[3][States];
+            double from_rest[3][States];
+            double peak[3];
+            double peak_norm;
+            double last[3];
+        };
+
+        /** Samples read between bound checks while a held gradient's response decays. */
+        constexpr int64_t kQuietStep = 64;
+
+        /** Relative excess over the peak found that a skipped block may hide. */
+        constexpr double kPeakTolerance = 1e-9;
+
         template <typename Model>
         class Run
         {
         public:
-            Run(PhysicalRaster& raster, Model& model, const PnsOptions& options, PnsReport& out)
-                : raster_(raster), model_(model), options_(options), out_(out),
+            Run(const Sequence& seq, PhysicalRaster& raster, Model& model,
+                const PnsOptions& options, PnsReport& out)
+                : seq_(seq), raster_(raster), model_(model), options_(options), out_(out),
                   dt_(raster.raster()), to_slew_(1.0 / (dt_ * options.gamma))
             {
                 for (int axis = 0; axis < 3; ++axis)
@@ -264,11 +263,11 @@ namespace pulseq
 
             void operator()()
             {
-                if constexpr (Model::kEnds)
+                if constexpr (Model::kLinear)
                 {
                     if (!options_.keep_trace)
                     {
-                        skipping();
+                        by_block();
                         return;
                     }
                 }
@@ -279,59 +278,148 @@ namespace pulseq
             }
 
         private:
-            void skipping()
+            static constexpr int kStates = Model::kStates;
+
+            void by_block()
             {
-                bool steady = false;
-                int64_t ahead;
-                while ((ahead = raster_.run(&steady)) > 0)
+                int64_t count;
+                while ((count = raster_.enter_block()) > 0)
                 {
-                    if (!steady || ahead == 1)
-                        read(std::min(ahead, kChunk));
-                    else
+                    const int32_t* row = seq_.block_events() +
+                        static_cast<size_t>(raster_.block() - 1) * BLOCK_WIDTH;
+                    const double offset =
+                        (static_cast<double>(raster_.position()) + 0.5) * dt_ - raster_.block_start();
+                    const BlockKey key = {{row[1], row[2], row[3]},
+                                          row[BLOCK_ROTATION_COLUMN],
+                                          count,
+                                          static_cast<int64_t>(std::llround(offset * 1e12))};
+                    double carried[3][kStates];
+                    for (int axis = 0; axis < 3; ++axis)
+                        model_.advanced(axis, -previous_[axis] * to_slew_, carried[axis]);
+
+                    auto found = memory_.find(key);
+                    if (found == memory_.end())
                     {
-                        /* The first sample may step; the rest repeat it. */
-                        read(1);
-                        quiet(ahead - 1);
+                        /* Remembered from its second appearance on: most blocks
+                         * that appear once never appear again. */
+                        memory_.emplace(key, nullptr);
+                        evaluate(count);
+                        continue;
                     }
+                    if (found->second && within(*found->second, carried))
+                    {
+                        const Remembered<kStates>& block = *found->second;
+                        double decay[kStates];
+                        model_.decayed(count - 1, decay);
+                        for (int axis = 0; axis < 3; ++axis)
+                        {
+                            double* state = model_.state(axis);
+                            for (int k = 0; k < kStates; ++k)
+                                state[k] = decay[k] * carried[axis][k] + block.from_rest[axis][k];
+                            previous_[axis] = block.last[axis];
+                        }
+                        raster_.skip(count);
+                        n_ += count;
+                        continue;
+                    }
+                    if (!found->second)
+                        found->second = std::make_unique<Remembered<kStates>>();
+                    Remembered<kStates>& block = *found->second;
+                    for (int axis = 0; axis < 3; ++axis)
+                        block_peak_[axis] = 0.0;
+                    block_peak_norm_ = 0.0;
+                    evaluate(count);
+                    double decay[kStates];
+                    model_.decayed(count - 1, decay);
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        const double* state = model_.state(axis);
+                        for (int k = 0; k < kStates; ++k)
+                        {
+                            block.carried[axis][k] = carried[axis][k];
+                            block.from_rest[axis][k] = state[k] - decay[k] * carried[axis][k];
+                        }
+                        block.peak[axis] = block_peak_[axis];
+                        block.last[axis] = previous_[axis];
+                    }
+                    block.peak_norm = block_peak_norm_;
                 }
                 out_.samples = n_;
             }
 
-            /**
-             * Zero slew for @p count samples. Skipped where the response cannot
-             * pass a peak already found, and otherwise read up to the kernel's
-             * end; past that end the filter is at rest.
-             */
-            void quiet(int64_t count)
+            /** Whether the block, carrying this state in, cannot pass a peak found. */
+            bool within(const Remembered<kStates>& block, const double (&carried)[3][kStates]) const
             {
-                const int64_t span = model_.span();
                 double squared = 0.0;
-                bool below = true;
                 for (int axis = 0; axis < 3; ++axis)
                 {
-                    const double bound = model_.quiet_bound(axis);
+                    double difference[kStates];
+                    for (int k = 0; k < kStates; ++k)
+                        difference[k] = carried[axis][k] - block.carried[axis][k];
+                    const double bound = model_.bound(axis, difference);
                     squared += bound * bound;
-                    below = below && bound <= out_.axes[static_cast<size_t>(axis)].value;
+                    if (block.peak[axis] + bound >
+                        out_.axes[static_cast<size_t>(axis)].value * (1.0 + kPeakTolerance))
+                        return false;
                 }
-                below = below && std::sqrt(squared) <= out_.norm.value;
-                if (count < span)
+                return block.peak_norm + std::sqrt(squared) <=
+                    out_.norm.value * (1.0 + kPeakTolerance);
+            }
+
+            /**
+             * The block's @p count samples, read where the slew changes. Where
+             * the gradient holds, the state only decays: once its bound is
+             * within the peaks found, the rest of the stretch is skipped and
+             * the bound stands in for the block's own peak.
+             */
+            void evaluate(int64_t count)
+            {
+                while (count > 0)
                 {
-                    if (!below)
+                    bool steady = false;
+                    const int64_t ahead = std::min(count, raster_.run(&steady));
+                    if (!steady || ahead == 1)
                     {
-                        read_all(count);
-                        return;
+                        read_all(ahead);
+                        count -= ahead;
+                        continue;
                     }
-                    model_.rest(count);
+                    /* The first sample may step; the rest repeat it. */
+                    read(1);
+                    int64_t quiet = ahead - 1;
+                    count -= ahead;
+                    while (quiet > 0)
+                    {
+                        double bounds[3];
+                        double squared = 0.0;
+                        bool below = true;
+                        for (int axis = 0; axis < 3; ++axis)
+                        {
+                            bounds[axis] = model_.bound(axis, model_.state(axis));
+                            squared += bounds[axis] * bounds[axis];
+                            below = below &&
+                                bounds[axis] <= out_.axes[static_cast<size_t>(axis)].value;
+                        }
+                        const double norm = std::sqrt(squared);
+                        if (below && norm <= out_.norm.value)
+                        {
+                            double decay[kStates];
+                            model_.decayed(quiet, decay);
+                            for (int axis = 0; axis < 3; ++axis)
+                            {
+                                double* state = model_.state(axis);
+                                for (int k = 0; k < kStates; ++k)
+                                    state[k] *= decay[k];
+                                block_peak_[axis] = std::max(block_peak_[axis], bounds[axis]);
+                            }
+                            block_peak_norm_ = std::max(block_peak_norm_, norm);
+                            raster_.skip(quiet);
+                            n_ += quiet;
+                            break;
+                        }
+                        quiet -= read(std::min(quiet, kQuietStep));
+                    }
                 }
-                else
-                {
-                    const int64_t read_through = below ? 0 : span;
-                    read_all(read_through);
-                    model_.clear();
-                    count -= read_through;
-                }
-                raster_.skip(count);
-                n_ += count;
             }
 
             void read_all(int64_t count)
@@ -356,11 +444,13 @@ namespace pulseq
                             model_.respond(axis, (g - previous_[axis]) * to_slew_);
                         previous_[axis] = g;
                         squared += response * response;
+                        block_peak_[axis] = std::max(block_peak_[axis], response);
                         note(out_.axes[static_cast<size_t>(axis)], response, time, block);
                         if (options_.keep_trace)
                             out_.trace_axes[static_cast<size_t>(axis)].push_back(response);
                     }
                     const double norm = std::sqrt(squared);
+                    block_peak_norm_ = std::max(block_peak_norm_, norm);
                     note(out_.norm, norm, time, block);
                     if (options_.keep_trace)
                         out_.trace_norm.push_back(norm);
@@ -368,6 +458,7 @@ namespace pulseq
                 return got;
             }
 
+            const Sequence& seq_;
             PhysicalRaster& raster_;
             Model& model_;
             const PnsOptions& options_;
@@ -376,13 +467,18 @@ namespace pulseq
             const double to_slew_;
             std::vector<double> samples_[3];
             double previous_[3] = {0.0, 0.0, 0.0};
+            double block_peak_[3] = {0.0, 0.0, 0.0};
+            double block_peak_norm_ = 0.0;
             int64_t n_ = 0;
+            std::unordered_map<BlockKey, std::unique_ptr<Remembered<kStates>>, BlockKeyHash>
+                memory_;
         };
 
         template <typename Model>
-        void run(PhysicalRaster& raster, Model& model, const PnsOptions& options, PnsReport& out)
+        void run(const Sequence& seq, PhysicalRaster& raster, Model& model,
+                 const PnsOptions& options, PnsReport& out)
         {
-            Run<Model>(raster, model, options, out)();
+            Run<Model>(seq, raster, model, options, out)();
         }
 
     } // namespace
@@ -396,12 +492,12 @@ namespace pulseq
         if (model.kind == PnsModel::Kind::Safe)
         {
             Safe safe(model.safe, out.raster);
-            run(raster, safe, options, out);
+            run(seq, raster, safe, options, out);
         }
         else
         {
             Chronaxie chronaxie(model.chronaxie, model.rheobase, model.alpha, out.raster);
-            run(raster, chronaxie, options, out);
+            run(seq, raster, chronaxie, options, out);
         }
         return out;
     }

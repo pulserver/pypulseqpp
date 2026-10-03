@@ -86,11 +86,13 @@ namespace pulseq
      * normalises by stim_limit / g_scale. The chronaxie model convolves the
      * slew with c / (c + t)^2 integrated over each raster interval, normalised
      * by rheobase / alpha, so a rectangular slew S held for tau responds with
-     * S alpha tau / (rheobase (c + tau)); the kernel is cut after
-     * 20 chronaxies and evaluated as a sum of 17 exponentials, within 1e-5
-     * of the convolution relative to the largest slew's response. Both are
-     * evaluated in one pass with the filter's own memory carried along,
-     * which is the whole-timeline answer.
+     * S alpha tau / (rheobase (c + tau)). The kernel is evaluated as a sum
+     * of 24 exponentials, within 1e-5 of the convolution relative to the
+     * largest slew's response, and a block that repeats one already
+     * evaluated is answered by linearity in the filter state it carries in,
+     * unless the response could pass the peak found by more than 1e-9 of it.
+     * Both models are evaluated in one pass with the filter's own memory
+     * carried along, which is the whole-timeline answer.
      */
     PnsReport pns(const Sequence& seq, const PnsModel& model, const PnsOptions& options);
 

@@ -96,6 +96,16 @@ namespace pulseq
         return true;
     }
 
+    int64_t PhysicalRaster::enter_block()
+    {
+        while (position_ >= block_end_)
+        {
+            if (!enter_next_block())
+                return 0;
+        }
+        return block_end_ - position_;
+    }
+
     int64_t PhysicalRaster::run(bool* steady)
     {
         while (position_ >= block_end_)
