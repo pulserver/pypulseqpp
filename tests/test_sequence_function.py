@@ -4,7 +4,7 @@ import inspect
 from pathlib import Path
 
 import pytest
-from zoo import SMALL, app_class
+from zoo import SMALL, parameters
 
 import pypulseqpp as pp
 from pypulseqpp import _ext, cli, sequences
@@ -50,16 +50,21 @@ WRITTEN = [
 ]
 
 
-def test_labels_emit_what_sequence_app_labels_emit():
-    app = app_class("gre2D_sequence")(pp.Opts(), **SMALL["gre2D_sequence"])
+def test_a_block_carries_only_the_label_events_it_changes():
     labels = sequences.Labels()
 
     assert [events(labels(**values)) for values in SERIES] == WRITTEN
-    assert [events(app.labels(**values)) for values in SERIES] == WRITTEN
+
+
+def test_a_restart_writes_every_label_again_as_a_set():
+    labels = sequences.Labels()
+    for values in SERIES:
+        labels(**values)
+    assert events(labels(LIN=4)) == []
 
     labels.restart()
-    app.restart_labels()
-    assert events(labels(LIN=4)) == events(app.labels(LIN=4)) == [("LIN", SET, 4)]
+
+    assert events(labels(LIN=4)) == [("LIN", SET, 4)]
 
 
 # -- writing -----------------------------------------------------------------
@@ -255,67 +260,87 @@ def test_the_system_is_not_a_protocol_parameter():
     assert (protocol["n"].type, protocol["n"].optional) == (int, True)
 
 
-@pytest.mark.parametrize("name", sequences.ZOO)
-def test_parameters_of_a_function_match_those_of_its_class(name):
-    app = app_class(name)
+def test_a_parameter_carries_its_type_default_unit_and_description():
+    main = sequences.gre2D_sequence.main
+    protocol = sequences.parameters(main)
+    te, n_x = protocol["te"], protocol["n_x"]
 
-    assert sequences.parameters(app.function()) == app.parameters()
-
-
-def test_a_class_as_a_function_takes_the_system_then_the_protocol_as_keywords():
-    app = app_class("gre2D_sequence")
-    function = app.function()
-
-    first, *protocol = inspect.signature(function).parameters.values()
-
-    assert (first.name, first.default, first.kind) == (
-        "system",
-        None,
-        first.POSITIONAL_OR_KEYWORD,
-    )
-    assert [p.name for p in protocol] == list(app.protocol())
-    assert {p.kind for p in protocol} == {inspect.Parameter.KEYWORD_ONLY}
-    assert "Echo time (s)." in function.__doc__
+    assert list(protocol) == [
+        name for name in inspect.signature(main).parameters if name != "system"
+    ]
+    assert (te.type, te.default, te.optional, te.unit) == (float, 8e-3, True, "s")
+    assert te.description.startswith("Echo time (s). ``None`` is as short as")
+    assert (n_x.type, n_x.optional, n_x.unit) == (int, False, "")
+    assert protocol["flip_angle_deg"].unit == "degrees"
+    assert protocol["fov_x"].unit == protocol["fov_y"].unit == "m"
 
 
-@pytest.mark.parametrize("name", ["gre2D_sequence", "epi2D_sequence"])
-def test_a_class_as_a_function_designs_what_main_designs(tmp_path, name):
-    """The chain is the prescans in play order and then the main sequence."""
-    app = app_class(name)(pp.Opts(), **SMALL[name])
-    designed = [app.design(prescan) for prescan in app.prescans()] + [app.design()]
-    returned = app_class(name).function()(pp.Opts(), **SMALL[name])
-    for directory in ("class", "function"):
-        (tmp_path / directory).mkdir()
-
-    from_class = sequences.write(tmp_path / "class" / "scan.seq", designed)
-    from_function = sequences.write(tmp_path / "function" / "scan.seq", returned)
-
-    assert len(from_function) == len(app.prescans()) + 1
-    assert [Path(p).name for p in from_function] == [Path(p).name for p in from_class]
-    for made, wanted in zip(from_function, from_class, strict=True):
-        assert Path(made).read_bytes() == Path(wanted).read_bytes()
-
-
-@pytest.mark.parametrize("name", ["gre2D_sequence", "epi2D_sequence"])
-def test_the_cli_writes_the_same_main_sequence_for_a_class_function_and_main(
-    tmp_path, capsys, name
+@pytest.mark.parametrize(
+    ("name", "choices"),
+    [
+        (
+            "fse3D_sequence",
+            {
+                "excitation": ("slab", "nonselective"),
+                "wave": ("phase", "partition", "both"),
+                "n_x": (),
+            },
+        ),
+        (
+            "bssfp2D_sequence",
+            {"gating": ("none", "retrospective", "prospective"), "n_x": ()},
+        ),
+    ],
+)
+def test_the_choices_of_a_parameter_are_the_values_its_type_lists_in_order(
+    name, choices
 ):
-    """The main sequence is the last file of a chain, whichever name each route gives it."""
-    app = app_class(name)
+    protocol = parameters(name)
+
+    assert {key: protocol[key].choices for key in choices} == choices
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_every_prescribed_parameter_is_described_and_a_string_lists_its_choices(
+    name,
+):
+    for parameter in parameters(name).values():
+        assert parameter.description, parameter.name
+        assert parameter.type is not None, parameter.name
+        assert parameter.type is not str or parameter.choices, parameter.name
+
+
+def test_the_units_the_shipped_sequences_state_are_the_package_units():
+    stated = {
+        parameter.unit
+        for name in sequences.ZOO
+        for parameter in parameters(name).values()
+    }
+
+    assert stated <= {"", "m", "s", "Hz", "degrees", "T/m", "beats per minute"}
+
+
+@pytest.mark.parametrize("name", ["gre2D_sequence", "epi2D_sequence"])
+def test_the_cli_writes_the_files_a_function_returns(tmp_path, name):
+    """The files are those ``sequences.write`` writes for what the call returns."""
+    main = getattr(sequences, name).main
     flags = [
         part
         for key, value in SMALL[name].items()
         for part in (f"--{key.replace('_', '-')}", str(value))
     ]
-    chains = {}
-    for route, main in (("main", app.main), ("function", app.function())):
+    for route in ("cli", "call"):
         (tmp_path / route).mkdir()
-        assert cli.run(main, ["-o", str(tmp_path / route / "scan.seq"), *flags]) == 0
-        chains[route] = [
-            Path(line.removeprefix("Wrote sequence: "))
-            for line in capsys.readouterr().out.splitlines()
-            if line.startswith("Wrote sequence: ")
-        ]
 
-    assert len(chains["function"]) == len(chains["main"])
-    assert chains["function"][-1].read_bytes() == chains["main"][-1].read_bytes()
+    status = cli.run(main, ["-o", str(tmp_path / "cli" / "scan.seq"), *flags])
+    written = sequences.write(
+        tmp_path / "call" / "scan.seq", main(pp.Opts(), **SMALL[name])
+    )
+
+    names = [Path(path).name for path in written]
+    assert status == 0
+    assert sorted(path.name for path in (tmp_path / "cli").iterdir()) == sorted(names)
+    for file in names:
+        assert (tmp_path / "cli" / file).read_bytes() == (
+            tmp_path / "call" / file
+        ).read_bytes()

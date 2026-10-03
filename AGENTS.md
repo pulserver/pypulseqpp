@@ -201,29 +201,19 @@ individual range and state contracts.
 
 A sequence is written as a function `sequence(system, **protocol)` that
 returns a `Sequence`, or a list of sequences with the prescans first and the
-main sequence last, and a new example module defines one. Its keyword
+main sequence last, and a new example module defines one and exposes it as
+`main`, which makes the module callable as that function. Its keyword
 parameters are the protocol: `sequences.parameters` reads each type and default
 from the signature and each unit, choice and description from the NumPy-style
 Parameters section, and the CLI derives its flags and help text from the same.
 `sequences.Labels` writes the label events a block changes, and
 `sequences.write` and `cli.run` write what the function returns, a list as
 files linked through `NextSequence`, so each file stays one repeating unit.
-Settings a user does not prescribe are module constants.
+Settings a user does not prescribe are module constants; `MAX_GRAD` and
+`MAX_SLEW` have no default.
 
-An example module that defines a `SequenceApp` subclass exposes
-`main = <App>.main`, which builds and designs it; the module is callable as
-that `main`. `init_sequence` designs, `loop` plays the scan by calling
-`kernel` once per repetition, and `design()` wraps `loop` with a fresh
-sequence and `finalize`. Prescans listed by `prescans()` are written
-by `write()` as separate files linked through `NextSequence`, so each file
-stays one repeating unit. Settings a user does not prescribe are class
-attributes a subclass overrides; `MAX_GRAD` and `MAX_SLEW` have no default.
-`<App>.function()` returns the class as a sequence function. The CLI derives
-flags from `main`'s signature, which is `init_sequence`'s, and help text from
-its NumPy-style Parameters section.
-
-Module-level helpers may stay in either script, but nothing may be imported
-from `examples/`.
+Module-level helpers may stay in the script, but nothing may be imported from
+`examples/`.
 
 Editable package mappings can expose repository files that are not shipped.
 Before importing modules discovered by walking a package path, check their
@@ -326,7 +316,7 @@ being built.
 `docs/sequence_reference.py` writes one reference page per shipped complete
 sequence, plus the catalogue's family tables: its `SEQUENCES` table is the
 single place a sequence's classification is stated, every description is read
-from the application's own summary line, the prescription is rendered by
+from the sequence function's own summary line, the prescription is rendered by
 `autofunction` from the docstring, and a `minigallery` links the gallery page
 that designs and draws it. A sequence added to `examples/sequence/` needs a row
 there, a gallery script named after it in its family's directory, and a row in

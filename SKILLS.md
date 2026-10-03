@@ -12,7 +12,7 @@ automatically; this page is the index for those that do not.
 |---|---|
 | [`build-and-test`](.claude/skills/build-and-test/SKILL.md) | Building the native extension from a checkout, and running the formatter, linter and test suite before reporting a change complete. Covers which skips are expected and the benchmark a bindings change has to report. |
 | [`write-documentation`](.claude/skills/write-documentation/SKILL.md) | Writing, moving or auditing documentation: choosing the documentation type, the binding conventions, the gallery and generator mechanics, and the build that validates the result. |
-| [`add-a-sequence`](.claude/skills/add-a-sequence/SKILL.md) | Adding a complete sequence to `examples/sequence/`, or changing one: the sequence function contract and the `SequenceApp` contract of the classes shipped, the catalogue row, the gallery page, the family page and the tests that tie them together. |
+| [`add-a-sequence`](.claude/skills/add-a-sequence/SKILL.md) | Adding a complete sequence to `examples/sequence/`, or changing one: the sequence function contract, the catalogue row, the gallery page, the family page and the tests that tie them together. |
 
 A skill states the procedure and points at the authority for the rules it
 applies; it does not restate them. Where a skill and `AGENTS.md` disagree,

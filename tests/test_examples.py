@@ -8,15 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from zoo import (
-    FUNCTIONS,
-    SMALL,
-    application,
-    chain,
-    is_application,
-    legacy_application,
-    packets,
-)
+from zoo import SMALL, chain, packets, parameters
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
@@ -48,12 +40,11 @@ def test_a_zoo_entry_takes_its_dummies_and_names_the_axis_of_its_calibration(nam
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
-def test_a_zoo_entry_accepts_its_default_protocol(name):
+def test_the_default_protocol_of_a_zoo_entry_passes_its_timing_check(name):
     """The design refuses a TE, a spacing or a TR it cannot meet."""
-    if is_application(name):
-        application(name)(pp.Opts())
-    else:
-        getattr(sequences, name).main(pp.Opts())
+    for seq in chain(getattr(sequences, name).main(pp.Opts())):
+        is_ok, errors = seq.check_timing()
+        assert is_ok, errors
 
 
 @pytest.mark.parametrize("name", sequences.ZOO)
@@ -66,7 +57,7 @@ def test_every_sequence_a_zoo_entry_builds_passes_its_timing_check(name):
         assert is_ok, errors
 
 
-@pytest.mark.parametrize("name", FUNCTIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_function_takes_the_system_first_and_the_protocol_as_keywords(name):
     first, *protocol = inspect.signature(
         getattr(sequences, name).main
@@ -78,7 +69,7 @@ def test_a_function_takes_the_system_first_and_the_protocol_as_keywords(name):
     }
 
 
-@pytest.mark.parametrize("name", FUNCTIONS)
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_function_states_the_limits_it_holds_the_system_to(name):
     module = getattr(sequences, name)
     _, entry = documented(inspect.getdoc(module.main))["system"]
@@ -87,28 +78,40 @@ def test_a_function_states_the_limits_it_holds_the_system_to(name):
     assert f"({module.MAX_SLEW:g} T/m/s)" in entry
 
 
-@pytest.mark.parametrize("name", FUNCTIONS)
+def hardware(module, scale):
+    """A system whose limits are ``scale`` times those the module holds a design to."""
+    return pp.Opts(
+        max_grad=scale * module.MAX_GRAD,
+        grad_unit="mT/m",
+        max_slew=scale * module.MAX_SLEW,
+        slew_unit="T/m/s",
+    )
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_function_lowers_the_system_to_its_limits_and_never_raises_it(name):
     module = getattr(sequences, name)
 
-    def hardware(scale):
-        return pp.Opts(
-            max_grad=scale * module.MAX_GRAD,
-            grad_unit="mT/m",
-            max_slew=scale * module.MAX_SLEW,
-            slew_unit="T/m/s",
-        )
+    above = chain(module.main(hardware(module, 2), **SMALL[name]))[-1].system
+    below = chain(module.main(hardware(module, 0.5), **SMALL[name]))[-1].system
 
-    above = chain(module.main(hardware(2), **SMALL[name]))[-1].system
-    below = chain(module.main(hardware(0.5), **SMALL[name]))[-1].system
-
-    assert above.max_grad == pytest.approx(hardware(1).max_grad)
-    assert above.max_slew == pytest.approx(hardware(1).max_slew)
-    assert below.max_grad == pytest.approx(hardware(0.5).max_grad)
-    assert below.max_slew == pytest.approx(hardware(0.5).max_slew)
+    assert above.max_grad == pytest.approx(hardware(module, 1).max_grad)
+    assert above.max_slew == pytest.approx(hardware(module, 1).max_slew)
+    assert below.max_grad == pytest.approx(hardware(module, 0.5).max_grad)
+    assert below.max_slew == pytest.approx(hardware(module, 0.5).max_slew)
 
 
-@pytest.mark.parametrize("name", FUNCTIONS)
+@pytest.mark.parametrize("scale", [0.5, 2], ids=["below", "above"])
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_a_function_designed_for_other_limits_passes_its_timing_check(name, scale):
+    module = getattr(sequences, name)
+
+    for seq in chain(module.main(hardware(module, scale), **SMALL[name])):
+        is_ok, errors = seq.check_timing()
+        assert is_ok, errors
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
 def test_a_function_called_twice_writes_the_same_files(tmp_path, name):
     """Nothing a call builds outlives it: label state, caches, module constants."""
     module = getattr(sequences, name)
@@ -119,6 +122,53 @@ def test_a_function_called_twice_writes_the_same_files(tmp_path, name):
         written.append([(Path(path).name, Path(path).read_bytes()) for path in paths])
 
     assert written[0] == written[1]
+
+
+#: The definition a shipped sequence records each prescribed parameter as.
+RECORDED = {
+    "te": "TE",
+    "tr": "TR",
+    "ti": "TI",
+    "esp": "EchoSpacing",
+    "slice_thickness": "SliceThickness",
+    "slice_spacing": "SliceGap",
+    "tr_periphery": "TRPeriphery",
+    "etl_periphery": "EchoTrainLengthPeriphery",
+    "n_blades": "NumBlades",
+    "n_gain_calibration_readouts": "NumGainCalibrationReadouts",
+}
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_a_function_designs_the_definitions_it_wrote_again_from_them(name):
+    """Prescribing what a design wrote down designs it again."""
+    main = getattr(sequences, name).main
+    written = chain(main(**SMALL[name]))[-1].definitions
+    prescribed = {
+        parameter: np.atleast_1d(written[key])[0]
+        for parameter, key in RECORDED.items()
+        if parameter in parameters(name) and key in written
+    }
+    again = chain(main(**{**SMALL[name], **prescribed}))[-1].definitions
+
+    assert "tr" in prescribed
+    for parameter, key in RECORDED.items():
+        if parameter in prescribed:
+            assert np.atleast_1d(again[key]) == pytest.approx(
+                np.atleast_1d(written[key]), rel=1e-9
+            ), parameter
+
+
+@pytest.mark.parametrize("name", sequences.ZOO)
+def test_every_acquisition_of_a_function_samples_at_one_receiver_bandwidth(name):
+    built = chain(getattr(sequences, name).main(**SMALL[name]))
+    blocks = (
+        seq.get_block(i) for seq in built for i in range(1, len(seq.block_events) + 1)
+    )
+    dwells = {float(block.adc.dwell) for block in blocks if block.adc is not None}
+
+    assert len(dwells) == 1
+    assert min(dwells) > 0
 
 
 def adc_labels(seq, *names):
@@ -132,12 +182,6 @@ def adc_labels(seq, *names):
 
 def gre(**kwargs):
     return sequences.gre2D_sequence(**{**SMALL["gre2D_sequence"], **kwargs})
-
-
-def gre_app(**kwargs):
-    """The 2D gradient echo as a SequenceApp, without dummies unless asked for."""
-    app = legacy_application("gre2D_sequence")
-    return app(pp.Opts(), **{**SMALL["gre2D_sequence"], "n_dummy": 0, **kwargs})
 
 
 def test_every_line_is_one_repetition_of_the_same_blocks():
@@ -324,119 +368,6 @@ def test_each_acquisition_carries_the_line_and_slice_it_encodes():
     assert list(zip(lin, slc, strict=True)) == expected
     assert list(ima) == [int(line in calibrating) for line, _ in expected]
     assert list(seg) == [1 - int(line in calibrating) for line, _ in expected]
-
-
-# -- the application contract ----------------------------------------------
-
-
-def test_an_application_states_its_gradient_limits():
-    class Unlimited(sequences.SequenceApp):
-        def init_sequence(self):
-            pass
-
-        def kernel(self):
-            pass
-
-        def loop(self):
-            pass
-
-    with pytest.raises(TypeError, match="MAX_GRAD or MAX_SLEW"):
-        Unlimited()
-
-
-def test_a_subclass_changes_a_setting_and_nothing_else():
-    class Gentle(legacy_application("gre2D_sequence")):
-        MAX_SLEW = 100.0
-
-    assert Gentle(pp.Opts(), **SMALL["gre2D_sequence"]).system.max_slew < (
-        gre_app().system.max_slew
-    )
-
-
-def test_the_protocol_is_the_prescription_with_its_defaults():
-    protocol = legacy_application("gre2D_sequence").protocol()
-
-    assert protocol["n_y"] == 128
-    assert protocol["tr"] == 250e-3
-
-
-def test_a_repeated_step_is_an_inc_and_any_other_change_a_set():
-    app = gre_app()
-    kinds = [
-        [(e.type, e.value) for e in app.labels(LIN=line)] for line in (0, 2, 4, 6, 3)
-    ]
-
-    assert kinds == [
-        [("labelset", 0)],
-        [("labelset", 2)],
-        [("labelinc", 2)],
-        [("labelinc", 2)],
-        [("labelset", 3)],
-    ]
-    assert app.labels(LIN=3) == []
-
-
-def test_a_change_of_once_makes_the_next_change_of_every_label_a_set():
-    """The blocks either side of a ONCE change are not always played in turn."""
-    app = gre_app()
-    for line in (0, 2, 4):
-        app.labels(LIN=line, ONCE=1)
-    events = app.labels(LIN=6, ONCE=0)
-
-    assert [(e.label, e.type) for e in events] == [
-        ("LIN", "labelset"),
-        ("ONCE", "labelset"),
-    ]
-
-
-def test_a_label_set_before_a_change_of_once_is_written_again_after_it():
-    """The dummies' slice is not there when a repeat skips the dummies."""
-    app = gre_app()
-    app.labels(SLC=2, ONCE=1)
-    events = app.labels(SLC=2, LIN=0, ONCE=0)
-
-    assert {(e.label, e.type, e.value) for e in events} == {
-        ("SLC", "labelset", 2),
-        ("LIN", "labelset", 0),
-        ("ONCE", "labelset", 0),
-    }
-
-
-def test_a_prescan_is_written_first_and_names_the_main_sequence_next(tmp_path):
-    class Prescanned(legacy_application("gre2D_sequence")):
-        def prescans(self):
-            return {"calibration": lambda: self.kernel(0, 8, 0.0, self.raster)}
-
-    app = Prescanned(pp.Opts(), **SMALL["gre2D_sequence"])
-    paths = app.write(tmp_path / "scan.seq")
-    first, main = pp.Sequence(), pp.Sequence()
-    first.read(paths[0])
-    main.read(paths[1])
-
-    assert [Path(p).name for p in paths] == ["scan.seq", "scan_main.seq"]
-    assert first.definitions["NextSequence"] == "scan_main.seq"
-    assert "NextSequence" not in main.definitions
-    assert len(first.block_events) < len(main.block_events)
-
-
-def test_without_prescans_the_scan_is_one_file(tmp_path):
-    paths = gre_app().write(tmp_path / "scan.seq")
-
-    assert paths == [str(tmp_path / "scan.seq")]
-
-
-def test_one_call_plays_one_repetition():
-    app = gre_app()
-    app(0, 8, 0.0, app.raster)
-
-    assert len(app.seq.rf_times()[0]) == 1
-    assert app.seq.evaluate_labels(evolution="adc")["LIN"] == 8
-
-
-def test_designing_twice_gives_the_same_scan():
-    app = gre_app()
-
-    assert len(app.design().block_events) == len(app.design().block_events)
 
 
 # -- the command line ------------------------------------------------------

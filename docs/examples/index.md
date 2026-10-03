@@ -16,7 +16,7 @@ with and adds one construct.
 | {doc}`/examples/spoiling` | 2 | Gradient and RF spoiling of the residual transverse magnetisation. |
 | {doc}`/examples/gre-to-epi` | 3 | Several echoes per excitation, up to single-shot echo planar imaging. |
 | {doc}`/examples/non-cartesian` | 2 | Radial spokes and spiral interleaves, and the limits on their traversal. |
-| {doc}`/examples/sequence-modules` | 3 | The excitation and readout modules, and the application that plays them. |
+| {doc}`/examples/sequence-modules` | 3 | The excitation and readout modules, and the sequence function that plays them. |
 | {doc}`/examples/checks` | 1 | The constraint checks applied to a finished sequence. |
 | {doc}`/examples/custom-modules` | 3 | New modules written against the base-class contract. |
 

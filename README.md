@@ -19,7 +19,7 @@
 pypulseqpp provides Pulseq sequence design and analysis through a
 PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
 and trajectory design, reusable sequence modules, complete sequence
-applications, and timing, gradient, PNS, mechanical-resonance and SAR checks.
+functions, and timing, gradient, PNS, mechanical-resonance and SAR checks.
 Its event factories and `Sequence` methods keep PyPulseq's signatures and event
 conventions; it reads Pulseq text files from version 1.2 onward and writes
 Pulseq 1.5.1 text and binary files, or 1.4.1 text for older interpreters. Not
@@ -51,7 +51,7 @@ seq.write("gre2d.seq")
 ```
 
 A PyPulseq script runs with `import pypulseqpp as pp`; [from a PyPulseq script](https://pulserver.github.io/pypulseqpp/latest/user-guide/from-pypulseq.html)
-shows the same script as a sequence application.
+shows the same script as a sequence function.
 
 ## Documentation
 

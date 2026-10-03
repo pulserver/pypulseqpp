@@ -3,7 +3,7 @@
 Each shipped sequence is presented with a representative prescription,
 resulting timing, sequence diagram, sampling geometry and acquisition order.
 
-The prescription each application accepts, parameter by parameter, is on its
+The prescription each sequence accepts, parameter by parameter, is on its
 reference page in the {doc}`catalogue </sequences>`.
 
 | Family | Acquisition |

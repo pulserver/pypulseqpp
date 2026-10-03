@@ -89,10 +89,7 @@ def run(
     ``--report`` prints each sequence's test report.
 
     The sequence a script's ``main`` returns is written to ``--output`` with
-    :func:`pypulseqpp.io.write`, in binary form under ``--binary``. The
-    ``main`` of a :class:`~pypulseqpp.sequences.SequenceApp` subclass instead
-    writes the application's chain of prescan and main-sequence files through
-    :meth:`~pypulseqpp.sequences.SequenceApp.write`.
+    :func:`pypulseqpp.io.write`, in binary form under ``--binary``.
 
     Examples
     --------
@@ -205,13 +202,6 @@ def run(
         kwargs["system"] = _pp.Opts(**limits) if limits else None
     if "test_report" in signature.parameters:
         kwargs["test_report"] = args.report
-
-    # An application writes its own chain of linked files.
-    write_to = getattr(main, "write_to", None)
-    if write_to is not None:
-        for path in write_to(args.output, offline=not args.binary, **kwargs):
-            print(f"Wrote sequence: {path}")
-        return 0
 
     seq = main(**kwargs)
     _pp.io.write(seq, args.output, binary=args.binary)
