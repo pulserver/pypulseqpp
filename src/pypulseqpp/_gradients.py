@@ -449,7 +449,22 @@ def _balanced(shape: np.ndarray, envelope: np.ndarray) -> np.ndarray:
 
 
 def _trapezoid(channel: str, area: float, system, duration: float | None):
-    arguments = {"channel": channel, "area": area, "system": default_system(system)}
-    if duration is not None:
-        arguments["duration"] = duration
-    return _events.make_trapezoid(**arguments)
+    """Trapezoid of ``area`` (1/m) lasting ``duration`` (s), or the shortest one.
+
+    PyPulseq compares a requested duration with the shortest the area admits,
+    a sum of raster multiples, without a tolerance, so that duration itself can
+    fail by a rounding error. A duration within 1 ns of it is the shortest
+    trapezoid.
+    """
+    system = default_system(system)
+    shortest = _events.make_trapezoid(channel=channel, area=area, system=system)
+    span = (
+        float(shortest.rise_time)
+        + float(shortest.flat_time)
+        + float(shortest.fall_time)
+    )
+    if duration is None or abs(duration - span) < 1e-9:
+        return shortest
+    return _events.make_trapezoid(
+        channel=channel, area=area, duration=duration, system=system
+    )
