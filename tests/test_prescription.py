@@ -1,4 +1,4 @@
-"""The Parameters section as the command line and SequenceApp.parameters read it."""
+"""The Parameters section as the command line and ``sequences.parameters`` read it."""
 
 from pypulseqpp._prescription import accepts_none, documented, scalar
 

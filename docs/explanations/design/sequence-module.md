@@ -21,7 +21,7 @@
 - Module construction separates fixed waveform and timing design from per-view
   encoding, which mirrors the Pulseq distinction between event definitions and
   playout instances. Sampling order and repetition structure belong to the
-  sequence application.
+  sequence function.
 ```
 
 A {class}`~pypulseqpp.sequences.SequenceModule` solves a reusable block layout

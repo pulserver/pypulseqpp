@@ -1,23 +1,10 @@
-"""Small prescriptions of the shipped sequences, and what each module defines.
+"""Small prescriptions of the shipped sequences, and helpers the sequence tests share."""
 
-A shipped sequence is written either as a ``SequenceApp`` subclass or as a
-function. ``APPLICATIONS`` and ``FUNCTIONS`` partition ``sequences.ZOO`` by
-which. The ``SequenceApp`` form of a sequence written as a function is kept in
-``tests/legacy/`` and reached through ``legacy_application``.
-"""
-
-import functools
-import importlib.util
-import sys
 from itertools import groupby
-from pathlib import Path
 
 import numpy as np
 
 from pypulseqpp import sequences
-
-#: Where the ``SequenceApp`` form of each sequence written as a function is kept.
-LEGACY = Path(__file__).parent / "legacy"
 
 #: A prescription small enough to build in a moment, per example sequence.
 SMALL = {
@@ -116,62 +103,9 @@ SMALL = {
 }
 
 
-def _defined_in(module):
-    """The ``SequenceApp`` subclasses a module defines itself."""
-    return [
-        value
-        for value in vars(module).values()
-        if isinstance(value, type)
-        and issubclass(value, sequences.SequenceApp)
-        and value.__module__ == module.__name__
-    ]
-
-
-def is_application(name):
-    """Whether the sequence ``name`` is a ``SequenceApp`` subclass, not a function."""
-    return bool(_defined_in(getattr(sequences, name)))
-
-
-def application(name):
-    """The ``SequenceApp`` subclass the module ``name`` defines.
-
-    Refused for a sequence written as a function, whose ``SequenceApp`` form is
-    ``legacy_application``.
-    """
-    found = _defined_in(getattr(sequences, name))
-    if not found:
-        raise LookupError(f"{name} is a sequence function, not a SequenceApp subclass")
-    return found[0]
-
-
-@functools.cache
-def legacy_application(name):
-    """The ``SequenceApp`` subclass ``tests/legacy`` keeps for the sequence ``name``."""
-    spec = importlib.util.spec_from_file_location(
-        f"legacy_{name}", LEGACY / f"{name}.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    (app,) = _defined_in(module)
-    return app
-
-
-def app_class(name):
-    """The ``SequenceApp`` subclass of ``name``, as shipped or as ``tests/legacy`` keeps it."""
-    return application(name) if is_application(name) else legacy_application(name)
-
-
-def function(name):
-    """The sequence function of the sequence ``name``, ``function(system, **protocol)``."""
-    if is_application(name):
-        return application(name).function()
-    return getattr(sequences, name).main
-
-
 def parameters(name):
     """The protocol of the sequence ``name``, as ``sequences.parameters`` reads it."""
-    return sequences.parameters(function(name))
+    return sequences.parameters(getattr(sequences, name).main)
 
 
 def chain(result):
@@ -194,10 +128,3 @@ def packets(seq):
         for _, run in groupby(zip(lin, slc, strict=True), key=lambda pair: pair[0])
     ]
     return [run for i, run in enumerate(runs) if not i or run != runs[i - 1]]
-
-
-#: The shipped sequences written as ``SequenceApp`` subclasses.
-APPLICATIONS = tuple(name for name in sequences.ZOO if is_application(name))
-
-#: The shipped sequences written as functions.
-FUNCTIONS = tuple(name for name in sequences.ZOO if not is_application(name))

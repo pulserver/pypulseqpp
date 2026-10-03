@@ -81,7 +81,6 @@ GALLERY_BACKREFERENCES = {
     "pypulseqpp.sequences.Labels",
     "pypulseqpp.sequences.parameters",
     "pypulseqpp.sequences.write",
-    "pypulseqpp.sequences.SequenceApp",
     "pypulseqpp.sequences.SequenceModule",
     "pypulseqpp.sequences.SpatialSelectiveExcitation",
     "pypulseqpp.sequences.LineReadout2D",
@@ -362,7 +361,7 @@ def _write_sequence_pages(app) -> None:
     """Write a reference page for every shipped complete sequence.
 
     Each page is written before Sphinx reads its sources, from the table in
-    ``sequence_reference.py`` and from the application's own docstring.
+    ``sequence_reference.py`` and from the sequence function's own docstring.
     """
     import sys
 

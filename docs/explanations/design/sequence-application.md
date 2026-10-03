@@ -1,4 +1,4 @@
-# Sequence applications
+# Sequence functions
 
 ```{admonition} TL;DR
 :class: tldr
@@ -20,18 +20,11 @@
   files, each naming the next with `NextSequence`, so each file retains a single
   repeating unit. {func}`~pypulseqpp.sequences.duration` is the time the chain
   plays.
-- {class}`~pypulseqpp.sequences.SequenceApp` divides the function into the
-  prescription (`init_sequence`), the sampling order (`loop`), one repetition
-  (`kernel`) and the Pulseq definitions required by reconstruction
-  (`finalize`). Construction checks a prescription
-  and records the resolved prescription and the scan time without playing the
-  loop, and {meth}`~pypulseqpp.sequences.SequenceApp.function` returns a
-  subclass as a sequence function.
 ```
 
 A complete sequence is designed from the system limits and a prescription: the
 field of view, matrix, timing, flip angle and sampling order of the
-acquisition. A sequence application is that design as a callable, from which a
+acquisition. A sequence function is that design as a callable, from which a
 script, the command line and a protocol editor obtain the sequence and the
 prescription.
 
@@ -45,15 +38,20 @@ parameters after `system` are the protocol, and each states its unit in its
 description. The function returns a {class}`~pypulseqpp.Sequence`, or, for a
 scan with prescans, a list of sequences in play order.
 
-| Concern | Sequence function | `SequenceApp` |
-| --- | --- | --- |
-| Prescription | Keyword parameters after `system`, documented in the Parameters section | `init_sequence` signature and Parameters section |
-| System limits | `system`, capped to the design's limits with `cap_system` | `system`, capped to `MAX_GRAD` and `MAX_SLEW` at construction |
-| Modules, timing and sampling arrays | The body, before the loop | `init_sequence` |
-| Sampling order | The loop | `loop` |
-| One repetition | The body of the loop | `kernel` |
-| Pulseq definitions required by reconstruction | `set_definition` after the loop | `finalize` |
-| Prescans | The elements of the returned list before the main sequence | `prescans`, each designed by `design(name)` |
+| Concern | Sequence function |
+| --- | --- |
+| Prescription | Keyword parameters after `system`, documented in the Parameters section |
+| System limits | `system`, capped to the design's limits with `cap_system` |
+| Modules, timing and sampling arrays | The body, before the loop |
+| Sampling order | The loop |
+| One repetition | The body of the loop |
+| Pulseq definitions required by reconstruction | `set_definition` after the loop |
+| Prescans | The elements of the returned list before the main sequence |
+
+A shipped sequence module defines its design limits as the constants
+`MAX_GRAD` (mT/m) and `MAX_SLEW` (T/m/s). Changing one redesigns the gradient
+waveforms and may alter echo spacing, acquisition duration, and constraint
+estimates.
 
 ## Protocol
 
@@ -101,81 +99,20 @@ a single repeating unit per file for repetition-based analyses.
 {func}`~pypulseqpp.sequences.duration` is the sum of the durations of the
 sequences in the chain.
 
-## SequenceApp base class
+## Checking a prescription
 
-A {class}`~pypulseqpp.sequences.SequenceApp` divides the function along the
-rows of the table above, so that a prescription can be checked without playing
-the loop. `init_sequence` designs the modules, the timing and the sampling
-arrays. `loop` plays the repetitions in the order of the complete acquisition,
-and `kernel` adds the blocks and labels of one shot or TR. `finalize` records
-the Pulseq definitions required by reconstruction.
+Calling a sequence function designs every block, and the number of blocks grows
+with the matrix. A prescription the design cannot meet, such as an echo time
+shorter than the readout admits, raises `ValueError`. The call does not evaluate
+the waveforms against gradient, PNS or SAR limits, which take the designed
+sequence ({doc}`../safety/index`).
 
-Construction runs `init_sequence` without adding acquisition blocks.
-{meth}`~pypulseqpp.sequences.SequenceApp.design` creates a fresh sequence,
-runs `loop`, and applies `finalize`. Direct application calls add one kernel,
-so single-repetition inspection and complete design use the same code path.
-The loops returned by {meth}`~pypulseqpp.sequences.SequenceApp.prescans` are
-designed by `design(name)` and written by
-{meth}`SequenceApp.write <pypulseqpp.sequences.SequenceApp.write>` as a chain of
-linked files ahead of the main sequence.
-
-### Settings
-
-The `init_sequence` signature is the prescription exposed by `protocol`,
-`parameters`, the command line, and protocol editors. Its NumPy-style Parameters
-section defines units and defaults. Fixed design choices are class attributes.
-Every concrete application specifies `MAX_GRAD` and `MAX_SLEW`; construction
-caps the supplied system limits to these values. A subclass of a concrete
-application, `BaseApp` below, assigns the attribute to change a limit.
-
-```python
-class LowSlewApp(BaseApp):
-    MAX_SLEW = 60.0
-```
-
-Changing a design limit redesigns the gradient waveforms and may alter echo
-spacing, acquisition duration, and constraint estimates.
-
-### Checking a prescription
-
-A protocol editor checks a prescription whenever a value changes, and shows
-the resulting timing before anything is written. A sequence function designs
-every block when it is called, and the number of blocks grows with the matrix.
-Construction of a `SequenceApp` is the check without the loop: `init_sequence`
-designs the events and the timing, and raises when the prescription cannot be
-designed. The loop contributes only the blocks, so the check ends at
-construction. It does not evaluate the waveforms against gradient, PNS or SAR
-limits, which take the designed sequence ({doc}`../safety/index`).
-
-Two results are read from the constructed application:
-
-* {attr}`~pypulseqpp.sequences.SequenceApp.resolved`, the prescription as
-  designed. A value the design chooses, such as the shortest echo time for
-  `te=None`, or adjusts, such as a receiver bandwidth whose dwell time is
-  rounded to the ADC raster, is recorded by `init_sequence` with
-  {meth}`~pypulseqpp.sequences.SequenceApp.resolve` and reported in place of
-  the requested value.
-* {meth}`~pypulseqpp.sequences.SequenceApp.scan_time`, the duration of the
-  whole chain, prescans included. `init_sequence` computes it from the timing
-  it designed and stores it as `duration`; without it, the chain is designed
-  and timed, at the cost of writing it.
-
-{meth}`SequenceApp.parameters <pypulseqpp.sequences.SequenceApp.parameters>`
-describes the prescription to the editor as
-{func}`sequences.parameters <pypulseqpp.sequences.parameters>` does for a
-function.
-
-### Function form
-
-{meth}`~pypulseqpp.sequences.SequenceApp.function` returns a subclass as a
-sequence function. Its signature is `system=None` followed by the keyword
-parameters of `init_sequence`, and its documentation is the class's with the
-Parameters section of `init_sequence`. Calling it constructs the application and
-returns `design()`, or, for an application with prescans, the list of the
-designed prescans in the order `prescans` lists them followed by the main
-sequence. `sequences.parameters` of the function equals
-`SequenceApp.parameters()` of the class, and {func}`pypulseqpp.cli.run` accepts
-the function.
+The function records the prescription as designed in the definitions it sets
+after the loop. A value the design chooses, such as the shortest echo time for
+`te=None`, is recorded as `TE`, and prescribing the recorded value as `te`
+designs a sequence that records the same `TE`. The receiver bandwidth as
+designed is the reciprocal of the dwell time of the ADC events, which is
+rounded to the ADC raster.
 
 ## See also
 

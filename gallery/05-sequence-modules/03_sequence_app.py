@@ -1,22 +1,21 @@
 """
-=========================
-A sequence application
-=========================
+===================
+A sequence function
+===================
 
 The two previous lessons designed an excitation and a readout with modules.
-This lesson assembles them into a complete acquisition. A sequence application
-is a function of the system limits and a prescription: it designs the modules,
-plays one repetition per line of k-space and returns the sequence. The function
-records the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
+This lesson assembles them into a complete acquisition. A sequence function
+takes the system limits and a protocol: it designs the modules, plays one
+repetition per line of k-space and returns the sequence. The function records
+the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
 :func:`~pypulseqpp.sequences.parameters` reads its protocol, and
 :func:`~pypulseqpp.sequences.write` writes the sequence it returns.
 
 The sequence is the RF-spoiled slice-selective gradient echo of
 :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as a sequence
 function rather than as a loop over events. Each sequence in :doc:`/sequences` is
-available as such a function through :meth:`SequenceApp.function()
-<pypulseqpp.sequences.SequenceApp.function>`. The structure is described in
-:doc:`/explanations/design/sequence-application`.
+such a function, in its own module of ``pypulseqpp.sequences``. The structure is
+described in :doc:`/explanations/design/sequence-application`.
 
 Learning objectives
 -------------------

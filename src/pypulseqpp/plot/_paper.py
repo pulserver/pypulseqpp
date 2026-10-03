@@ -39,8 +39,8 @@ def _representative(seq, size, start, repeats, span):
 def select_trs(seq, tr=None, max_underlays=16):
     """Return the repetitions a diagram draws.
 
-    ``PlotTRsize`` and optional ``PlotTRstart`` definitions identify an
-    application's logical plotting unit. Otherwise the sequence's structural
+    A sequence declares its logical plotting unit with the ``PlotTRsize`` and
+    optional ``PlotTRstart`` definitions. Otherwise the sequence's structural
     repetition is used. These definitions affect only the publication diagram;
     analyses such as SAR retain their structural repetition semantics.
 

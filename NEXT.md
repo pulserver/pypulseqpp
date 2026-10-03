@@ -74,6 +74,18 @@ take centred coordinates with the k-space centre at the origin. Their
 `center` argument, boolean-mask input and the integer-count form of
 `make_linear_order` are removed.
 
+## Sequence functions (breaking)
+
+A complete sequence is a function `sequence(system, **protocol)` that returns
+a `Sequence`, or a list of sequences with the prescans first and the main
+sequence last. Each shipped sequence module defines one, named after the
+module (`gre2d` in `gre2D_sequence`), and its `main` is that function. The
+`SequenceApp` base class and the shipped application classes are removed.
+`sequences.parameters` reads the protocol of a function, `sequences.Labels`
+writes its label events, `sequences.write` writes what it returns, a list as
+files linked through `NextSequence`, and `sequences.duration` times it;
+`cli.run` takes the function.
+
 ## Storage and structural analysis
 
 Stored blocks are snapshots: editing an event returned by `get_block` does

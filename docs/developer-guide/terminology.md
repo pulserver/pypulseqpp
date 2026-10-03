@@ -118,9 +118,9 @@ another.
 - **prewinder** or **prephasing gradient**; **rewinder** or **rephasing
   gradient**. Not "bridge".
 - **example sequences**, **sequence implementations**, **sequence library**.
-  Not "zoo". `SequenceApp` is a class name; refer to it by name or as the base
-  class for complete, runnable sequence implementations. "App" is not project
-  vocabulary.
+  Not "zoo". A complete, runnable sequence implementation is a **sequence
+  function**, `sequence(system, **protocol)`; it is not called an "app" or an
+  "application".
 - **wave-encoding gradients** for the events; **corkscrew trajectory** for the
   k-space path they produce.
 - **k-space** coordinates are written in **1/m**. State once, where it helps,

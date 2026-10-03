@@ -4,7 +4,7 @@ Support functions select which Cartesian views an acquisition encodes. They
 return either explicit zero-based encoded coordinates or a boolean mask whose
 ``True`` entries are the acquired views. They assign no temporal order, no
 shot or echo index and no label; :mod:`pypulseqpp._ordering` orders a
-selected set, and the sequence application scales its phase-encoding
+selected set, and the sequence function scales its phase-encoding
 gradients and writes its labels from the coordinates.
 
 References
@@ -74,7 +74,7 @@ def make_cartesian_axis_sampling(
     imaging : list of int
         Lattice views not in ``calibration``, ascending. The two lists are
         disjoint; the acquired support is their union. Neither list is an
-        acquisition order: the sequence application decides when each view is
+        acquisition order: the sequence function decides when each view is
         acquired, and creates its labels.
 
     Raises
@@ -90,7 +90,7 @@ def make_cartesian_axis_sampling(
 
     Notes
     -----
-    The two groups are returned separately so that a sequence application
+    The two groups are returned separately so that a sequence function
     can treat them differently, for example by acquiring the calibration
     views first or marking them with the ``IMA`` label. Both lists are in
     ascending order; ``sorted(calibration + imaging)`` is the whole support in
@@ -207,7 +207,7 @@ def make_cartesian_plane_sampling(
     imaging : list of tuple of int
         Acquired views ``(y, z)`` not in ``calibration``, in the same order.
         The two lists are disjoint; the acquired support is their union.
-        Neither list is an acquisition order: the sequence application
+        Neither list is an acquisition order: the sequence function
         decides when each view is acquired, and creates its labels.
 
     Raises

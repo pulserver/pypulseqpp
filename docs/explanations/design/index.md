@@ -2,10 +2,10 @@
 
 The abstractions the package places above the flat block list of
 {doc}`../pulseq/index`: a reusable block layout whose timing and gradient
-waveforms are solved once, an application that adds a prescription, a sampling
-order and a scan loop, and the sampling routines that feed it. None of them is
-part of the file format; a sequence written through them is an ordinary `.seq`
-file.
+waveforms are solved once, a sequence function that adds a prescription, a
+sampling order and a scan loop, and the sampling routines that feed it. None
+of them is part of the file format; a sequence written through them is an
+ordinary `.seq` file.
 
 | Concept | What it covers |
 | --- | --- |

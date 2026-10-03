@@ -1,15 +1,13 @@
 """The shipped sequences acquire the same views, in the same order, with the same labels.
 
 `sampling_regression.json` holds fingerprints of each configuration below:
-the sampling attributes an application stores (lines, views, partitions,
-calibration, trains, shots; a sequence function stores none), every label
-evaluated at every acquisition, and
-the results of direct calls of the support, traversal and EPI routines. The
-sequence fingerprints and the lattice calls were first recorded from the
-sampling routines before their rename and are unchanged by it. The Poisson
-calls were recorded again after two support fixes: ``elliptical=False`` no
-longer crops the draw to the inscribed ellipse, and an elliptical
-calibration region no longer fills its bounding rectangle.
+every label evaluated at every acquisition, and the results of direct calls of
+the support, traversal and EPI routines. The sequence fingerprints and the
+lattice calls were first recorded from the sampling routines before their
+rename and are unchanged by it. The Poisson calls were recorded again after
+two support fixes: ``elliptical=False`` no longer crops the draw to the
+inscribed ellipse, and an elliptical calibration region no longer fills its
+bounding rectangle.
 
 A deliberate change to one of these sequences is recorded again with
 
@@ -25,18 +23,6 @@ import numpy as np
 import pytest
 
 FINGERPRINTS = Path(__file__).with_name("sampling_regression.json")
-
-#: The attributes a sequence application stores its sampling in.
-ATTRIBUTES = (
-    "lines",
-    "views",
-    "partitions",
-    "calibration",
-    "trains",
-    "shots",
-    "reference",
-    "order",
-)
 
 CARTESIAN_2D = {"n_x": 32, "n_y": 16}
 CARTESIAN_3D = {"n_x": 32, "n_y": 16, "n_z": 8}
@@ -195,28 +181,19 @@ def _plain(value):
 
 
 def fingerprint(name: str) -> dict:
-    """Digest the sampling attributes an application stores and the acquisition labels."""
+    """Digest every label of the main sequence of a configuration, evaluated at each acquisition."""
     import zoo
 
     import pypulseqpp as pp
     from pypulseqpp import sequences
 
     module, kwargs = CONFIGURATIONS[name]
-    found = {}
-    if zoo.is_application(module):
-        app = zoo.application(module)(pp.Opts(), **kwargs)
-        seq = app.design()
-        found = {
-            attribute: _digest(_plain(getattr(app, attribute)))
-            for attribute in ATTRIBUTES
-            if not callable(getattr(app, attribute, print))
-        }
-    else:
-        seq = zoo.chain(getattr(sequences, module).main(pp.Opts(), **kwargs))[-1]
+    seq = zoo.chain(getattr(sequences, module).main(pp.Opts(), **kwargs))[-1]
     labels = seq.evaluate_labels(evolution="adc")
-    for label in sorted(labels):
-        found[f"label:{label}"] = _digest(np.atleast_1d(labels[label]).tolist())
-    return found
+    return {
+        f"label:{label}": _digest(np.atleast_1d(labels[label]).tolist())
+        for label in sorted(labels)
+    }
 
 
 #: Direct calls of the support, traversal and EPI routines: ``name: (routine, kwargs)``.
