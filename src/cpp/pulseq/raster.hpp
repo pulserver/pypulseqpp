@@ -54,6 +54,33 @@ namespace pulseq
          */
         int64_t read(int64_t count, double* x, double* y, double* z);
 
+        /**
+         * Move to the next block that plays any sample, from a block boundary.
+         *
+         * @return Its samples; 0 once the sequence is exhausted.
+         */
+        int64_t enter_block();
+
+        /** Start of the current block, in s from the start of the first. */
+        double block_start() const
+        {
+            return starts_;
+        }
+
+        /**
+         * Samples from the next one to the next corner of any axis, within one block.
+         *
+         * @param steady  Set when every axis holds one value over all of them.
+         * @return At least 1; 0 once the sequence is exhausted.
+         */
+        int64_t run(bool* steady);
+
+        /** Pass over @p count samples of the current block. */
+        void skip(int64_t count)
+        {
+            position_ += count;
+        }
+
     private:
         struct Played
         {
