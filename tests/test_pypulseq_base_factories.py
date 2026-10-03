@@ -58,6 +58,15 @@ def test_the_phase_encode_template_depends_only_on_resolution(system):
     assert coarse.area == pytest.approx(64 / (2 * 0.22))
 
 
+def test_a_phase_encode_takes_exactly_its_shortest_time_on_the_raster(system):
+    """That time is a sum of raster multiples, so it is not one by rounding."""
+    shortest = pp.make_phase_encoding("y", 0.22 / 256, system=system)
+    span = pp.ceil_to_raster(pp.calc_duration(shortest), system.grad_raster_time)
+    timed = pp.make_phase_encoding("y", 0.22 / 256, system=system, duration=span)
+    assert pp.calc_duration(timed) == pytest.approx(span)
+    assert timed.area == pytest.approx(shortest.area)
+
+
 def test_a_blip_of_r_cells_is_an_acceleration_of_r(system):
     one = pp.make_phase_blip("y", 0.24, steps=1, system=system)
     three = pp.make_phase_blip("y", 0.24, steps=3, system=system)

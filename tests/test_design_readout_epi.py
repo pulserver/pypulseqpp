@@ -401,6 +401,38 @@ def test_the_window_clears_the_receiver_dead_time_and_stays_centred(
     assert traced[0, 0, 0] == pytest.approx(-traced[0, -1, 0], rel=TRACED)
 
 
+#: Trains on a 40 mT/m, 150 T/m/s system where the slew rate, not the
+#: bandwidth, decides how long the window must be, or where the read lobe, the
+#: prewinder or the rewind takes exactly its shortest time on the raster.
+@pytest.mark.parametrize(
+    ("matrix", "bandwidth", "flyback"),
+    [
+        (80, 500e3, False),
+        (160, 1e6, False),
+        (160, 250e3, False),
+        (256, 250e3, False),
+        (80, 500e3, True),
+        (128, 500e3, True),
+    ],
+)
+def test_a_train_at_the_limits_of_its_gradients_still_sweeps_every_line(
+    matrix, bandwidth, flyback
+):
+    tight = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    excitation = design.SpatialSelectiveExcitation(tight, 60.0, 3e-3)
+    epi = readout(
+        tight,
+        excitation,
+        matrix=(matrix, MATRIX),
+        readout_bandwidth_hz=bandwidth,
+        flyback=flyback,
+    )
+    assert epi.check_timing()[0]
+    traced = lines(epi)[0]
+    assert traced[:, 0, 0] == pytest.approx(-traced[:, -1, 0], rel=TRACED)
+    assert np.abs(traced[:, -1, 0]) == pytest.approx(0.5 * matrix / FOV, rel=0.05)
+
+
 # ----------------------------------------------------------------------
 # Labels
 # ----------------------------------------------------------------------

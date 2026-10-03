@@ -11,6 +11,7 @@ import numpy as np
 import pypulseqpp as pp
 
 from ..._epi import make_epi_shot_offsets
+from ..._gradients import _trapezoid
 from .._module import SequenceModule
 from ._common import (
     as_tuple,
@@ -308,20 +309,23 @@ class _EpiReadout(SequenceModule):
                 blip_span = max(blip_span, pp.calc_duration(trial))
         blip_span = pp.ceil_to_raster(blip_span, 2.0 * system.grad_raster_time)
 
-        # Sampling.
+        # Sampling. A flyback line reads on its own and hands the step to the
+        # rewind, so nothing rides its ramps and the pad is only what the
+        # receiver needs.
         n_full = round(oversampling * n[0])
         k_width = n_full * delta_k[0]
+        lobe_blip = 0.0 if flyback else blip_span
         dwell, sample_span = pp.calc_adc_timing(
             n_full,
             1.0 / readout_bandwidth_hz,
             grad_raster_time=system.grad_raster_time,
             adc_raster_time=system.adc_raster_time,
-            min_readout_duration=k_width / (_READOUT_GRAD_MARGIN * system.max_grad),
+            min_readout_duration=_min_sample_span(
+                system, k_width, lobe_blip, ramp_sampling
+            ),
         )
-        # A flyback line reads on its own and hands the step to the rewind, so
-        # nothing rides its ramps and the pad is only what the receiver needs.
         lobe, echo_offset = _read_lobe(
-            system, k_width, sample_span, 0.0 if flyback else blip_span, ramp_sampling
+            system, k_width, sample_span, lobe_blip, ramp_sampling
         )
         adc = pp.make_adc(
             num_samples=n_full,
@@ -345,9 +349,7 @@ class _EpiReadout(SequenceModule):
                 ),
                 system.grad_raster_time,
             )
-            gx_flyback = pp.make_trapezoid(
-                channel="x", area=-_area(lobe), duration=gap_span, system=system
-            )
+            gx_flyback = _trapezoid("x", -_area(lobe), system, gap_span)
             gx = [lobe] * etl
             esp = pp.calc_duration(lobe) + gap_span
             gy_blips = _gap_blips(system, "y", steps[:, 0], delta_k[1], gap_span, etl)
@@ -384,9 +386,7 @@ class _EpiReadout(SequenceModule):
             ),
             raster,
         )
-        gx_pre = pp.make_trapezoid(
-            channel="x", area=-0.5 * _area(lobe), duration=pre_span, system=system
-        )
+        gx_pre = _trapezoid("x", -0.5 * _area(lobe), system, pre_span)
         gy_pre = pp.make_phase_encoding(
             "y", fov[1] / n[1], system=system, duration=pre_span
         )
@@ -569,9 +569,7 @@ def _read_lobe(
     separates, and the window stays centred -- which is what lets the prewinder
     be half a lobe whatever shape the ramps took.
     """
-    pad = pp.ceil_to_raster(
-        max(0.5 * blip_span, system.adc_dead_time), system.grad_raster_time
-    )
+    pad = _lobe_pad(system, blip_span)
     if ramp_sampling:
         # Over-drive the area so that, once the parts outside the window are
         # discounted, what remains inside it is still the full sweep -- then
@@ -579,11 +577,9 @@ def _read_lobe(
         # first guess bounds the discount by the ramps; a pad wider than a ramp
         # eats into the plateau too, so the guess is checked and raised.
         total = sample_span + 2.0 * pad
-        requested = k_width + pad**2 * system.max_slew
+        requested = _ramp_sampled_area(system, k_width, pad)
         for _ in range(8):
-            wide = pp.make_trapezoid(
-                channel="x", area=requested, duration=total, system=system
-            )
+            wide = _trapezoid("x", requested, system, total)
             inside = _area_between(wide, pad, pad + sample_span)
             if inside >= k_width:
                 break
@@ -610,6 +606,43 @@ def _read_lobe(
         system=system,
     )
     return lobe, rise + 0.5 * sample_span
+
+
+def _lobe_pad(system: pp.Opts, blip_span: float) -> float:
+    """Time (s) a read lobe runs on either side of its acquisition window."""
+    return pp.ceil_to_raster(
+        max(0.5 * blip_span, system.adc_dead_time), system.grad_raster_time
+    )
+
+
+def _ramp_sampled_area(system: pp.Opts, k_width: float, pad: float) -> float:
+    """First area (1/m) asked of a ramp-sampled lobe sweeping ``k_width``.
+
+    Ramps at ``max_slew`` that outlast the pads lose ``max_slew * pad**2 / 2``
+    of area to each pad.
+    """
+    return k_width + pad**2 * system.max_slew
+
+
+def _min_sample_span(
+    system: pp.Opts, k_width: float, blip_span: float, ramp_sampling: bool
+) -> float:
+    """Shortest acquisition window (s) a read lobe sweeping ``k_width`` fits.
+
+    A plateau reaches at most ``_READOUT_GRAD_MARGIN`` of ``max_grad``. A
+    ramp-sampled lobe also has to hold its first area within the window and
+    its pads, which the slew rate decides when the window is short. That
+    bound is a whole number of rasters and is lowered by 1 ns, so that a
+    window equal to it is not lost to rounding.
+    """
+    span = k_width / (_READOUT_GRAD_MARGIN * system.max_grad)
+    if ramp_sampling:
+        pad = _lobe_pad(system, blip_span)
+        shortest = pp.make_trapezoid(
+            channel="x", area=_ramp_sampled_area(system, k_width, pad), system=system
+        )
+        span = max(span, pp.calc_duration(shortest) - 2.0 * pad - 1e-9)
+    return span
 
 
 def _area_between(trapezoid: Any, start: float, stop: float) -> float:
@@ -642,9 +675,7 @@ def _blip_events(
     widest = int(np.max(np.abs(steps))) if len(steps) else 0
     if not widest or blip_span == 0.0:
         return [None] * etl
-    template = pp.make_trapezoid(
-        channel=channel, area=widest * delta_k, duration=blip_span, system=system
-    )
+    template = _trapezoid(channel, widest * delta_k, system, blip_span)
 
     halves: dict[int, Any] = {}
 
@@ -685,9 +716,7 @@ def _gap_blips(
     widest = int(np.max(np.abs(steps))) if len(steps) else 0
     if not widest:
         return [None] * etl
-    template = pp.make_trapezoid(
-        channel=channel, area=widest * delta_k, duration=gap_span, system=system
-    )
+    template = _trapezoid(channel, widest * delta_k, system, gap_span)
     scaled: dict[int, Any] = {}
     events = []
     for step in steps:
