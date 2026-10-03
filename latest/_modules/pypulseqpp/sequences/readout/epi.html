@@ -477,6 +477,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..._epi</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_epi_shot_offsets</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._gradients</span><span class="w"> </span><span class="kn">import</span> <span class="n">_trapezoid</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._module</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceModule</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">as_tuple</span><span class="p">,</span>
@@ -774,20 +775,23 @@
                 <span class="n">blip_span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">blip_span</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">trial</span><span class="p">))</span>
         <span class="n">blip_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">blip_span</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">)</span>
 
-        <span class="c1"># Sampling.</span>
+        <span class="c1"># Sampling. A flyback line reads on its own and hands the step to the</span>
+        <span class="c1"># rewind, so nothing rides its ramps and the pad is only what the</span>
+        <span class="c1"># receiver needs.</span>
         <span class="n">n_full</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">oversampling</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">k_width</span> <span class="o">=</span> <span class="n">n_full</span> <span class="o">*</span> <span class="n">delta_k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lobe_blip</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">flyback</span> <span class="k">else</span> <span class="n">blip_span</span>
         <span class="n">dwell</span><span class="p">,</span> <span class="n">sample_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_adc_timing</span><span class="p">(</span>
             <span class="n">n_full</span><span class="p">,</span>
             <span class="mf">1.0</span> <span class="o">/</span> <span class="n">readout_bandwidth_hz</span><span class="p">,</span>
             <span class="n">grad_raster_time</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">,</span>
             <span class="n">adc_raster_time</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">,</span>
-            <span class="n">min_readout_duration</span><span class="o">=</span><span class="n">k_width</span> <span class="o">/</span> <span class="p">(</span><span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">),</span>
+            <span class="n">min_readout_duration</span><span class="o">=</span><span class="n">_min_sample_span</span><span class="p">(</span>
+                <span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">lobe_blip</span><span class="p">,</span> <span class="n">ramp_sampling</span>
+            <span class="p">),</span>
         <span class="p">)</span>
-        <span class="c1"># A flyback line reads on its own and hands the step to the rewind, so</span>
-        <span class="c1"># nothing rides its ramps and the pad is only what the receiver needs.</span>
         <span class="n">lobe</span><span class="p">,</span> <span class="n">echo_offset</span> <span class="o">=</span> <span class="n">_read_lobe</span><span class="p">(</span>
-            <span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">sample_span</span><span class="p">,</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">flyback</span> <span class="k">else</span> <span class="n">blip_span</span><span class="p">,</span> <span class="n">ramp_sampling</span>
+            <span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">sample_span</span><span class="p">,</span> <span class="n">lobe_blip</span><span class="p">,</span> <span class="n">ramp_sampling</span>
         <span class="p">)</span>
         <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
             <span class="n">num_samples</span><span class="o">=</span><span class="n">n_full</span><span class="p">,</span>
@@ -811,9 +815,7 @@
                 <span class="p">),</span>
                 <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">gx_flyback</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-                <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="n">_area</span><span class="p">(</span><span class="n">lobe</span><span class="p">),</span> <span class="n">duration</span><span class="o">=</span><span class="n">gap_span</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
-            <span class="p">)</span>
+            <span class="n">gx_flyback</span> <span class="o">=</span> <span class="n">_trapezoid</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="o">-</span><span class="n">_area</span><span class="p">(</span><span class="n">lobe</span><span class="p">),</span> <span class="n">system</span><span class="p">,</span> <span class="n">gap_span</span><span class="p">)</span>
             <span class="n">gx</span> <span class="o">=</span> <span class="p">[</span><span class="n">lobe</span><span class="p">]</span> <span class="o">*</span> <span class="n">etl</span>
             <span class="n">esp</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">lobe</span><span class="p">)</span> <span class="o">+</span> <span class="n">gap_span</span>
             <span class="n">gy_blips</span> <span class="o">=</span> <span class="n">_gap_blips</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="n">steps</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">delta_k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">gap_span</span><span class="p">,</span> <span class="n">etl</span><span class="p">)</span>
@@ -850,9 +852,7 @@
             <span class="p">),</span>
             <span class="n">raster</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">gx_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">_area</span><span class="p">(</span><span class="n">lobe</span><span class="p">),</span> <span class="n">duration</span><span class="o">=</span><span class="n">pre_span</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
-        <span class="p">)</span>
+        <span class="n">gx_pre</span> <span class="o">=</span> <span class="n">_trapezoid</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">_area</span><span class="p">(</span><span class="n">lobe</span><span class="p">),</span> <span class="n">system</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">)</span>
         <span class="n">gy_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span>
             <span class="s2">"y"</span><span class="p">,</span> <span class="n">fov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">pre_span</span>
         <span class="p">)</span>
@@ -1035,9 +1035,7 @@
 <span class="sd">    separates, and the window stays centred -- which is what lets the prewinder</span>
 <span class="sd">    be half a lobe whatever shape the ramps took.</span>
 <span class="sd">    """</span>
-    <span class="n">pad</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-        <span class="nb">max</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">blip_span</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
-    <span class="p">)</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">_lobe_pad</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ramp_sampling</span><span class="p">:</span>
         <span class="c1"># Over-drive the area so that, once the parts outside the window are</span>
         <span class="c1"># discounted, what remains inside it is still the full sweep -- then</span>
@@ -1045,11 +1043,9 @@
         <span class="c1"># first guess bounds the discount by the ramps; a pad wider than a ramp</span>
         <span class="c1"># eats into the plateau too, so the guess is checked and raised.</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">sample_span</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pad</span>
-        <span class="n">requested</span> <span class="o">=</span> <span class="n">k_width</span> <span class="o">+</span> <span class="n">pad</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span>
+        <span class="n">requested</span> <span class="o">=</span> <span class="n">_ramp_sampled_area</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
-            <span class="n">wide</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-                <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">requested</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">total</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
-            <span class="p">)</span>
+            <span class="n">wide</span> <span class="o">=</span> <span class="n">_trapezoid</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">requested</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
             <span class="n">inside</span> <span class="o">=</span> <span class="n">_area_between</span><span class="p">(</span><span class="n">wide</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span> <span class="o">+</span> <span class="n">sample_span</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">inside</span> <span class="o">&gt;=</span> <span class="n">k_width</span><span class="p">:</span>
                 <span class="k">break</span>
@@ -1076,6 +1072,43 @@
         <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">lobe</span><span class="p">,</span> <span class="n">rise</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">sample_span</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lobe_pad</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Time (s) a read lobe runs on either side of its acquisition window."""</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+        <span class="nb">max</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">blip_span</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_dead_time</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ramp_sampled_area</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">k_width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">pad</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""First area (1/m) asked of a ramp-sampled lobe sweeping ``k_width``.</span>
+
+<span class="sd">    Ramps at ``max_slew`` that outlast the pads lose ``max_slew * pad**2 / 2``</span>
+<span class="sd">    of area to each pad.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">k_width</span> <span class="o">+</span> <span class="n">pad</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_min_sample_span</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">k_width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ramp_sampling</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Shortest acquisition window (s) a read lobe sweeping ``k_width`` fits.</span>
+
+<span class="sd">    A plateau reaches at most ``_READOUT_GRAD_MARGIN`` of ``max_grad``. A</span>
+<span class="sd">    ramp-sampled lobe also has to hold its first area within the window and</span>
+<span class="sd">    its pads, which the slew rate decides when the window is short. That</span>
+<span class="sd">    bound is a whole number of rasters and is lowered by 1 ns, so that a</span>
+<span class="sd">    window equal to it is not lost to rounding.</span>
+<span class="sd">    """</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">k_width</span> <span class="o">/</span> <span class="p">(</span><span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ramp_sampling</span><span class="p">:</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="n">_lobe_pad</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">)</span>
+        <span class="n">shortest</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+            <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">_ramp_sampled_area</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">pad</span><span class="p">),</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+        <span class="p">)</span>
+        <span class="n">span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">shortest</span><span class="p">)</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pad</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">span</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_area_between</span><span class="p">(</span><span class="n">trapezoid</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -1108,9 +1141,7 @@
     <span class="n">widest</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">steps</span><span class="p">)))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">widest</span> <span class="ow">or</span> <span class="n">blip_span</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">etl</span>
-    <span class="n">template</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-        <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">widest</span> <span class="o">*</span> <span class="n">delta_k</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">blip_span</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
-    <span class="p">)</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">widest</span> <span class="o">*</span> <span class="n">delta_k</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">)</span>
 
     <span class="n">halves</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -1151,9 +1182,7 @@
     <span class="n">widest</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">steps</span><span class="p">)))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">widest</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">etl</span>
-    <span class="n">template</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-        <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">widest</span> <span class="o">*</span> <span class="n">delta_k</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">gap_span</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
-    <span class="p">)</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">widest</span> <span class="o">*</span> <span class="n">delta_k</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">gap_span</span><span class="p">)</span>
     <span class="n">scaled</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>

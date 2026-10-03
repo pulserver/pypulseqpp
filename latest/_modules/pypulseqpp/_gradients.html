@@ -930,10 +930,25 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="n">arguments</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"channel"</span><span class="p">:</span> <span class="n">channel</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">:</span> <span class="n">area</span><span class="p">,</span> <span class="s2">"system"</span><span class="p">:</span> <span class="n">default_system</span><span class="p">(</span><span class="n">system</span><span class="p">)}</span>
-    <span class="k">if</span> <span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">arguments</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="o">=</span> <span class="n">duration</span>
-    <span class="k">return</span> <span class="n">_events</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="o">**</span><span class="n">arguments</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Trapezoid of ``area`` (1/m) lasting ``duration`` (s), or the shortest one.</span>
+
+<span class="sd">    PyPulseq compares a requested duration with the shortest the area admits,</span>
+<span class="sd">    a sum of raster multiples, without a tolerance, so that duration itself can</span>
+<span class="sd">    fail by a rounding error. A duration within 1 ns of it is the shortest</span>
+<span class="sd">    trapezoid.</span>
+<span class="sd">    """</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">default_system</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">shortest</span> <span class="o">=</span> <span class="n">_events</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">shortest</span><span class="o">.</span><span class="n">rise_time</span><span class="p">)</span>
+        <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">shortest</span><span class="o">.</span><span class="n">flat_time</span><span class="p">)</span>
+        <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">shortest</span><span class="o">.</span><span class="n">fall_time</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">duration</span> <span class="o">-</span> <span class="n">span</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">shortest</span>
+    <span class="k">return</span> <span class="n">_events</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+        <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+    <span class="p">)</span>
 </pre></div>
 
                 </article>
