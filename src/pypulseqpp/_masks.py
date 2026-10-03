@@ -278,25 +278,22 @@ def make_cartesian_plane_sampling(
     first_y = n_y - round(_checked_partial_fourier(partial_fourier[0]) * n_y)
     first_z = n_z - round(_checked_partial_fourier(partial_fourier[1]) * n_z)
     n_acs_y, n_acs_z = n_acs if r_y * r_z > 1 else (0, 0)
+    # Offsets of each line and partition from the centre view.
+    y = np.arange(n_y)[:, None] - n_y // 2
+    z = np.arange(n_z)[None, :] - n_z // 2
 
-    def inside(y: int, z: int, extent_y: int, extent_z: int) -> bool:
-        # Offsets from the centre view, normalised to the ellipse's axes.
-        dy, dz = (y - n_y // 2) / extent_y, (z - n_z // 2) / extent_z
+    def inside(extent_y: int, extent_z: int) -> np.ndarray:
+        # Offsets normalised to the ellipse's axes.
+        dy, dz = y / extent_y, z / extent_z
         return dy * dy + dz * dz <= 0.25
 
-    lines_acs = range(
-        max(n_y // 2 - n_acs_y // 2, first_y), min(n_y // 2 + (n_acs_y + 1) // 2, n_y)
-    )
-    partitions_acs = range(
-        max(n_z // 2 - n_acs_z // 2, first_z), min(n_z // 2 + (n_acs_z + 1) // 2, n_z)
-    )
-    calibration = [
-        (y, z)
-        for y in lines_acs
-        for z in partitions_acs
-        if not elliptical_acs or inside(y, z, n_acs_y, n_acs_z)
-    ]
-    calibrating = set(calibration)
+    calibrating = np.zeros((n_y, n_z), dtype=bool)
+    calibrating[
+        max(n_y // 2 - n_acs_y // 2, first_y) : min(n_y // 2 + (n_acs_y + 1) // 2, n_y),
+        max(n_z // 2 - n_acs_z // 2, first_z) : min(n_z // 2 + (n_acs_z + 1) // 2, n_z),
+    ] = True
+    if elliptical_acs and calibrating.any():
+        calibrating &= inside(n_acs_y, n_acs_z)
     if sampling == "poisson":
         # A rectangular ACS region is seeded into the draw as its fully sampled
         # block. An elliptical one is not: the draw then covers the corners of
@@ -304,7 +301,7 @@ def make_cartesian_plane_sampling(
         # added in full. The ellipse cut below is applied to the imaging views
         # of both schemes; ``crop_corner`` only makes the acceleration search
         # count the same region.
-        drawn = (
+        support = (
             make_poisson_disc_mask(
                 (n_y, n_z),
                 float(r_y * r_z),
@@ -315,24 +312,20 @@ def make_cartesian_plane_sampling(
             if r_y * r_z > 1
             else np.ones((n_y, n_z), dtype=bool)
         )
-        support = [(int(y), int(z)) for y, z in np.argwhere(drawn)]
     else:
-        support = [
-            (y, z)
-            for y in range(n_y)
-            if (y - n_y // 2) % r_y == 0
-            for z in range(n_z)
-            if (z - n_z // 2 - caipi_shift * ((y - n_y // 2) // r_y)) % r_z == 0
-        ]
-    imaging = [
-        (y, z)
-        for y, z in support
-        if y >= first_y
-        and z >= first_z
-        and (not elliptical or inside(y, z, n_y, n_z))
-        and (y, z) not in calibrating
-    ]
-    return calibration, imaging
+        support = (y % r_y == 0) & ((z - caipi_shift * (y // r_y)) % r_z == 0)
+    imaging = support & ~calibrating
+    imaging[:first_y] = False
+    imaging[:, :first_z] = False
+    if elliptical:
+        imaging &= inside(n_y, n_z)
+    return _views(calibrating), _views(imaging)
+
+
+def _views(mask: np.ndarray) -> list[tuple[int, int]]:
+    """Return the ``(y, z)`` views ``mask`` selects, ordered by line and then by partition."""
+    lines, partitions = np.nonzero(mask)
+    return list(zip(lines.tolist(), partitions.tolist(), strict=True))
 
 
 def _checked_partial_fourier(partial_fourier: float) -> float:
