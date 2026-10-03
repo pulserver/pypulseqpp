@@ -117,6 +117,33 @@ def test_the_chronaxie_response_is_the_convolution_to_1e5_of_the_largest_slew(sy
         assert np.abs(found["trace_axes"][axis] - expected).max() <= bound
 
 
+def test_skipping_silent_stretches_finds_the_peak_the_full_trace_holds(system):
+    """Constant stretches shorter and longer than the kernel, before and after the loudest ramp."""
+    blocks = []
+    for amplitude, rise, rest in [
+        (5, 400e-6, 3e-3),
+        (20, 200e-6, 20e-3),
+        (8, 300e-6, 1e-3),
+    ]:
+        blocks.append([ramp(system, amplitude, rise, "x")])
+        blocks.append([ramp(system, -amplitude, rise, "y")])
+        blocks.append([pp.make_delay(rest)])
+    sequence = played(system, *blocks)
+    rotation = [[0.36, 0.48, -0.8], [-0.8, 0.6, 0.0], [0.48, 0.64, 0.6]]
+
+    _, skipped = _pns(sequence, CHRONAXIE, rotation, None, keep_trace=False)
+    _, traced = _pns(sequence, CHRONAXIE, rotation, None, keep_trace=True)
+
+    assert skipped["samples"] == traced["samples"]
+    for peak, full in zip(
+        [skipped["norm"], *skipped["axes"]],
+        [traced["norm"], *traced["axes"]],
+        strict=True,
+    ):
+        assert peak["value"] == pytest.approx(full["value"], rel=1e-12)
+        assert (peak["time"], peak["block"]) == (full["time"], full["block"])
+
+
 def test_a_rectangular_slew_follows_the_strength_duration_curve(system):
     amplitude, rise = 20.0, 200e-6
     sequence = played(system, [ramp(system, amplitude, rise)])

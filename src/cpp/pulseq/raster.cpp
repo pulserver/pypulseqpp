@@ -96,6 +96,44 @@ namespace pulseq
         return true;
     }
 
+    int64_t PhysicalRaster::run(bool* steady)
+    {
+        while (position_ >= block_end_)
+        {
+            if (!enter_next_block())
+                return 0;
+        }
+        const double t = (static_cast<double>(position_) + 0.5) * dt_ - starts_;
+        double next = ends_ - starts_;
+        *steady = true;
+        for (Played& p : played_)
+        {
+            if (p.count == 0)
+                continue;
+            if (t < p.when(0))
+            {
+                next = std::min(next, p.when(0));
+                continue;
+            }
+            if (t > p.when(p.count - 1))
+                continue;
+            while (p.at + 1 < p.count && p.when(p.at + 1) <= t)
+                ++p.at;
+            if (p.at + 1 >= p.count)
+            {
+                /* On the last corner: zero from the next sample on. */
+                next = t;
+                *steady = false;
+                continue;
+            }
+            next = std::min(next, p.when(p.at + 1));
+            if (p.values[p.at] != p.values[p.at + 1])
+                *steady = false;
+        }
+        const int64_t until = std::min(block_end_, first_sample_from(next + starts_, dt_));
+        return std::max<int64_t>(1, until - position_);
+    }
+
     int64_t PhysicalRaster::read(int64_t count, double* x, double* y, double* z)
     {
         while (position_ >= block_end_)
