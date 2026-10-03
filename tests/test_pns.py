@@ -98,7 +98,7 @@ def test_the_safe_response_is_upstreams(system, tmp_path):
     assert (found["norm"]["value"] < 1.0) == ok
 
 
-def test_the_chronaxie_response_is_the_convolution_over_the_whole_timeline(system):
+def test_the_chronaxie_response_is_the_convolution_to_1e5_of_the_largest_slew(system):
     sequence = encoded(system)
     dt = system.grad_raster_time
     total = round(sequence.duration()[0] / dt)
@@ -113,9 +113,8 @@ def test_the_chronaxie_response_is_the_convolution_over_the_whole_timeline(syste
         g = np.interp(t, channel[0], channel[1], left=0.0, right=0.0)
         slew = np.diff(g, prepend=0.0) / dt / system.gamma
         expected = np.abs(np.convolve(slew, kernel)[:total])
-        np.testing.assert_allclose(
-            found["trace_axes"][axis], expected, rtol=1e-9, atol=1e-12
-        )
+        bound = 1e-5 * np.abs(slew).max() / s_min
+        assert np.abs(found["trace_axes"][axis] - expected).max() <= bound
 
 
 def test_a_rectangular_slew_follows_the_strength_duration_curve(system):

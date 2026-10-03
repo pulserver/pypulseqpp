@@ -87,8 +87,10 @@ namespace pulseq
      * slew with c / (c + t)^2 integrated over each raster interval, normalised
      * by rheobase / alpha, so a rectangular slew S held for tau responds with
      * S alpha tau / (rheobase (c + tau)); the kernel is cut after
-     * 20 chronaxies. Both are evaluated in one pass with the filter's own
-     * memory carried along, which is the whole-timeline answer.
+     * 20 chronaxies and evaluated as a sum of 17 exponentials, within 1e-5
+     * of the convolution relative to the largest slew's response. Both are
+     * evaluated in one pass with the filter's own memory carried along,
+     * which is the whole-timeline answer.
      */
     PnsReport pns(const Sequence& seq, const PnsModel& model, const PnsOptions& options);
 

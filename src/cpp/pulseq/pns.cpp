@@ -59,51 +59,67 @@ namespace pulseq
             double state_[3][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
         };
 
-        /** The chronaxie kernel over each axis's slew history. */
+        /**
+         * Quadrature of c / (c + t)^2 = c \int s e^{-s (c + t)} ds over u = ln(s c).
+         *
+         * Each node is one exponential, so the kernel integrated over a raster
+         * interval is a sum of first-order recursions. In u the nodes do not
+         * depend on c or the raster; over 20 chronaxies the sum is within
+         * 1e-5 of the kernel's unit area, in total absolute error per tap.
+         */
+        constexpr double kNodeFirst = -7.0;
+        constexpr double kNodeStep = 0.6;
+        constexpr int kNodes = 17;
+
+        /** The chronaxie kernel over each axis's slew history, cut after its span. */
         class Chronaxie
         {
         public:
             Chronaxie(double chronaxie, const double (&rheobase)[3],
                       const double (&alpha)[3], double dt)
             {
-                const size_t length =
-                    static_cast<size_t>(kChronaxieKernelSpan * chronaxie / dt) + 1;
-                kernel_.resize(length);
-                /* Integrated over each interval, as a product rather than a
-                 * difference of reciprocals, which cancels once t >> c. The
-                 * normalisation is an axis's own, so it is applied to the
-                 * response rather than folded in here. */
-                for (size_t i = 0; i < length; ++i)
+                length_ = static_cast<size_t>(kChronaxieKernelSpan * chronaxie / dt) + 1;
+                for (int k = 0; k < kNodes; ++k)
                 {
-                    const double t = static_cast<double>(i) * dt;
-                    kernel_[i] = chronaxie * dt / ((chronaxie + t) * (chronaxie + t + dt));
+                    const double s =
+                        std::exp(kNodeFirst + kNodeStep * static_cast<double>(k)) / chronaxie;
+                    decay_[k] = std::exp(-s * dt);
+                    weight_[k] = chronaxie * kNodeStep * s * std::exp(-s * chronaxie) *
+                        -std::expm1(-s * dt);
+                    /* What a slew contributes once it is `length_` samples old,
+                     * subtracted then so the kernel ends where the cut is. */
+                    expired_[k] = weight_[k] * std::pow(decay_[k], static_cast<double>(length_));
                 }
                 for (int axis = 0; axis < 3; ++axis)
                 {
                     scale_[axis] = alpha[axis] / rheobase[axis];
-                    history_[axis].assign(2 * length, 0.0);
+                    history_[axis].assign(length_, 0.0);
                 }
             }
 
             double respond(int axis, double slew)
             {
-                /* Each slew is written twice, a kernel length apart, so the
-                 * last `length` of them are always contiguous, newest last. */
-                const size_t length = kernel_.size();
                 std::vector<double>& history = history_[axis];
                 size_t& at = at_[axis];
-                at = at + 1 == length ? 0 : at + 1;
+                const double oldest = history[at];
                 history[at] = slew;
-                history[at + length] = slew;
-                const double* newest = history.data() + at + length;
+                at = at + 1 == length_ ? 0 : at + 1;
+                double* state = state_[axis];
                 double sum = 0.0;
-                for (size_t i = 0; i < length; ++i)
-                    sum += kernel_[i] * newest[-static_cast<std::ptrdiff_t>(i)];
+                for (int k = 0; k < kNodes; ++k)
+                {
+                    state[k] = decay_[k] * state[k] + weight_[k] * slew - expired_[k] * oldest;
+                    sum += state[k];
+                }
                 return std::fabs(sum) * scale_[axis];
             }
 
         private:
-            std::vector<double> kernel_;
+            size_t length_ = 0;
+            double decay_[kNodes];
+            double weight_[kNodes];
+            double expired_[kNodes];
+            double state_[3][kNodes] = {};
             double scale_[3] = {0.0, 0.0, 0.0};
             std::vector<double> history_[3];
             size_t at_[3] = {0, 0, 0};
