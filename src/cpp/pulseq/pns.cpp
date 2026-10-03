@@ -79,6 +79,14 @@ namespace pulseq
                     c.stim_limit * c.g_scale;
             }
 
+            /** Responses to @p count samples of each axis's slew, written over them. */
+            void respond_chunk(int64_t count, double* const (&slew)[3])
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                    for (int64_t i = 0; i < count; ++i)
+                        slew[axis][i] = respond(axis, slew[axis][i]);
+            }
+
         private:
             std::array<SafeAxis, 3> axes_;
             double alpha_[3][3];
@@ -96,6 +104,111 @@ namespace pulseq
         constexpr double kNodeFirst = -11.0;
         constexpr double kNodeStep = 0.6;
         constexpr int kNodes = 24;
+
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ >= 11 && defined(__x86_64__) && \
+    defined(__linux__)
+/* Resolved once per process to the widest vector unit the processor has. */
+#define PULSEQ_PNS_CLONES \
+    __attribute__((target_clones("arch=x86-64-v4", "arch=x86-64-v3", "default")))
+#else
+#define PULSEQ_PNS_CLONES
+#endif
+
+        static_assert(kNodes % 8 == 0, "sums are taken in eight lanes");
+
+        /** Sum of the nodes, in eight independent lanes so that it vectorises. */
+        inline double lane_sum(const double (&values)[kNodes])
+        {
+            double lanes[8];
+            for (int j = 0; j < 8; ++j)
+                lanes[j] = values[j];
+            for (int k = 8; k < kNodes; k += 8)
+                for (int j = 0; j < 8; ++j)
+                    lanes[j] += values[k + j];
+            return ((lanes[0] + lanes[4]) + (lanes[1] + lanes[5])) +
+                ((lanes[2] + lanes[6]) + (lanes[3] + lanes[7]));
+        }
+
+        /**
+         * Advance every axis's filter over @p count samples of slew, writing the
+         * signed sum of each axis's state after each sample.
+         */
+        PULSEQ_PNS_CLONES
+        void filter_chunk(int64_t count, const double* const (&slew)[3], double (&state)[3][kNodes],
+                          const double (&decay)[kNodes], const double (&weight)[kNodes],
+                          double* const (&out)[3])
+        {
+            /* Local copies, so that writing the output cannot alias the state. */
+            double held[3][kNodes];
+            double a[kNodes];
+            double b[kNodes];
+            for (int k = 0; k < kNodes; ++k)
+            {
+                a[k] = decay[k];
+                b[k] = weight[k];
+            }
+            for (int axis = 0; axis < 3; ++axis)
+                for (int k = 0; k < kNodes; ++k)
+                    held[axis][k] = state[axis][k];
+            for (int64_t i = 0; i < count; ++i)
+            {
+                double sums[3];
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const double x = slew[axis][i];
+                    for (int k = 0; k < kNodes; ++k)
+                        held[axis][k] = a[k] * held[axis][k] + b[k] * x;
+                    sums[axis] = lane_sum(held[axis]);
+                }
+                for (int axis = 0; axis < 3; ++axis)
+                    out[axis][i] = sums[axis];
+            }
+            for (int axis = 0; axis < 3; ++axis)
+                for (int k = 0; k < kNodes; ++k)
+                    state[axis][k] = held[axis][k];
+        }
+
+        /**
+         * A repeated block's answer by linearity, when it stands.
+         *
+         * Writes into @p carried the state after the block's first sample
+         * without the block's own slew; when the response it implies stays
+         * within @p limit (each axis, then the norm), writes the state the
+         * block leaves and returns true.
+         */
+        PULSEQ_PNS_CLONES
+        bool repeat_block(double (&state)[3][kNodes], const double (&entering)[3],
+                          const double (&decay)[kNodes], const double (&weight)[kNodes],
+                          const double (&scale)[3], const double (&was)[3][kNodes],
+                          const double (&from_rest)[3][kNodes], const double (&power)[kNodes],
+                          const double (&peak)[3], double peak_norm, const double (&limit)[4],
+                          double (&carried)[3][kNodes])
+        {
+            double squared = 0.0;
+            bool stands = true;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                double positive[kNodes];
+                double negative[kNodes];
+                for (int k = 0; k < kNodes; ++k)
+                {
+                    carried[axis][k] = decay[k] * state[axis][k] + weight[k] * entering[axis];
+                    const double difference = carried[axis][k] - was[axis][k];
+                    positive[k] = std::max(difference, 0.0);
+                    negative[k] = std::max(-difference, 0.0);
+                }
+                const double bound =
+                    std::max(lane_sum(positive), lane_sum(negative)) * scale[axis];
+                squared += bound * bound;
+                stands = stands && peak[axis] + bound <= limit[axis];
+            }
+            if (!stands || peak_norm + std::sqrt(squared) > limit[3])
+                return false;
+            for (int axis = 0; axis < 3; ++axis)
+                for (int k = 0; k < kNodes; ++k)
+                    state[axis][k] = power[k] * carried[axis][k] + from_rest[axis][k];
+            return true;
+        }
 
         /** The chronaxie kernel over each axis's slew history. */
         class Chronaxie
@@ -133,6 +246,25 @@ namespace pulseq
                 return std::fabs(sum) * scale_[axis];
             }
 
+            /** Responses to @p count samples of each axis's slew, written over them. */
+            void respond_chunk(int64_t count, double* const (&slew)[3])
+            {
+                filter_chunk(count, {slew[0], slew[1], slew[2]}, state_, decay_, weight_, slew);
+                for (int axis = 0; axis < 3; ++axis)
+                    for (int64_t i = 0; i < count; ++i)
+                        slew[axis][i] = std::fabs(slew[axis][i]) * scale_[axis];
+            }
+
+            /** See repeat_block; @p was, @p from_rest and @p power are a remembered block's. */
+            bool repeat(const double (&entering)[3], const double (&was)[3][kNodes],
+                        const double (&from_rest)[3][kNodes], const double (&power)[kNodes],
+                        const double (&peak)[3], double peak_norm, const double (&limit)[4],
+                        double (&carried)[3][kNodes])
+            {
+                return repeat_block(state_, entering, decay_, weight_, scale_, was, from_rest,
+                                    power, peak, peak_norm, limit, carried);
+            }
+
             /** The state after one more sample of slew @p slew, without the response. */
             void advanced(int axis, double slew, double* out) const
             {
@@ -160,16 +292,14 @@ namespace pulseq
              */
             double bound(int axis, const double* state) const
             {
-                double positive = 0.0;
-                double negative = 0.0;
+                double positive[kNodes];
+                double negative[kNodes];
                 for (int k = 0; k < kNodes; ++k)
                 {
-                    if (state[k] > 0.0)
-                        positive += state[k];
-                    else
-                        negative -= state[k];
+                    positive[k] = std::max(state[k], 0.0);
+                    negative[k] = std::max(-state[k], 0.0);
                 }
-                return std::max(positive, negative) * scale_[axis];
+                return std::max(lane_sum(positive), lane_sum(negative)) * scale_[axis];
             }
 
         private:
@@ -190,13 +320,24 @@ namespace pulseq
             }
         }
 
+        /**
+         * Resolution, in rasters, at which two blocks' sample offsets are told
+         * apart. Blocks closer than this are answered as one: their samples
+         * sit within it of each other on the same waveform.
+         */
+        constexpr double kOffsetStep = 1e-4;
+
         /** What makes two blocks play one physical gradient over their samples. */
         struct BlockKey
         {
             int32_t gradient[3];
             int32_t rotation;
             int64_t samples;
-            /** Time from the block's start to its first sample centre, in ps. */
+            /**
+             * Time from the block's start to its first sample centre, in units
+             * of kOffsetStep rasters: coarse enough that the rounding of block
+             * start times summed over a long sequence does not split a key.
+             */
             int64_t offset;
 
             bool operator==(const BlockKey& other) const
@@ -240,6 +381,8 @@ namespace pulseq
             double peak[3];
             double peak_norm;
             double last[3];
+            /** Each decay raised to the block's sample count less one. */
+            double decay[States];
         };
 
         /** Samples read between bound checks while a held gradient's response decays. */
@@ -292,11 +435,7 @@ namespace pulseq
                     const BlockKey key = {{row[1], row[2], row[3]},
                                           row[BLOCK_ROTATION_COLUMN],
                                           count,
-                                          static_cast<int64_t>(std::llround(offset * 1e12))};
-                    double carried[3][kStates];
-                    for (int axis = 0; axis < 3; ++axis)
-                        model_.advanced(axis, -previous_[axis] * to_slew_, carried[axis]);
-
+                                          static_cast<int64_t>(std::llround(offset / (dt_ * kOffsetStep)))};
                     auto found = memory_.find(key);
                     if (found == memory_.end())
                     {
@@ -306,21 +445,29 @@ namespace pulseq
                         evaluate(count);
                         continue;
                     }
-                    if (found->second && within(*found->second, carried))
+                    double carried[3][kStates];
+                    const double entering[3] = {-previous_[0] * to_slew_, -previous_[1] * to_slew_,
+                                                -previous_[2] * to_slew_};
+                    if (found->second)
                     {
                         const Remembered<kStates>& block = *found->second;
-                        double decay[kStates];
-                        model_.decayed(count - 1, decay);
-                        for (int axis = 0; axis < 3; ++axis)
+                        const double t = 1.0 + kPeakTolerance;
+                        const double limit[4] = {out_.axes[0].value * t, out_.axes[1].value * t,
+                                                 out_.axes[2].value * t, out_.norm.value * t};
+                        if (model_.repeat(entering, block.carried, block.from_rest, block.decay,
+                                          block.peak, block.peak_norm, limit, carried))
                         {
-                            double* state = model_.state(axis);
-                            for (int k = 0; k < kStates; ++k)
-                                state[k] = decay[k] * carried[axis][k] + block.from_rest[axis][k];
-                            previous_[axis] = block.last[axis];
+                            for (int axis = 0; axis < 3; ++axis)
+                                previous_[axis] = block.last[axis];
+                            raster_.skip(count);
+                            n_ += count;
+                            continue;
                         }
-                        raster_.skip(count);
-                        n_ += count;
-                        continue;
+                    }
+                    else
+                    {
+                        for (int axis = 0; axis < 3; ++axis)
+                            model_.advanced(axis, entering[axis], carried[axis]);
                     }
                     if (!found->second)
                         found->second = std::make_unique<Remembered<kStates>>();
@@ -329,8 +476,8 @@ namespace pulseq
                         block_peak_[axis] = 0.0;
                     block_peak_norm_ = 0.0;
                     evaluate(count);
-                    double decay[kStates];
-                    model_.decayed(count - 1, decay);
+                    model_.decayed(count - 1, block.decay);
+                    const double* decay = block.decay;
                     for (int axis = 0; axis < 3; ++axis)
                     {
                         const double* state = model_.state(axis);
@@ -345,25 +492,6 @@ namespace pulseq
                     block.peak_norm = block_peak_norm_;
                 }
                 out_.samples = n_;
-            }
-
-            /** Whether the block, carrying this state in, cannot pass a peak found. */
-            bool within(const Remembered<kStates>& block, const double (&carried)[3][kStates]) const
-            {
-                double squared = 0.0;
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    double difference[kStates];
-                    for (int k = 0; k < kStates; ++k)
-                        difference[k] = carried[axis][k] - block.carried[axis][k];
-                    const double bound = model_.bound(axis, difference);
-                    squared += bound * bound;
-                    if (block.peak[axis] + bound >
-                        out_.axes[static_cast<size_t>(axis)].value * (1.0 + kPeakTolerance))
-                        return false;
-                }
-                return block.peak_norm + std::sqrt(squared) <=
-                    out_.norm.value * (1.0 + kPeakTolerance);
             }
 
             /**
@@ -403,8 +531,7 @@ namespace pulseq
                         const double norm = std::sqrt(squared);
                         if (below && norm <= out_.norm.value)
                         {
-                            double decay[kStates];
-                            model_.decayed(quiet, decay);
+                            const double* decay = powers(quiet);
                             for (int axis = 0; axis < 3; ++axis)
                             {
                                 double* state = model_.state(axis);
@@ -422,6 +549,18 @@ namespace pulseq
                 }
             }
 
+            /** Each decay raised to @p count, computed once per distinct count. */
+            const double* powers(int64_t count)
+            {
+                auto found = powers_.find(count);
+                if (found == powers_.end())
+                {
+                    found = powers_.emplace(count, std::array<double, kStates>()).first;
+                    model_.decayed(count, found->second.data());
+                }
+                return found->second.data();
+            }
+
             void read_all(int64_t count)
             {
                 while (count > 0)
@@ -432,6 +571,21 @@ namespace pulseq
             {
                 const int64_t got =
                     raster_.read(count, samples_[0].data(), samples_[1].data(), samples_[2].data());
+                double* const slews[3] = {samples_[0].data(), samples_[1].data(),
+                                          samples_[2].data()};
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    double* slew = slews[axis];
+                    double previous = previous_[axis];
+                    for (int64_t i = 0; i < got; ++i)
+                    {
+                        const double g = slew[i];
+                        slew[i] = (g - previous) * to_slew_;
+                        previous = g;
+                    }
+                    previous_[axis] = previous;
+                }
+                model_.respond_chunk(got, slews);
                 const int block = raster_.block();
                 for (int64_t i = 0; i < got; ++i, ++n_)
                 {
@@ -439,10 +593,7 @@ namespace pulseq
                     double squared = 0.0;
                     for (int axis = 0; axis < 3; ++axis)
                     {
-                        const double g = samples_[axis][static_cast<size_t>(i)];
-                        const double response =
-                            model_.respond(axis, (g - previous_[axis]) * to_slew_);
-                        previous_[axis] = g;
+                        const double response = slews[axis][i];
                         squared += response * response;
                         block_peak_[axis] = std::max(block_peak_[axis], response);
                         note(out_.axes[static_cast<size_t>(axis)], response, time, block);
@@ -472,6 +623,7 @@ namespace pulseq
             int64_t n_ = 0;
             std::unordered_map<BlockKey, std::unique_ptr<Remembered<kStates>>, BlockKeyHash>
                 memory_;
+            std::unordered_map<int64_t, std::array<double, kStates>> powers_;
         };
 
         template <typename Model>
