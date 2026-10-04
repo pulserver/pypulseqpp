@@ -604,9 +604,9 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return the gradient amplitude spectrum of one window, per physical axis.</span>
 
-<span class="sd">    The window is taken, tapered and transformed by</span>
-<span class="sd">    :func:`check_mech_resonance`'s own pass, so a diagram of a band and the</span>
-<span class="sd">    verdict on it read the same numbers.</span>
+<span class="sd">    The window is sampled, tapered and padded as :func:`check_mech_resonance`</span>
+<span class="sd">    reads it, so a diagram of a band and the verdict on it read the same</span>
+<span class="sd">    amplitudes.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -720,7 +720,8 @@
 <span class="sd">        True when no window exceeds any band's threshold.</span>
 <span class="sd">    report : SimpleNamespace</span>
 <span class="sd">        ``window_width``, ``stride`` (as sampled, s), ``frequency_step`` (Hz),</span>
-<span class="sd">        ``windows``, the FFT ``backend``, and ``bands``: one entry per band, in</span>
+<span class="sd">        ``windows``, the FFT ``backend`` :func:`mech_resonance_spectrum`</span>
+<span class="sd">        transforms with, and ``bands``: one entry per band, in</span>
 <span class="sd">        the order given, with the band's ``axis`` (None for every axis),</span>
 <span class="sd">        ``f_min``, ``f_max``, ``tolerance`` and applied ``threshold`` (mT/m);</span>
 <span class="sd">        the band's worst window, kept whether or not it violates: its largest</span>
