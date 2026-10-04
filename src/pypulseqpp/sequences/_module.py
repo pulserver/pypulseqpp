@@ -302,6 +302,7 @@ class SequenceModule(ABC):
                 f"a module's seq must be a pypulseqpp.Sequence, not {type(sequence).__name__}"
             )
         sequence.__class__ = _recording_sequence_class()
+        sequence.__dict__.pop("add_block", None)
         sequence._module = self
         self._seq = sequence
 

@@ -32,6 +32,7 @@
 #include "sim.h"
 #include "ptx.h"
 #include "slr.h"
+#include "labels.h"
 
 #include "pulseq/binary.hpp"
 #include "pulseq/pns.hpp"
@@ -486,6 +487,8 @@ PYBIND11_MODULE(_ext, module)
     slr.attr("__name__") = "pypulseqpp._ext.slr";
     py::module_::import("sys").attr("modules")["pypulseqpp._ext.slr"] = slr;
     pypulseqpp_bind_slr(slr);
+
+    pypulseqpp_bind_labels(module);
 
     // Small-tip parallel-transmit design: spatial-domain, shimming, spokes.
     py::module_ ptx = module.def_submodule("ptx");
