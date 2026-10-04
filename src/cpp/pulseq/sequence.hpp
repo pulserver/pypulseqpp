@@ -1286,6 +1286,22 @@ namespace pulseq
         void set_block(int index, const Block& block);
 
         /**
+         * Point block @p index (1-based) at RF row @p rf and ADC row @p adc,
+         * as set_block() with the rest of the block unchanged. The block
+         * definition is re-derived only where the RF definition, or whether
+         * the block plays RF or an ADC at all, changes.
+         */
+        void set_block_rf_adc(int index, int32_t rf, int32_t adc);
+
+        /**
+         * Point block @p index (1-based) at extension chain @p ext, as
+         * set_block() with the rest of the block unchanged. Extensions do
+         * not distinguish block definitions, so only a block playing no event
+         * has its definition re-derived.
+         */
+        void set_block_ext(int index, int32_t ext);
+
+        /**
          * Set the duration of block @p index (1-based), in seconds.  A
          * duration distinguishes the definition of a block that plays
          * events, so the block's definition is looked up again.  Throws if

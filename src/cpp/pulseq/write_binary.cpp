@@ -10,14 +10,17 @@
 #include "pulseq/binary.hpp"
 
 #include "pulseq/md5.hpp"
+#include "pulseq/parallel.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/write.hpp"
 
 #include <cmath>
+#include <fstream>
 #include <cstring>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace pulseq
@@ -28,6 +31,13 @@ namespace pulseq
         /* ============================================================== */
         /*  Putting bytes down                                            */
         /* ============================================================== */
+
+        /** The low @p bytes bytes of @p value at @p at, least significant first. */
+        inline void put_le(char* at, uint64_t value, int bytes)
+        {
+            for (int i = 0; i < bytes; ++i)
+                at[i] = static_cast<char>((value >> (8 * i)) & 0xFF);
+        }
 
         void put_u64(std::string& out, uint64_t value)
         {
@@ -145,18 +155,32 @@ namespace pulseq
             const double raster = seq.block_duration_raster();
             const int32_t* events = seq.block_events();
             const double* durations = seq.block_durations();
-            for (int i = 0; i < count; ++i)
-            {
-                const double exact = durations[i] / raster;
-                const double rounded = std::rint(exact);
-                if (std::fabs(rounded - exact) >= 1e-6)
-                    throw std::runtime_error(
-                        "write_binary(): block " + std::to_string(i + 1) +
-                        " duration is not a multiple of the block duration raster");
-                put_i64(out, static_cast<int64_t>(rounded));
-                for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
-                    put_i32(out, events[static_cast<size_t>(i) * BLOCK_WIDTH + column]);
-            }
+            constexpr size_t record = sizeof(int64_t) + BLOCK_FILE_COLUMNS * sizeof(int32_t);
+            const size_t start = out.size();
+            out.resize(start + static_cast<size_t>(count) * record);
+            char* const base = &out[start];
+            parallel_ranges(
+                static_cast<size_t>(count),
+                worker_count(static_cast<size_t>(count)),
+                [&](size_t first, size_t last)
+                {
+                    for (size_t i = first; i < last; ++i)
+                    {
+                        const double exact = durations[i] / raster;
+                        const double rounded = std::rint(exact);
+                        if (std::fabs(rounded - exact) >= 1e-6)
+                            throw std::runtime_error(
+                                "write_binary(): block " + std::to_string(i + 1) +
+                                " duration is not a multiple of the block duration raster");
+                        char* at = base + i * record;
+                        put_le(at, static_cast<uint64_t>(static_cast<int64_t>(rounded)), 8);
+                        for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
+                            put_le(
+                                at + 8 + 4 * column,
+                                static_cast<uint32_t>(events[i * BLOCK_WIDTH + column]),
+                                4);
+                    }
+                });
         }
 
         void write_rf(std::string& out, const Sequence& seq)
@@ -394,53 +418,89 @@ namespace pulseq
                std::memcmp(contents.data(), BINARY_MAGIC, sizeof(BINARY_MAGIC)) == 0;
     }
 
-    std::string write_binary(Sequence& seq, bool create_signature)
+    namespace
     {
-        seq.compress_shapes();
-        seq.publish_rasters();
-        declare_custom_labels(seq);
-
-        std::string out;
-        // A block is 32 bytes and dominates a large file; the rest is the
-        // event vocabulary, which is small beside it.
-        out.reserve(static_cast<size_t>(seq.num_blocks()) * 32 + 8192);
-
-        out.append(reinterpret_cast<const char*>(BINARY_MAGIC), sizeof(BINARY_MAGIC));
-        put_i64(out, seq.version_major());
-        put_i64(out, seq.version_minor());
-        put_i64(out, required_revision(seq));
-
-        const Sequence& reading = seq;
-        write_definitions(out, reading);
-        write_blocks(out, reading);
-        write_rf(out, reading);
-        write_gradients(out, reading);
-        write_adc(out, reading);
-        write_shapes(out, reading);
-        write_extension_chain(out, reading);
-        write_triggers(out, seq);
-        write_labels(out, seq);
-        write_soft_delays(out, seq);
-        write_rf_shims(out, seq);
-        write_rotations(out, seq);
-
-        if (create_signature)
+        /** Everything a signature covers. */
+        std::string binary_body(Sequence& seq)
         {
-            const size_t signed_length = out.size();
-            const std::string hex = md5_hex(out.data(), signed_length);
+            seq.compress_shapes();
+            seq.publish_rasters();
+            declare_custom_labels(seq);
+
+            // The sections after the blocks are the event vocabulary, encoded
+            // first so that the whole body is allocated once.
+            const Sequence& reading = seq;
+            std::string rest;
+            write_rf(rest, reading);
+            write_gradients(rest, reading);
+            write_adc(rest, reading);
+            write_shapes(rest, reading);
+            write_extension_chain(rest, reading);
+            write_triggers(rest, seq);
+            write_labels(rest, seq);
+            write_soft_delays(rest, seq);
+            write_rf_shims(rest, seq);
+            write_rotations(rest, seq);
+
+            std::string out;
+            // A block is 32 bytes; the definitions and the signature are small.
+            out.reserve(static_cast<size_t>(seq.num_blocks()) * 32 + rest.size() + 65536);
+            out.append(reinterpret_cast<const char*>(BINARY_MAGIC), sizeof(BINARY_MAGIC));
+            put_i64(out, seq.version_major());
+            put_i64(out, seq.version_minor());
+            put_i64(out, required_revision(seq));
+            write_definitions(out, reading);
+            write_blocks(out, reading);
+            out += rest;
+
+            return out;
+        }
+
+        /** The signature section over the first @p signed_length bytes, whose digest is @p hex. */
+        std::string signature_section(const std::string& hex, size_t signed_length)
+        {
+            std::string out;
             put_section(out, SEC_SIGNATURE);
             const std::string type = "md5";
             put_i32(out, static_cast<int32_t>(type.size()));
             out.append(type);
             put_i32(out, static_cast<int32_t>(hex.size() / 2));
             for (size_t i = 0; i + 1 < hex.size(); i += 2)
-            {
-                out.push_back(
-                    static_cast<char>(std::stoul(hex.substr(i, 2), nullptr, 16)));
-            }
+                out.push_back(static_cast<char>(std::stoul(hex.substr(i, 2), nullptr, 16)));
             put_i64(out, static_cast<int64_t>(signed_length));
+            return out;
         }
+    } // namespace
+
+    std::string write_binary(Sequence& seq, bool create_signature)
+    {
+        std::string out = binary_body(seq);
+        if (create_signature)
+            out += signature_section(md5_hex(out.data(), out.size()), out.size());
         return out;
+    }
+
+    std::string write_binary_file(Sequence& seq, const std::string& path, bool create_signature)
+    {
+        const std::string body = binary_body(seq);
+        std::ofstream file(path, std::ios::binary | std::ios::trunc);
+        if (!file)
+            throw std::runtime_error("write_binary(): cannot open " + path + " for writing");
+        // The body goes to the file while it is digested.
+        std::thread writer([&] { file.write(body.data(), static_cast<std::streamsize>(body.size())); });
+        std::string hex;
+        if (create_signature)
+            hex = md5_hex(body.data(), body.size());
+        writer.join();
+        if (create_signature)
+        {
+            const std::string section = signature_section(hex, body.size());
+            file.write(section.data(), static_cast<std::streamsize>(section.size()));
+        }
+        file.close();
+        if (!file)
+            throw std::runtime_error("write_binary(): cannot write " + path);
+        return hex;
     }
 
     bool binary_signature(std::string_view contents, std::string& type, std::string& value,

@@ -18,6 +18,7 @@
 #include "pulseq/analysis.hpp"
 #include "pulseq/corners.hpp"
 #include "pulseq/fov.hpp"
+#include "pulseq/parallel.hpp"
 #include "pulseq/sequence.hpp"
 #include "pulseq/shape.hpp"
 #include "pulseq/kspace.hpp"
@@ -338,17 +339,30 @@ namespace
             keep_alive_capsule(std::move(buffer)));
     }
 
-    /** Rows of @p width as an (n, width) array of their own. */
+    /**
+     * Rows of @p width as an (n, width) array of their own.
+     *
+     * The buffer is allocated here rather than by NumPy, which advises huge
+     * pages for large arrays: under the common `defrag=madvise` setting each
+     * such fault compacts memory synchronously, which costs seconds on a
+     * library of millions of rows. The copy is split across threads.
+     */
     template <typename T>
     py::array_t<T> rows_copy(const T* values, int rows, int width)
     {
-        py::array_t<T> out({static_cast<py::ssize_t>(rows), static_cast<py::ssize_t>(width)});
-        if (rows > 0)
-            std::memcpy(
-                out.mutable_data(),
-                values,
-                sizeof(T) * static_cast<size_t>(rows) * static_cast<size_t>(width));
-        return out;
+        const size_t count = static_cast<size_t>(rows) * static_cast<size_t>(width);
+        T* copied = new T[count > 0 ? count : 1];
+        py::capsule owner(copied, [](void* held) { delete[] static_cast<T*>(held); });
+        pulseq::parallel_ranges(
+            static_cast<size_t>(rows),
+            pulseq::worker_count(static_cast<size_t>(rows)),
+            [&](size_t first, size_t last)
+            {
+                const size_t w = static_cast<size_t>(width);
+                std::memcpy(copied + first * w, values + first * w, sizeof(T) * (last - first) * w);
+            });
+        return py::array_t<T>(
+            {static_cast<py::ssize_t>(rows), static_cast<py::ssize_t>(width)}, copied, owner);
     }
 
     template <typename T> py::array_t<T> table_copy(const pulseq::BasicTable<T>& table)
@@ -2082,6 +2096,16 @@ PYBIND11_MODULE(_ext, module)
         },
         py::arg("sequence"), py::arg("create_signature") = true,
         "Serialize as a Pulseq binary sequence file.");
+
+    module.def(
+        "write_binary_file",
+        [](Sequence& sequence, const std::string& path, bool create_signature) {
+            py::gil_scoped_release unlocked;
+            return pulseq::write_binary_file(sequence, path, create_signature);
+        },
+        py::arg("sequence"), py::arg("path"), py::arg("create_signature") = true,
+        "Write a Pulseq binary sequence file; return its MD5 signature as hex, "
+        "or an empty string without one.");
 
     module.def(
         "binary_signature",

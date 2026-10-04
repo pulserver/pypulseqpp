@@ -10,6 +10,7 @@
  */
 
 #include "pulseq/sequence.hpp"
+#include "pulseq/parallel.hpp"
 
 #include <atomic>
 #include <cmath>
@@ -346,30 +347,71 @@ namespace pulseq
 
             const Rounding rounding(width, digits.data(), static_cast<int>(digits.size()));
             const int keyed = width + (uses ? 1 : 0);
+
+            // Each range of rows is collapsed on its own, then the ranges'
+            // distinct rows are claimed in range order: the first appearance
+            // of a row overall is its first appearance in the earliest range
+            // holding it, so the numbering is the serial one.
+            const unsigned workers = worker_count(static_cast<size_t>(n));
+            const size_t chunk = (static_cast<size_t>(n) + workers - 1) / workers;
+            const size_t parts = (static_cast<size_t>(n) + chunk - 1) / chunk;
+            std::vector<RowIndex> local(parts, RowIndex(keyed));
+            // Which old row each range's distinct ones came from.
+            std::vector<std::vector<int32_t>> local_origin(parts);
+            parallel_ranges(
+                static_cast<size_t>(n),
+                workers,
+                [&](size_t first, size_t last)
+                {
+                    RowIndex& index = local[first / chunk];
+                    std::vector<int32_t>& origin = local_origin[first / chunk];
+                    std::vector<double> key(static_cast<size_t>(keyed));
+                    for (size_t row = first; row < last; ++row)
+                    {
+                        const int id = static_cast<int>(row) + 1;
+                        std::memcpy(
+                            key.data(), table.row(id), static_cast<size_t>(width) * sizeof(double));
+                        // Before the rounding, not after: every profile treats a
+                        // reference column as an integer, so renumbering first
+                        // cannot change what the rounding produces.
+                        for (const Remap& remap : remaps)
+                            key[static_cast<size_t>(remap.column)] = renumber(
+                                *remap.lookup, key[static_cast<size_t>(remap.column)]);
+                        rounding.apply(key.data(), width);
+                        if (uses)
+                            key[static_cast<size_t>(width)] =
+                                static_cast<double>((*uses)[static_cast<size_t>(id) - 1]);
+
+                        const int32_t code = index.claim(key.data());
+                        if (code == static_cast<int32_t>(origin.size()))
+                            origin.push_back(id);
+                        lookup[static_cast<size_t>(id)] = code;
+                    }
+                });
+
             RowIndex index(keyed);
-            std::vector<double> key(static_cast<size_t>(keyed));
-            // Which old row each surviving one came from, so `uses` can follow.
             std::vector<int32_t> origin;
-
-            for (int id = 1; id <= n; ++id)
+            std::vector<std::vector<int32_t>> issued(parts);
+            for (size_t part = 0; part < parts; ++part)
             {
-                std::memcpy(key.data(), table.row(id), static_cast<size_t>(width) * sizeof(double));
-                // Before the rounding, not after: every profile treats a
-                // reference column as an integer, so renumbering first cannot
-                // change what the rounding produces.
-                for (const Remap& remap : remaps)
-                    key[static_cast<size_t>(remap.column)] =
-                        renumber(*remap.lookup, key[static_cast<size_t>(remap.column)]);
-                rounding.apply(key.data(), width);
-                if (uses)
-                    key[static_cast<size_t>(width)] =
-                        static_cast<double>((*uses)[static_cast<size_t>(id) - 1]);
-
-                const int32_t code = index.claim(key.data());
-                if (code == static_cast<int32_t>(origin.size()))
-                    origin.push_back(id);
-                lookup[static_cast<size_t>(id)] = code + 1;
+                issued[part].resize(static_cast<size_t>(local[part].count()));
+                for (int32_t code = 0; code < local[part].count(); ++code)
+                {
+                    const int32_t merged = index.claim(local[part].at_row(code));
+                    if (merged == static_cast<int32_t>(origin.size()))
+                        origin.push_back(local_origin[part][static_cast<size_t>(code)]);
+                    issued[part][static_cast<size_t>(code)] = merged + 1;
+                }
             }
+            parallel_ranges(
+                static_cast<size_t>(n),
+                workers,
+                [&](size_t first, size_t last)
+                {
+                    const std::vector<int32_t>& codes = issued[first / chunk];
+                    for (size_t row = first; row < last; ++row)
+                        lookup[row + 1] = codes[static_cast<size_t>(lookup[row + 1])];
+                });
 
             const int32_t kept = index.count();
             if (uses)
@@ -777,16 +819,22 @@ namespace pulseq
                     std::to_string(id) + ", which does not exist");
             return map[static_cast<size_t>(id)];
         };
-        for (size_t b = 0; b < blocks; ++b)
-        {
-            int32_t* row = blocks_->data() + b * BLOCK_WIDTH;
-            row[0] = follow(rf_map, row[0], "RF event", b);
-            row[1] = follow(grad_map, row[1], "gradient", b);
-            row[2] = follow(grad_map, row[2], "gradient", b);
-            row[3] = follow(grad_map, row[3], "gradient", b);
-            row[4] = follow(adc_map, row[4], "ADC event", b);
-            row[5] = follow(new_head, row[5], "extension chain", b);
-        }
+        parallel_ranges(
+            blocks,
+            worker_count(blocks),
+            [&](size_t first, size_t last)
+            {
+                for (size_t b = first; b < last; ++b)
+                {
+                    int32_t* row = blocks_->data() + b * BLOCK_WIDTH;
+                    row[0] = follow(rf_map, row[0], "RF event", b);
+                    row[1] = follow(grad_map, row[1], "gradient", b);
+                    row[2] = follow(grad_map, row[2], "gradient", b);
+                    row[3] = follow(grad_map, row[3], "gradient", b);
+                    row[4] = follow(adc_map, row[4], "ADC event", b);
+                    row[5] = follow(new_head, row[5], "extension chain", b);
+                }
+            });
 
         // Last, because every id a definition key is built from has just
         // moved and the per-event tables have just shrunk.

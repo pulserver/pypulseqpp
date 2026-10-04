@@ -398,3 +398,28 @@ def test_a_delay_carrying_a_trigger_is_not_the_definition_a_plain_wait_is():
 
     assert played[0] == played[1]
     assert played[2] != played[0]
+
+
+def test_a_library_collapsed_across_threads_is_numbered_in_order_of_first_appearance():
+    # More rows than one thread collapses, with each distinct gradient first
+    # appearing in every range and repeated within rounding of the file.
+    seq = pp.Sequence(pp.Opts())
+    for n in range(70000):
+        level = n // 25 + 1
+        seq.add_block(
+            pp.make_trapezoid(
+                "x",
+                amplitude=100 * level * (1 + 1e-9 * (n % 3)),
+                flat_time=1e-4,
+                rise_time=1e-4,
+            )
+        )
+    seq.remove_duplicates(in_place=True)
+
+    ids = np.array([row[2] for row in seq.block_events.values()])
+    np.testing.assert_array_equal(ids, np.arange(70000) // 25 + 1)
+    for block in (1, 34999, 70000):
+        gradient = seq.get_block(block).gx
+        assert gradient.amplitude == pytest.approx(
+            100 * ((block - 1) // 25 + 1), rel=1e-6
+        )

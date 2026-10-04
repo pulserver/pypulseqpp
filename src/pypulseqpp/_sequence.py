@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from collections.abc import MutableMapping
 from pathlib import Path
@@ -2323,9 +2324,10 @@ class Sequence:
         >>> len(signature), seq.signature_file
         (32, 'bin')
         """
-        written = _cxx.write_binary(self._native, create_signature)
-        Path(name).write_bytes(written)
-        return self._note_binary_signature(_cxx.binary_signature(written, check=False))
+        value = _cxx.write_binary_file(self._native, os.fspath(name), create_signature)
+        return self._note_binary_signature(
+            {"type": "md5" if value else "", "value": value}
+        )
 
     def write_v141(
         self, name, create_signature: bool = True, gamma=None, field=None

@@ -1171,6 +1171,56 @@ def test_a_scan_can_be_moved_a_repetition_at_a_time(system):
         )
 
 
+def test_a_scan_shifted_across_threads_matches_it_shifted_in_short_ranges(system):
+    shift = (0.012, -0.007, 0.003)
+    rf = sinc(system)
+    # Sampled across the ramps, so each readout is moved with a phase shape.
+    ramped = trap("x", 600, system, duration=0.6e-3)
+    adc = pp.make_adc(16, duration=0.6e-3, system=system)
+    step = pp.make_phase_encoding("y", 0.22 / 64, system=system)
+    turns = [pp.make_rotation(phi) for phi in (0.1, 0.4)]
+
+    def scan():
+        seq = pp.Sequence(system)
+        for shot in range(9000):
+            seq.add_block(rf)
+            seq.add_block(pp.scale_grad(step, -1.0 + (shot % 64) / 32))
+            for line in range(6):
+                seq.add_block(
+                    pp.scale_grad(ramped, (-1.0) ** line), adc, turns[line % 2]
+                )
+        return seq
+
+    at_once = scan()
+    pp.TransformFOV(translation=shift, through_rotation=True).apply_to_sequence(
+        at_once, in_place=True
+    )
+    moving = pp.TransformFOV(translation=shift, through_rotation=True)
+    in_ranges = scan()
+    assert len(in_ranges) > 65536
+    block = 1
+    while block <= len(in_ranges):
+        stop = min(block + 20000 - 1, len(in_ranges))
+        moving.apply_to_sequence(in_ranges, block_range=(block, stop), in_place=True)
+        block = stop + 1
+
+    for index in range(1, len(at_once) + 1, 997):
+        for got, want in zip(
+            (in_ranges.get_block(index).adc, in_ranges.get_block(index).rf),
+            (at_once.get_block(index).adc, at_once.get_block(index).rf),
+            strict=True,
+        ):
+            if want is None:
+                assert got is None
+                continue
+            assert float(got.phase_offset) == pytest.approx(
+                float(want.phase_offset), abs=1e-12
+            )
+            assert float(got.freq_offset) == pytest.approx(
+                float(want.freq_offset), abs=1e-9
+            )
+
+
 # %% what a reconstructor is handed instead of a phase
 
 
