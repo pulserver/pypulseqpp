@@ -1037,9 +1037,20 @@ namespace pulseq
 
         const int type_id = seq.extension_type_id("ROTATIONS");
         std::map<int32_t, int32_t> composed;
+        /* A block's rotation is read off its chain, so every block naming
+         * one chain is given one rebuilt chain. */
+        std::unordered_map<int32_t, int32_t> rechained;
 
         for (int index = from; index <= to; ++index)
         {
+            const int32_t was_chain =
+                std::as_const(seq).block_events()[static_cast<size_t>(index - 1) * BLOCK_WIDTH + 5];
+            const auto known = rechained.find(was_chain);
+            if (known != rechained.end())
+            {
+                seq.set_block_ext(index, known->second);
+                continue;
+            }
             Block block = seq.get_block(index);
             const int32_t already = block.rot;
 
@@ -1084,7 +1095,8 @@ namespace pulseq
             block.ext = rechained_without(seq, block.ext, type_id);
             block.ext = static_cast<int32_t>(
                 seq.chain_extension(type_id, turn, block.ext));
-            seq.set_block(index, block);
+            rechained.emplace(was_chain, block.ext);
+            seq.set_block_ext(index, block.ext);
         }
     }
 

@@ -699,6 +699,23 @@ namespace pulseq
             fork_instance(get_block(index), instance_def_[at], instance_adc_def_[at]);
     }
 
+    void Sequence::set_block_ext(int index, int32_t ext)
+    {
+        changed();
+        repetition_known_ = false;
+        require_block(index, num_blocks());
+        detach_blocks();
+        int32_t* row = blocks_->data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+        row[5] = ext;
+        row[BLOCK_ROTATION_COLUMN] = promoted_in_chain(0, ext);
+        row[BLOCK_SHIM_COLUMN] = promoted_in_chain(1, ext);
+        if (row[0] == 0 && row[1] == 0 && row[2] == 0 && row[3] == 0 && row[4] == 0)
+        {
+            const size_t at = static_cast<size_t>(index) - 1;
+            fork_instance(get_block(index), instance_def_[at], instance_adc_def_[at]);
+        }
+    }
+
     void Sequence::set_block_duration(int index, double seconds)
     {
         Block block = get_block(index);
