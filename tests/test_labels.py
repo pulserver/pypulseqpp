@@ -113,3 +113,48 @@ def test_a_label_beside_a_trigger_still_reads_back_with_its_block():
         block = seq.get_block(i)
         assert block.label[0].value == 5
         assert block.trig is not None
+
+
+def test_the_label_writer_counts_a_repeated_step_as_one_increment_from_any_integer():
+    import numpy as np
+
+    from pypulseqpp import sequences
+
+    labels = sequences.Labels()
+    written = [
+        [(e.label, e.type, e.value) for e in labels(LIN=v)]
+        for v in (np.int64(0), 3, np.int32(6), 6.0, 9)
+    ]
+    assert written == [
+        [("LIN", "labelset", 0)],
+        [("LIN", "labelset", 3)],
+        [("LIN", "labelinc", 3)],
+        [],
+        [("LIN", "labelinc", 3)],
+    ]
+    assert labels(LIN=12)[0] is labels(LIN=15)[0]
+
+
+def test_a_change_of_once_writes_every_label_passed_with_it_again():
+    from pypulseqpp import sequences
+
+    labels = sequences.Labels()
+    labels(SLC=1, ONCE=1)
+    labels(SLC=2)
+    again = [(e.label, e.type, e.value) for e in labels(SLC=3, ONCE=0)]
+    assert again == [("SLC", "labelset", 3), ("ONCE", "labelset", 0)]
+
+
+def test_a_sequence_subclass_overriding_add_block_keeps_its_override():
+    import pypulseqpp as pp
+
+    calls = []
+
+    class Counted(pp.Sequence):
+        def add_block(self, *events):
+            calls.append(len(events))
+            return super().add_block(*events)
+
+    seq = Counted(pp.Opts())
+    seq.add_block(pp.make_delay(1e-3))
+    assert calls == [1] and seq.num_blocks == 1

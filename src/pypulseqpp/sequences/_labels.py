@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import pypulseqpp as pp
+from pypulseqpp import _ext
 
 __all__ = ["Labels"]
 
 
-class Labels:
+class Labels(_ext.LabelWriter):
     """Writer of label events for the sticky label state of a Pulseq sequence.
 
     A label keeps its value across blocks until an event changes it, so a block
@@ -17,7 +18,9 @@ class Labels:
     writes nothing, a change equal to the label's previous change is an INC,
     which a scan repeats as one event, and any other change is a SET. A change
     of ``ONCE`` calls :meth:`restart` first, so every label passed with it is
-    written again as a SET.
+    written again as a SET. An instance returns the same event object for
+    equal statements, so the events are added to blocks as they are, not
+    modified.
 
     Examples
     --------
@@ -28,62 +31,18 @@ class Labels:
     >>> labels = sequences.Labels()
     >>> [[(e.type, e.value) for e in labels(LIN=line)] for line in (0, 2, 4, 4, 3)]
     [[('labelset', 0)], [('labelset', 2)], [('labelinc', 2)], [], [('labelset', 3)]]
+
+    Labels passed together are written in the order given:
+
+    >>> labels = sequences.Labels()
+    >>> [(e.label, e.type, e.value) for e in labels(LIN=0, SLC=1)]
+    [('LIN', 'labelset', 0), ('SLC', 'labelset', 1)]
+    >>> [(e.label, e.type, e.value) for e in labels(LIN=0, SLC=2, ONCE=1)]
+    [('LIN', 'labelset', 0), ('SLC', 'labelset', 2), ('ONCE', 'labelset', 1)]
     """
 
     def __init__(self) -> None:
-        self._state: dict[str, int] = {}
-        self._steps: dict[str, int | None] = {}
-        self._events: dict[tuple[str, str, int], object] = {}
-
-    def __call__(self, **values: int) -> list:
-        """Return the label events that set each label to its new value.
-
-        Parameters
-        ----------
-        **values : int
-            The new value of each label, by its Pulseq name.
-
-        Returns
-        -------
-        list
-            The label events to add to the block, empty when nothing changed.
-            An instance returns the same event object for equal statements,
-            so the events are added to blocks as they are, not modified.
-
-        Examples
-        --------
-        >>> from pypulseqpp import sequences
-        >>> labels = sequences.Labels()
-        >>> [(e.label, e.type, e.value) for e in labels(LIN=0, SLC=1)]
-        [('LIN', 'labelset', 0), ('SLC', 'labelset', 1)]
-        >>> [(e.label, e.type, e.value) for e in labels(LIN=0, SLC=2, ONCE=1)]
-        [('LIN', 'labelset', 0), ('SLC', 'labelset', 2), ('ONCE', 'labelset', 1)]
-        """
-        state, steps = self._state, self._steps
-        once = values.get("ONCE")
-        if once is not None and int(once) != state.get("ONCE"):
-            self.restart()
-        events = []
-        for name, value in values.items():
-            value = int(value)
-            last = state.get(name)
-            if last == value:
-                continue
-            step = None if last is None else value - last
-            if step is not None and step == steps.get(name):
-                events.append(self._event(name, "INC", step))
-            else:
-                events.append(self._event(name, "SET", value))
-            state[name] = value
-            steps[name] = step
-        return events
-
-    def _event(self, name: str, kind: str, value: int):
-        key = (name, kind, value)
-        event = self._events.get(key)
-        if event is None:
-            event = self._events[key] = pp.make_label(name, kind, value)
-        return event
+        super().__init__(pp.make_label)
 
     def restart(self) -> None:
         """Write every label's next value as a SET, regardless of what was written before.
@@ -103,5 +62,4 @@ class Labels:
         >>> [e.type for e in labels(LIN=3)]
         ['labelset']
         """
-        self._state.clear()
-        self._steps.clear()
+        self._restart()

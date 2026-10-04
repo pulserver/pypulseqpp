@@ -50,6 +50,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/sim.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/ptx.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/bindings/slr.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/bindings/labels.cpp
     # The three translation units of the MRArbGrad solver; the rest of it is
     # headers. See external/NOTICE.md.
     ${MRARBGRAD}/mag/Mag.cpp

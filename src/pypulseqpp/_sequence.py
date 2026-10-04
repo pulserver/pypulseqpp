@@ -228,6 +228,14 @@ class Sequence:
         self.clear_caches()
         return False
 
+    def __setattr__(self, name: str, value) -> None:
+        object.__setattr__(self, name, value)
+        if name == "_native" and type(self).add_block is Sequence.add_block:
+            # add_block is the native call itself, held per instance so a block
+            # crosses into C++ without a Python frame of its own. A subclass
+            # overriding add_block keeps its own.
+            object.__setattr__(self, "add_block", value.add_block_events)
+
     def __getattr__(self, name: str):
         if name in _UPSTREAM_STORAGE:
             raise AttributeError(
