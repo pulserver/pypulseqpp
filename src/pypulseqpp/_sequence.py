@@ -1280,9 +1280,10 @@ class Sequence:
             sample plus 1% of the larger k step beside it, -1 for a readout
             that does not move or has fewer than two samples. ``origin``,
             ``sweep`` and ``sweeps`` give each readout's k-space as its
-            block's starting point plus what one block of its kind sweeps;
+            first sample plus one of the distinct paths from there;
             None when an RF pulse that excites or refocuses, or has no use
-            recorded, plays in a block that acquires.
+            recorded, plays in a block that acquires, or when more than one
+            readout in 16 has a path of its own.
 
         Examples
         --------
