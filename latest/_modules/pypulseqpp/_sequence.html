@@ -2918,7 +2918,7 @@
 <span class="sd">        """</span>
         <span class="n">written</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">write_binary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">)</span>
         <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">written</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_note_binary_signature</span><span class="p">(</span><span class="n">written</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_note_binary_signature</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">binary_signature</span><span class="p">(</span><span class="n">written</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Sequence.write_v141">
@@ -2978,9 +2978,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_note_signature</span><span class="p">(</span><span class="n">written</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_note_binary_signature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">written</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Record and return the signature a binary file carries, if any."""</span>
-        <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">binary_signature</span><span class="p">(</span><span class="n">written</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_note_binary_signature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Record and return the signature ``found`` by ``binary_signature``, if any."""</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">signature_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">signature_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">signature_value</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -3075,7 +3074,7 @@
             <span class="c1"># signature is for is saying the bytes are wrong rather than</span>
             <span class="c1"># letting the parser say something else about them. The text</span>
             <span class="c1"># reader checks its own as it parses.</span>
-            <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">binary_signature</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">binary_signature</span><span class="p">(</span><span class="n">contents</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="n">verify</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">verify</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">found</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                     <span class="s2">"read(): verification was asked for and the file carries no signature"</span>
@@ -3087,12 +3086,9 @@
                 <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_native</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">contents</span><span class="p">,</span> <span class="n">verify</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">binary</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_note_binary_signature</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_note_binary_signature</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">detect_rf_use</span><span class="p">:</span>
-            <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span>
-            <span class="n">labelled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">detect_rf_uses</span><span class="p">(</span>
-                <span class="n">_limit</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s2">"B0"</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span> <span class="n">_limit</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s2">"gamma"</span><span class="p">,</span> <span class="mf">42576000.0</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">labelled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_rf_use</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">labelled</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">warn</span><span class="p">(</span>
                     <span class="s2">"read(): detect_rf_use had nothing to do; every pulse in "</span>
@@ -3356,6 +3352,34 @@
 
     <span class="c1">#: Upstream scanner installation, using this sequence's write method.</span>
     <span class="n">install</span> <span class="o">=</span> <span class="n">_upstream</span><span class="o">.</span><span class="n">Sequence</span><span class="o">.</span><span class="n">install</span>
+
+<div class="viewcode-block" id="Sequence.detect_rf_use">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.detect_rf_use.html#pypulseqpp.Sequence.detect_rf_use">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect_rf_use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">B0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Record what each unlabelled pulse is for, from what it does.</span>
+
+<span class="sd">        The rule ``read(detect_rf_use=True)`` applies to a file. Pulses that</span>
+<span class="sd">        already record a use are left alone.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        B0 : float, default=None</span>
+<span class="sd">            Field strength in T at which a frequency offset is read in ppm; the</span>
+<span class="sd">            system's, else 1.5.</span>
+<span class="sd">        gamma : float, default=None</span>
+<span class="sd">            Gyromagnetic ratio in Hz/T; the system's by default.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            How many pulses were labelled.</span>
+<span class="sd">        """</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">detect_rf_uses</span><span class="p">(</span>
+            <span class="n">_limit</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s2">"B0"</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)</span> <span class="k">if</span> <span class="n">B0</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">B0</span><span class="p">),</span>
+            <span class="n">_limit</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s2">"gamma"</span><span class="p">,</span> <span class="mf">42576000.0</span><span class="p">)</span> <span class="k">if</span> <span class="n">gamma</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">gamma</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
 
     <span class="c1"># -- collapsing ----------------------------------------------------</span>
 
