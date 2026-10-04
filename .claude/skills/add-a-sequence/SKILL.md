@@ -55,9 +55,11 @@ from it.
 
 Add `gallery/<nn>-<family>/<module>.py`, named after the module — the
 reference page links its example by name, and exactly one script may match.
-A built-in sequence tour calls `paper_plot()` with no arguments, exercising
-the automatic selection, and leaves constraint checks to the safety example
-rather than repeating them.
+A catalogue page calls `paper_plot()` with no arguments, exercising the
+automatic selection, sets no font size, DPI or `rcParams` of its own (the
+documentation sizes its figures), and leaves constraint checks to the
+constraint-check lesson rather than repeating them. It is not a Tour: the
+catalogue is reference material placed after the Course and the Tours.
 
 ## 4. The family page
 

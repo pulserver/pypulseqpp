@@ -43,7 +43,7 @@ separately from the MIT core.
 | `tests/` | API, numerical, format-parity and invariant tests |
 | `docs/user-guide/` | Installation, supported platforms and project-use procedures; the snippets are executed as doctests |
 | `docs/examples/` | The executable pages' landing pages, one per gallery directory |
-| `docs/explanations/` | Conceptual explanation pages and their build-time figures |
+| `docs/explanations/` | Conceptual explanation pages, one flat list, and their build-time figures |
 | `docs/api/` | API reference pages; autosummary writes the stubs under `docs/generated/` |
 | `docs/developer-guide/` | Contribution procedure and conventions, including the documentation guide and the project terminology |
 | `docs/misc/` | Licensing, related projects and contributors |
@@ -261,11 +261,19 @@ either; it states the rules most often broken.
 | `docs/sequences.md` | Catalogue of the shipped sequences, grouped by family, with a reference page each | Which sequences exist, and what does one of them look like? |
 
 Do not transfer the prose style or level of exposition of one type into
-another. The first gallery groups, `01-pulseq-basics` to `07-custom-modules`,
-are a sequential Pulseq course: each lesson has a concise introduction and
+another. The gallery groups `01-pulseq-basics` to `07-custom-modules` are the
+Course, a sequential Pulseq course: each lesson has a concise introduction and
 explicit learning objectives, and may refer to the previous and next lesson.
-The later groups are standalone scientific examples. Explanations come before examples in the navigation, and an example
-links to conceptual material rather than restating it.
+`08-tours` holds the Tours, which stand alone: each opens with its objective
+and the Course lessons it assumes, and has no previous/next links. The groups
+`10-gradient-echo` to `16-zte` are the sequence catalogue's executed pages,
+reference material rather than Course or Tours. The Course is the shortest
+coherent path that gives a new user the framework's core mental model and
+enough practical competence to work independently. Tours are useful
+applications, advanced branches or specialised workflows that are not
+necessary for that core competence. Explanations come before examples in the
+navigation, and an example links to conceptual material rather than restating
+it.
 
 A gallery example exists because running it and examining its output shows
 something scientifically or computationally useful. An API demonstration, a
@@ -303,9 +311,20 @@ notebook into the built site under `_colab/` with a note and a `%pip install`
 cell in front; the notebook the page offers for download is left as
 sphinx-gallery writes it. A section whose scripts import more than
 `pypulseqpp[plot]` and matplotlib lists the packages in `SECTION_PACKAGES`.
-Every explanation page, and no index page, opens with a TL;DR admonition
-(```` ```{admonition} TL;DR ```` with `:class: tldr`) directly under its
-title; `tests/test_docs_explanations.py` holds both conventions.
+An explanation page with more than one `##` section opens with a TL;DR
+admonition (```` ```{admonition} TL;DR ```` with `:class: tldr`) directly
+under its title; a page with a single section may omit it, and landing, API
+and example pages have none. `tests/test_docs_explanations.py` holds the
+TL;DR and Colab conventions; `tests/test_docs_navigation.py` holds the order of
+the six top-level sections and the Course and Tours tables of the Examples
+landing page.
+
+Documentation figures take their typography and resolution from
+`docs/figure_style.py`, and the documentation sizes them to the column: the
+gallery's image scraper narrows a figure wider than the column before saving
+it. No gallery script sets font sizes or DPI. The public plotting helpers size
+their text relative to `font.size`; a change to a public plotting default,
+such as a canvas size, is an API decision, not a documentation one.
 
 Three generators run on `builder-inited` and write into `docs/generated/`, which
 is not tracked.
@@ -322,8 +341,9 @@ that designs and draws it. A sequence added to `examples/sequence/` needs a row
 there, a gallery script named after it in its family's directory, and a row in
 that family's page under `docs/examples/built-in-sequences/`.
 
-`docs/api_objects.py` collects the `autosummary` blocks of `docs/api/*.md` into
-one `:orphan:` holder that owns their `:toctree:`. The API pages themselves
+`docs/api_objects.py` collects the `{obj}` rows of the tables in
+`docs/api/*.md` into one `:orphan:` holder whose `autosummary` blocks own their
+`:toctree:`. The API pages themselves
 carry the object tables and no toctree, so the generated per-object stubs are
 reachable and documented without every method and attribute landing in the
 navigation tree.

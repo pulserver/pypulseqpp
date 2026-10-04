@@ -55,7 +55,7 @@ def test_every_sequence_has_a_gallery_page_that_designs_it(doc):
 
 
 def test_built_in_sequence_galleries_defer_constraint_checks_to_safety_example():
-    """Sequence tours do not duplicate the canonical constraint-check workflow."""
+    """Catalogue pages do not duplicate the canonical constraint-check workflow."""
     scripts = sorted(GALLERY.glob("1[0-6]-*/*_sequence.py"))
     assert len(scripts) == len(sequence_reference.SEQUENCES)
     for script in scripts:
@@ -78,7 +78,7 @@ def test_fast_spin_echo_modes_have_separate_scientific_examples():
     "doc", sequence_reference.SEQUENCES, ids=lambda doc: doc.module
 )
 def test_every_sequence_gallery_uses_the_automatic_paper_plot_selection(doc):
-    """Built-in tours exercise the plotting default rather than hiding its defects."""
+    """Catalogue pages exercise the plotting default rather than hiding its defects."""
     script = next(GALLERY.rglob(f"{doc.module}.py"))
     tree = ast.parse(script.read_text())
     calls = [
