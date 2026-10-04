@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <exception>
 #include <thread>
 #include <vector>
 
@@ -25,7 +26,9 @@ namespace pulseq
 
     /**
      * Call @p run(first, last) on @p workers contiguous ranges covering
-     * [0, @p count), the calling thread taking the first.
+     * [0, @p count), the calling thread taking the first. Ranges start at
+     * multiples of ceil(count / workers). An exception thrown in a range is
+     * rethrown once every range has finished, the earliest range's first.
      */
     template <typename Run>
     void parallel_ranges(size_t count, unsigned workers, const Run& run)
@@ -36,12 +39,27 @@ namespace pulseq
             return;
         }
         const size_t chunk = (count + workers - 1) / workers;
+        std::vector<std::exception_ptr> failed((count + chunk - 1) / chunk);
+        const auto guarded = [&run, &failed, chunk](size_t first, size_t last)
+        {
+            try
+            {
+                run(first, last);
+            }
+            catch (...)
+            {
+                failed[first / chunk] = std::current_exception();
+            }
+        };
         std::vector<std::thread> pool;
         for (size_t first = chunk; first < count; first += chunk)
-            pool.emplace_back([&run, first, count, chunk] { run(first, std::min(count, first + chunk)); });
-        run(size_t(0), std::min(count, chunk));
+            pool.emplace_back([&guarded, first, count, chunk] { guarded(first, std::min(count, first + chunk)); });
+        guarded(size_t(0), std::min(count, chunk));
         for (std::thread& thread : pool)
             thread.join();
+        for (const std::exception_ptr& failure : failed)
+            if (failure)
+                std::rethrow_exception(failure);
     }
 
 } // namespace pulseq

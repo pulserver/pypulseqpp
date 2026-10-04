@@ -72,6 +72,15 @@ namespace pulseq
     std::string write_binary(Sequence& seq, bool create_signature = true);
 
     /**
+     * Write the binary form to @p path, digesting it while it is written.
+     *
+     * @return The signature as lowercase hex, or empty without one.
+     * @throws std::runtime_error If the file cannot be opened or written.
+     */
+    std::string write_binary_file(Sequence& seq, const std::string& path,
+                                  bool create_signature = true);
+
+    /**
      * The signature a binary file carries, or empty strings if it carries none.
      *
      * @param contents  The whole file.

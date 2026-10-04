@@ -2084,6 +2084,16 @@ PYBIND11_MODULE(_ext, module)
         "Serialize as a Pulseq binary sequence file.");
 
     module.def(
+        "write_binary_file",
+        [](Sequence& sequence, const std::string& path, bool create_signature) {
+            py::gil_scoped_release unlocked;
+            return pulseq::write_binary_file(sequence, path, create_signature);
+        },
+        py::arg("sequence"), py::arg("path"), py::arg("create_signature") = true,
+        "Write a Pulseq binary sequence file; return its MD5 signature as hex, "
+        "or an empty string without one.");
+
+    module.def(
         "binary_signature",
         [](const py::bytes& contents, bool check) {
             char* data = nullptr;
