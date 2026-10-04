@@ -284,6 +284,40 @@ namespace pulseq
         }
 
         /**
+         * The line a moving readout's offsets are taken along: through k at
+         * the window's centre, at the rate between the samples either side
+         * of it, both read off the samples rather than the gradient. A
+         * receiver that knows only the samples' k draws the same line, so
+         * it can compute the modulation from the shift alone.
+         *
+         * @param slope  Set to the rate, in Hz/m.
+         * @param swept  Set to the turns @p shift has swept at the centre.
+         */
+        void centre_chord(
+            const Played& played, double shift, int samples, double dwell, double delay,
+            double& slope, double& swept)
+        {
+            const double centre = 0.5 * static_cast<double>(samples - 1);
+            const int below = static_cast<int>(std::floor(centre));
+            const auto at = [&](double index)
+            { return played.swept(delay + dwell * (index + 0.5)); };
+            double k = 0.0;
+            if (samples % 2 != 0)
+            {
+                k = at(below);
+                slope = (at(below + 1) - at(below - 1)) / (2.0 * dwell);
+            }
+            else
+            {
+                const double low = at(below);
+                const double high = at(below + 1);
+                k = 0.5 * (low + high);
+                slope = (high - low) / dwell;
+            }
+            swept = turns(shift * k);
+        }
+
+        /**
          * Phase shapes already registered, keyed by everything the added
          * turns are computed from: the shape they are folded into, the
          * event's timing, and the shift and corners of each axis whose
@@ -1034,8 +1068,10 @@ namespace pulseq
                         continue;
                     const bool steady = played[axis].constant_over(opens, closes);
                     const double at = steady ? delay : echo;
-                    const double slope = played[axis].at(at);
-                    const double swept = played[axis].swept_turns(at, shift[axis]);
+                    double slope = played[axis].at(at);
+                    double swept = played[axis].swept_turns(at, shift[axis]);
+                    if (!steady && samples >= 3)
+                        centre_chord(played[axis], shift[axis], samples, dwell, delay, slope, swept);
                     frequency += shift[axis] * slope;
                     phase = turns(
                         phase +
