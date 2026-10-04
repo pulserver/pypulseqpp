@@ -72,6 +72,55 @@ namespace
             e.has_last = e.has_step = false;
     }
 
+    /** Integer value of a label argument; false with an exception set. */
+    bool label_value(PyObject* item, long long& value)
+    {
+        PyObject* number = PyNumber_Index(item);
+        if (number == nullptr)
+        {
+            PyErr_Clear();
+            number = PyNumber_Long(item);
+        }
+        if (number == nullptr)
+            return false;
+        value = PyLong_AsLongLong(number);
+        Py_DECREF(number);
+        return !(value == -1 && PyErr_Occurred());
+    }
+
+    /** A changed ONCE value forgets every label's last value first. */
+    bool apply_once(LabelWriter* self, PyObject* kwargs)
+    {
+        PyObject* once = PyDict_GetItemString(kwargs, "ONCE");
+        if (once == nullptr)
+            return true;
+        long long value = 0;
+        if (!label_value(once, value))
+            return false;
+        PyObject* key = PyUnicode_InternFromString("ONCE");
+        Entry& e = entry_for(self, key);
+        Py_DECREF(key);
+        if (!e.has_last || e.last != value)
+            restart(self);
+        return true;
+    }
+
+    /** Appends the event that moves the label to value, if it changes. */
+    bool append_label(LabelWriter* self, Entry& e, long long value, PyObject* events)
+    {
+        if (e.has_last && e.last == value)
+            return true;
+        const bool inc = e.has_last && e.has_step && value - e.last == e.step;
+        PyObject* event = event_for(self, e, inc, inc ? e.step : value);
+        if (event == nullptr || PyList_Append(events, event) < 0)
+            return false;
+        e.has_step = e.has_last;
+        e.step = value - e.last;
+        e.last = value;
+        e.has_last = true;
+        return true;
+    }
+
     PyObject* writer_call(PyObject* object, PyObject* args, PyObject* kwargs)
     {
         auto* self = reinterpret_cast<LabelWriter*>(object);
@@ -83,63 +132,22 @@ namespace
         PyObject* events = PyList_New(0);
         if (events == nullptr || kwargs == nullptr)
             return events;
-
-        PyObject* once = PyDict_GetItemString(kwargs, "ONCE");
-        if (once != nullptr)
+        if (!apply_once(self, kwargs))
         {
-            const long long value = PyLong_AsLongLong(once);
-            if (value == -1 && PyErr_Occurred())
-            {
-                Py_DECREF(events);
-                return nullptr;
-            }
-            PyObject* key = PyUnicode_InternFromString("ONCE");
-            Entry& e = entry_for(self, key);
-            Py_DECREF(key);
-            if (!e.has_last || e.last != value)
-                restart(self);
+            Py_DECREF(events);
+            return nullptr;
         }
-
         Py_ssize_t position = 0;
         PyObject* name;
         PyObject* item;
         while (PyDict_Next(kwargs, &position, &name, &item))
         {
-            PyObject* number = PyNumber_Index(item);
-            if (number == nullptr)
-            {
-                PyErr_Clear();
-                number = PyNumber_Long(item);
-            }
-            if (number == nullptr)
+            long long value = 0;
+            if (!label_value(item, value) || !append_label(self, entry_for(self, name), value, events))
             {
                 Py_DECREF(events);
                 return nullptr;
             }
-            const long long value = PyLong_AsLongLong(number);
-            Py_DECREF(number);
-            if (value == -1 && PyErr_Occurred())
-            {
-                Py_DECREF(events);
-                return nullptr;
-            }
-            Entry& e = entry_for(self, name);
-            if (e.has_last && e.last == value)
-                continue;
-            PyObject* event;
-            if (e.has_last && e.has_step && value - e.last == e.step)
-                event = event_for(self, e, true, e.step);
-            else
-                event = event_for(self, e, false, value);
-            if (event == nullptr || PyList_Append(events, event) < 0)
-            {
-                Py_DECREF(events);
-                return nullptr;
-            }
-            e.has_step = e.has_last;
-            e.step = value - e.last;
-            e.last = value;
-            e.has_last = true;
         }
         return events;
     }
