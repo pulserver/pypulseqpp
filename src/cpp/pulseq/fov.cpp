@@ -70,9 +70,17 @@ namespace pulseq
 
 
         /** The fractional part, which is all a phase in turns means. */
+        /* The fraction of a turn, value - floor(value); the integer
+         * conversion is what a target without SSE4.1 rounds with inline,
+         * where std::floor is a library call. */
         double turns(double value)
         {
-            return value - std::floor(value);
+            if (!(std::fabs(value) < 4.5e15))
+                return value - std::floor(value);
+            double whole = static_cast<double>(static_cast<int64_t>(value));
+            if (whole > value)
+                whole -= 1.0;
+            return value - whole;
         }
 
         /**
@@ -1212,12 +1220,7 @@ namespace pulseq
             }
 
             if (rf_to != row[0] || adc_to != row[4])
-            {
-                Block block = seq.get_block(index);
-                block.rf = rf_to;
-                block.adc = adc_to;
-                seq.set_block(index, block);
-            }
+                seq.set_block_rf_adc(index, rf_to, adc_to);
 
             /**
              * Advance the unbroken phase integral separately from the RF-reset origin.

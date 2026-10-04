@@ -681,6 +681,24 @@ namespace pulseq
         fork_instance(block, instance_def_[at], instance_adc_def_[at]);
     }
 
+    void Sequence::set_block_rf_adc(int index, int32_t rf, int32_t adc)
+    {
+        changed();
+        repetition_known_ = false;
+        require_block(index, num_blocks());
+        detach_blocks();
+        int32_t* row = blocks_->data() + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+        const bool same_definition = (row[0] > 0) == (rf > 0) && (row[4] > 0) == (adc > 0) &&
+            definition_of(row[0], rf_def_) == definition_of(rf, rf_def_);
+        row[0] = rf;
+        row[4] = adc;
+        const size_t at = static_cast<size_t>(index) - 1;
+        if (same_definition)
+            instance_adc_def_[at] = definition_of(adc, adc_def_);
+        else
+            fork_instance(get_block(index), instance_def_[at], instance_adc_def_[at]);
+    }
+
     void Sequence::set_block_duration(int index, double seconds)
     {
         Block block = get_block(index);
