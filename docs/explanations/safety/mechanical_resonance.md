@@ -8,7 +8,7 @@
   and then the `rotation` argument, with the forbidden bands of a supplied
   table.
 - Each window of `window_width` (40 ms by default) is mean-subtracted,
-  multiplied by a Hann taper, zero-padded and transformed with a real FFT. The
+  multiplied by a Hann taper, zero-padded and Fourier transformed. The
   amplitude is scaled so that a sustained sinusoid of amplitude $A$ at a bin
   frequency reads $A$, in mT/m.
 - A train of trapezoids of alternating polarity at echo spacing $\Delta t$ has
@@ -40,7 +40,7 @@ raster, after each block's rotation and then the `rotation` argument. A window
 of `window_width` (40 ms by default) starts every `stride` (half the window by
 default); the last window is zero-filled to the end of the sequence. Each window
 is mean-subtracted, multiplied by a Hann taper $w$, zero-padded to
-`frequency_oversampling` times its length and transformed with a real FFT. The
+`frequency_oversampling` times its length and Fourier transformed. The
 amplitude of bin $k$ is
 
 $$
@@ -53,8 +53,9 @@ single transform of the whole sequence would not distinguish one brief crossing
 of a band from drive held inside it. Mean subtraction removes the constant
 component, the taper limits leakage of low-frequency content into distant bins,
 and zero-padding interpolates the spectrum without adding information.
-{func}`~pypulseqpp.safety.mech_resonance_spectrum` returns the spectrum of one
-window from the same pass.
+The check evaluates only the bins a band reads, as direct sums over the
+samples; {func}`~pypulseqpp.safety.mech_resonance_spectrum` returns every bin
+of one window, from a real FFT of the same samples.
 
 ## Spectra of echo-planar and spiral readouts
 

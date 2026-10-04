@@ -328,6 +328,50 @@ def test_the_native_windows_are_the_plain_windows(system):
         assert entry.window == window
 
 
+def test_repeated_blocks_cut_anywhere_by_window_edges_read_as_the_plain_windows(system):
+    readout = pp.make_trapezoid(
+        "x", amplitude=12e-3 * system.gamma, flat_time=1.3e-3, system=system
+    )
+    short = pp.make_arbitrary_grad(
+        "z",
+        system.gamma * 0.4e-3 * np.array([1.0, 3.0, 4.0, 4.0, 2.0, -1.0, -2.0, 0.5]),
+        first=0.0,
+        last=0.0,
+        system=system,
+    )
+    blocks = []
+    for i in range(90):
+        phase = pp.make_trapezoid(
+            "y", area=40.0 * ((i % 9) - 4), duration=0.9e-3, system=system
+        )
+        turn = [pp.make_rotation(0.05 * (i % 4))] if i % 3 == 0 else []
+        blocks.append([phase, short, *turn])
+        blocks.append([pp.scale_grad(readout, 1 if i % 2 else -1), *turn])
+        if i % 7 == 0:
+            blocks.append([pp.make_delay(1.7e-3)])
+    sequence = played(system, *blocks)
+    bands = [
+        ("x", 300.0, 420.0, 0.0),
+        ("y", 150.0, 700.0, 0.0),
+        ("z", 900.0, 1500.0, 0.0),
+    ]
+
+    _, report = safety.check_mech_resonance(sequence, bands, stride=7e-3)
+
+    expected = windows_the_long_way(
+        sequence,
+        system.grad_raster_time,
+        [(0, 300.0, 420.0), (1, 150.0, 700.0), (2, 900.0, 1500.0)],
+        report.window_width,
+        report.stride,
+        3,
+    )
+    to_hz = 1e-3 * system.gamma
+    for entry, (peak, window) in zip(report.bands, expected, strict=True):
+        assert entry.peak * to_hz == pytest.approx(peak, rel=1e-9)
+        assert entry.window == window
+
+
 @pytest.mark.skipif(not _mkl_runtime(), reason="no MKL runtime installed")
 def test_mkl_and_the_compiled_fft_agree(system):
     sequence = played(

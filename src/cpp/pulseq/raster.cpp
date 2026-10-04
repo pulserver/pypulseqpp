@@ -63,6 +63,7 @@ namespace pulseq
         {
             Played& p = played_[axis];
             p = Played();
+            channels_[axis] = nullptr;
             const int32_t id = row[1 + axis];
             if (id <= 0)
                 continue;
@@ -70,6 +71,7 @@ namespace pulseq
             /* No ramps and no flat top plays for no time. */
             if (shape.empty_with_amplitude || shape.values.empty())
                 continue;
+            channels_[axis] = &shape;
             p.values = shape.values.data();
             p.count = shape.values.size();
             if (shape.trapezoid)
@@ -104,6 +106,16 @@ namespace pulseq
                 return 0;
         }
         return block_end_ - position_;
+    }
+
+    BlockKey PhysicalRaster::block_key(int64_t count) const
+    {
+        const int32_t* row = seq_.block_events() + static_cast<size_t>(block_ - 1) * BLOCK_WIDTH;
+        const double offset = (static_cast<double>(position_) + 0.5) * dt_ - starts_;
+        return {{row[1], row[2], row[3]},
+                row[BLOCK_ROTATION_COLUMN],
+                count,
+                static_cast<int64_t>(std::llround(offset / (dt_ * kOffsetStep)))};
     }
 
     int64_t PhysicalRaster::run(bool* steady)
@@ -142,6 +154,13 @@ namespace pulseq
         }
         const int64_t until = std::min(block_end_, first_sample_from(next + starts_, dt_));
         return std::max<int64_t>(1, until - position_);
+    }
+
+    void PhysicalRaster::sample_channel(int axis, int64_t from, int64_t count, double* out) const
+    {
+        Played p = played_[axis];
+        for (int64_t i = 0; i < count; ++i)
+            out[i] = p.value((static_cast<double>(position_ + from + i) + 0.5) * dt_ - starts_);
     }
 
     int64_t PhysicalRaster::read(int64_t count, double* x, double* y, double* z)
