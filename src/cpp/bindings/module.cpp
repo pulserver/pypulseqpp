@@ -1565,12 +1565,17 @@ PYBIND11_MODULE(_ext, module)
                     sequence, at, first_block, last_block, given);
             }
 
+            /* Each column is handed over rather than copied: one per label,
+             * each a value per block. */
             py::dict out;
             for (size_t i = 0; i < found.names.size(); ++i)
             {
-                const std::vector<int32_t>& values = found.values[i];
+                auto* values = new std::vector<int32_t>(std::move(found.values[i]));
+                py::capsule owner(values, [](void* held) {
+                    delete static_cast<std::vector<int32_t>*>(held);
+                });
                 out[py::str(found.names[i])] = py::array_t<int32_t>(
-                    static_cast<py::ssize_t>(values.size()), values.data());
+                    static_cast<py::ssize_t>(values->size()), values->data(), owner);
             }
             return out;
         },
