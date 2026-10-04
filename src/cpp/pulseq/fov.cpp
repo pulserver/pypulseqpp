@@ -6,6 +6,7 @@
 #include "pulseq/fov.hpp"
 
 #include "pulseq/corners.hpp"
+#include "pulseq/parallel.hpp"
 #include "pulseq/shape.hpp"
 
 #include <algorithm>
@@ -327,6 +328,53 @@ namespace pulseq
             swept = turns(shift * k);
         }
 
+        /** An axis whose gradient moves under an event, and what it was worth. */
+        struct Turning
+        {
+            int axis;
+            double slope;
+            double swept;
+            double at;
+        };
+
+        /**
+         * What a shift along the block's channel axes adds to a readout's
+         * frequency, in Hz, and phase, in turns from @p entering; the axes
+         * whose gradient moves across the window go into @p turning.
+         */
+        void readout_offsets(
+            const double* adc, const Played played[3], const double shift[3], double entering,
+            std::vector<Turning>& turning, double& frequency, double& phase)
+        {
+            turning.clear();
+            const int samples = static_cast<int>(adc[0]);
+            const double dwell = adc[1];
+            const double delay = adc[2];
+            const double opens = delay + 0.5 * dwell;
+            const double closes = delay + (static_cast<double>(samples) - 0.5) * dwell;
+            /* Referenced to the window's centre, as the reference toolbox
+             * does: the offsets carry the phase and frequency there, the
+             * modulation what curves about it. */
+            const double echo = delay + 0.5 * dwell * static_cast<double>(samples);
+            frequency = 0.0;
+            phase = entering;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                if (std::fabs(shift[axis]) == 0.0 || played[axis].values == nullptr)
+                    continue;
+                const bool steady = played[axis].constant_over(opens, closes);
+                const double at = steady ? delay : echo;
+                double slope = played[axis].at(at);
+                double swept = played[axis].swept_turns(at, shift[axis]);
+                if (!steady && samples >= 3)
+                    centre_chord(played[axis], shift[axis], samples, dwell, delay, slope, swept);
+                frequency += shift[axis] * slope;
+                phase = turns(phase + turns(swept - shift[axis] * slope * (at - delay)));
+                if (!steady)
+                    turning.push_back({axis, slope, swept, at});
+            }
+        }
+
         /**
          * Phase shapes already registered, keyed by everything the added
          * turns are computed from: the shape they are folded into, the
@@ -338,43 +386,66 @@ namespace pulseq
         class ShapeMemo
         {
         public:
-            void start(double tag)
+            /** A key, built field by field. */
+            class Key
             {
-                key_.clear();
-                add(tag);
-            }
+            public:
+                void start(double tag)
+                {
+                    bytes_.clear();
+                    add(tag);
+                }
 
-            void add(double value)
-            {
-                key_.append(reinterpret_cast<const char*>(&value), sizeof value);
-            }
+                void add(double value)
+                {
+                    bytes_.append(reinterpret_cast<const char*>(&value), sizeof value);
+                }
 
+                void add(int axis, double shift, double at, const Played& played)
+                {
+                    add(static_cast<double>(axis));
+                    add(shift);
+                    add(at);
+                    const size_t n = played.count();
+                    add(static_cast<double>(n));
+                    bytes_.append(
+                        reinterpret_cast<const char*>(played.times.data()), n * sizeof(double));
+                    bytes_.append(
+                        reinterpret_cast<const char*>(played.values->data()), n * sizeof(double));
+                }
+
+            private:
+                friend class ShapeMemo;
+                std::string bytes_;
+            };
+
+            void start(double tag) { key_.start(tag); }
+            void add(double value) { key_.add(value); }
             void add(int axis, double shift, double at, const Played& played)
             {
-                add(static_cast<double>(axis));
-                add(shift);
-                add(at);
-                const size_t n = played.count();
-                add(static_cast<double>(n));
-                key_.append(
-                    reinterpret_cast<const char*>(played.times.data()), n * sizeof(double));
-                key_.append(
-                    reinterpret_cast<const char*>(played.values->data()), n * sizeof(double));
+                key_.add(axis, shift, at, played);
             }
 
             /** The row for the current key, made by @p make on first use. */
             template <typename Make> int row(Make make)
             {
-                const auto found = rows_.find(key_);
+                const auto found = rows_.find(key_.bytes_);
                 if (found != rows_.end())
                     return found->second;
                 const int made = make();
-                rows_.emplace(key_, made);
+                rows_.emplace(key_.bytes_, made);
                 return made;
             }
 
+            /** The row already made for @p key, or -1. Safe beside other finds. */
+            int find(const Key& key) const
+            {
+                const auto found = rows_.find(key.bytes_);
+                return found == rows_.end() ? -1 : found->second;
+            }
+
         private:
-            std::string key_;
+            Key key_;
             std::unordered_map<std::string, int> rows_;
         };
 
@@ -400,9 +471,15 @@ namespace pulseq
             template <typename Register>
             int32_t row(const MovedRow& key, Register add)
             {
+                return row(key, hash(key), add);
+            }
+
+            /** row() for a key whose hash() is @p h. */
+            template <typename Register>
+            int32_t row(const MovedRow& key, uint64_t h, Register add)
+            {
                 if (2 * (entries_.size() + 1) > slots_.size())
                     grow();
-                const uint64_t h = hash(key);
                 const size_t mask = slots_.size() - 1;
                 for (size_t at = static_cast<size_t>(h) & mask;; at = (at + 1) & mask)
                 {
@@ -434,13 +511,15 @@ namespace pulseq
                 }
             }
 
-        private:
-            static uint64_t mix(uint64_t x)
+            /** Start loading the slot a key of hash @p h is probed from. */
+            void prefetch(uint64_t h) const
             {
-                x += 0x9E3779B97F4A7C15ull;
-                x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ull;
-                x = (x ^ (x >> 27)) * 0x94D049BB133111EBull;
-                return x ^ (x >> 31);
+#if defined(__GNUC__) || defined(__clang__)
+                if (!slots_.empty())
+                    __builtin_prefetch(&slots_[static_cast<size_t>(h) & (slots_.size() - 1)]);
+#else
+                (void)h;
+#endif
             }
 
             /* -0.0 is folded onto 0.0, which the tuple calls equal. */
@@ -455,6 +534,15 @@ namespace pulseq
                     h = mix(h ^ bits);
                 }
                 return h;
+            }
+
+        private:
+            static uint64_t mix(uint64_t x)
+            {
+                x += 0x9E3779B97F4A7C15ull;
+                x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ull;
+                x = (x ^ (x >> 27)) * 0x94D049BB133111EBull;
+                return x ^ (x >> 31);
             }
 
             /* The hash's high half beside the entry's position from 1; 0 is
@@ -557,6 +645,60 @@ namespace pulseq
         };
 
         /**
+         * What a block sweeps along its channel axes, whole and up to the
+         * centre of its pulse, and how that pulse moves the trajectory.
+         */
+        struct Walk
+        {
+            double whole[3] = {0.0, 0.0, 0.0};
+            double before[3] = {0.0, 0.0, 0.0};
+            bool pulsed = false;
+            char use = 'u';
+
+            /** Move @p origin past the block. */
+            void move(double origin[3]) const
+            {
+                double at_pulse[3];
+                for (int axis = 0; axis < 3; ++axis)
+                    at_pulse[axis] = origin[axis] + before[axis];
+                if (pulsed && advance_origin(use, at_pulse, origin))
+                {
+                    for (int axis = 0; axis < 3; ++axis)
+                        origin[axis] += whole[axis] - before[axis];
+                }
+                else
+                {
+                    for (int axis = 0; axis < 3; ++axis)
+                        origin[axis] += whole[axis];
+                }
+            }
+        };
+
+        void walk_of(const Sequence& seq, const int32_t* row, const Played played[3], Walk& walk)
+        {
+            double acts_at = -1.0;
+            const int32_t rf_id = row[0];
+            if (rf_id > 0)
+            {
+                const std::vector<char>& uses = seq.rf_uses();
+                const double* rf = seq.rf_library().row(rf_id);
+                acts_at = rf[5] + rf[4];
+                walk.use = rf_id <= static_cast<int32_t>(uses.size())
+                    ? uses[static_cast<size_t>(rf_id) - 1]
+                    : 'u';
+            }
+            walk.pulsed = acts_at >= 0.0;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                if (played[axis].values == nullptr)
+                    continue;
+                walk.whole[axis] = played[axis].swept(1e30);
+                if (walk.pulsed)
+                    walk.before[axis] = played[axis].swept(acts_at);
+            }
+        }
+
+        /**
          * Move @p origin past the block @p row plays, and say what it swept.
          *
          * The trajectory restarts where an excitation acts and turns over
@@ -572,45 +714,12 @@ namespace pulseq
             double origin[3],
             double* swept_out = nullptr)
         {
-            double acts_at = -1.0;
-            char use = 'u';
-            const int32_t rf_id = row[0];
-            if (rf_id > 0)
-            {
-                const std::vector<char>& uses = seq.rf_uses();
-                const double* rf = seq.rf_library().row(rf_id);
-                acts_at = rf[5] + rf[4];
-                use = rf_id <= static_cast<int32_t>(uses.size())
-                    ? uses[static_cast<size_t>(rf_id) - 1]
-                    : 'u';
-            }
-
-            double whole[3] = {0.0, 0.0, 0.0};
-            double before[3] = {0.0, 0.0, 0.0};
-            double at_pulse[3];
-            for (int axis = 0; axis < 3; ++axis)
-            {
-                if (played[axis].values != nullptr)
-                {
-                    whole[axis] = played[axis].swept(1e30);
-                    if (acts_at >= 0.0)
-                        before[axis] = played[axis].swept(acts_at);
-                }
-                at_pulse[axis] = origin[axis] + before[axis];
-                if (swept_out != nullptr)
-                    swept_out[axis] = whole[axis];
-            }
-
-            if (acts_at >= 0.0 && advance_origin(use, at_pulse, origin))
-            {
+            Walk walk;
+            walk_of(seq, row, played, walk);
+            walk.move(origin);
+            if (swept_out != nullptr)
                 for (int axis = 0; axis < 3; ++axis)
-                    origin[axis] += whole[axis] - before[axis];
-            }
-            else
-            {
-                for (int axis = 0; axis < 3; ++axis)
-                    origin[axis] += whole[axis];
-            }
+                    swept_out[axis] = walk.whole[axis];
         }
 
         /**
@@ -1003,18 +1112,13 @@ namespace pulseq
         if (!moves)
             return;
 
-        CornerCache corners(seq);
-        const int32_t* events = std::as_const(seq).block_events();
-        Played played[3];
+        const Sequence& view = seq;
+        CornerCache corners(view);
+        /* Every gradient's corners are worked out here, so the threads below
+         * only read the cache. */
+        for (int32_t id = 1; id <= view.num_gradients(); ++id)
+            corners[id];
 
-        /** An axis whose gradient moves under an event, and what it was worth. */
-        struct Turning
-        {
-            int axis;
-            double slope;
-            double swept;
-            double at;
-        };
         std::vector<Turning> turning;
         std::vector<double> moment;
         std::vector<double> added;
@@ -1025,23 +1129,24 @@ namespace pulseq
             moved_adc.reserve(static_cast<size_t>(to - from + 1));
         ShapeMemo memo;
 
-        for (int index = from; index <= to; ++index)
+        /** A block of the window being shifted. */
+        struct Step
         {
-            /* Copied: repointing the block below can move the table. */
-            int32_t row[BLOCK_WIDTH];
-            std::copy_n(
-                std::as_const(seq).block_events() +
-                    static_cast<size_t>(index - 1) * BLOCK_WIDTH,
-                BLOCK_WIDTH, row);
-            int32_t rf_to = row[0];
-            int32_t adc_to = row[4];
+            Walk walk;
+            double turned[3][3];
+            bool rotated;
+            /* The shift against everything swept before the block. */
+            double entering;
+            /* A readout under steady gradients, and its moved offsets. */
+            bool readout;
+            double frequency;
+            double phase;
+            double shape;
+            uint64_t key;
+        };
 
-            /* An exempt block is walked and not written: a module that placed
-             * itself keeps the phase it was designed with, and what it swept
-             * still counts towards where everything after it stands. */
-            const bool writes =
-                exempt == nullptr || exempt[static_cast<size_t>(index - from)] == 0;
-
+        const auto draw = [&corners](const int32_t* row, Played played[3])
+        {
             for (int axis = 0; axis < 3; ++axis)
             {
                 const Corners& drawn = corners[row[1 + axis]];
@@ -1049,190 +1154,300 @@ namespace pulseq
                 if (played[axis].values != nullptr)
                     drawn.at(0.0, played[axis].times);
             }
-
-            /* What the block is entered with: the shift against everything
-             * swept before it. Every event in the block carries it, and that
-             * is the point -- what a readout is measured by is its phase
-             * against the phase its own excitation was given, so the two have
-             * to be counted from the same place. */
-            double entering = 0.0;
+        };
+        /* The translation along the block's channel axes: a rotated block
+         * plays them turned. */
+        const auto shift_of = [shift_m](const Step& step, double shift[3])
+        {
             for (int axis = 0; axis < 3; ++axis)
-                entering = turns(entering + turns(shift_m[axis] * carry[axis]));
+                shift[axis] = shift_m[axis];
+            if (step.rotated)
+                unrotate(step.turned, shift);
+        };
+        /* An exempt block is walked and not written: a module that placed
+         * itself keeps the phase it was designed with, and what it swept
+         * still counts towards where everything after it stands. */
+        const auto writes_at = [exempt, from](int index)
+        { return exempt == nullptr || exempt[static_cast<size_t>(index - from)] == 0; };
 
-            /* The translation along the block's channel axes: a rotated
-             * block plays them turned. */
-            double turned[3][3];
-            const bool rotated = through_rotation && block_rotation(seq, row, turned);
-            double shift[3] = {shift_m[0], shift_m[1], shift_m[2]};
-            if (rotated)
-                unrotate(turned, shift);
+        /* Windows of blocks: what each block sweeps and the readouts under
+         * steady gradients are worked out in parallel, the running integral
+         * and every registration in block order, so the result does not
+         * depend on the number of threads. */
+        constexpr int kWindow = 1 << 16;
+        const unsigned workers = worker_count(static_cast<size_t>(to - from + 1));
+        std::vector<Step> steps(static_cast<size_t>(std::min(kWindow, to - from + 1)));
+        for (int start = from; start <= to; start += kWindow)
+        {
+            const int count = std::min(kWindow, to - start + 1);
+            const int32_t* events =
+                view.block_events() + static_cast<size_t>(start - 1) * BLOCK_WIDTH;
 
-            const int32_t rf_id = row[0];
-            if (rf_id > 0 && writes)
+            parallel_ranges(static_cast<size_t>(count), workers, [&](size_t lo, size_t hi)
             {
-                turning.clear();
-                double rf[RF_WIDTH];
-                std::copy_n(std::as_const(seq).rf_library().row(rf_id), RF_WIDTH, rf);
-                const double delay = rf[5];
-                /* The pulse acts at the centre its designer recorded, which
-                 * is what the format carries the field for. */
-                const double centre = delay + rf[4];
-                const auto [opens, closes] = pulse_span(seq, rf, moment);
-                double frequency = 0.0;
-                double phase = entering;
-                for (int axis = 0; axis < 3; ++axis)
+                Played played[3];
+                for (size_t i = lo; i < hi; ++i)
                 {
-                    if (std::fabs(shift[axis]) == 0.0 || played[axis].values == nullptr)
-                        continue;
-                    /* A pulse under a gradient that does not change is a
-                     * frequency and a phase; one under a gradient that does
-                     * needs its shape, and is referenced to its own centre so
-                     * that what the pulse does is untouched. Asked of the
-                     * whole pulse: a gradient flat under the first half and
-                     * ramping under the second is not a steady one. */
-                    const bool steady = played[axis].constant_over(opens, closes);
-                    const double at = steady ? delay : centre;
-                    const double slope = played[axis].at(at);
-                    const double swept = played[axis].swept_turns(at, shift[axis]);
-                    frequency += shift[axis] * slope;
-                    phase = turns(
-                        phase +
-                        turns(swept - shift[axis] * slope * (at - delay)));
-                    if (!steady)
-                        turning.push_back({axis, slope, swept, at});
+                    const int32_t* row = events + i * BLOCK_WIDTH;
+                    Step& step = steps[i];
+                    step.walk = Walk();
+                    draw(row, played);
+                    walk_of(view, row, played, step.walk);
+                    step.rotated = through_rotation && block_rotation(view, row, step.turned);
+                    step.readout = false;
                 }
-                rf[8] += frequency;
-                rf[9] += 2.0 * kPi * phase;
-
-                if (!turning.empty())
-                {
-                    /* The gradient moves under the pulse, so two numbers
-                     * cannot say what the shift does to it: what is left over
-                     * goes into the phase the pulse is played with, sample by
-                     * sample and referenced to the pulse's own centre so that
-                     * what the pulse *does* is untouched. */
-                    memo.start(1.0);
-                    for (const int field : {1, 2, 3, 4, 5})
-                        memo.add(rf[field]);
-                    for (const Turning& axis : turning)
-                        memo.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
-                    rf[2] = static_cast<double>(memo.row([&] {
-                    added.assign(moment.size(), 0.0);
-                    for (const Turning& axis : turning)
-                    {
-                        /* The pulse's samples run forwards, so the corners
-                         * under them are walked once rather than once per
-                         * sample. */
-                        sweeping.restart(played[axis.axis], shift[axis.axis]);
-                        for (size_t i = 0; i < moment.size(); ++i)
-                        {
-                            double swept_here = 0.0;
-                            sweeping.upto(moment[i] + delay, &swept_here);
-                            added[i] = turns(
-                                added[i] +
-                                turns(
-                                    swept_here -
-                                    axis.slope * (moment[i] - rf[4]) * shift[axis.axis] -
-                                    axis.swept));
-                        }
-                    }
-                    return phase_shape_with(seq, static_cast<int>(rf[2]), added, 1.0);
-                    }));
-                }
-                const char use =
-                    std::as_const(seq).rf_uses()[static_cast<size_t>(rf_id) - 1];
-                rf_to = moved_rf.row({rf_id, rf[8], rf[9], rf[2]},
-                                  [&] { return seq.register_rf(rf, use); });
-            }
-
-            const int32_t adc_id = row[4];
-            if (adc_id > 0 && writes && scope == FovShiftScope::RfAndAdc)
-            {
-                turning.clear();
-                double adc[ADC_WIDTH];
-                std::copy_n(std::as_const(seq).adc_library().row(adc_id), ADC_WIDTH, adc);
-                const int samples = static_cast<int>(adc[0]);
-                const double dwell = adc[1];
-                const double delay = adc[2];
-                const double opens = delay + 0.5 * dwell;
-                const double closes =
-                    delay + (static_cast<double>(samples) - 0.5) * dwell;
-                /* Referenced to the window's centre, as the reference
-                 * toolbox does: the offsets carry the phase and frequency
-                 * there, the modulation what curves about it. */
-                const double echo = delay + 0.5 * dwell * static_cast<double>(samples);
-                double frequency = 0.0;
-                double phase = entering;
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    if (std::fabs(shift[axis]) == 0.0 || played[axis].values == nullptr)
-                        continue;
-                    const bool steady = played[axis].constant_over(opens, closes);
-                    const double at = steady ? delay : echo;
-                    double slope = played[axis].at(at);
-                    double swept = played[axis].swept_turns(at, shift[axis]);
-                    if (!steady && samples >= 3)
-                        centre_chord(played[axis], shift[axis], samples, dwell, delay, slope, swept);
-                    frequency += shift[axis] * slope;
-                    phase = turns(
-                        phase +
-                        turns(swept - shift[axis] * slope * (at - delay)));
-                    if (!steady)
-                        turning.push_back({axis, slope, swept, at});
-                }
-                adc[5] += frequency;
-                adc[6] += 2.0 * kPi * phase;
-
-                if (!turning.empty())
-                {
-                    /**
-                     * Store residual phase curvature; constant gradients need no modulation shape.
-                     */
-                    memo.start(2.0);
-                    for (const int field : {0, 1, 2, 7})
-                        memo.add(adc[field]);
-                    for (const Turning& axis : turning)
-                        memo.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
-                    adc[7] = static_cast<double>(memo.row([&] {
-                    added.assign(static_cast<size_t>(samples), 0.0);
-                    for (const Turning& axis : turning)
-                    {
-                        sweeping.restart(played[axis.axis], shift[axis.axis]);
-                        for (int i = 0; i < samples; ++i)
-                        {
-                            const double when =
-                                delay + dwell * (static_cast<double>(i) + 0.5);
-                            double swept_here = 0.0;
-                            sweeping.upto(when, &swept_here);
-                            const double left = swept_here - axis.swept -
-                                shift[axis.axis] * axis.slope * (when - axis.at);
-                            added[static_cast<size_t>(i)] = turns(
-                                added[static_cast<size_t>(i)] + turns(left));
-                        }
-                    }
-                    for (size_t i = 0; i < added.size(); ++i)
-                        added[i] *= 2.0 * kPi;
-                    return phase_shape_with(seq, static_cast<int>(adc[7]), added, 2.0 * kPi);
-                    }));
-                }
-                adc_to = moved_adc.row({adc_id, adc[5], adc[6], adc[7]},
-                                   [&] { return seq.register_adc(adc); });
-            }
-
-            if (rf_to != row[0] || adc_to != row[4])
-                seq.set_block_rf_adc(index, rf_to, adc_to);
+            });
 
             /**
              * Advance the unbroken phase integral separately from the RF-reset origin.
              * RF and ADC must retain a common phase reference across excitation.
              */
-            double swept[3];
-            if (rotated)
-                advance_turned_walk(seq, row, played, turned, origin, swept);
-            else
-                advance_walk(seq, row, played, origin, swept);
-            for (int axis = 0; axis < 3; ++axis)
-                carry[axis] += swept[axis];
+            for (int i = 0; i < count; ++i)
+            {
+                Step& step = steps[static_cast<size_t>(i)];
+                /* What the block is entered with: the shift against everything
+                 * swept before it. Every event in the block carries it, and
+                 * that is the point -- what a readout is measured by is its
+                 * phase against the phase its own excitation was given, so
+                 * the two have to be counted from the same place. */
+                double entering = 0.0;
+                for (int axis = 0; axis < 3; ++axis)
+                    entering = turns(entering + turns(shift_m[axis] * carry[axis]));
+                step.entering = entering;
+
+                double swept[3] = {step.walk.whole[0], step.walk.whole[1], step.walk.whole[2]};
+                if (step.rotated)
+                {
+                    unrotate(step.turned, origin);
+                    step.walk.move(origin);
+                    rotate(step.turned, origin);
+                    rotate(step.turned, swept);
+                }
+                else
+                {
+                    step.walk.move(origin);
+                }
+                for (int axis = 0; axis < 3; ++axis)
+                    carry[axis] += swept[axis];
+            }
+
+            if (scope == FovShiftScope::RfAndAdc)
+            {
+                parallel_ranges(static_cast<size_t>(count), workers, [&](size_t lo, size_t hi)
+                {
+                    Played played[3];
+                    std::vector<Turning> bent;
+                    ShapeMemo::Key shape_key;
+                    for (size_t i = lo; i < hi; ++i)
+                    {
+                        const int32_t* row = events + i * BLOCK_WIDTH;
+                        if (row[4] <= 0 || !writes_at(start + static_cast<int>(i)))
+                            continue;
+                        Step& step = steps[i];
+                        draw(row, played);
+                        double shift[3];
+                        shift_of(step, shift);
+                        const double* adc = view.adc_library().row(row[4]);
+                        double frequency = 0.0;
+                        double phase = 0.0;
+                        readout_offsets(adc, played, shift, step.entering, bent, frequency, phase);
+                        double shape = adc[7];
+                        if (!bent.empty())
+                        {
+                            /* A phase shape already made is looked up; a new
+                             * one is made below, in order. */
+                            shape_key.start(2.0);
+                            for (const int field : {0, 1, 2, 7})
+                                shape_key.add(adc[field]);
+                            for (const Turning& axis : bent)
+                                shape_key.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
+                            const int made = memo.find(shape_key);
+                            if (made < 0)
+                                continue;
+                            shape = static_cast<double>(made);
+                        }
+                        step.readout = true;
+                        step.frequency = adc[5] + frequency;
+                        step.phase = adc[6] + 2.0 * kPi * phase;
+                        step.shape = shape;
+                        step.key = MovedRows::hash({row[4], step.frequency, step.phase, shape});
+                    }
+                });
+            }
+
+            /* How far ahead a readout's slot is loaded: the table is far
+             * larger than the cache and nearly every readout lands on a new
+             * slot. */
+            constexpr int kAhead = 16;
+            Played played[3];
+            for (int i = 0; i < count; ++i)
+            {
+                const int index = start + i;
+                const Step& step = steps[static_cast<size_t>(i)];
+                if (i + kAhead < count && steps[static_cast<size_t>(i + kAhead)].readout)
+                    moved_adc.prefetch(steps[static_cast<size_t>(i + kAhead)].key);
+                /* Copied: repointing the block below can move the table. */
+                int32_t row[BLOCK_WIDTH];
+                std::copy_n(
+                    view.block_events() + static_cast<size_t>(index - 1) * BLOCK_WIDTH,
+                    BLOCK_WIDTH, row);
+                int32_t rf_to = row[0];
+                int32_t adc_to = row[4];
+                const bool writes = writes_at(index);
+                const bool serial_readout =
+                    row[4] > 0 && writes && scope == FovShiftScope::RfAndAdc && !step.readout;
+                const bool serial_pulse = row[0] > 0 && writes;
+                if (!serial_pulse && !serial_readout && !step.readout)
+                    continue;
+                if (serial_pulse || serial_readout)
+                    draw(row, played);
+                double shift[3];
+                shift_of(step, shift);
+                const double entering = step.entering;
+
+                const int32_t rf_id = row[0];
+                if (rf_id > 0 && writes)
+                {
+                    turning.clear();
+                    double rf[RF_WIDTH];
+                    std::copy_n(std::as_const(seq).rf_library().row(rf_id), RF_WIDTH, rf);
+                    const double delay = rf[5];
+                    /* The pulse acts at the centre its designer recorded, which
+                     * is what the format carries the field for. */
+                    const double centre = delay + rf[4];
+                    const auto [opens, closes] = pulse_span(seq, rf, moment);
+                    double frequency = 0.0;
+                    double phase = entering;
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        if (std::fabs(shift[axis]) == 0.0 || played[axis].values == nullptr)
+                            continue;
+                        /* A pulse under a gradient that does not change is a
+                         * frequency and a phase; one under a gradient that does
+                         * needs its shape, and is referenced to its own centre so
+                         * that what the pulse does is untouched. Asked of the
+                         * whole pulse: a gradient flat under the first half and
+                         * ramping under the second is not a steady one. */
+                        const bool steady = played[axis].constant_over(opens, closes);
+                        const double at = steady ? delay : centre;
+                        const double slope = played[axis].at(at);
+                        const double swept = played[axis].swept_turns(at, shift[axis]);
+                        frequency += shift[axis] * slope;
+                        phase = turns(
+                            phase +
+                            turns(swept - shift[axis] * slope * (at - delay)));
+                        if (!steady)
+                            turning.push_back({axis, slope, swept, at});
+                    }
+                    rf[8] += frequency;
+                    rf[9] += 2.0 * kPi * phase;
+
+                    if (!turning.empty())
+                    {
+                        /* The gradient moves under the pulse, so two numbers
+                         * cannot say what the shift does to it: what is left over
+                         * goes into the phase the pulse is played with, sample by
+                         * sample and referenced to the pulse's own centre so that
+                         * what the pulse *does* is untouched. */
+                        memo.start(1.0);
+                        for (const int field : {1, 2, 3, 4, 5})
+                            memo.add(rf[field]);
+                        for (const Turning& axis : turning)
+                            memo.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
+                        rf[2] = static_cast<double>(memo.row([&] {
+                        added.assign(moment.size(), 0.0);
+                        for (const Turning& axis : turning)
+                        {
+                            /* The pulse's samples run forwards, so the corners
+                             * under them are walked once rather than once per
+                             * sample. */
+                            sweeping.restart(played[axis.axis], shift[axis.axis]);
+                            for (size_t i = 0; i < moment.size(); ++i)
+                            {
+                                double swept_here = 0.0;
+                                sweeping.upto(moment[i] + delay, &swept_here);
+                                added[i] = turns(
+                                    added[i] +
+                                    turns(
+                                        swept_here -
+                                        axis.slope * (moment[i] - rf[4]) * shift[axis.axis] -
+                                        axis.swept));
+                            }
+                        }
+                        return phase_shape_with(seq, static_cast<int>(rf[2]), added, 1.0);
+                        }));
+                    }
+                    const char use =
+                        std::as_const(seq).rf_uses()[static_cast<size_t>(rf_id) - 1];
+                    rf_to = moved_rf.row({rf_id, rf[8], rf[9], rf[2]},
+                                      [&] { return seq.register_rf(rf, use); });
+                }
+
+                const int32_t adc_id = row[4];
+                if (step.readout)
+                {
+                    double adc[ADC_WIDTH];
+                    std::copy_n(std::as_const(seq).adc_library().row(adc_id), ADC_WIDTH, adc);
+                    adc[5] = step.frequency;
+                    adc[6] = step.phase;
+                    adc[7] = step.shape;
+                    adc_to = moved_adc.row({adc_id, adc[5], adc[6], adc[7]}, step.key,
+                                       [&] { return seq.register_adc(adc); });
+                }
+                else if (adc_id > 0 && writes && scope == FovShiftScope::RfAndAdc)
+                {
+                    turning.clear();
+                    double adc[ADC_WIDTH];
+                    std::copy_n(std::as_const(seq).adc_library().row(adc_id), ADC_WIDTH, adc);
+                    const int samples = static_cast<int>(adc[0]);
+                    const double dwell = adc[1];
+                    const double delay = adc[2];
+                    double frequency = 0.0;
+                    double phase = 0.0;
+                    readout_offsets(adc, played, shift, entering, turning, frequency, phase);
+                    adc[5] += frequency;
+                    adc[6] += 2.0 * kPi * phase;
+
+                    if (!turning.empty())
+                    {
+                        /**
+                         * Store residual phase curvature; constant gradients need no modulation shape.
+                         */
+                        memo.start(2.0);
+                        for (const int field : {0, 1, 2, 7})
+                            memo.add(adc[field]);
+                        for (const Turning& axis : turning)
+                            memo.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
+                        adc[7] = static_cast<double>(memo.row([&] {
+                        added.assign(static_cast<size_t>(samples), 0.0);
+                        for (const Turning& axis : turning)
+                        {
+                            sweeping.restart(played[axis.axis], shift[axis.axis]);
+                            for (int i = 0; i < samples; ++i)
+                            {
+                                const double when =
+                                    delay + dwell * (static_cast<double>(i) + 0.5);
+                                double swept_here = 0.0;
+                                sweeping.upto(when, &swept_here);
+                                const double left = swept_here - axis.swept -
+                                    shift[axis.axis] * axis.slope * (when - axis.at);
+                                added[static_cast<size_t>(i)] = turns(
+                                    added[static_cast<size_t>(i)] + turns(left));
+                            }
+                        }
+                        for (size_t i = 0; i < added.size(); ++i)
+                            added[i] *= 2.0 * kPi;
+                        return phase_shape_with(seq, static_cast<int>(adc[7]), added, 2.0 * kPi);
+                        }));
+                    }
+                    adc_to = moved_adc.row({adc_id, adc[5], adc[6], adc[7]},
+                                       [&] { return seq.register_adc(adc); });
+                }
+
+
+                if (rf_to != row[0] || adc_to != row[4])
+                    seq.set_block_rf_adc(index, rf_to, adc_to);
+            }
         }
     }
 
