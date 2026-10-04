@@ -1682,18 +1682,56 @@ namespace pulseq
         }
 
         /**
-         * Give a block's gradients the values the block before left, where
-         * they start as those end, as `adc_kspace` joins them: on every
-         * physical axis when all three play on both sides, else axis by axis
-         * between two unrotated blocks. @p carried is physical when all three
-         * carry. True when a value changed, @p joined then holding it.
+         * What the gradients of the block before left, for the block after
+         * to start from as `adc_kspace` joins them: on every physical axis
+         * when all three play on both sides, else axis by axis between two
+         * unrotated blocks. A file can store the two sides of a join with
+         * different rounding.
          */
-        bool join_carried(Played played[3], bool rotated, const double matrix[3][3],
-                          const bool starts[3], const double carried[3], const bool carries[3],
-                          bool carried_rotated, std::array<std::vector<double>, 3>& joined)
+        class Carry
         {
-            double step[3] = {0.0, 0.0, 0.0};
-            if (starts[0] && starts[1] && starts[2] && carries[0] && carries[1] && carries[2])
+          public:
+            /** Give @p played the values carried where they start; true when one changed. */
+            bool join(Played played[3], bool rotated, const double matrix[3][3],
+                      const bool starts[3])
+            {
+                double step[3] = {0.0, 0.0, 0.0};
+                if (all(starts) && all(carries_))
+                    physical_step(played, rotated, matrix, step);
+                else if (!rotated && !rotated_)
+                    axis_step(played, starts, step);
+                bool changed = false;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    if (step[axis] == 0.0)
+                        continue;
+                    joined_[axis] = *played[axis].values;
+                    joined_[axis][0] += step[axis];
+                    played[axis].values = &joined_[axis];
+                    changed = true;
+                }
+                return changed;
+            }
+
+            /** Remember where the block's gradients end. */
+            void record(const Played played[3], bool rotated, const double matrix[3][3],
+                        const bool ends[3])
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    carries_[axis] = ends[axis];
+                    carried_[axis] = ends[axis] ? played[axis].values->back() : 0.0;
+                }
+                rotated_ = rotated;
+                if (rotated && all(ends))
+                    rotate(matrix, carried_);
+            }
+
+          private:
+            static bool all(const bool flags[3]) { return flags[0] && flags[1] && flags[2]; }
+
+            void physical_step(const Played played[3], bool rotated, const double matrix[3][3],
+                               double step[3]) const
             {
                 double first[3];
                 for (int axis = 0; axis < 3; ++axis)
@@ -1701,28 +1739,119 @@ namespace pulseq
                 if (rotated)
                     rotate(matrix, first);
                 for (int axis = 0; axis < 3; ++axis)
-                    step[axis] = carried[axis] - first[axis];
+                    step[axis] = carried_[axis] - first[axis];
                 if (rotated)
                     unrotate(matrix, step);
             }
-            else if (!rotated && !carried_rotated)
+
+            void axis_step(const Played played[3], const bool starts[3], double step[3]) const
             {
                 for (int axis = 0; axis < 3; ++axis)
-                    if (starts[axis] && carries[axis])
-                        step[axis] = carried[axis] - played[axis].values->front();
+                    if (starts[axis] && carries_[axis])
+                        step[axis] = carried_[axis] - played[axis].values->front();
             }
-            bool changed = false;
+
+            double carried_[3] = {0.0, 0.0, 0.0};
+            bool carries_[3] = {false, false, false};
+            bool rotated_ = false;
+            std::array<std::vector<double>, 3> joined_;
+        };
+
+        /** Set @p played to a block's gradients, and whether each starts and ends with it. */
+        void load_block(CornerCache& corners, const int32_t* row, double duration,
+                        Played played[3], bool starts[3], bool ends[3])
+        {
             for (int axis = 0; axis < 3; ++axis)
             {
-                if (step[axis] == 0.0)
+                const Corners& drawn = corners[row[1 + axis]];
+                played[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
+                starts[axis] = ends[axis] = false;
+                if (played[axis].values == nullptr)
                     continue;
-                joined[axis] = *played[axis].values;
-                joined[axis][0] += step[axis];
-                played[axis].values = &joined[axis];
-                changed = true;
+                drawn.at(0.0, played[axis].times);
+                starts[axis] = played[axis].times.front() <= kJoined;
+                ends[axis] = played[axis].times.back() >= duration - kJoined;
             }
-            return changed;
         }
+
+        /** Each readout's moving axes, echo, origin and sweep, appended to an AdcEchoes. */
+        class EchoWalk
+        {
+          public:
+            EchoWalk(size_t distinct_limit, AdcEchoes& out) : paths_(distinct_limit), out_(out) {}
+
+            /** One readout, played as @p played from @p origin; @p joined if it was. */
+            void readout(const int32_t* row, const double* adc, const Played played[3],
+                         bool rotated, const double matrix[3][3], bool joined,
+                         const double origin[3])
+            {
+                const int n = static_cast<int>(std::lround(adc[0]));
+                const std::array<int32_t, 5> key{
+                    row[1], row[2], row[3], row[4], rotated ? row[BLOCK_ROTATION_COLUMN] : 0};
+                /* A joined readout is not the readout its ids name. */
+                Readout unshared;
+                AxisSweeps unshared_memo;
+                auto [found, fresh] =
+                    joined ? std::make_pair(readouts_.end(), true) : readouts_.try_emplace(key);
+                Readout& readout = joined ? unshared : found->second;
+                AxisSweeps& memo = joined ? unshared_memo : memo_;
+                bool have_swept = false;
+                const auto sweep = [&] {
+                    if (have_swept)
+                        return;
+                    if (memo.size() > MEMO_LIMIT)
+                        memo.clear();
+                    sweep_readout(played, row, adc, n, rotated, matrix, memo, swept_);
+                    have_swept = true;
+                };
+                if (fresh)
+                {
+                    sweep();
+                    start(readout, n);
+                }
+                const std::array<int32_t, 2>& echo =
+                    readout_echo(readout, origin, sweep, n, swept_, k_, distance_);
+                out_.moving.insert(out_.moving.end(), readout.moving, readout.moving + 3);
+                out_.echo.insert(out_.echo.end(), echo.begin(), echo.end());
+                for (size_t axis = 0; axis < 3; ++axis)
+                    out_.origin.push_back(origin[axis] + readout.lead[axis]);
+                out_.sweep.push_back(readout.id);
+            }
+
+            /** The distinct sweeps, or no origins and sweeps once too many were. */
+            void finish()
+            {
+                if (paths_.kept())
+                {
+                    paths_.export_to(out_.sweeps);
+                    return;
+                }
+                out_.origin.clear();
+                out_.sweep.clear();
+            }
+
+          private:
+            /* What a readout's sweep says regardless of where it starts. */
+            void start(Readout& readout, int n)
+            {
+                /* Which axes move does not depend on where the readout
+                 * starts: a span is a difference. */
+                int32_t unused[2];
+                find_echo(swept_, 0, n, readout.moving, unused, distance_);
+                const size_t m = static_cast<size_t>(n);
+                for (size_t axis = 0; axis < 3; ++axis)
+                    readout.lead[axis] = m > 0 ? swept_[axis][0] : 0.0;
+                readout.id = paths_.add(swept_, readout.lead, m);
+            }
+
+            std::map<std::array<int32_t, 5>, Readout> readouts_;
+            AxisSweeps memo_;
+            DistinctPaths paths_;
+            AdcEchoes& out_;
+            std::array<std::vector<double>, 3> k_;
+            std::array<std::vector<double>, 3> swept_;
+            std::vector<double> distance_;
+        };
 
     } // namespace
 
@@ -1734,30 +1863,18 @@ namespace pulseq
         const int blocks = seq.num_blocks();
         const int32_t* events = seq.block_events();
         const Table& adcs = seq.adc_library();
-        std::map<std::array<int32_t, 5>, Readout> readouts;
-        AxisSweeps memo;
+        const double* durations = seq.block_durations();
         /* Sweeps are kept while one readout in 16 at most has a path of its
          * own; past that they would hold most of the samples. */
         size_t acquiring = 0;
         for (int index = 1; index <= blocks; ++index)
             acquiring += events[static_cast<size_t>(index - 1) * BLOCK_WIDTH + 4] > 0;
-        DistinctPaths paths(std::max<size_t>(4096, acquiring / 16));
+        EchoWalk echoes(std::max<size_t>(4096, acquiring / 16), out);
+        Carry carry;
         CornerCache corners(seq);
         Played played[3];
         double origin[3] = {0.0, 0.0, 0.0};
         double matrix[3][3];
-        std::array<std::vector<double>, 3> k;
-        std::array<std::vector<double>, 3> swept;
-        std::vector<double> distance;
-        /* A block whose three gradients start where the three of the block
-         * before ended plays on from where those left the physical axes, as
-         * `adc_kspace` joins them; the two can differ by the rounding a file
-         * stores them with. */
-        double carried[3] = {0.0, 0.0, 0.0};
-        bool carries[3] = {false, false, false};
-        bool carried_rotated = false;
-        std::array<std::vector<double>, 3> joined;
-        const double* durations = seq.block_durations();
         int64_t samples = 0;
         for (int index = 1; index <= blocks; ++index)
         {
@@ -1765,28 +1882,11 @@ namespace pulseq
             const bool rotated = block_rotation(seq, row, matrix);
             if (rotated)
                 drop_faint_weights(matrix);
-            bool starts[3] = {false, false, false};
-            bool ends[3] = {false, false, false};
-            for (int axis = 0; axis < 3; ++axis)
-            {
-                const Corners& drawn = corners[row[1 + axis]];
-                played[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
-                if (played[axis].values == nullptr)
-                    continue;
-                drawn.at(0.0, played[axis].times);
-                starts[axis] = played[axis].times.front() <= kJoined;
-                ends[axis] = played[axis].times.back() >= durations[index - 1] - kJoined;
-            }
-            const bool joins = join_carried(played, rotated, matrix, starts, carried, carries,
-                                            carried_rotated, joined);
-            for (int axis = 0; axis < 3; ++axis)
-            {
-                carries[axis] = ends[axis];
-                carried[axis] = ends[axis] ? played[axis].values->back() : 0.0;
-            }
-            carried_rotated = rotated;
-            if (rotated && ends[0] && ends[1] && ends[2])
-                rotate(matrix, carried);
+            bool starts[3];
+            bool ends[3];
+            load_block(corners, row, durations[index - 1], played, starts, ends);
+            const bool joined = carry.join(played, rotated, matrix, starts);
+            carry.record(played, rotated, matrix, ends);
 
             if (row[4] > 0)
             {
@@ -1796,44 +1896,7 @@ namespace pulseq
                 out.num_samples.push_back(n);
                 out.first_sample.push_back(samples);
                 samples += n;
-
-                const std::array<int32_t, 5> key{
-                    row[1], row[2], row[3], row[4], rotated ? row[BLOCK_ROTATION_COLUMN] : 0};
-                /* A joined readout is not the readout its ids name. */
-                Readout unshared;
-                AxisSweeps unshared_memo;
-                auto [found, fresh] =
-                    joins ? std::make_pair(readouts.end(), true) : readouts.try_emplace(key);
-                Readout& readout = joins ? unshared : found->second;
-                bool have_swept = false;
-                const auto sweep = [&] {
-                    if (have_swept)
-                        return;
-                    if (memo.size() > MEMO_LIMIT)
-                        memo.clear();
-                    sweep_readout(
-                        played, row, adc, n, rotated, matrix, joins ? unshared_memo : memo, swept);
-                    have_swept = true;
-                };
-                if (fresh)
-                {
-                    sweep();
-                    /* Which axes move does not depend on where the readout
-                     * starts: a span is a difference. */
-                    int32_t unused[2];
-                    find_echo(swept, 0, n, readout.moving, unused, distance);
-                    const size_t m = static_cast<size_t>(n);
-                    for (size_t axis = 0; axis < 3; ++axis)
-                        readout.lead[axis] = m > 0 ? swept[axis][0] : 0.0;
-                    readout.id = paths.add(swept, readout.lead, m);
-                }
-                const std::array<int32_t, 2>& echo =
-                    readout_echo(readout, origin, sweep, n, swept, k, distance);
-                out.moving.insert(out.moving.end(), readout.moving, readout.moving + 3);
-                out.echo.insert(out.echo.end(), echo.begin(), echo.end());
-                for (size_t axis = 0; axis < 3; ++axis)
-                    out.origin.push_back(origin[axis] + readout.lead[axis]);
-                out.sweep.push_back(readout.id);
+                echoes.readout(row, adc, played, rotated, matrix, joined, origin);
             }
 
             double step[3];
@@ -1842,15 +1905,7 @@ namespace pulseq
             else
                 advance_walk(seq, row, played, origin, step);
         }
-        if (paths.kept())
-        {
-            paths.export_to(out.sweeps);
-        }
-        else
-        {
-            out.origin.clear();
-            out.sweep.clear();
-        }
+        echoes.finish();
         return true;
     }
 
