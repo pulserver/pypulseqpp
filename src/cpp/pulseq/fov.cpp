@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <cstring>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -372,24 +374,85 @@ namespace pulseq
         using MovedRow = std::tuple<int32_t, double, double, double>;
 
         /**
-         * The row a moved event is played from, registered on first use.
-         *
-         * A row is shared by every block that names it, and what the shift
-         * adds depends on where each block sits, so a moved event is a new
-         * row rather than an edit of the shared one. Blocks whose event comes
-         * out the same share the new row.
+         * Moved rows already registered, in one open-addressed array: almost
+         * every row of a shifted readout is new, and a node per row costs an
+         * allocation and a cache miss per lookup.
          */
-        template <typename Register>
-        int32_t moved_row(std::map<MovedRow, int32_t>& known, const MovedRow& key,
-                          Register add)
+        class MovedRows
         {
-            const auto found = known.find(key);
-            if (found != known.end())
-                return found->second;
-            const int32_t made = static_cast<int32_t>(add());
-            known.emplace(key, made);
-            return made;
-        }
+        public:
+            /**
+             * The row a moved event is played from, registered on first use.
+             *
+             * A row is shared by every block that names it, and what the shift
+             * adds depends on where each block sits, so a moved event is a new
+             * row rather than an edit of the shared one. Blocks whose event
+             * comes out the same share the new row.
+             */
+            template <typename Register>
+            int32_t row(const MovedRow& key, Register add)
+            {
+                if (2 * (count_ + 1) > slots_.size())
+                    grow();
+                size_t at = slot_of(key);
+                if (slots_[at].row != 0)
+                    return slots_[at].row;
+                const int32_t made = static_cast<int32_t>(add());
+                slots_[at] = {key, made};
+                ++count_;
+                return made;
+            }
+
+        private:
+            struct Slot
+            {
+                MovedRow key;
+                int32_t row = 0;
+            };
+
+            static uint64_t mix(uint64_t x)
+            {
+                x += 0x9E3779B97F4A7C15ull;
+                x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ull;
+                x = (x ^ (x >> 27)) * 0x94D049BB133111EBull;
+                return x ^ (x >> 31);
+            }
+
+            /* -0.0 is folded onto 0.0, which the tuple calls equal. */
+            static uint64_t hash(const MovedRow& key)
+            {
+                uint64_t h = mix(static_cast<uint64_t>(std::get<0>(key)));
+                for (const double value : {std::get<1>(key), std::get<2>(key), std::get<3>(key)})
+                {
+                    uint64_t bits;
+                    const double folded = value + 0.0;
+                    std::memcpy(&bits, &folded, sizeof bits);
+                    h = mix(h ^ bits);
+                }
+                return h;
+            }
+
+            size_t slot_of(const MovedRow& key) const
+            {
+                const size_t mask = slots_.size() - 1;
+                size_t at = static_cast<size_t>(hash(key)) & mask;
+                while (slots_[at].row != 0 && !(slots_[at].key == key))
+                    at = (at + 1) & mask;
+                return at;
+            }
+
+            void grow()
+            {
+                std::vector<Slot> old(slots_.empty() ? 1024 : 2 * slots_.size());
+                old.swap(slots_);
+                for (const Slot& slot : old)
+                    if (slot.row != 0)
+                        slots_[slot_of(slot.key)] = slot;
+            }
+
+            std::vector<Slot> slots_;
+            size_t count_ = 0;
+        };
 
 
         /**
@@ -920,8 +983,8 @@ namespace pulseq
         std::vector<double> moment;
         std::vector<double> added;
         Sweep sweeping;
-        std::map<MovedRow, int32_t> moved_rf;
-        std::map<MovedRow, int32_t> moved_adc;
+        MovedRows moved_rf;
+        MovedRows moved_adc;
         ShapeMemo memo;
 
         for (int index = from; index <= to; ++index)
@@ -1040,7 +1103,7 @@ namespace pulseq
                 }
                 const char use =
                     std::as_const(seq).rf_uses()[static_cast<size_t>(rf_id) - 1];
-                rf_to = moved_row(moved_rf, {rf_id, rf[8], rf[9], rf[2]},
+                rf_to = moved_rf.row({rf_id, rf[8], rf[9], rf[2]},
                                   [&] { return seq.register_rf(rf, use); });
             }
 
@@ -1114,7 +1177,7 @@ namespace pulseq
                     return phase_shape_with(seq, static_cast<int>(adc[7]), added, 2.0 * kPi);
                     }));
                 }
-                adc_to = moved_row(moved_adc, {adc_id, adc[5], adc[6], adc[7]},
+                adc_to = moved_adc.row({adc_id, adc[5], adc[6], adc[7]},
                                    [&] { return seq.register_adc(adc); });
             }
 
