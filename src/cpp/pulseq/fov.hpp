@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "pulseq/kspace.hpp"
 #include "pulseq/sequence.hpp"
 
 namespace pulseq
@@ -162,6 +163,18 @@ namespace pulseq
 
     /** Find the gradient each RF pulse plays under. */
     RfGradients rf_gradients(const Sequence& seq);
+
+    /**
+     * adc_echoes() over the whole sequence, k-space walked block by block.
+     *
+     * Each readout's samples are its block's start plus what the block
+     * sweeps, after its rotation; a readout whose gradients, ADC and
+     * rotation repeat reuses them, and its echo too where it starts at the
+     * same k along the axes it moves along. Returns false, leaving @p out
+     * unspecified, when a block that acquires also plays a pulse that resets
+     * or reverses k-space.
+     */
+    bool walked_adc_echoes(const Sequence& seq, AdcEchoes& out);
 
 } // namespace pulseq
 

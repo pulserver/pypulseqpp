@@ -5,6 +5,8 @@
 
 #include "pulseq/kspace.hpp"
 
+#include "pulseq/fov.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -639,82 +641,88 @@ namespace pulseq
             return row[4] <= 0 && row[0] > 0 && resets(uses, row[0]);
         }
 
-        /**
-         * The moving axes and echo samples of the @p n samples from @p offset
-         * of @p k, written to @p moving (3) and @p echo (2).
-         */
-        void find_echo(
-            const std::array<std::vector<double>, 3>& k,
-            size_t offset,
-            int n,
-            uint8_t* moving,
-            int32_t* echo,
-            std::vector<double>& distance)
-        {
-            echo[0] = echo[1] = -1;
-            double span[3] = {0.0, 0.0, 0.0};
-            double widest = 0.0;
-            for (int axis = 0; axis < 3 && n > 0; ++axis)
-            {
-                const auto begin = k[static_cast<size_t>(axis)].begin() +
-                    static_cast<std::ptrdiff_t>(offset);
-                const auto range = std::minmax_element(begin, begin + n);
-                span[axis] = *range.second - *range.first;
-                widest = std::max(widest, span[axis]);
-            }
-            bool any = false;
-            for (int axis = 0; axis < 3; ++axis)
-            {
-                moving[axis] = span[axis] > kStill * widest ? 1 : 0;
-                any = any || moving[axis];
-            }
-            if (!any || n < 2)
-                return;
-
-            const auto at = [&](int axis, int i) {
-                return k[static_cast<size_t>(axis)][offset + static_cast<size_t>(i)];
-            };
-            distance.assign(static_cast<size_t>(n), 0.0);
-            for (int i = 0; i < n; ++i)
-            {
-                double squared = 0.0;
-                for (int axis = 0; axis < 3; ++axis)
-                    if (moving[axis])
-                        squared += at(axis, i) * at(axis, i);
-                distance[static_cast<size_t>(i)] = std::sqrt(squared);
-            }
-            const int nearest = static_cast<int>(
-                std::min_element(distance.begin(), distance.end()) - distance.begin());
-            const auto step = [&](int from) {
-                double squared = 0.0;
-                for (int axis = 0; axis < 3; ++axis)
-                    if (moving[axis])
-                    {
-                        const double d = at(axis, from + 1) - at(axis, from);
-                        squared += d * d;
-                    }
-                return std::sqrt(squared);
-            };
-            const double beside = std::max(
-                step(std::clamp(nearest - 1, 0, n - 2)), step(std::clamp(nearest, 0, n - 2)));
-            const double reach = distance[static_cast<size_t>(nearest)] + kTie * beside;
-            int first = n - 1;
-            int last = 0;
-            for (int i = 0; i < n; ++i)
-            {
-                if (distance[static_cast<size_t>(i)] <= reach)
-                {
-                    first = std::min(first, i);
-                    last = std::max(last, i);
-                }
-            }
-            echo[0] = first;
-            echo[1] = last;
-        }
     } // namespace
+
+    void find_echo(
+        const std::array<std::vector<double>, 3>& k,
+        size_t offset,
+        int n,
+        uint8_t* moving,
+        int32_t* echo,
+        std::vector<double>& distance)
+    {
+        echo[0] = echo[1] = -1;
+        double span[3] = {0.0, 0.0, 0.0};
+        double widest = 0.0;
+        for (int axis = 0; axis < 3 && n > 0; ++axis)
+        {
+            const auto begin = k[static_cast<size_t>(axis)].begin() +
+                static_cast<std::ptrdiff_t>(offset);
+            const auto range = std::minmax_element(begin, begin + n);
+            span[axis] = *range.second - *range.first;
+            widest = std::max(widest, span[axis]);
+        }
+        bool any = false;
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            moving[axis] = span[axis] > kStill * widest ? 1 : 0;
+            any = any || moving[axis];
+        }
+        if (!any || n < 2)
+            return;
+
+        const auto at = [&](int axis, int i) {
+            return k[static_cast<size_t>(axis)][offset + static_cast<size_t>(i)];
+        };
+        distance.assign(static_cast<size_t>(n), 0.0);
+        for (int i = 0; i < n; ++i)
+        {
+            double squared = 0.0;
+            for (int axis = 0; axis < 3; ++axis)
+                if (moving[axis])
+                    squared += at(axis, i) * at(axis, i);
+            distance[static_cast<size_t>(i)] = std::sqrt(squared);
+        }
+        const int nearest = static_cast<int>(
+            std::min_element(distance.begin(), distance.end()) - distance.begin());
+        const auto step = [&](int from) {
+            double squared = 0.0;
+            for (int axis = 0; axis < 3; ++axis)
+                if (moving[axis])
+                {
+                    const double d = at(axis, from + 1) - at(axis, from);
+                    squared += d * d;
+                }
+            return std::sqrt(squared);
+        };
+        const double beside = std::max(
+            step(std::clamp(nearest - 1, 0, n - 2)), step(std::clamp(nearest, 0, n - 2)));
+        const double reach = distance[static_cast<size_t>(nearest)] + kTie * beside;
+        int first = n - 1;
+        int last = 0;
+        for (int i = 0; i < n; ++i)
+        {
+            if (distance[static_cast<size_t>(i)] <= reach)
+            {
+                first = std::min(first, i);
+                last = std::max(last, i);
+            }
+        }
+        echo[0] = first;
+        echo[1] = last;
+    }
 
     AdcEchoes adc_echoes(const Sequence& seq, const KspaceOptions& base)
     {
+        const bool plain = base.first_block <= 1 && base.last_block == 0 &&
+            base.delay == std::array<double, 3>{} && base.offset == std::array<double, 3>{};
+        if (plain)
+        {
+            AdcEchoes walked;
+            if (walked_adc_echoes(seq, walked))
+                return walked;
+        }
+
         AdcEchoes out;
         const int blocks = seq.num_blocks();
         const int32_t* events = seq.block_events();
