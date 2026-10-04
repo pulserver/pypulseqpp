@@ -152,6 +152,13 @@ namespace pulseq
          * counted from the next sample, without moving. */
         void sample_channel(int axis, int64_t from, int64_t count, double* out) const;
 
+        /**
+         * Move to the start of the block holding sample @p sample, without
+         * reading the blocks passed over, so that enter_block() enters it.
+         * A block already entered is entered again from its start.
+         */
+        void advance(int64_t sample);
+
         /** Pass over @p count samples of the current block. */
         void skip(int64_t count)
         {
@@ -187,6 +194,7 @@ namespace pulseq
         double starts_ = 0.0;
         double ends_ = 0.0;
         int64_t position_ = 0;
+        int64_t block_first_ = 0;
         int64_t block_end_ = 0;
         Played played_[3];
         const Corners* channels_[3] = {nullptr, nullptr, nullptr};

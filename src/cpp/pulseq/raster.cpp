@@ -54,6 +54,7 @@ namespace pulseq
         const int index = next_block_++;
         const int32_t* row = seq_.block_events() + static_cast<size_t>(index) * BLOCK_WIDTH;
         block_ = index + 1;
+        block_first_ = position_;
         starts_ = ends_;
         ends_ = starts_ + seq_.block_durations()[index];
         block_end_ = std::max(position_, first_sample_from(ends_, dt_));
@@ -96,6 +97,29 @@ namespace pulseq
                 turn_[i][j] = prescription_[i][0] * own[0][j] +
                     prescription_[i][1] * own[1][j] + prescription_[i][2] * own[2][j];
         return true;
+    }
+
+    void PhysicalRaster::advance(int64_t sample)
+    {
+        if (block_ > 0 && position_ < block_end_)
+        {
+            next_block_ = block_ - 1;
+            ends_ = starts_;
+            position_ = block_first_;
+            block_end_ = position_;
+        }
+        const double* durations = seq_.block_durations();
+        while (next_block_ < seq_.num_blocks())
+        {
+            const double ends = ends_ + durations[next_block_];
+            const int64_t end = std::max(position_, first_sample_from(ends, dt_));
+            if (end > sample)
+                break;
+            ends_ = ends;
+            position_ = end;
+            block_end_ = end;
+            block_ = ++next_block_;
+        }
     }
 
     int64_t PhysicalRaster::enter_block()

@@ -22,6 +22,8 @@
 #include <deque>
 #include <limits>
 #include <memory>
+#include <numeric>
+#include <thread>
 #include <unordered_map>
 
 namespace pulseq
@@ -632,14 +634,11 @@ namespace pulseq
         }
 
         std::deque<Interval> done;
-        Interval current;
-        current.sums.reset(total_bins);
         const auto next_edge = [&](int64_t at) {
             const int64_t start = (at / step + 1) * step;
             const int64_t end = at < width ? width : ((at - width) / step + 1) * step + width;
             return std::min(start, end);
         };
-        current.end = next_edge(0);
 
         std::vector<double> sum_re(total_bins);
         std::vector<double> sum_im(total_bins);
@@ -736,21 +735,9 @@ namespace pulseq
 
         /* Intervals judged and dropped, kept for their storage. */
         std::vector<Interval> spare;
-        const auto close_interval = [&]() {
-            const int64_t end = current.end;
-            done.push_back(std::move(current));
-            if (spare.empty())
-            {
-                current = Interval();
-            }
-            else
-            {
-                current = std::move(spare.back());
-                spare.pop_back();
-            }
-            current.sums.reset(total_bins);
-            current.begin = end;
-            current.end = next_edge(end);
+        const auto finish = [&](Interval& interval) {
+            const int64_t end = interval.end;
+            done.push_back(std::move(interval));
             while (next * step + width <= end)
                 judge(next++);
             while (!done.empty() && done.front().begin < next * step)
@@ -783,11 +770,34 @@ namespace pulseq
             }
         }
 
-        std::unordered_map<ChannelKey, std::unique_ptr<Sums>, ChannelKeyHash> memory;
-        Sums part;
-        Sums channel_part;
-        Sums rest;
-        std::vector<double> channel_samples;
+        /* What one thread sums blocks with: its own scratch, raster and
+         * remembered channel sums. */
+        struct Worker
+        {
+            Spectra spectra;
+            Spectra channel_spectra;
+            PhysicalRaster raster;
+            std::unordered_map<ChannelKey, std::unique_ptr<Sums>, ChannelKeyHash> memory;
+            Sums part;
+            Sums channel_part;
+            Sums rest;
+            std::vector<double> channel_samples;
+            /* Its intervals in the current pass, how many it completed, and
+             * whether the sequence ended inside them. */
+            std::vector<Interval> intervals;
+            size_t completed = 0;
+            bool exhausted = false;
+        };
+
+        /* Sum samples [first, last) into w.intervals, one interval per pair
+         * of consecutive window edges, the first starting at first. */
+        const auto sum_range = [&](Worker& w, int64_t first, int64_t last) {
+            auto& memory = w.memory;
+            Sums& part = w.part;
+            Sums& channel_part = w.channel_part;
+            Sums& rest = w.rest;
+            auto& channel_samples = w.channel_samples;
+            const Spectra& channel_spectra = w.channel_spectra;
 
         /* Channel c's samples [from, from + n) of the current block, divided by
          * amplitude, into @p out, referred to the first of them. A channel
@@ -941,34 +951,128 @@ namespace pulseq
             }
         };
 
-        PhysicalRaster raster(seq, options.rotation);
-        int64_t count;
-        while ((count = raster.enter_block()) > 0)
-        {
-            int64_t at = raster.position();
-            for (int64_t from = 0; from < count;)
+            PhysicalRaster& raster = w.raster;
+            w.completed = 0;
+            w.exhausted = false;
+            Interval* current = &w.intervals[0];
+            current->sums.reset(total_bins);
+            current->begin = first;
+            current->end = next_edge(first);
+            raster.advance(first);
+            int64_t count;
+            while (raster.position() < last)
             {
-                const int64_t n = std::min(count - from, current.end - at);
-                block_sums(raster, count, from, n);
-                spectra.add_from(current.sums, at, part);
-                at += n;
-                from += n;
-                if (at == current.end)
-                    close_interval();
+                if ((count = raster.enter_block()) <= 0)
+                {
+                    w.exhausted = true;
+                    return;
+                }
+                int64_t at = raster.position();
+                int64_t from = 0;
+                if (at < first)
+                {
+                    from = first - at;
+                    at = first;
+                }
+                const int64_t until = std::min(count, last - raster.position());
+                while (from < until)
+                {
+                    const int64_t n = std::min(until - from, current->end - at);
+                    block_sums(raster, count, from, n);
+                    w.spectra.add_from(current->sums, at, part);
+                    at += n;
+                    from += n;
+                    if (at == current->end)
+                    {
+                        ++w.completed;
+                        if (w.completed == w.intervals.size())
+                            break;
+                        const int64_t end = current->end;
+                        current = &w.intervals[w.completed];
+                        current->sums.reset(total_bins);
+                        current->begin = end;
+                        current->end = next_edge(end);
+                    }
+                }
+                raster.skip(from);
             }
-            raster.skip(count);
+        };
+
+        /* The timeline is summed a pass at a time, each thread taking a run of
+         * consecutive intervals, and the windows are judged in order after
+         * each pass. */
+        constexpr size_t kIntervalsPerThread = 1024;
+        unsigned threads = std::thread::hardware_concurrency();
+        threads = std::clamp(threads, 1u, 8u);
+        {
+            const double scan = std::accumulate(seq.block_durations(),
+                                                seq.block_durations() + seq.num_blocks(), 0.0);
+            const double per_thread = static_cast<double>(kIntervalsPerThread * step) * dt;
+            threads = static_cast<unsigned>(
+                std::clamp(std::ceil(scan / per_thread), 1.0, static_cast<double>(threads)));
+        }
+        std::vector<std::unique_ptr<Worker>> workers;
+        for (unsigned t = 0; t < threads; ++t)
+        {
+            workers.push_back(std::unique_ptr<Worker>(new Worker{
+                spectra, channel_spectra, PhysicalRaster(seq, options.rotation), {}, {}, {},
+                {}, {}, std::vector<Interval>(kIntervalsPerThread), 0, false}));
         }
 
-        samples = raster.position();
-        if (samples > 0)
+        int64_t edge = 0;
+        for (bool ended = false; !ended;)
         {
-            const int64_t windows =
-                samples <= width ? 1 : (samples - width + step - 1) / step + 1;
-            current.end = samples;
-            done.push_back(std::move(current));
-            while (next < windows)
-                judge(next++);
-            out.windows = windows;
+            std::vector<int64_t> starts(threads + 1);
+            for (unsigned t = 0; t <= threads; ++t)
+            {
+                starts[t] = edge;
+                if (t == threads)
+                    break;
+                for (size_t i = 0; i < kIntervalsPerThread; ++i)
+                    edge = next_edge(edge);
+                for (Interval& slot : workers[t]->intervals)
+                {
+                    if (slot.sums.re.empty() && !spare.empty())
+                    {
+                        slot = std::move(spare.back());
+                        spare.pop_back();
+                    }
+                }
+            }
+            if (threads == 1)
+            {
+                sum_range(*workers[0], starts[0], starts[1]);
+            }
+            else
+            {
+                std::vector<std::thread> pool;
+                for (unsigned t = 1; t < threads; ++t)
+                    pool.emplace_back(sum_range, std::ref(*workers[t]), starts[t], starts[t + 1]);
+                sum_range(*workers[0], starts[0], starts[1]);
+                for (auto& thread : pool)
+                    thread.join();
+            }
+            for (unsigned t = 0; t < threads && !ended; ++t)
+            {
+                Worker& w = *workers[t];
+                for (size_t i = 0; i < w.completed; ++i)
+                    finish(w.intervals[i]);
+                if (!w.exhausted)
+                    continue;
+                ended = true;
+                samples = w.raster.position();
+                if (samples > 0)
+                {
+                    const int64_t windows =
+                        samples <= width ? 1 : (samples - width + step - 1) / step + 1;
+                    Interval& last = w.intervals[w.completed];
+                    last.end = samples;
+                    done.push_back(std::move(last));
+                    while (next < windows)
+                        judge(next++);
+                    out.windows = windows;
+                }
+            }
         }
         if (options.keep_spectrum >= 0 && options.keep_spectrum < out.windows)
             keep_spectrum(seq, options, width, step, length, taper, scale, out);
