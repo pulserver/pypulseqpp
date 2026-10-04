@@ -107,6 +107,20 @@ namespace pulseq
          * fewer than two samples.
          */
         std::vector<int32_t> echo;
+        /**
+         * Readouts x 3: k-space at the start of each readout's block, in 1/m.
+         * With `sweep` and `sweeps`, filled only when k-space is followed
+         * block by block, and empty otherwise.
+         */
+        std::vector<double> origin;
+        /** Index into `sweeps` of each readout. */
+        std::vector<int32_t> sweep;
+        /**
+         * Per distinct readout block, the k-space swept from the block's start
+         * to each sample, axis by axis, so that sample i of readout r is at
+         * origin[r] + sweeps[sweep[r]][axis][i].
+         */
+        std::vector<std::array<std::vector<double>, 3>> sweeps;
     };
 
     /** Find where each readout passes nearest the centre of k-space. */

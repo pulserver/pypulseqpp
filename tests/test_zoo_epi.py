@@ -309,6 +309,15 @@ def test_the_reference_reverses_the_phase_encode_and_keeps_the_labels(case):
     assert behind[:, 1] == pytest.approx(ahead[:, 1])
 
 
+@pytest.mark.parametrize("case", CASES)
+def test_the_reference_defines_the_echo_and_repetition_time_of_the_main_scan(case):
+    scan = CASES[case]()
+    reference = scan.prescan("reference")
+
+    for key in ("TE", "TR"):
+        assert reference.definitions[key] == pytest.approx(scan.main.definitions[key])
+
+
 # -- volumes, dummies and the output ----------------------------------------
 
 

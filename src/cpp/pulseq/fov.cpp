@@ -1501,6 +1501,7 @@ namespace pulseq
             std::array<std::vector<double>, 3> swept;
             std::map<std::array<double, 3>, std::array<int32_t, 2>> echoes;
             uint8_t moving[3] = {0, 0, 0};
+            int32_t id = 0;
         };
 
         /* Excitation, refocusing and inversion at the readout ask for the
@@ -1622,10 +1623,16 @@ namespace pulseq
                 auto [found, fresh] = readouts.try_emplace(key);
                 Readout& readout = found->second;
                 if (fresh)
+                {
                     sweep_readout(played, adc, n, rotated, matrix, readout, distance);
+                    readout.id = static_cast<int32_t>(out.sweeps.size());
+                    out.sweeps.push_back(readout.swept);
+                }
                 const std::array<int32_t, 2>& echo = readout_echo(readout, origin, n, k, distance);
                 out.moving.insert(out.moving.end(), readout.moving, readout.moving + 3);
                 out.echo.insert(out.echo.end(), echo.begin(), echo.end());
+                out.origin.insert(out.origin.end(), origin, origin + 3);
+                out.sweep.push_back(readout.id);
             }
 
             double swept[3];

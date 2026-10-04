@@ -599,7 +599,13 @@ def epi2d(
     def reference() -> pp.Sequence:
         """Design one volume with the phase encode reversed, after its dummies."""
         seq, _ = play(frames=[0], reversed_encode=True)
-        define(seq, Name=f"{NAME}_reference", EchoSpacing=epi.esp)
+        define(
+            seq,
+            Name=f"{NAME}_reference",
+            TE=echo_time,
+            TR=repetition_time,
+            EchoSpacing=epi.esp,
+        )
         return seq
 
     prescans = [calibrate()] if gre is not None else []

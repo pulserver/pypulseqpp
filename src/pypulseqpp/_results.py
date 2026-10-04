@@ -245,6 +245,19 @@ class AdcEchoes:
         centre of k-space, over the moving axes, than the nearest sample plus
         1% of the larger k step beside it; -1 for a readout that does not move
         or has fewer than two samples.
+    origin : NDArray[np.float64] or None
+        ``(n, 3)``: k-space at the start of its block, in 1/m.
+    sweep : NDArray[np.int32] or None
+        ``(n,)``: the entry of :attr:`sweeps` it plays.
+    sweeps : tuple of NDArray[np.float64] or None
+        Per distinct readout block, ``(3, samples)``: the k-space swept from
+        the start of the block to each sample, in 1/m, so that readout ``r`` is
+        sampled at ``origin[r, :, None] + sweeps[sweep[r]]``, as
+        :meth:`pypulseqpp.Sequence.adc_kspace` places it.
+
+    :attr:`origin`, :attr:`sweep` and :attr:`sweeps` are None when an RF pulse
+    plays in a block that acquires, unless its use is recorded as neither
+    excitation nor refocusing.
     """
 
     block: np.ndarray
@@ -252,6 +265,9 @@ class AdcEchoes:
     first_sample: np.ndarray
     moving: np.ndarray
     echo: np.ndarray
+    origin: np.ndarray | None = None
+    sweep: np.ndarray | None = None
+    sweeps: tuple[np.ndarray, ...] | None = None
 
 
 @dataclass(frozen=True)
