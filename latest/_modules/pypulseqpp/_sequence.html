@@ -696,6 +696,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">clear_caches</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"_native"</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_block</span> <span class="ow">is</span> <span class="n">Sequence</span><span class="o">.</span><span class="n">add_block</span><span class="p">:</span>
+            <span class="c1"># add_block is the native call itself, held per instance so a block</span>
+            <span class="c1"># crosses into C++ without a Python frame of its own. A subclass</span>
+            <span class="c1"># overriding add_block keeps its own.</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"add_block"</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">add_block_events</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_UPSTREAM_STORAGE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>

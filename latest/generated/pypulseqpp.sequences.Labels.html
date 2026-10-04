@@ -543,7 +543,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.Labels">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">Labels</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_labels.html#Labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.Labels" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LabelWriter</span></code></p>
 <p>Writer of label events for the sticky label state of a Pulseq sequence.</p>
 <p>A label keeps its value across blocks until an event changes it, so a block
 carries the events of the labels it changes and no others. Calling an
@@ -552,7 +552,9 @@ events to add to the block, empty when nothing changed. An unchanged value
 writes nothing, a change equal to the label’s previous change is an INC,
 which a scan repeats as one event, and any other change is a SET. A change
 of <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> calls <a class="reference internal" href="pypulseqpp.sequences.Labels.restart.html#pypulseqpp.sequences.Labels.restart" title="pypulseqpp.sequences.Labels.restart"><code class="xref py py-meth docutils literal notranslate"><span class="pre">restart()</span></code></a> first, so every label passed with it is
-written again as a SET.</p>
+written again as a SET. An instance returns the same event object for
+equal statements, so the events are added to blocks as they are, not
+modified.</p>
 <p class="rubric">Examples</p>
 <p>An unchanged value writes nothing, and a change equal to the label’s
 previous change is an INC:</p>
@@ -560,6 +562,14 @@ previous change is an INC:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">Labels</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[[(</span><span class="n">e</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">(</span><span class="n">LIN</span><span class="o">=</span><span class="n">line</span><span class="p">)]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
 <span class="go">[[('labelset', 0)], [('labelset', 2)], [('labelinc', 2)], [], [('labelset', 3)]]</span>
+</pre></div>
+</div>
+<p>Labels passed together are written in the order given:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">Labels</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">e</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">(</span><span class="n">LIN</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">SLC</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+<span class="go">[('LIN', 'labelset', 0), ('SLC', 'labelset', 1)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">e</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">(</span><span class="n">LIN</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">SLC</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ONCE</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+<span class="go">[('LIN', 'labelset', 0), ('SLC', 'labelset', 2), ('ONCE', 'labelset', 1)]</span>
 </pre></div>
 </div>
 </dd></dl>
