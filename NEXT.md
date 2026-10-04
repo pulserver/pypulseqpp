@@ -123,13 +123,14 @@ to force reference agreement.
 
 FOV translation is in metres along the channel axes, or along the logical
 axes with `through_rotation`. The unbroken gradient integral supplies RF and
-ADC shift phase; excitation/reset-aware k-space supplies the ADC echo
-reference. These are distinct state vectors and both must be carried between
-consecutive processing ranges.
+ADC shift phase; excitation/reset-aware k-space is carried beside it. These
+are distinct state vectors and both must be carried between consecutive
+processing ranges.
 
-ADC phase is anchored to the nearest k-space approach shared by the
-block/ADC definition within the selected range, not the midpoint of the
-sampling window. Varying gradients require residual phase modulation.
+ADC phase and frequency offsets are taken at the midpoint of the sampling
+window, as `pypulseq-matlab-like` takes them. Varying gradients require
+residual phase modulation, which depends only on the block's own gradients
+and window, so equal readouts register one modulation shape.
 RF phase shapes store cycles; ADC modulation and event phase offsets use
 radians.
 

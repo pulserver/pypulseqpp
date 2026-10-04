@@ -102,8 +102,8 @@ namespace pulseq
      * Constant gradients require only frequency and phase offsets. Residual
      * phase under varying gradients is stored in RF phase shapes (cycles) or
      * ADC modulation (radians). RF phase is referenced to the pulse centre.
-     * ADC phase is referenced to the nearest k-space approach, shared across
-     * playouts of the same block/ADC definition within the selected range.
+     * ADC phase is referenced to the window's centre, as the reference
+     * toolbox references it, so equal readouts share one modulation shape.
      *
      * A moved event is registered as a new row and the block repointed to it;
      * the row it named is left unchanged for the blocks that share it outside

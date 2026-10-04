@@ -802,19 +802,15 @@ def test_a_pulse_whose_gradient_ramps_under_its_end_is_not_taken_for_a_steady_on
     assert np.ptp(added) / TURN > 1e-3
 
 
-def test_a_readout_is_referenced_to_its_echo_and_not_to_its_window(system):
-    """Where the frequency and the phase are anchored.
+def test_a_readout_is_referenced_to_its_window_centre(system):
+    """The offsets place the window's centre; the modulation carries the rest.
 
-    The two are the same instant only for a readout symmetric about the
-    centre of k-space. Here the prewinder undoes a fraction of the readout,
-    so the echo falls early -- on the ramp, where the gradient is still
-    moving -- and anchoring at the middle of the window would leave the
-    centre of k-space turns away from where the shift asks for it.
-
-    What is held is that the scalars *alone* place the echo: a reader that
-    drops the phase profile still gets the centre of k-space right, and the
-    profile carries only the curvature around it.
+    As the reference toolbox does, the frequency and phase offsets are taken
+    at the middle of the ADC window, wherever the echo falls. Here the echo
+    falls early, on the ramp, so the offsets alone are wrong there, and the
+    offsets with the modulation are right at every sample.
     """
+
     shift = 0.011
     gx = flat("x", 5000, 1.4e-3, system)
     samples = 192
@@ -841,10 +837,10 @@ def test_a_readout_is_referenced_to_its_echo_and_not_to_its_window(system):
     scalars = (
         float(block.adc.phase_offset) + TURN * float(block.adc.freq_offset) * when
     ) / TURN
-    assert abs(float(wrapped(scalars[echo] - shift * k[echo]))) < 1e-3
-    # Only because it is the echo: the same two numbers are turns out by the
-    # end of the readout, and that is what the profile is for.
-    assert np.abs(wrapped(scalars - shift * k)).max() > 0.1
+    modulation = np.asarray(block.adc.phase_modulation) / TURN
+    assert abs(float(wrapped(modulation[samples // 2]))) < 1e-6
+    assert abs(float(wrapped(scalars[echo] - shift * k[echo]))) > 1e-3
+    assert np.abs(wrapped(scalars + modulation - shift * k)).max() < 1e-3
 
 
 def test_an_exempt_stretch_still_counts_towards_what_follows_it(system):
@@ -901,7 +897,7 @@ def acquired_against_its_excitation(moved, excitation, readout, shift, k):
 
 
 def test_every_playout_of_a_readout_shares_one_reference(system):
-    """The nearest-to-origin playout defines one ADC pivot and profile for all shots."""
+    """Shots with different prewinders share one ADC profile, and each is right."""
     shift = 0.011
     gx = flat("x", 5000, 1.4e-3, system)
     samples = 192
@@ -947,6 +943,23 @@ def test_every_playout_of_a_readout_shares_one_reference(system):
             0.0,
             atol=5e-6,
         )
+
+
+def test_repeated_moving_readouts_register_one_modulation_shape(system):
+    """Readouts under the same moving gradient share one shape row before deduplication."""
+    gx = trap("x", 5000, system, duration=1.6e-3)
+    adc = pp.make_adc(160, duration=1.6e-3, system=system)
+    seq = pp.Sequence(system)
+    for _ in range(50):
+        seq.add_block(trap("x", -2500, system, duration=1.6e-3))
+        seq.add_block(gx, adc)
+    shapes = len(seq.libraries().shapes)
+
+    moved = pp.TransformFOV(translation=(0.012, 0.0, 0.0)).apply_to_sequence(seq)
+
+    modulated = {int(row[7]) for row in moved.libraries().adc if row[7] > 0}
+    assert len(modulated) == 1
+    assert len(moved.libraries().shapes) == shapes + 1
 
 
 def test_a_readout_is_acquired_against_the_phase_its_excitation_was_given(system):
