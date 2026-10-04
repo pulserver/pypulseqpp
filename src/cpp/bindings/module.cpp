@@ -1809,6 +1809,28 @@ PYBIND11_MODULE(_ext, module)
             out["moving"] =
                 py::array_t<uint8_t>({readouts, py::ssize_t{3}}, found.moving.data());
             out["echo"] = py::array_t<int32_t>({readouts, py::ssize_t{2}}, found.echo.data());
+            if (found.origin.empty())
+                return out;
+            /* The origins are handed over rather than copied: three doubles
+             * per readout of the scan. */
+            auto* origin = new std::vector<double>(std::move(found.origin));
+            py::capsule owner(origin, [](void* held) {
+                delete static_cast<std::vector<double>*>(held);
+            });
+            out["origin"] = py::array_t<double>({readouts, py::ssize_t{3}}, origin->data(), owner);
+            out["sweep"] = py::array_t<int32_t>(readouts, found.sweep.data());
+            py::list sweeps;
+            for (const auto& swept : found.sweeps)
+            {
+                const py::ssize_t n = static_cast<py::ssize_t>(swept[0].size());
+                py::array_t<double> k({py::ssize_t{3}, n});
+                double* into = k.mutable_data();
+                for (size_t axis = 0; axis < 3; ++axis)
+                    std::copy(swept[axis].begin(), swept[axis].end(),
+                              into + static_cast<py::ssize_t>(axis) * n);
+                sweeps.append(k);
+            }
+            out["sweeps"] = sweeps;
             return out;
         },
         py::arg("sequence"), py::arg("b0") = 1.5, py::arg("gamma") = 42576000.0,

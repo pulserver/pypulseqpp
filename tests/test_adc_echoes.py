@@ -149,6 +149,46 @@ def test_the_echoes_are_the_rule_written_out_over_the_whole_trajectory(build):
     np.testing.assert_array_equal(echoes.echo, echo)
 
 
+@pytest.mark.parametrize(
+    "build",
+    [
+        lambda: sequences.gre_radial2D_sequence(
+            fov=220e-3, n=64, n_slices=1, tr=None, n_dummy=0
+        ),
+        lambda: sequences.epi2D_sequence(n_slices=1)[-1],
+        lambda: sequences.se2D_sequence(),
+        lambda: sequences.gre_propeller2D_sequence(),
+    ],
+    ids=["radial", "epi", "spin-echo", "propeller"],
+)
+def test_each_readout_is_its_origin_plus_the_sweep_of_its_block(build):
+    seq = build()
+
+    echoes = seq.adc_echoes()
+
+    swept = np.concatenate(
+        [
+            origin[:, None] + echoes.sweeps[sweep]
+            for origin, sweep in zip(echoes.origin, echoes.sweep, strict=True)
+        ],
+        axis=1,
+    )
+    k = seq.adc_kspace()
+    np.testing.assert_allclose(swept, k, rtol=0, atol=1e-9 * np.abs(k).max())
+
+
+def test_a_readout_beside_an_excitation_has_no_sweeps(system):
+    seq = pp.Sequence(system)
+    adc = pp.make_adc(64, duration=3.2e-3, delay=1e-3, system=system)
+    seq.add_block(
+        pp.make_block_pulse(math.pi / 12, duration=1e-3, use="excitation"), adc
+    )
+
+    echoes = seq.adc_echoes()
+
+    assert echoes.origin is None and echoes.sweep is None and echoes.sweeps is None
+
+
 def test_k_space_is_followed_a_range_at_a_time_without_changing_the_answer(system):
     """More than 2^17 samples, so later readouts are integrated from a later excitation."""
     seq = pp.Sequence(system)
