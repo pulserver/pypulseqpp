@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <map>
@@ -19,6 +20,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace pulseq
 {
@@ -1558,8 +1560,8 @@ namespace pulseq
                     const size_t m = path->size() / 3;
                     std::array<std::vector<double>, 3> kept;
                     for (size_t axis = 0; axis < 3; ++axis)
-                        kept[axis].assign(path->begin() + static_cast<long>(axis * m),
-                                          path->begin() + static_cast<long>((axis + 1) * m));
+                        kept[axis].assign(path->begin() + static_cast<std::ptrdiff_t>(axis * m),
+                                          path->begin() + static_cast<std::ptrdiff_t>((axis + 1) * m));
                     sweeps.push_back(std::move(kept));
                 }
             }
