@@ -1186,7 +1186,9 @@ def test_a_scan_shifted_across_threads_matches_it_shifted_in_short_ranges(system
             seq.add_block(rf)
             seq.add_block(pp.scale_grad(step, -1.0 + (shot % 64) / 32))
             for line in range(6):
-                seq.add_block(pp.scale_grad(ramped, (-1.0) ** line), adc, turns[line % 2])
+                seq.add_block(
+                    pp.scale_grad(ramped, (-1.0) ** line), adc, turns[line % 2]
+                )
         return seq
 
     at_once = scan()
@@ -1206,12 +1208,17 @@ def test_a_scan_shifted_across_threads_matches_it_shifted_in_short_ranges(system
         for got, want in zip(
             (in_ranges.get_block(index).adc, in_ranges.get_block(index).rf),
             (at_once.get_block(index).adc, at_once.get_block(index).rf),
+            strict=True,
         ):
             if want is None:
                 assert got is None
                 continue
-            assert float(got.phase_offset) == pytest.approx(float(want.phase_offset), abs=1e-12)
-            assert float(got.freq_offset) == pytest.approx(float(want.freq_offset), abs=1e-9)
+            assert float(got.phase_offset) == pytest.approx(
+                float(want.phase_offset), abs=1e-12
+            )
+            assert float(got.freq_offset) == pytest.approx(
+                float(want.freq_offset), abs=1e-9
+            )
 
 
 # %% what a reconstructor is handed instead of a phase

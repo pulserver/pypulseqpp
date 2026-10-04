@@ -1040,7 +1040,9 @@ def test_a_large_binary_file_holds_the_bytes_the_serializer_returns(tmp_path):
     # Enough blocks for the block section to be encoded across threads.
     seq = pp.Sequence(pp.Opts())
     for n in range(70000):
-        seq.add_block(pp.make_trapezoid("x", amplitude=100 * (n % 7 + 1), duration=1e-3))
+        seq.add_block(
+            pp.make_trapezoid("x", amplitude=100 * (n % 7 + 1), duration=1e-3)
+        )
     signature = seq.write_binary(tmp_path / "large.bseq")
     written = (tmp_path / "large.bseq").read_bytes()
     assert written == _ext.write_binary(seq._native)
@@ -1050,4 +1052,6 @@ def test_a_large_binary_file_holds_the_bytes_the_serializer_returns(tmp_path):
         "valid": True,
     }
     assert seq.write_binary(tmp_path / "unsigned.bseq", create_signature=False) is None
-    assert _ext.binary_signature((tmp_path / "unsigned.bseq").read_bytes())["type"] == ""
+    assert (
+        _ext.binary_signature((tmp_path / "unsigned.bseq").read_bytes())["type"] == ""
+    )

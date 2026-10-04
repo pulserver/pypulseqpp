@@ -15,7 +15,6 @@
 #include "pulseq/write.hpp"
 
 #include <cmath>
-#include <filesystem>
 #include <fstream>
 #include <cstring>
 #include <map>
@@ -424,38 +423,38 @@ namespace pulseq
         /** Everything a signature covers. */
         std::string binary_body(Sequence& seq)
         {
-        seq.compress_shapes();
-        seq.publish_rasters();
-        declare_custom_labels(seq);
+            seq.compress_shapes();
+            seq.publish_rasters();
+            declare_custom_labels(seq);
 
-        // The sections after the blocks are the event vocabulary, encoded
-        // first so that the whole body is allocated once.
-        const Sequence& reading = seq;
-        std::string rest;
-        write_rf(rest, reading);
-        write_gradients(rest, reading);
-        write_adc(rest, reading);
-        write_shapes(rest, reading);
-        write_extension_chain(rest, reading);
-        write_triggers(rest, seq);
-        write_labels(rest, seq);
-        write_soft_delays(rest, seq);
-        write_rf_shims(rest, seq);
-        write_rotations(rest, seq);
+            // The sections after the blocks are the event vocabulary, encoded
+            // first so that the whole body is allocated once.
+            const Sequence& reading = seq;
+            std::string rest;
+            write_rf(rest, reading);
+            write_gradients(rest, reading);
+            write_adc(rest, reading);
+            write_shapes(rest, reading);
+            write_extension_chain(rest, reading);
+            write_triggers(rest, seq);
+            write_labels(rest, seq);
+            write_soft_delays(rest, seq);
+            write_rf_shims(rest, seq);
+            write_rotations(rest, seq);
 
-        std::string out;
-        // A block is 32 bytes; the definitions and the signature are small.
-        out.reserve(static_cast<size_t>(seq.num_blocks()) * 32 + rest.size() + 65536);
-        out.append(reinterpret_cast<const char*>(BINARY_MAGIC), sizeof(BINARY_MAGIC));
-        put_i64(out, seq.version_major());
-        put_i64(out, seq.version_minor());
-        put_i64(out, required_revision(seq));
-        write_definitions(out, reading);
-        write_blocks(out, reading);
-        out += rest;
+            std::string out;
+            // A block is 32 bytes; the definitions and the signature are small.
+            out.reserve(static_cast<size_t>(seq.num_blocks()) * 32 + rest.size() + 65536);
+            out.append(reinterpret_cast<const char*>(BINARY_MAGIC), sizeof(BINARY_MAGIC));
+            put_i64(out, seq.version_major());
+            put_i64(out, seq.version_minor());
+            put_i64(out, required_revision(seq));
+            write_definitions(out, reading);
+            write_blocks(out, reading);
+            out += rest;
 
-        return out;
-    }
+            return out;
+        }
 
         /** The signature section over the first @p signed_length bytes, whose digest is @p hex. */
         std::string signature_section(const std::string& hex, size_t signed_length)
@@ -484,7 +483,7 @@ namespace pulseq
     std::string write_binary_file(Sequence& seq, const std::string& path, bool create_signature)
     {
         const std::string body = binary_body(seq);
-        std::ofstream file(std::filesystem::u8path(path), std::ios::binary | std::ios::trunc);
+        std::ofstream file(path, std::ios::binary | std::ios::trunc);
         if (!file)
             throw std::runtime_error("write_binary(): cannot open " + path + " for writing");
         // The body goes to the file while it is digested.

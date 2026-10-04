@@ -420,4 +420,6 @@ def test_a_library_collapsed_across_threads_is_numbered_in_order_of_first_appear
     np.testing.assert_array_equal(ids, np.arange(70000) // 25 + 1)
     for block in (1, 34999, 70000):
         gradient = seq.get_block(block).gx
-        assert gradient.amplitude == pytest.approx(100 * ((block - 1) // 25 + 1), rel=1e-6)
+        assert gradient.amplitude == pytest.approx(
+            100 * ((block - 1) // 25 + 1), rel=1e-6
+        )
