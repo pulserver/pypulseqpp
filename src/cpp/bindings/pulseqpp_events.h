@@ -673,8 +673,8 @@ namespace pulseqpp_events
                         e.label_id = static_cast<int32_t>(seq.label_id(e.label));
                         e.owner = seq.serial;
                     }
-                    const int ref = e.setting ? seq.register_label_set(e.value, e.label_id)
-                                              : seq.register_label_inc(e.value, e.label_id);
+                    const int ref = e.setting ? seq.intern_label_set(e.value, e.label_id)
+                                              : seq.intern_label_inc(e.value, e.label_id);
                     if (chained == 8)
                         throw std::invalid_argument("a block carries at most eight extensions");
                     chain[chained][0] = static_cast<int32_t>(
@@ -941,8 +941,8 @@ namespace pulseqpp_events
                 const int32_t value =
                     static_cast<int32_t>(std::lround(as_double(field(dict, n.value))));
                 const bool setting = kind[5] == 's';
-                const int ref = setting ? seq.register_label_set(value, label)
-                                        : seq.register_label_inc(value, label);
+                const int ref = setting ? seq.intern_label_set(value, label)
+                                        : seq.intern_label_inc(value, label);
                 if (chained == 8)
                     throw std::invalid_argument("a block carries at most eight extensions");
                 chain[chained][0] =
@@ -1124,10 +1124,22 @@ namespace pulseqpp_events
             throw std::invalid_argument("a block carries at most one RF shim");
 
         // Built tail first, so walking the chain gives the events back in the
-        // order they were passed.
-        for (int i = chained - 1; i >= 0; --i)
-            block.ext =
-                static_cast<int32_t>(seq.append_extension(chain[i][0], chain[i][1], block.ext));
+        // order they were passed.  Label rows are interned, so a run of label
+        // links at the tail is shared with every block carrying the same run;
+        // any other link names a row of its own and is appended.
+        if (chained > 0)
+        {
+            const int32_t label_set = static_cast<int32_t>(seq.find_extension_type_id("LABELSET"));
+            const int32_t label_inc = static_cast<int32_t>(seq.find_extension_type_id("LABELINC"));
+            bool shared = true;
+            for (int i = chained - 1; i >= 0; --i)
+            {
+                shared = shared && (chain[i][0] == label_set || chain[i][0] == label_inc);
+                block.ext = static_cast<int32_t>(
+                    shared ? seq.chain_extension(chain[i][0], chain[i][1], block.ext)
+                           : seq.append_extension(chain[i][0], chain[i][1], block.ext));
+            }
+        }
 
         const double block_raster = seq.block_duration_raster();
         if (block_raster > 0.0)

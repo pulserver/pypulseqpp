@@ -1095,6 +1095,11 @@ namespace pulseq
         int register_rotation(const double* row);
         int register_label_set(int32_t value, int32_t label_id);
         int register_label_inc(int32_t value, int32_t label_id);
+        /** The row of an equal label statement already registered, or a new one.
+         *  Reading a file registers with the two above instead, keeping its
+         *  numbering. */
+        int intern_label_set(int32_t value, int32_t label_id);
+        int intern_label_inc(int32_t value, int32_t label_id);
         int register_rf_shim(const double* values, int count);
         int register_soft_delay(const SoftDelay& row);
 
@@ -1590,6 +1595,12 @@ namespace pulseq
 
         /** grad id (1-based) -> +trap row / -arb row.  See the file comment. */
         std::vector<int32_t> grad_slot_;
+
+        /** Label rows by value, (value << 32 | label id) -> row, so a repeated
+         *  label statement costs one row.  A hit is checked against the row,
+         *  so an entry outdated by renumbering is replaced, not trusted. */
+        std::unordered_map<int64_t, int> label_set_index_;
+        std::unordered_map<int64_t, int> label_inc_index_;
 
         /** Extension chain rows by value, so a repeated chain costs one row. */
         std::map<std::array<int32_t, EXTENSION_WIDTH>, int> chain_index_;
