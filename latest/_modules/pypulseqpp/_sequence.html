@@ -468,6 +468,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">MutableMapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -2916,9 +2917,10 @@
 <span class="sd">        &gt;&gt;&gt; len(signature), seq.signature_file</span>
 <span class="sd">        (32, 'bin')</span>
 <span class="sd">        """</span>
-        <span class="n">written</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">write_binary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">)</span>
-        <span class="n">Path</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">written</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_note_binary_signature</span><span class="p">(</span><span class="n">_cxx</span><span class="o">.</span><span class="n">binary_signature</span><span class="p">(</span><span class="n">written</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">write_binary_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">create_signature</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_note_binary_signature</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"md5"</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Sequence.write_v141">
