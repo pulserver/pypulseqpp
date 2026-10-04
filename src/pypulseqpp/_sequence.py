@@ -2325,7 +2325,7 @@ class Sequence:
         """
         written = _cxx.write_binary(self._native, create_signature)
         Path(name).write_bytes(written)
-        return self._note_binary_signature(written)
+        return self._note_binary_signature(_cxx.binary_signature(written, check=False))
 
     def write_v141(
         self, name, create_signature: bool = True, gamma=None, field=None
@@ -2381,9 +2381,8 @@ class Sequence:
         Path(name).write_bytes(written)
         return self._note_signature(written, "text")
 
-    def _note_binary_signature(self, written: bytes) -> str | None:
-        """Record and return the signature a binary file carries, if any."""
-        found = _cxx.binary_signature(written)
+    def _note_binary_signature(self, found: dict) -> str | None:
+        """Record and return the signature ``found`` by ``binary_signature``, if any."""
         if not found["type"]:
             self.signature_type = self.signature_file = self.signature_value = None
             return None
@@ -2476,7 +2475,7 @@ class Sequence:
             # signature is for is saying the bytes are wrong rather than
             # letting the parser say something else about them. The text
             # reader checks its own as it parses.
-            found = _cxx.binary_signature(contents)
+            found = _cxx.binary_signature(contents, check=verify)
             if verify and not found["type"]:
                 raise RuntimeError(
                     "read(): verification was asked for and the file carries no signature"
@@ -2488,7 +2487,7 @@ class Sequence:
                 )
         self._native = _cxx.read(contents, verify)
         if binary:
-            self._note_binary_signature(contents)
+            self._note_binary_signature(found)
         if detect_rf_use:
             labelled = self.detect_rf_use()
             if labelled == 0:

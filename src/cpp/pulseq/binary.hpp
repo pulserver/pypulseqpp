@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace pulseq
 {
@@ -54,7 +55,7 @@ namespace pulseq
     constexpr uint64_t SECTION_PREFIX = 0xFFFFFFFFULL << 32;
 
     /** Whether @p contents opens with the binary magic. */
-    bool is_binary(const std::string& contents);
+    bool is_binary(std::string_view contents);
 
     /**
      * Serialize as a Pulseq binary sequence file.
@@ -76,11 +77,13 @@ namespace pulseq
      * @param contents  The whole file.
      * @param type      Filled with the digest's name, `md5`.
      * @param value     Filled with the digest, as lowercase hex.
-     * @return Whether the digest is the digest of what it covers. False when
-     *         there is no signature to check, which @p type says apart.
+     * @param check     Digest what the signature covers and compare.
+     * @return Whether the digest is the digest of what it covers, or with
+     *         @p check false, whether there is one. False when there is no
+     *         signature, which @p type says apart.
      */
-    bool binary_signature(
-        const std::string& contents, std::string& type, std::string& value);
+    bool binary_signature(std::string_view contents, std::string& type, std::string& value,
+                          bool check = true);
 
 } // namespace pulseq
 
