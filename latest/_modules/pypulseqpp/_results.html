@@ -711,6 +711,19 @@
 <span class="sd">        centre of k-space, over the moving axes, than the nearest sample plus</span>
 <span class="sd">        1% of the larger k step beside it; -1 for a readout that does not move</span>
 <span class="sd">        or has fewer than two samples.</span>
+<span class="sd">    origin : NDArray[np.float64] or None</span>
+<span class="sd">        ``(n, 3)``: k-space at the start of its block, in 1/m.</span>
+<span class="sd">    sweep : NDArray[np.int32] or None</span>
+<span class="sd">        ``(n,)``: the entry of :attr:`sweeps` it plays.</span>
+<span class="sd">    sweeps : tuple of NDArray[np.float64] or None</span>
+<span class="sd">        Per distinct readout block, ``(3, samples)``: the k-space swept from</span>
+<span class="sd">        the start of the block to each sample, in 1/m, so that readout ``r`` is</span>
+<span class="sd">        sampled at ``origin[r, :, None] + sweeps[sweep[r]]``, as</span>
+<span class="sd">        :meth:`pypulseqpp.Sequence.adc_kspace` places it.</span>
+
+<span class="sd">    :attr:`origin`, :attr:`sweep` and :attr:`sweeps` are None when an RF pulse</span>
+<span class="sd">    plays in a block that acquires, unless its use is recorded as neither</span>
+<span class="sd">    excitation nor refocusing.</span>
 <span class="sd">    """</span>
 
     <span class="n">block</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -718,6 +731,9 @@
     <span class="n">first_sample</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
     <span class="n">moving</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
     <span class="n">echo</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">sweep</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">sweeps</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

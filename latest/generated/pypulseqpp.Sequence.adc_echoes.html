@@ -556,7 +556,11 @@ spans more than 1e-6 of its widest span along x, y and z; and
 <code class="docutils literal notranslate"><span class="pre">echo</span></code>, <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code>, the first and last 0-based sample no further
 from the centre of k-space, over the moving axes, than the nearest
 sample plus 1% of the larger k step beside it, -1 for a readout
-that does not move or has fewer than two samples.</p>
+that does not move or has fewer than two samples. <code class="docutils literal notranslate"><span class="pre">origin</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sweep</span></code> and <code class="docutils literal notranslate"><span class="pre">sweeps</span></code> give each readout’s k-space as its
+block’s starting point plus what one block of its kind sweeps;
+None when an RF pulse that excites or refocuses, or has no use
+recorded, plays in a block that acquires.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>AdcEchoes</p>
