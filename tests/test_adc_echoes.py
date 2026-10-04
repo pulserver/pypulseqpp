@@ -156,10 +156,12 @@ def test_the_echoes_are_the_rule_written_out_over_the_whole_trajectory(build):
             fov=220e-3, n=64, n_slices=1, tr=None, n_dummy=0
         ),
         lambda: sequences.epi2D_sequence(n_slices=1)[-1],
+        lambda: sequences.gre_spiral2D_sequence(),
         lambda: sequences.se2D_sequence(),
         lambda: sequences.gre_propeller2D_sequence(),
+        lambda: sequences.zte3D_sequence(n=16),
     ],
-    ids=["radial", "epi", "spin-echo", "propeller"],
+    ids=["radial", "epi", "spiral", "spin-echo", "propeller", "zte"],
 )
 def test_each_readout_is_its_origin_plus_the_sweep_of_its_block(build):
     seq = build()

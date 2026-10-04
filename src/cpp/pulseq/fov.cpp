@@ -1597,6 +1597,8 @@ namespace pulseq
          * the gradient and the ADC, which are all it depends on. */
         using AxisSweeps = std::map<std::array<int32_t, 2>, std::vector<double>>;
         constexpr size_t MEMO_LIMIT = 4096;
+        /** How near two gradient corners are to be one, as `adc_kspace` joins them. */
+        constexpr double kJoined = 1e-9;
 
         const std::vector<double>& axis_sweep(const Played& played, int32_t gradient,
                                               int32_t adc_id, const double* adc, int n,
@@ -1670,6 +1672,58 @@ namespace pulseq
             }
             return echo->second;
         }
+        /** Zero the weights `waveforms_and_times` does not play an axis with. */
+        void drop_faint_weights(double matrix[3][3])
+        {
+            for (int into = 0; into < 3; ++into)
+                for (int from = 0; from < 3; ++from)
+                    if (std::fabs(matrix[into][from]) < 1e-6)
+                        matrix[into][from] = 0.0;
+        }
+
+        /**
+         * Give a block's gradients the values the block before left, where
+         * they start as those end, as `adc_kspace` joins them: on every
+         * physical axis when all three play on both sides, else axis by axis
+         * between two unrotated blocks. @p carried is physical when all three
+         * carry. True when a value changed, @p joined then holding it.
+         */
+        bool join_carried(Played played[3], bool rotated, const double matrix[3][3],
+                          const bool starts[3], const double carried[3], const bool carries[3],
+                          bool carried_rotated, std::array<std::vector<double>, 3>& joined)
+        {
+            double step[3] = {0.0, 0.0, 0.0};
+            if (starts[0] && starts[1] && starts[2] && carries[0] && carries[1] && carries[2])
+            {
+                double first[3];
+                for (int axis = 0; axis < 3; ++axis)
+                    first[axis] = played[axis].values->front();
+                if (rotated)
+                    rotate(matrix, first);
+                for (int axis = 0; axis < 3; ++axis)
+                    step[axis] = carried[axis] - first[axis];
+                if (rotated)
+                    unrotate(matrix, step);
+            }
+            else if (!rotated && !carried_rotated)
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                    if (starts[axis] && carries[axis])
+                        step[axis] = carried[axis] - played[axis].values->front();
+            }
+            bool changed = false;
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                if (step[axis] == 0.0)
+                    continue;
+                joined[axis] = *played[axis].values;
+                joined[axis][0] += step[axis];
+                played[axis].values = &joined[axis];
+                changed = true;
+            }
+            return changed;
+        }
+
     } // namespace
 
     bool walked_adc_echoes(const Sequence& seq, AdcEchoes& out)
@@ -1695,18 +1749,44 @@ namespace pulseq
         std::array<std::vector<double>, 3> k;
         std::array<std::vector<double>, 3> swept;
         std::vector<double> distance;
+        /* A block whose three gradients start where the three of the block
+         * before ended plays on from where those left the physical axes, as
+         * `adc_kspace` joins them; the two can differ by the rounding a file
+         * stores them with. */
+        double carried[3] = {0.0, 0.0, 0.0};
+        bool carries[3] = {false, false, false};
+        bool carried_rotated = false;
+        std::array<std::vector<double>, 3> joined;
+        const double* durations = seq.block_durations();
         int64_t samples = 0;
         for (int index = 1; index <= blocks; ++index)
         {
             const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
             const bool rotated = block_rotation(seq, row, matrix);
+            if (rotated)
+                drop_faint_weights(matrix);
+            bool starts[3] = {false, false, false};
+            bool ends[3] = {false, false, false};
             for (int axis = 0; axis < 3; ++axis)
             {
                 const Corners& drawn = corners[row[1 + axis]];
                 played[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
-                if (played[axis].values != nullptr)
-                    drawn.at(0.0, played[axis].times);
+                if (played[axis].values == nullptr)
+                    continue;
+                drawn.at(0.0, played[axis].times);
+                starts[axis] = played[axis].times.front() <= kJoined;
+                ends[axis] = played[axis].times.back() >= durations[index - 1] - kJoined;
             }
+            const bool joins = join_carried(played, rotated, matrix, starts, carried, carries,
+                                            carried_rotated, joined);
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                carries[axis] = ends[axis];
+                carried[axis] = ends[axis] ? played[axis].values->back() : 0.0;
+            }
+            carried_rotated = rotated;
+            if (rotated && ends[0] && ends[1] && ends[2])
+                rotate(matrix, carried);
 
             if (row[4] > 0)
             {
@@ -1719,15 +1799,20 @@ namespace pulseq
 
                 const std::array<int32_t, 5> key{
                     row[1], row[2], row[3], row[4], rotated ? row[BLOCK_ROTATION_COLUMN] : 0};
-                auto [found, fresh] = readouts.try_emplace(key);
-                Readout& readout = found->second;
+                /* A joined readout is not the readout its ids name. */
+                Readout unshared;
+                AxisSweeps unshared_memo;
+                auto [found, fresh] =
+                    joins ? std::make_pair(readouts.end(), true) : readouts.try_emplace(key);
+                Readout& readout = joins ? unshared : found->second;
                 bool have_swept = false;
                 const auto sweep = [&] {
                     if (have_swept)
                         return;
                     if (memo.size() > MEMO_LIMIT)
                         memo.clear();
-                    sweep_readout(played, row, adc, n, rotated, matrix, memo, swept);
+                    sweep_readout(
+                        played, row, adc, n, rotated, matrix, joins ? unshared_memo : memo, swept);
                     have_swept = true;
                 };
                 if (fresh)
