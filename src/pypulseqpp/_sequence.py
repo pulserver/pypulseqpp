@@ -2490,10 +2490,7 @@ class Sequence:
         if binary:
             self._note_binary_signature(contents)
         if detect_rf_use:
-            system = self.system
-            labelled = self._native.detect_rf_uses(
-                _limit(system, "B0", 1.5), _limit(system, "gamma", 42576000.0)
-            )
+            labelled = self.detect_rf_use()
             if labelled == 0:
                 warn(
                     "read(): detect_rf_use had nothing to do; every pulse in "
@@ -2750,6 +2747,31 @@ class Sequence:
 
     #: Upstream scanner installation, using this sequence's write method.
     install = _upstream.Sequence.install
+
+    def detect_rf_use(self, B0: float | None = None, gamma: float | None = None) -> int:
+        """Record what each unlabelled pulse is for, from what it does.
+
+        The rule ``read(detect_rf_use=True)`` applies to a file. Pulses that
+        already record a use are left alone.
+
+        Parameters
+        ----------
+        B0 : float, default=None
+            Field strength in T at which a frequency offset is read in ppm; the
+            system's, else 1.5.
+        gamma : float, default=None
+            Gyromagnetic ratio in Hz/T; the system's by default.
+
+        Returns
+        -------
+        int
+            How many pulses were labelled.
+        """
+        system = self.system
+        return self._native.detect_rf_uses(
+            _limit(system, "B0", 1.5) if B0 is None else float(B0),
+            _limit(system, "gamma", 42576000.0) if gamma is None else float(gamma),
+        )
 
     # -- collapsing ----------------------------------------------------
 
