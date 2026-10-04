@@ -1522,6 +1522,55 @@ namespace pulseq
             }
         };
 
+        /* Distinct readout paths from the first sample, numbered in order of
+         * appearance, until dropped. */
+        class DistinctPaths
+        {
+          public:
+            explicit DistinctPaths(size_t limit) : limit_(limit) {}
+
+            /* The path's number, or -1 once more than the limit are distinct. */
+            int32_t add(const std::array<std::vector<double>, 3>& swept,
+                        const std::array<double, 3>& lead, size_t m)
+            {
+                if (!keep_)
+                    return -1;
+                std::vector<double> relative(3 * m);
+                for (size_t axis = 0; axis < 3; ++axis)
+                    for (size_t i = 0; i < m; ++i)
+                        relative[axis * m + i] = swept[axis][i] - lead[axis];
+                auto [known, unseen] =
+                    index_.try_emplace(std::move(relative), static_cast<int32_t>(by_id_.size()));
+                if (unseen)
+                    by_id_.push_back(&known->first);
+                if (by_id_.size() <= limit_)
+                    return known->second;
+                keep_ = false;
+                decltype(index_)().swap(index_);
+                decltype(by_id_)().swap(by_id_);
+                return -1;
+            }
+            bool kept() const { return keep_; }
+            void export_to(std::vector<std::array<std::vector<double>, 3>>& sweeps) const
+            {
+                for (const std::vector<double>* path : by_id_)
+                {
+                    const size_t m = path->size() / 3;
+                    std::array<std::vector<double>, 3> kept;
+                    for (size_t axis = 0; axis < 3; ++axis)
+                        kept[axis].assign(path->begin() + static_cast<long>(axis * m),
+                                          path->begin() + static_cast<long>((axis + 1) * m));
+                    sweeps.push_back(std::move(kept));
+                }
+            }
+
+          private:
+            std::unordered_map<std::vector<double>, int32_t, SweepHash> index_;
+            std::vector<const std::vector<double>*> by_id_;
+            size_t limit_;
+            bool keep_ = true;
+        };
+
         /* Excitation, refocusing and inversion at the readout ask for the
          * reset-aware k-space the walk does not keep. */
         bool acquires_beside_rf_of_unknown_role(const Sequence& seq)
@@ -1630,16 +1679,13 @@ namespace pulseq
         const int32_t* events = seq.block_events();
         const Table& adcs = seq.adc_library();
         std::map<std::array<int32_t, 5>, Readout> readouts;
-        std::unordered_map<std::vector<double>, int32_t, SweepHash> distinct;
-        std::vector<const std::vector<double>*> by_id;
         AxisSweeps memo;
         /* Sweeps are kept while one readout in 16 at most has a path of its
          * own; past that they would hold most of the samples. */
         size_t acquiring = 0;
         for (int index = 1; index <= blocks; ++index)
             acquiring += events[static_cast<size_t>(index - 1) * BLOCK_WIDTH + 4] > 0;
-        const size_t distinct_limit = std::max<size_t>(4096, acquiring / 16);
-        bool keep = true;
+        DistinctPaths paths(std::max<size_t>(4096, acquiring / 16));
         CornerCache corners(seq);
         Played played[3];
         double origin[3] = {0.0, 0.0, 0.0};
@@ -1692,37 +1738,15 @@ namespace pulseq
                     const size_t m = static_cast<size_t>(n);
                     for (size_t axis = 0; axis < 3; ++axis)
                         readout.lead[axis] = m > 0 ? swept[axis][0] : 0.0;
-                    if (keep)
-                    {
-                        std::vector<double> relative(3 * m);
-                        for (size_t axis = 0; axis < 3; ++axis)
-                            for (size_t i = 0; i < m; ++i)
-                                relative[axis * m + i] = swept[axis][i] - readout.lead[axis];
-                        auto [known, unseen] = distinct.try_emplace(
-                            std::move(relative), static_cast<int32_t>(by_id.size()));
-                        if (unseen)
-                            by_id.push_back(&known->first);
-                        readout.id = known->second;
-                        if (by_id.size() > distinct_limit)
-                        {
-                            keep = false;
-                            decltype(distinct)().swap(distinct);
-                            decltype(by_id)().swap(by_id);
-                            decltype(out.origin)().swap(out.origin);
-                            decltype(out.sweep)().swap(out.sweep);
-                        }
-                    }
+                    readout.id = paths.add(swept, readout.lead, m);
                 }
                 const std::array<int32_t, 2>& echo =
                     readout_echo(readout, origin, sweep, n, swept, k, distance);
                 out.moving.insert(out.moving.end(), readout.moving, readout.moving + 3);
                 out.echo.insert(out.echo.end(), echo.begin(), echo.end());
-                if (keep)
-                {
-                    for (size_t axis = 0; axis < 3; ++axis)
-                        out.origin.push_back(origin[axis] + readout.lead[axis]);
-                    out.sweep.push_back(readout.id);
-                }
+                for (size_t axis = 0; axis < 3; ++axis)
+                    out.origin.push_back(origin[axis] + readout.lead[axis]);
+                out.sweep.push_back(readout.id);
             }
 
             double step[3];
@@ -1731,14 +1755,14 @@ namespace pulseq
             else
                 advance_walk(seq, row, played, origin, step);
         }
-        for (const std::vector<double>* sweep : by_id)
+        if (paths.kept())
         {
-            const size_t m = sweep->size() / 3;
-            std::array<std::vector<double>, 3> kept;
-            for (size_t axis = 0; axis < 3; ++axis)
-                kept[axis].assign(sweep->begin() + static_cast<long>(axis * m),
-                                  sweep->begin() + static_cast<long>((axis + 1) * m));
-            out.sweeps.push_back(std::move(kept));
+            paths.export_to(out.sweeps);
+        }
+        else
+        {
+            out.origin.clear();
+            out.sweep.clear();
         }
         return true;
     }
