@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 
 namespace pulseq
@@ -282,6 +283,91 @@ namespace pulseq
                 samples.data(), static_cast<int>(samples.size()));
         }
 
+        /**
+         * The line a moving readout's offsets are taken along: through k at
+         * the window's centre, at the rate between the samples either side
+         * of it, both read off the samples rather than the gradient. A
+         * receiver that knows only the samples' k draws the same line, so
+         * it can compute the modulation from the shift alone.
+         *
+         * @param slope  Set to the rate, in Hz/m.
+         * @param swept  Set to the turns @p shift has swept at the centre.
+         */
+        void centre_chord(
+            const Played& played, double shift, int samples, double dwell, double delay,
+            double& slope, double& swept)
+        {
+            const double centre = 0.5 * static_cast<double>(samples - 1);
+            const int below = static_cast<int>(std::floor(centre));
+            const auto at = [&](double index)
+            { return played.swept(delay + dwell * (index + 0.5)); };
+            double k = 0.0;
+            if (samples % 2 != 0)
+            {
+                k = at(below);
+                slope = (at(below + 1) - at(below - 1)) / (2.0 * dwell);
+            }
+            else
+            {
+                const double low = at(below);
+                const double high = at(below + 1);
+                k = 0.5 * (low + high);
+                slope = (high - low) / dwell;
+            }
+            swept = turns(shift * k);
+        }
+
+        /**
+         * Phase shapes already registered, keyed by everything the added
+         * turns are computed from: the shape they are folded into, the
+         * event's timing, and the shift and corners of each axis whose
+         * gradient moves under it, all timed from the block's start. Equal
+         * keys give equal samples, so the readouts and pulses a sequence
+         * repeats share one row rather than registering one each.
+         */
+        class ShapeMemo
+        {
+        public:
+            void start(double tag)
+            {
+                key_.clear();
+                add(tag);
+            }
+
+            void add(double value)
+            {
+                key_.append(reinterpret_cast<const char*>(&value), sizeof value);
+            }
+
+            void add(int axis, double shift, double at, const Played& played)
+            {
+                add(static_cast<double>(axis));
+                add(shift);
+                add(at);
+                const size_t n = played.count();
+                add(static_cast<double>(n));
+                key_.append(
+                    reinterpret_cast<const char*>(played.times.data()), n * sizeof(double));
+                key_.append(
+                    reinterpret_cast<const char*>(played.values->data()), n * sizeof(double));
+            }
+
+            /** The row for the current key, made by @p make on first use. */
+            template <typename Make> int row(Make make)
+            {
+                const auto found = rows_.find(key_);
+                if (found != rows_.end())
+                    return found->second;
+                const int made = make();
+                rows_.emplace(key_, made);
+                return made;
+            }
+
+        private:
+            std::string key_;
+            std::unordered_map<std::string, int> rows_;
+        };
+
         /** An event row with a shift folded in: what it was, frequency, phase, shape. */
         using MovedRow = std::tuple<int32_t, double, double, double>;
 
@@ -426,92 +512,6 @@ namespace pulseq
                 for (int axis = 0; axis < 3; ++axis)
                     origin[axis] += whole[axis];
             }
-        }
-
-        /**
-         * When a readout passes closest to the centre of k-space, relative
-         * to the start of its block.
-         *
-         * The sample nearest the origin, refined by projecting the way back
-         * to the origin onto the step to its neighbour -- which is the rule
-         * `test_report` measures an echo time by, so a sequence's echo and
-         * the instant its shift is referenced to are the same instant.
-         *
-         * @p origin is where the trajectory stands entering the block, so
-         * this is asked of absolute k rather than of what the block alone
-         * sweeps: an asymmetric echo is asymmetric about the origin, not
-         * about the block.
-         */
-        double echo_at(
-            const Played played[3],
-            const double origin[3],
-            int samples,
-            double dwell,
-            double delay,
-            double* nearest_out = nullptr)
-        {
-            std::vector<double> found(static_cast<size_t>(samples) * 3, 0.0);
-            Sweep along_axis;
-            for (int axis = 0; axis < 3; ++axis)
-            {
-                if (played[axis].values == nullptr)
-                {
-                    for (int i = 0; i < samples; ++i)
-                        found[static_cast<size_t>(i) * 3 + static_cast<size_t>(axis)] =
-                            origin[axis];
-                    continue;
-                }
-                along_axis.restart(played[axis], 0.0);
-                for (int i = 0; i < samples; ++i)
-                {
-                    const double when = delay + dwell * (static_cast<double>(i) + 0.5);
-                    found[static_cast<size_t>(i) * 3 + static_cast<size_t>(axis)] =
-                        origin[axis] + along_axis.upto(when);
-                }
-            }
-
-            double nearest = -1.0;
-            int index = 0;
-            for (int i = 0; i < samples; ++i)
-            {
-                const double* k = &found[static_cast<size_t>(i) * 3];
-                const double square = k[0] * k[0] + k[1] * k[1] + k[2] * k[2];
-                if (nearest < 0.0 || square < nearest)
-                {
-                    nearest = square;
-                    index = i;
-                }
-            }
-
-            if (nearest_out != nullptr)
-                *nearest_out = nearest;
-
-            double when = delay + dwell * (static_cast<double>(index) + 0.5);
-            if (nearest <= kEps * kEps)
-                return when;
-
-            const double* here = &found[static_cast<size_t>(index) * 3];
-            for (int side = -1; side <= 1; side += 2)
-            {
-                const int neighbour = index + side;
-                if (neighbour < 0 || neighbour >= samples)
-                    continue;
-                const double* there = &found[static_cast<size_t>(neighbour) * 3];
-                double along = 0.0;
-                double span = 0.0;
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    const double step = there[axis] - here[axis];
-                    along += -here[axis] * step;
-                    span += step * step;
-                }
-                if (span <= kEps || along <= 0.0)
-                    continue;
-                along /= span;
-                when = delay + dwell * (static_cast<double>(index) + 0.5 +
-                                        along * static_cast<double>(side));
-            }
-            return when;
         }
 
         /**
@@ -908,69 +908,6 @@ namespace pulseq
         const int32_t* events = std::as_const(seq).block_events();
         Played played[3];
 
-        /**
-         * Choose one ADC phase reference per block/ADC definition in this range.
-         * Use the playout nearest k-space zero, so repeated readouts share a phase
-         * profile even when their phase encodes differ.
-         */
-        std::map<std::pair<int32_t, int32_t>, std::pair<double, double>> pivot;
-        /* Copied: repointing a block re-derives its definitions, and the
-         * references are keyed by the ones the blocks had when chosen. */
-        const std::vector<int32_t> block_defs = std::as_const(seq).instance_definitions();
-        const std::vector<int32_t> adc_defs = std::as_const(seq).instance_adc_definitions();
-        if (scope == FovShiftScope::RfAndAdc)
-        {
-            double walking[3] = {origin[0], origin[1], origin[2]};
-            Played over[3];
-            for (int index = from; index <= to; ++index)
-            {
-                const int32_t* row =
-                    events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
-                for (int axis = 0; axis < 3; ++axis)
-                {
-                    const Corners& drawn = corners[row[1 + axis]];
-                    over[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
-                    if (over[axis].values != nullptr)
-                        drawn.at(0.0, over[axis].times);
-                }
-
-                double turned[3][3];
-                const bool rotated = through_rotation && block_rotation(seq, row, turned);
-                const int32_t adc_id = row[4];
-                const bool writes = exempt == nullptr ||
-                    exempt[static_cast<size_t>(index - from)] == 0;
-                if (adc_id > 0 && writes)
-                {
-                    const double* adc = seq.adc_library().row(adc_id);
-                    const int samples = static_cast<int>(adc[0]);
-                    if (samples > 0)
-                    {
-                        double own[3] = {walking[0], walking[1], walking[2]};
-                        if (rotated)
-                            unrotate(turned, own);
-                        double nearest = 0.0;
-                        const double when =
-                            echo_at(over, own, samples, adc[1], adc[2], &nearest);
-                        const size_t at = static_cast<size_t>(index) - 1;
-                        const std::pair<int32_t, int32_t> key = {
-                            at < block_defs.size() ? block_defs[at] : 0,
-                            at < adc_defs.size() ? adc_defs[at] : 0};
-                        auto found = pivot.find(key);
-                        if (found == pivot.end() || nearest < found->second.first)
-                            pivot[key] = {nearest, when};
-                    }
-                }
-
-                if (rotated)
-                {
-                    double ignored[3];
-                    advance_turned_walk(seq, row, over, turned, walking, ignored);
-                }
-                else
-                    advance_walk(seq, row, over, walking);
-            }
-        }
-
         /** An axis whose gradient moves under an event, and what it was worth. */
         struct Turning
         {
@@ -985,6 +922,7 @@ namespace pulseq
         Sweep sweeping;
         std::map<MovedRow, int32_t> moved_rf;
         std::map<MovedRow, int32_t> moved_adc;
+        ShapeMemo memo;
 
         for (int index = from; index <= to; ++index)
         {
@@ -1072,6 +1010,12 @@ namespace pulseq
                      * goes into the phase the pulse is played with, sample by
                      * sample and referenced to the pulse's own centre so that
                      * what the pulse *does* is untouched. */
+                    memo.start(1.0);
+                    for (const int field : {1, 2, 3, 4, 5})
+                        memo.add(rf[field]);
+                    for (const Turning& axis : turning)
+                        memo.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
+                    rf[2] = static_cast<double>(memo.row([&] {
                     added.assign(moment.size(), 0.0);
                     for (const Turning& axis : turning)
                     {
@@ -1091,8 +1035,8 @@ namespace pulseq
                                     axis.swept));
                         }
                     }
-                    rf[2] = static_cast<double>(
-                        phase_shape_with(seq, static_cast<int>(rf[2]), added, 1.0));
+                    return phase_shape_with(seq, static_cast<int>(rf[2]), added, 1.0);
+                    }));
                 }
                 const char use =
                     std::as_const(seq).rf_uses()[static_cast<size_t>(rf_id) - 1];
@@ -1112,21 +1056,10 @@ namespace pulseq
                 const double opens = delay + 0.5 * dwell;
                 const double closes =
                     delay + (static_cast<double>(samples) - 0.5) * dwell;
-                /**
-                 * Reference ADC phase to the definition's nearest k-space approach,
-                 * not the window midpoint or this playout's nearest sample.
-                 */
-                const size_t at_block = static_cast<size_t>(index) - 1;
-                const std::pair<int32_t, int32_t> key = {
-                    at_block < block_defs.size() ? block_defs[at_block] : 0,
-                    at_block < adc_defs.size() ? adc_defs[at_block] : 0};
-                const auto known = pivot.find(key);
-                double own[3] = {origin[0], origin[1], origin[2]};
-                if (rotated)
-                    unrotate(turned, own);
-                const double echo = known != pivot.end()
-                    ? known->second.second
-                    : echo_at(played, own, samples, dwell, delay);
+                /* Referenced to the window's centre, as the reference
+                 * toolbox does: the offsets carry the phase and frequency
+                 * there, the modulation what curves about it. */
+                const double echo = delay + 0.5 * dwell * static_cast<double>(samples);
                 double frequency = 0.0;
                 double phase = entering;
                 for (int axis = 0; axis < 3; ++axis)
@@ -1135,8 +1068,10 @@ namespace pulseq
                         continue;
                     const bool steady = played[axis].constant_over(opens, closes);
                     const double at = steady ? delay : echo;
-                    const double slope = played[axis].at(at);
-                    const double swept = played[axis].swept_turns(at, shift[axis]);
+                    double slope = played[axis].at(at);
+                    double swept = played[axis].swept_turns(at, shift[axis]);
+                    if (!steady && samples >= 3)
+                        centre_chord(played[axis], shift[axis], samples, dwell, delay, slope, swept);
                     frequency += shift[axis] * slope;
                     phase = turns(
                         phase +
@@ -1152,6 +1087,12 @@ namespace pulseq
                     /**
                      * Store residual phase curvature; constant gradients need no modulation shape.
                      */
+                    memo.start(2.0);
+                    for (const int field : {0, 1, 2, 7})
+                        memo.add(adc[field]);
+                    for (const Turning& axis : turning)
+                        memo.add(axis.axis, shift[axis.axis], axis.at, played[axis.axis]);
+                    adc[7] = static_cast<double>(memo.row([&] {
                     added.assign(static_cast<size_t>(samples), 0.0);
                     for (const Turning& axis : turning)
                     {
@@ -1170,8 +1111,8 @@ namespace pulseq
                     }
                     for (size_t i = 0; i < added.size(); ++i)
                         added[i] *= 2.0 * kPi;
-                    adc[7] = static_cast<double>(phase_shape_with(
-                        seq, static_cast<int>(adc[7]), added, 2.0 * kPi));
+                    return phase_shape_with(seq, static_cast<int>(adc[7]), added, 2.0 * kPi);
+                    }));
                 }
                 adc_to = moved_row(moved_adc, {adc_id, adc[5], adc[6], adc[7]},
                                    [&] { return seq.register_adc(adc); });
