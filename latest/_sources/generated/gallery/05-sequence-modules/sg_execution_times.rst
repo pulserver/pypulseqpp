@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.300** total execution time for 3 files **from generated/gallery/05-sequence-modules**:
+**00:01.968** total execution time for 3 files **from generated/gallery/05-sequence-modules**:
 
 .. container::
 
@@ -33,11 +33,11 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_05-sequence-modules_01_excitation.py` (``01_excitation.py``)
-     - 00:00.873
+     - 00:01.367
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_05-sequence-modules_03_sequence_app.py` (``03_sequence_app.py``)
-     - 00:00.255
+     - 00:00.357
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_05-sequence-modules_02_readout.py` (``02_readout.py``)
-     - 00:00.172
+     - 00:00.244
      - 0.0
