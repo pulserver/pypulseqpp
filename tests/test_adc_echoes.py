@@ -133,8 +133,10 @@ def test_each_readout_starts_at_its_column_of_adc_kspace(system):
         ),
         lambda: sequences.epi2D_sequence(n_slices=1)[-1],
         lambda: sequences.gre_spiral2D_sequence(),
+        lambda: sequences.se2D_sequence(),
+        lambda: sequences.gre_propeller2D_sequence(),
     ],
-    ids=["radial", "epi", "spiral"],
+    ids=["radial", "epi", "spiral", "spin-echo", "propeller"],
 )
 def test_the_echoes_are_the_rule_written_out_over_the_whole_trajectory(build):
     seq = build()

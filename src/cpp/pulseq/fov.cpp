@@ -1169,4 +1169,149 @@ namespace pulseq
         return out;
     }
 
+    namespace
+    {
+        /* What a readout block sweeps from its start at each sample, and the
+         * echoes found for each k it has started from. */
+        struct Readout
+        {
+            std::array<std::vector<double>, 3> swept;
+            std::map<std::array<double, 3>, std::array<int32_t, 2>> echoes;
+            uint8_t moving[3] = {0, 0, 0};
+        };
+
+        /* Excitation, refocusing and inversion at the readout ask for the
+         * reset-aware k-space the walk does not keep. */
+        bool acquires_beside_rf_of_unknown_role(const Sequence& seq)
+        {
+            const int blocks = seq.num_blocks();
+            const int32_t* events = seq.block_events();
+            const std::vector<char>& uses = seq.rf_uses();
+            for (int index = 1; index <= blocks; ++index)
+            {
+                const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+                if (row[4] <= 0 || row[0] <= 0)
+                    continue;
+                const size_t at = static_cast<size_t>(row[0]) - 1;
+                const char use = at < uses.size() ? uses[at] : 'u';
+                if (use == 'e' || use == 'u' || use == 'r')
+                    return true;
+            }
+            return false;
+        }
+
+        void sweep_readout(const Played played[3], const double* adc, int n, bool rotated,
+                           const double matrix[3][3], Readout& readout,
+                           std::vector<double>& distance)
+        {
+            const double dwell = adc[1];
+            const double delay = adc[2];
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                std::vector<double>& into = readout.swept[static_cast<size_t>(axis)];
+                into.assign(static_cast<size_t>(n), 0.0);
+                if (played[axis].values == nullptr)
+                    continue;
+                Sweep along;
+                along.restart(played[axis], 0.0);
+                for (int i = 0; i < n; ++i)
+                    into[static_cast<size_t>(i)] =
+                        along.upto(delay + dwell * (static_cast<double>(i) + 0.5));
+            }
+            if (rotated)
+            {
+                for (size_t i = 0; i < static_cast<size_t>(n); ++i)
+                {
+                    double v[3] = {readout.swept[0][i], readout.swept[1][i], readout.swept[2][i]};
+                    rotate(matrix, v);
+                    for (size_t axis = 0; axis < 3; ++axis)
+                        readout.swept[axis][i] = v[axis];
+                }
+            }
+            /* Which axes move does not depend on where the readout starts: a
+             * span is a difference. */
+            int32_t unused[2];
+            find_echo(readout.swept, 0, n, readout.moving, unused, distance);
+        }
+
+        const std::array<int32_t, 2>& readout_echo(Readout& readout, const double origin[3], int n,
+                                                   std::array<std::vector<double>, 3>& k,
+                                                   std::vector<double>& distance)
+        {
+            std::array<double, 3> start{};
+            for (size_t axis = 0; axis < 3; ++axis)
+                start[axis] = readout.moving[axis] ? origin[axis] : 0.0;
+            auto [echo, unseen] = readout.echoes.try_emplace(start);
+            if (unseen)
+            {
+                for (size_t axis = 0; axis < 3; ++axis)
+                {
+                    k[axis].resize(static_cast<size_t>(n));
+                    for (size_t i = 0; i < static_cast<size_t>(n); ++i)
+                        k[axis][i] = origin[axis] + readout.swept[axis][i];
+                }
+                uint8_t moving[3];
+                find_echo(k, 0, n, moving, echo->second.data(), distance);
+            }
+            return echo->second;
+        }
+    } // namespace
+
+    bool walked_adc_echoes(const Sequence& seq, AdcEchoes& out)
+    {
+        if (acquires_beside_rf_of_unknown_role(seq))
+            return false;
+
+        const int blocks = seq.num_blocks();
+        const int32_t* events = seq.block_events();
+        const Table& adcs = seq.adc_library();
+        std::map<std::array<int32_t, 5>, Readout> readouts;
+        CornerCache corners(seq);
+        Played played[3];
+        double origin[3] = {0.0, 0.0, 0.0};
+        double matrix[3][3];
+        std::array<std::vector<double>, 3> k;
+        std::vector<double> distance;
+        int64_t samples = 0;
+        for (int index = 1; index <= blocks; ++index)
+        {
+            const int32_t* row = events + static_cast<size_t>(index - 1) * BLOCK_WIDTH;
+            const bool rotated = block_rotation(seq, row, matrix);
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                const Corners& drawn = corners[row[1 + axis]];
+                played[axis].values = drawn.values.empty() ? nullptr : &drawn.values;
+                if (played[axis].values != nullptr)
+                    drawn.at(0.0, played[axis].times);
+            }
+
+            if (row[4] > 0)
+            {
+                const double* adc = adcs.row(row[4]);
+                const int n = static_cast<int>(std::lround(adc[0]));
+                out.block.push_back(index);
+                out.num_samples.push_back(n);
+                out.first_sample.push_back(samples);
+                samples += n;
+
+                const std::array<int32_t, 5> key{
+                    row[1], row[2], row[3], row[4], rotated ? row[BLOCK_ROTATION_COLUMN] : 0};
+                auto [found, fresh] = readouts.try_emplace(key);
+                Readout& readout = found->second;
+                if (fresh)
+                    sweep_readout(played, adc, n, rotated, matrix, readout, distance);
+                const std::array<int32_t, 2>& echo = readout_echo(readout, origin, n, k, distance);
+                out.moving.insert(out.moving.end(), readout.moving, readout.moving + 3);
+                out.echo.insert(out.echo.end(), echo.begin(), echo.end());
+            }
+
+            double swept[3];
+            if (rotated)
+                advance_turned_walk(seq, row, played, matrix, origin, swept);
+            else
+                advance_walk(seq, row, played, origin, swept);
+        }
+        return true;
+    }
+
 } // namespace pulseq

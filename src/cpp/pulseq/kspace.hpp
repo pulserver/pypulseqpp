@@ -112,6 +112,19 @@ namespace pulseq
     /** Find where each readout passes nearest the centre of k-space. */
     AdcEchoes adc_echoes(const Sequence& seq, const KspaceOptions& base);
 
+    /**
+     * The moving axes and echo samples, as AdcEchoes defines them, of the
+     * @p n samples from @p offset of @p k, written to @p moving (3) and
+     * @p echo (2). @p distance is scratch.
+     */
+    void find_echo(
+        const std::array<std::vector<double>, 3>& k,
+        size_t offset,
+        int n,
+        uint8_t* moving,
+        int32_t* echo,
+        std::vector<double>& distance);
+
     /** The k-space location of the ADC samples of a run of readouts. */
     struct ReadoutKspace
     {
