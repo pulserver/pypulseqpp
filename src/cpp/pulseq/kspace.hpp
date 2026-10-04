@@ -108,16 +108,17 @@ namespace pulseq
          */
         std::vector<int32_t> echo;
         /**
-         * Readouts x 3: k-space at the start of each readout's block, in 1/m.
-         * With `sweep` and `sweeps`, filled only when k-space is followed
-         * block by block, and empty otherwise.
+         * Readouts x 3: k-space at each readout's first sample, in 1/m. With
+         * `sweep` and `sweeps`, filled only when k-space is followed block by
+         * block and at most one readout in 16 has a path of its own, and
+         * empty otherwise.
          */
         std::vector<double> origin;
         /** Index into `sweeps` of each readout. */
         std::vector<int32_t> sweep;
         /**
-         * Per distinct readout block, the k-space swept from the block's start
-         * to each sample, axis by axis, so that sample i of readout r is at
+         * Each distinct k-space path from a readout's first sample to each of
+         * its samples, axis by axis, so that sample i of readout r is at
          * origin[r] + sweeps[sweep[r]][axis][i].
          */
         std::vector<std::array<std::vector<double>, 3>> sweeps;

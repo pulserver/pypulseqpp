@@ -156,10 +156,12 @@ def test_the_echoes_are_the_rule_written_out_over_the_whole_trajectory(build):
             fov=220e-3, n=64, n_slices=1, tr=None, n_dummy=0
         ),
         lambda: sequences.epi2D_sequence(n_slices=1)[-1],
+        lambda: sequences.gre_spiral2D_sequence(),
         lambda: sequences.se2D_sequence(),
         lambda: sequences.gre_propeller2D_sequence(),
+        lambda: sequences.zte3D_sequence(n=16),
     ],
-    ids=["radial", "epi", "spin-echo", "propeller"],
+    ids=["radial", "epi", "spiral", "spin-echo", "propeller", "zte"],
 )
 def test_each_readout_is_its_origin_plus_the_sweep_of_its_block(build):
     seq = build()
@@ -187,6 +189,31 @@ def test_a_readout_beside_an_excitation_has_no_sweeps(system):
     echoes = seq.adc_echoes()
 
     assert echoes.origin is None and echoes.sweep is None and echoes.sweeps is None
+
+
+def test_readouts_with_paths_of_their_own_keep_their_echoes_but_no_sweeps(system):
+    """More than 4096 readouts, each along a direction of its own."""
+    seq = pp.Sequence(system)
+    adc = pp.make_adc(8, duration=0.8e-3, delay=0.2e-3, system=system)
+    for spoke in range(4200):
+        angle = 2 * math.pi * spoke / 4200
+        seq.add_block(
+            adc,
+            *(
+                pp.make_trapezoid(
+                    axis, area=400 * f, duration=1.2e-3, rise_time=0.2e-3, system=system
+                )
+                for axis, f in (("x", math.cos(angle)), ("y", math.sin(angle)))
+                if abs(f) > 1e-3
+            ),
+        )
+
+    echoes = seq.adc_echoes()
+
+    assert echoes.origin is None and echoes.sweep is None and echoes.sweeps is None
+    _, moving, echo = plain_echoes(seq)
+    np.testing.assert_array_equal(echoes.moving, moving)
+    np.testing.assert_array_equal(echoes.echo, echo)
 
 
 def test_k_space_is_followed_a_range_at_a_time_without_changing_the_answer(system):
