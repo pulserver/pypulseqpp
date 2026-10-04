@@ -40,6 +40,10 @@ def played(system, *blocks):
 
 def encoded(system):
     """Phase-encoded readouts with a sinusoidal gradient: trapezoids and a shape."""
+    return played(system, *encoded_blocks(system))
+
+
+def encoded_blocks(system):
     readout = pp.make_trapezoid("x", area=2000, system=system)
     n = 300
     wave = 1e5 * np.sin(np.pi * (np.arange(n) + 0.5) / n) ** 2
@@ -51,7 +55,7 @@ def encoded(system):
         blocks.append([readout])
         blocks.append([shaped])
         blocks.append([pp.make_delay(2e-3)])
-    return played(system, *blocks)
+    return blocks
 
 
 def trace(sequence, model, rotation=None):
@@ -98,13 +102,15 @@ def test_the_safe_response_is_upstreams(system, tmp_path):
     assert (found["norm"]["value"] < 1.0) == ok
 
 
-def test_the_chronaxie_response_is_the_convolution_over_the_whole_timeline(system):
+def test_the_chronaxie_response_is_the_whole_convolution_to_1e5_of_the_largest_slew(
+    system,
+):
     sequence = encoded(system)
     dt = system.grad_raster_time
     total = round(sequence.duration()[0] / dt)
     t = (np.arange(total) + 0.5) * dt
     c, s_min = CHRONAXIE.chronaxie, CHRONAXIE.rheobase / CHRONAXIE.alpha
-    lags = np.arange(int(20 * c / dt) + 1) * dt
+    lags = np.arange(total) * dt
     kernel = c * dt / (s_min * (c + lags) * (c + lags + dt))
 
     found = trace(sequence, CHRONAXIE)
@@ -113,9 +119,35 @@ def test_the_chronaxie_response_is_the_convolution_over_the_whole_timeline(syste
         g = np.interp(t, channel[0], channel[1], left=0.0, right=0.0)
         slew = np.diff(g, prepend=0.0) / dt / system.gamma
         expected = np.abs(np.convolve(slew, kernel)[:total])
-        np.testing.assert_allclose(
-            found["trace_axes"][axis], expected, rtol=1e-9, atol=1e-12
-        )
+        bound = 1e-5 * np.abs(slew).max() / s_min
+        assert np.abs(found["trace_axes"][axis] - expected).max() <= bound
+
+
+def test_skipping_and_repeated_blocks_find_the_peak_the_full_trace_holds(system):
+    """Held gradients and silences around the loudest ramp, then blocks that repeat."""
+    blocks = []
+    for amplitude, rise, rest in [
+        (5, 400e-6, 3e-3),
+        (20, 200e-6, 20e-3),
+        (8, 300e-6, 1e-3),
+    ]:
+        blocks.append([ramp(system, amplitude, rise, "x")])
+        blocks.append([ramp(system, -amplitude, rise, "y")])
+        blocks.append([pp.make_delay(rest)])
+    sequence = played(system, *blocks, *blocks, *encoded_blocks(system), *blocks)
+    rotation = [[0.36, 0.48, -0.8], [-0.8, 0.6, 0.0], [0.48, 0.64, 0.6]]
+
+    _, skipped = _pns(sequence, CHRONAXIE, rotation, None, keep_trace=False)
+    _, traced = _pns(sequence, CHRONAXIE, rotation, None, keep_trace=True)
+
+    assert skipped["samples"] == traced["samples"]
+    for peak, full in zip(
+        [skipped["norm"], *skipped["axes"]],
+        [traced["norm"], *traced["axes"]],
+        strict=True,
+    ):
+        assert peak["value"] == pytest.approx(full["value"], rel=1e-9)
+        assert (peak["time"], peak["block"]) == (full["time"], full["block"])
 
 
 def test_a_rectangular_slew_follows_the_strength_duration_curve(system):
