@@ -1015,6 +1015,22 @@ def test_a_pulse_the_file_labels_is_left_alone(tmp_path):
     assert loaded.get_block(1).rf.use == "inversion"
 
 
+def test_a_sequence_in_memory_is_labelled_as_its_file_would_be(tmp_path):
+    system = upstream.Opts()
+    written = pp.Sequence(system)
+    written.add_block(pp.make_block_pulse(math.pi / 6, duration=1e-3, system=system))
+    written.add_block(pp.make_block_pulse(math.pi, duration=1e-3, system=system))
+    path = tmp_path / "unlabelled.seq"
+    written.write(str(path))
+    loaded = pp.Sequence(system)
+    loaded.read(str(path), detect_rf_use=True)
+
+    assert written.detect_rf_use() == 2
+    assert [written.get_block(i).rf.use for i in (1, 2)] == [
+        loaded.get_block(i).rf.use for i in (1, 2)
+    ]
+
+
 def test_installing_is_upstreams_own():
     """The only thing an installer asks of a sequence is that it writes."""
     assert pp.Sequence.install is upstream.Sequence.install

@@ -1565,12 +1565,17 @@ PYBIND11_MODULE(_ext, module)
                     sequence, at, first_block, last_block, given);
             }
 
+            /* Each column is handed over rather than copied: one per label,
+             * each a value per block. */
             py::dict out;
             for (size_t i = 0; i < found.names.size(); ++i)
             {
-                const std::vector<int32_t>& values = found.values[i];
+                auto* values = new std::vector<int32_t>(std::move(found.values[i]));
+                py::capsule owner(values, [](void* held) {
+                    delete static_cast<std::vector<int32_t>*>(held);
+                });
                 out[py::str(found.names[i])] = py::array_t<int32_t>(
-                    static_cast<py::ssize_t>(values.size()), values.data());
+                    static_cast<py::ssize_t>(values->size()), values->data(), owner);
             }
             return out;
         },
@@ -2080,23 +2085,36 @@ PYBIND11_MODULE(_ext, module)
 
     module.def(
         "binary_signature",
-        [](const py::bytes& contents) {
+        [](const py::bytes& contents, bool check) {
+            char* data = nullptr;
+            Py_ssize_t size = 0;
+            PyBytes_AsStringAndSize(contents.ptr(), &data, &size);
             std::string type;
             std::string value;
-            const bool valid = pulseq::binary_signature(std::string(contents), type, value);
+            bool valid;
+            {
+                py::gil_scoped_release release;
+                valid = pulseq::binary_signature(
+                    std::string_view(data, static_cast<size_t>(size)), type, value, check);
+            }
             py::dict out;
             out["type"] = type;
             out["value"] = value;
             out["valid"] = valid;
             return out;
         },
-        py::arg("contents"),
+        py::arg("contents"), py::arg("check") = true,
         "The signature a binary file carries, and whether it is the digest of "
-        "what it covers.");
+        "what it covers; with check false, whether there is one.");
 
     module.def(
         "is_binary",
-        [](const py::bytes& contents) { return pulseq::is_binary(std::string(contents)); },
+        [](const py::bytes& contents) {
+            char* data = nullptr;
+            Py_ssize_t size = 0;
+            PyBytes_AsStringAndSize(contents.ptr(), &data, &size);
+            return pulseq::is_binary(std::string_view(data, static_cast<size_t>(size)));
+        },
         py::arg("contents"), "Whether the bytes open with the binary magic.");
 
     module.def(

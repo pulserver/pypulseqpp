@@ -2325,7 +2325,7 @@ class Sequence:
         """
         written = _cxx.write_binary(self._native, create_signature)
         Path(name).write_bytes(written)
-        return self._note_binary_signature(written)
+        return self._note_binary_signature(_cxx.binary_signature(written, check=False))
 
     def write_v141(
         self, name, create_signature: bool = True, gamma=None, field=None
@@ -2381,9 +2381,8 @@ class Sequence:
         Path(name).write_bytes(written)
         return self._note_signature(written, "text")
 
-    def _note_binary_signature(self, written: bytes) -> str | None:
-        """Record and return the signature a binary file carries, if any."""
-        found = _cxx.binary_signature(written)
+    def _note_binary_signature(self, found: dict) -> str | None:
+        """Record and return the signature ``found`` by ``binary_signature``, if any."""
         if not found["type"]:
             self.signature_type = self.signature_file = self.signature_value = None
             return None
@@ -2476,7 +2475,7 @@ class Sequence:
             # signature is for is saying the bytes are wrong rather than
             # letting the parser say something else about them. The text
             # reader checks its own as it parses.
-            found = _cxx.binary_signature(contents)
+            found = _cxx.binary_signature(contents, check=verify)
             if verify and not found["type"]:
                 raise RuntimeError(
                     "read(): verification was asked for and the file carries no signature"
@@ -2488,12 +2487,9 @@ class Sequence:
                 )
         self._native = _cxx.read(contents, verify)
         if binary:
-            self._note_binary_signature(contents)
+            self._note_binary_signature(found)
         if detect_rf_use:
-            system = self.system
-            labelled = self._native.detect_rf_uses(
-                _limit(system, "B0", 1.5), _limit(system, "gamma", 42576000.0)
-            )
+            labelled = self.detect_rf_use()
             if labelled == 0:
                 warn(
                     "read(): detect_rf_use had nothing to do; every pulse in "
@@ -2750,6 +2746,31 @@ class Sequence:
 
     #: Upstream scanner installation, using this sequence's write method.
     install = _upstream.Sequence.install
+
+    def detect_rf_use(self, B0: float | None = None, gamma: float | None = None) -> int:
+        """Record what each unlabelled pulse is for, from what it does.
+
+        The rule ``read(detect_rf_use=True)`` applies to a file. Pulses that
+        already record a use are left alone.
+
+        Parameters
+        ----------
+        B0 : float, default=None
+            Field strength in T at which a frequency offset is read in ppm; the
+            system's, else 1.5.
+        gamma : float, default=None
+            Gyromagnetic ratio in Hz/T; the system's by default.
+
+        Returns
+        -------
+        int
+            How many pulses were labelled.
+        """
+        system = self.system
+        return self._native.detect_rf_uses(
+            _limit(system, "B0", 1.5) if B0 is None else float(B0),
+            _limit(system, "gamma", 42576000.0) if gamma is None else float(gamma),
+        )
 
     # -- collapsing ----------------------------------------------------
 

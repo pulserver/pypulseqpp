@@ -388,7 +388,7 @@ namespace pulseq
     /*  Entry points                                                      */
     /* ================================================================== */
 
-    bool is_binary(const std::string& contents)
+    bool is_binary(std::string_view contents)
     {
         return contents.size() >= sizeof(BINARY_MAGIC) &&
                std::memcmp(contents.data(), BINARY_MAGIC, sizeof(BINARY_MAGIC)) == 0;
@@ -443,8 +443,8 @@ namespace pulseq
         return out;
     }
 
-    bool binary_signature(
-        const std::string& contents, std::string& type, std::string& value)
+    bool binary_signature(std::string_view contents, std::string& type, std::string& value,
+                          bool check)
     {
         type.clear();
         value.clear();
@@ -481,7 +481,7 @@ namespace pulseq
         at += sizeof(type_length);
         if (type_length < 0 || !room(static_cast<size_t>(type_length)))
             return false;
-        type.assign(contents, at, static_cast<size_t>(type_length));
+        type.assign(contents.substr(at, static_cast<size_t>(type_length)));
         at += static_cast<size_t>(type_length);
 
         if (!room(sizeof(int32_t)))
@@ -504,6 +504,8 @@ namespace pulseq
             value.push_back(kHex[byte & 0x0F]);
         }
 
+        if (!check)
+            return true;
         return value == md5_hex(contents.data(), static_cast<size_t>(signed_length));
     }
 

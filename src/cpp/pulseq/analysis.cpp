@@ -268,6 +268,14 @@ namespace pulseq
          * and turning it into a name once per label beats once per block. */
         std::unordered_map<int, size_t> column;
         std::vector<int32_t> now;
+        /* Every block is a point when blocks are asked for, so each column's
+         * length is known before the walk. */
+        const size_t expected = at == LabelEvolutionAt::Blocks
+            ? static_cast<size_t>(std::max(0, (last_block > 0 && last_block < seq.num_blocks()
+                                                   ? last_block
+                                                   : seq.num_blocks()) -
+                                                  std::max(first_block, 1) + 1))
+            : 0;
         const auto column_for = [&](int label_id) {
             auto found = column.find(label_id);
             if (found != column.end())
@@ -275,6 +283,7 @@ namespace pulseq
             const size_t made = out.names.size();
             out.names.push_back(seq.label_name(label_id));
             out.values.emplace_back();
+            out.values.back().reserve(expected);
             now.push_back(0);
             column.emplace(label_id, made);
             return made;
@@ -289,6 +298,7 @@ namespace pulseq
             {
                 out.names.push_back(given.first);
                 out.values.emplace_back();
+                out.values.back().reserve(expected);
                 now.push_back(given.second);
                 continue;
             }
