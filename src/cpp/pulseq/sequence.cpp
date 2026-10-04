@@ -268,6 +268,26 @@ namespace pulseq
         return rotation_.append(row);
     }
 
+    namespace
+    {
+        int interned_label(IntTable& library, std::unordered_map<int64_t, int>& index,
+                           int32_t value, int32_t label_id)
+        {
+            const int64_t key = (static_cast<int64_t>(value) << 32)
+                                | static_cast<int64_t>(static_cast<uint32_t>(label_id));
+            int& ref = index[key];
+            if (ref > 0 && ref <= library.size())
+            {
+                const int32_t* row = library.row(ref);
+                if (row[0] == value && row[1] == label_id)
+                    return ref;
+            }
+            const int32_t row[LABEL_WIDTH] = {value, label_id};
+            ref = library.append(row);
+            return ref;
+        }
+    }
+
     int Sequence::register_label_set(int32_t value, int32_t label_id)
     {
         changed();
@@ -280,6 +300,18 @@ namespace pulseq
         changed();
         const int32_t row[LABEL_WIDTH] = {value, label_id};
         return label_inc_.append(row);
+    }
+
+    int Sequence::intern_label_set(int32_t value, int32_t label_id)
+    {
+        changed();
+        return interned_label(label_set_, label_set_index_, value, label_id);
+    }
+
+    int Sequence::intern_label_inc(int32_t value, int32_t label_id)
+    {
+        changed();
+        return interned_label(label_inc_, label_inc_index_, value, label_id);
     }
 
     int Sequence::register_rf_shim(const double* values, int count)

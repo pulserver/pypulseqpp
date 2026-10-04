@@ -33,6 +33,7 @@ class Labels:
     def __init__(self) -> None:
         self._state: dict[str, int] = {}
         self._steps: dict[str, int | None] = {}
+        self._events: dict[tuple[str, str, int], object] = {}
 
     def __call__(self, **values: int) -> list:
         """Return the label events that set each label to its new value.
@@ -46,6 +47,8 @@ class Labels:
         -------
         list
             The label events to add to the block, empty when nothing changed.
+            An instance returns the same event object for equal statements,
+            so the events are added to blocks as they are, not modified.
 
         Examples
         --------
@@ -56,23 +59,31 @@ class Labels:
         >>> [(e.label, e.type, e.value) for e in labels(LIN=0, SLC=2, ONCE=1)]
         [('LIN', 'labelset', 0), ('SLC', 'labelset', 2), ('ONCE', 'labelset', 1)]
         """
+        state, steps = self._state, self._steps
         once = values.get("ONCE")
-        if once is not None and int(once) != self._state.get("ONCE"):
+        if once is not None and int(once) != state.get("ONCE"):
             self.restart()
         events = []
         for name, value in values.items():
             value = int(value)
-            last = self._state.get(name)
+            last = state.get(name)
             if last == value:
                 continue
             step = None if last is None else value - last
-            if step is not None and step == self._steps.get(name):
-                events.append(pp.make_label(name, "INC", step))
+            if step is not None and step == steps.get(name):
+                events.append(self._event(name, "INC", step))
             else:
-                events.append(pp.make_label(name, "SET", value))
-            self._state[name] = value
-            self._steps[name] = step
+                events.append(self._event(name, "SET", value))
+            state[name] = value
+            steps[name] = step
         return events
+
+    def _event(self, name: str, kind: str, value: int):
+        key = (name, kind, value)
+        event = self._events.get(key)
+        if event is None:
+            event = self._events[key] = pp.make_label(name, kind, value)
+        return event
 
     def restart(self) -> None:
         """Write every label's next value as a SET, regardless of what was written before.

@@ -82,3 +82,34 @@ def test_a_file_naming_no_custom_label_still_reads():
 
     assert b"CustomLabels" not in contents
     assert label_names(_ext.read(contents)) == ["LIN"]
+
+
+def test_a_repeated_label_statement_is_registered_once_and_its_chain_shared():
+    import pypulseqpp as pp
+
+    seq = pp.Sequence(pp.Opts())
+    delay = pp.make_delay(1e-3)
+    for line in range(40):
+        seq.add_block(delay, pp.make_label("REV", "SET", line % 2))
+    assert len(seq.libraries().label_set_values) == 2
+    assert len(seq.block_events) == 40
+    chains = {int(seq.block_events[i][6]) for i in range(1, 41)}
+    assert len(chains) == 2
+    values = [seq.get_block(i).label[0].value for i in range(1, 41)]
+    assert values == [line % 2 for line in range(40)]
+
+
+def test_a_label_beside_a_trigger_still_reads_back_with_its_block():
+    import pypulseqpp as pp
+
+    seq = pp.Sequence(pp.Opts())
+    for _ in range(3):
+        seq.add_block(
+            pp.make_delay(1e-3),
+            pp.make_label("LIN", "SET", 5),
+            pp.make_trigger("physio1", duration=1e-4),
+        )
+    for i in range(1, 4):
+        block = seq.get_block(i)
+        assert block.label[0].value == 5
+        assert block.trig is not None
