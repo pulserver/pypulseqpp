@@ -36,7 +36,7 @@ namespace pulseq
         int oversampling = 3;
         /** Prescription rotation, logical to physical after each block's own. */
         double rotation[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
-        /** MKL runtime library to transform with; empty for pocketfft. */
+        /** MKL runtime library to transform a kept spectrum with; empty for pocketfft. */
         std::string mkl_runtime;
         /** Window whose spectrum to keep, for a diagnostic; -1 keeps none. */
         int64_t keep_spectrum = -1;
@@ -85,6 +85,11 @@ namespace pulseq
      * amplitude A at a bin frequency reads A. A band is violated by a window
      * whose largest amplitude on a bin inside it exceeds its threshold; a band
      * narrower than a bin is read at the bin nearest its centre.
+     *
+     * The bins a band reads are summed directly rather than transformed.
+     * Waveforms whose first samples sit within 1e-4 raster of each other are
+     * summed once, which on a long sequence leaves amplitudes within about
+     * 1e-6 of a sample-by-sample reading.
      */
     ResonanceReport mech_resonance(
         const Sequence& seq,

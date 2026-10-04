@@ -321,49 +321,6 @@ namespace pulseq
         }
 
         /**
-         * Resolution, in rasters, at which two blocks' sample offsets are told
-         * apart. Blocks closer than this are answered as one: their samples
-         * sit within it of each other on the same waveform.
-         */
-        constexpr double kOffsetStep = 1e-4;
-
-        /** What makes two blocks play one physical gradient over their samples. */
-        struct BlockKey
-        {
-            int32_t gradient[3];
-            int32_t rotation;
-            int64_t samples;
-            /**
-             * Time from the block's start to its first sample centre, in units
-             * of kOffsetStep rasters: coarse enough that the rounding of block
-             * start times summed over a long sequence does not split a key.
-             */
-            int64_t offset;
-
-            bool operator==(const BlockKey& other) const
-            {
-                return gradient[0] == other.gradient[0] && gradient[1] == other.gradient[1] &&
-                    gradient[2] == other.gradient[2] && rotation == other.rotation &&
-                    samples == other.samples && offset == other.offset;
-            }
-        };
-
-        struct BlockKeyHash
-        {
-            size_t operator()(const BlockKey& key) const
-            {
-                uint64_t h = 1469598103934665603ull;
-                const auto mix = [&h](uint64_t v) { h = (h ^ v) * 1099511628211ull; };
-                for (int32_t g : key.gradient)
-                    mix(static_cast<uint32_t>(g));
-                mix(static_cast<uint32_t>(key.rotation));
-                mix(static_cast<uint64_t>(key.samples));
-                mix(static_cast<uint64_t>(key.offset));
-                return static_cast<size_t>(h);
-            }
-        };
-
-        /**
          * One block's response by linearity, from its last full evaluation.
          *
          * With the state c after the block's first sample split into what the
@@ -428,14 +385,7 @@ namespace pulseq
                 int64_t count;
                 while ((count = raster_.enter_block()) > 0)
                 {
-                    const int32_t* row = seq_.block_events() +
-                        static_cast<size_t>(raster_.block() - 1) * BLOCK_WIDTH;
-                    const double offset =
-                        (static_cast<double>(raster_.position()) + 0.5) * dt_ - raster_.block_start();
-                    const BlockKey key = {{row[1], row[2], row[3]},
-                                          row[BLOCK_ROTATION_COLUMN],
-                                          count,
-                                          static_cast<int64_t>(std::llround(offset / (dt_ * kOffsetStep)))};
+                    const BlockKey key = raster_.block_key(count);
                     auto found = memory_.find(key);
                     if (found == memory_.end())
                     {

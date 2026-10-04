@@ -130,9 +130,9 @@ def mech_resonance_spectrum(
 ) -> SimpleNamespace:
     """Return the gradient amplitude spectrum of one window, per physical axis.
 
-    The window is taken, tapered and transformed by
-    :func:`check_mech_resonance`'s own pass, so a diagram of a band and the
-    verdict on it read the same numbers.
+    The window is sampled, tapered and padded as :func:`check_mech_resonance`
+    reads it, so a diagram of a band and the verdict on it read the same
+    amplitudes.
 
     Parameters
     ----------
@@ -243,7 +243,8 @@ def check_mech_resonance(
         True when no window exceeds any band's threshold.
     report : SimpleNamespace
         ``window_width``, ``stride`` (as sampled, s), ``frequency_step`` (Hz),
-        ``windows``, the FFT ``backend``, and ``bands``: one entry per band, in
+        ``windows``, the FFT ``backend`` :func:`mech_resonance_spectrum`
+        transforms with, and ``bands``: one entry per band, in
         the order given, with the band's ``axis`` (None for every axis),
         ``f_min``, ``f_max``, ``tolerance`` and applied ``threshold`` (mT/m);
         the band's worst window, kept whether or not it violates: its largest
