@@ -1278,9 +1278,10 @@ class Sequence:
             ``echo``, ``(n, 2)``, the first and last 0-based sample no further
             from the centre of k-space, over the moving axes, than the nearest
             sample plus 1% of the larger k step beside it, -1 for a readout
-            that does not move or has fewer than two samples. ``origin``,
-            ``sweep`` and ``sweeps`` give each readout's k-space as its
-            first sample plus one of the distinct paths from there;
+            that does not move or has fewer than two samples. ``start``,
+            ``path``, ``paths``, ``rotation`` and ``rotations`` give each
+            readout's k-space as its first sample plus one of the distinct
+            paths from there, turned by the block's rotation;
             None when an RF pulse that excites or refocuses, or has no use
             recorded, plays in a block that acquires, or when more than one
             readout in 16 has a path of its own.
@@ -1309,9 +1310,11 @@ class Sequence:
             first_sample=found["first_sample"],
             moving=found["moving"].astype(bool),
             echo=found["echo"],
-            origin=found.get("origin"),
-            sweep=found.get("sweep"),
-            sweeps=tuple(found["sweeps"]) if "sweeps" in found else None,
+            start=found.get("origin"),
+            path=found.get("sweep"),
+            paths=tuple(found["sweeps"]) if "sweeps" in found else None,
+            rotation=found.get("rotation"),
+            rotations=found.get("rotations"),
         )
 
     def _kspace(

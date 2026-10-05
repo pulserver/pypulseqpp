@@ -118,10 +118,15 @@ namespace pulseq
         std::vector<int32_t> sweep;
         /**
          * Each distinct k-space path from a readout's first sample to each of
-         * its samples, axis by axis, so that sample i of readout r is at
-         * origin[r] + sweeps[sweep[r]][axis][i].
+         * its samples, axis by axis, before the block's rotation, so that
+         * sample i of readout r is at origin[r] + R sweeps[sweep[r]][.][i],
+         * R being rotations[rotation[r]], or the identity where that is -1.
          */
         std::vector<std::array<std::vector<double>, 3>> sweeps;
+        /** Index into `rotations` of each readout, -1 for an unrotated one. */
+        std::vector<int32_t> rotation;
+        /** Each distinct block rotation a readout plays under, row-major 3 x 3. */
+        std::vector<double> rotations;
     };
 
     /** Find where each readout passes nearest the centre of k-space. */
