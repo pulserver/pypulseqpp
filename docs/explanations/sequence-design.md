@@ -14,7 +14,7 @@
   command line.
 - {class}`~pypulseqpp.sequences.Labels` writes the label events a block
   changes; {func}`~pypulseqpp.sequences.write` writes a list as files linked
-  by `NextSequence`, so each file holds a single repeating unit.
+  by `NextSequence`, so each file keeps one period of repetition.
 - A Cartesian acquisition is specified by its support, which views are
   acquired, and its temporal ordering, when each is acquired. The sampling
   routines keep the two separate and create neither events nor labels;
@@ -47,7 +47,7 @@ SequenceModule
 The `center` attribute gives the module timing reference in seconds from its
 start, usually an RF pulse centre or an echo. For an inversion module followed
 by an excitation module, the recovery delay required for inversion time
-\(T_I\) is
+$T_I$ is
 
 $$
 t_{\mathrm{delay}} = T_I
@@ -68,8 +68,9 @@ boundaries.
 
 Named events are published both as attributes and through `events`. An
 acquisition loop may change an event template before `add_block`, for example
-by setting an RF phase offset or scaling a phase-encode gradient. Previously
-registered blocks and the module's internal sequence remain unchanged.
+by setting an RF phase offset or scaling a phase-encode gradient. Blocks
+already added to a sequence, and the module's internal sequence, are not
+changed by it.
 
 A readout constructed with `te=None` uses its shortest realizable echo time.
 Requested bandwidths and times are rasterized, and the achieved values are
@@ -108,7 +109,7 @@ scan with prescans, a list of sequences in play order.
 | Pulseq definitions required by reconstruction | `set_definition` after the loop |
 | Prescans | The elements of the returned list before the main sequence |
 
-A shipped sequence module defines its design limits as the constants
+The Python module of a shipped sequence defines its design limits as the constants
 `MAX_GRAD` (mT/m) and `MAX_SLEW` (T/m/s). Changing one redesigns the gradient
 waveforms and may alter echo spacing, acquisition duration, and constraint
 estimates.
@@ -156,8 +157,9 @@ where `Name` is the sequence's `Name` definition, or its position in the list,
 counted from 0 at the first, when it has none. A later file whose name an
 earlier file has taken is written as `<stem>_<Name>_<position>.seq`, so every
 sequence has a file of its own. Each file but the last names the next with
-`NextSequence`. The chain represents one acquisition while retaining
-a single repeating unit per file for repetition-based analyses.
+`NextSequence`. The chain represents one acquisition while each file keeps
+one period for {meth}`~pypulseqpp.Sequence.repetition` and the analyses that
+use it.
 {func}`~pypulseqpp.sequences.duration` is the sum of the durations of the
 sequences in the chain.
 

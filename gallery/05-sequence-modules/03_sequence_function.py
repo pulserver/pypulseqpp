@@ -3,8 +3,10 @@
 A sequence function
 ===================
 
-The two previous lessons designed an excitation and a readout with modules.
-This lesson assembles them into a complete acquisition. A sequence function
+The previous lesson,
+:doc:`/generated/gallery/05-sequence-modules/01_sequence_modules`, designed an
+excitation and a readout with modules. This lesson assembles them into a
+complete acquisition. A sequence function
 takes the system limits and a protocol: it designs the modules, plays one
 repetition per line of k-space and returns the sequence. The function records
 the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
@@ -12,7 +14,7 @@ the encoding labels with :class:`~pypulseqpp.sequences.Labels`.
 :func:`~pypulseqpp.sequences.write` writes the sequence it returns.
 
 The sequence is the RF-spoiled slice-selective gradient echo of
-:doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as a sequence
+:doc:`/generated/gallery/02-spoiling/01_spoiling`, expressed as a sequence
 function rather than as a loop over events. Each sequence in :doc:`/sequences` is
 such a function, in its own module of ``pypulseqpp.sequences``. The structure is
 described in :doc:`/explanations/sequence-design`.

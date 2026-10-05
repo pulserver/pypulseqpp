@@ -7,7 +7,7 @@ after a single pulse, and the ghost a gradient delay produces.
 
 | Page | What it establishes |
 | --- | --- |
-| {doc}`/generated/gallery/03-gre-to-epi/03_epi` | One excitation for the whole matrix: the blurring the decay across the train produces, and the ghost a gradient delay produces. |
+| {doc}`/generated/gallery/03-gre-to-epi/03_epi` | A train of readouts of alternating polarity and where its echoes land, then one excitation for the whole matrix: the blurring the decay across the train produces, and the ghost a gradient delay produces. |
 
 ```{toctree}
 :hidden:

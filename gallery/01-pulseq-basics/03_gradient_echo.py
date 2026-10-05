@@ -311,5 +311,7 @@ echo_axis.set_ylabel("echo time (ms)")
 #
 # The repetition time is unchanged throughout, so a shorter echo time here
 # reduces the signal decay before the echo is measured; it does not shorten the
-# scan. Shortening the scan is the subject of
-# :doc:`/generated/gallery/08-tours/02_segmented_epi`.
+# scan. The next lesson, :doc:`/generated/gallery/02-spoiling/01_spoiling`,
+# keeps the transverse magnetisation of one repetition out of the next;
+# shortening the scan is the subject of
+# :doc:`/generated/gallery/03-gre-to-epi/03_epi`.

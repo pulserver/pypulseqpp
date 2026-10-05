@@ -5,7 +5,8 @@ Radial sampling
 
 The Cartesian gradient echo of
 :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo` changes the
-acquired line with a phase encode. This lesson replaces the phase encode with
+acquired line with a phase encode, and the echo planar train of the previous
+lesson, :doc:`/generated/gallery/03-gre-to-epi/03_epi`, with a blip. This lesson replaces the phase encode with
 a rotation of the readout gradient itself, so that every repetition acquires a
 spoke through the centre of k-space. It establishes how many spokes such an
 acquisition requires and what ordering them by the golden angle changes.

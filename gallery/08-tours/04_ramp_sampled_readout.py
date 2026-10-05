@@ -7,7 +7,7 @@ This example writes a Cartesian readout module that follows the
 :class:`~pypulseqpp.sequences.SequenceModule` contract and samples through the
 ramps of the readout lobe, and compares it with the shipped readout.
 
-**Prerequisites:** Course lessons 7, :doc:`Sequence modules </generated/gallery/05-sequence-modules/01_excitation>`, and 10,
+**Prerequisites:** Course lessons 7, :doc:`Sequence modules </generated/gallery/05-sequence-modules/01_sequence_modules>`, and 10,
 :doc:`A custom module </generated/gallery/07-custom-modules/01_excitation_module>`.
 
 The shipped Cartesian readouts acquire on the flat top of the readout lobe, so

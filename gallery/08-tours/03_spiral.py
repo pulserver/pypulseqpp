@@ -10,7 +10,7 @@ here the module is used only for the arms it designs. This example establishes
 which of the system limits determines the duration of an arm.
 
 **Prerequisites:** Course lessons 6, :doc:`Radial sampling </generated/gallery/04-non-cartesian/01_radial>`, and 7,
-:doc:`Sequence modules </generated/gallery/05-sequence-modules/01_excitation>`.
+:doc:`Sequence modules </generated/gallery/05-sequence-modules/01_sequence_modules>`.
 
 Three limits bound the traversal of an arm. Two are properties of the gradient
 system, the maximum amplitude and the maximum slew rate. The third follows from

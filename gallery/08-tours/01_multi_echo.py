@@ -6,10 +6,11 @@ Multi-echo readouts
 A multi-echo gradient echo follows the readout gradient with further readout
 gradients of alternating polarity, each with its own ADC event. The rest of the
 repetition is unchanged, and the echoes sample the same k-space line at
-increasing echo times, from which a :math:`T_2^*` estimate is computed. The
-measured quantities are the echo spacing, which depends on the receiver
-bandwidth, and the number of echoes that fit in the repetition time at each
-bandwidth.
+increasing echo times. The measured quantities are the echo spacing, which
+depends on the receiver bandwidth, and the number of echoes that fit in the
+repetition time at each bandwidth. Where the echoes of such a train land, and
+why the even echoes are acquired in reverse order, is measured in Course
+lesson 5.
 
 **Prerequisites:** Course lessons 3, :doc:`Gradient echo </generated/gallery/01-pulseq-basics/03_gradient_echo>`, and 5,
 :doc:`Echo planar imaging </generated/gallery/03-gre-to-epi/03_epi>`.
@@ -19,10 +20,8 @@ Objectives
 
 After this example, you should be able to:
 
-- build a train of readout gradients of alternating polarity, each with its
-  own ADC event;
-- locate the echoes of the train from the k-space analysis;
-- explain why the even echoes are acquired in reverse order;
+- build a multi-echo repetition from a train of readout gradients of
+  alternating polarity, each with its own ADC event;
 - relate the echo spacing and the train length to the receiver bandwidth,
   the gradient amplitude limit and the ramp times.
 """
@@ -43,8 +42,6 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # A readout gradient traverses one k-space line from one end to the other. A
 # second gradient of the opposite polarity traverses it back, so a train of
 # them needs no rewinder between the echoes and forms one echo per gradient.
-# Every second echo is acquired in the opposite direction, and its samples are
-# in the reverse order of the odd echoes'.
 
 import numpy as np
 
@@ -169,57 +166,6 @@ print(
 )
 
 seq.paper_plot(tr=1)
-
-# %%
-# Where the echoes land
-# ---------------------
-#
-# The analysis gives the k-space location of every sample of every acquisition
-# window. Along the readout axis the train is a triangle wave between the two
-# ends of the line, and an echo is where it crosses zero.
-
-k_adc, _, t_excitation, _, t_adc = seq.calculate_kspace(block_range=[1, 3 + ECHOES])
-kx = k_adc[0] * FOV / MATRIX * 2
-echo_times = np.array(
-    [
-        t_adc[echo * MATRIX + int(np.argmin(np.abs(kx[echo * MATRIX :][:MATRIX])))]
-        - t_excitation[0]
-        for echo in range(ECHOES)
-    ]
-)
-
-print(
-    "echo times (ms): "
-    + ", ".join(f"{1e3 * time:.2f}" for time in echo_times)
-    + f"\nspacing {1e3 * np.diff(echo_times).mean():.3f} ms, "
-    f"readout gradient {1e3 * pp.calc_duration(gx):.3f} ms"
-)
-
-# sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0), layout="constrained")
-for echo in range(ECHOES):
-    window = slice(echo * MATRIX, (echo + 1) * MATRIX)
-    axis.plot(
-        1e3 * (t_adc[window] - t_excitation[0]),
-        kx[window],
-        lw=1.4,
-        color="C0" if echo % 2 == 0 else "C7",
-    )
-axis.plot([], [], color="C0", label="odd echoes")
-axis.plot([], [], color="C7", label="even echoes")
-axis.plot(1e3 * echo_times, np.zeros(ECHOES), "o", color="C2", ms=4, label="echo")
-axis.set_xlabel("time from the excitation (ms)")
-axis.set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
-figure.legend(ncols=3, loc="outside upper left")
-# sphinx_gallery_end_ignore
-
-# %%
-# The samples the analysis reports are not one line acquired six times: the
-# even echoes run from :math:`+k_\mathrm{max}` to :math:`-k_\mathrm{max}`, so
-# a reconstruction has to reverse them before they are lines of the same
-# matrix. Any delay between the gradient and the acquisition then displaces the
-# odd and the even echoes in opposite directions, which is the origin of the
-# ghost a multi-echo or echo planar acquisition is corrected for.
 
 # %%
 # Echo spacing against receiver bandwidth

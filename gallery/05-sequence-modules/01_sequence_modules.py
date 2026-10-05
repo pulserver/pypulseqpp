@@ -1,17 +1,22 @@
 r"""
-==================
-Excitation modules
-==================
+================
+Sequence modules
+================
 
-The earlier sections built slice-selective excitations by hand with a pulse
-factory. This lesson designs them with the excitation module, and measures how
-the three numbers that specify a selective pulse — flip angle, slice thickness
-and time-bandwidth product — affect the slice profile, the selection gradient
-and the peak :math:`B_1`, and which combinations of them the gradient system
-permits.
+The earlier lessons built the excitation and the readout of a repetition by
+hand, with event factories. This lesson designs them with sequence modules: a
+module takes the system limits and a prescription, solves the events and the
+timing of one part of the repetition, and publishes them, with its timing
+measured from its ``center``. The module concept, and the reason the design is
+divided in this way, are described in :doc:`/explanations/sequence-design`.
 
-A slice-selective pulse and its selection gradient are not independent: the
-gradient has to place the pulse's bandwidth across the slice,
+The first half designs slice-selective excitations with the excitation module,
+and measures how the three numbers that specify a selective pulse — flip
+angle, slice thickness and time-bandwidth product — affect the slice profile,
+the selection gradient and the peak :math:`B_1`, and which combinations of
+them the gradient system permits. A slice-selective pulse and its selection
+gradient are not independent: the gradient has to place the pulse's bandwidth
+across the slice,
 
 .. math::
 
@@ -21,24 +26,30 @@ so a shorter pulse at the same thickness and the same time-bandwidth product
 needs a proportionally stronger selection gradient and a proportionally larger
 :math:`B_1`. The gradient amplitude limit therefore bounds the two together.
 
-The measured quantities are the simulated slice profile — its transition
-width and the ripple on either side of it — and the boundary in the
-duration/time-bandwidth plane beyond which the module raises an error. The
-module concept, and the reason the design is divided in this way, are
-described in :doc:`/explanations/sequence-design`.
+The second half replaces the hand-built readout with the readout module, and
+uses two prescriptions that earlier lessons solved by hand — a partial echo
+and a train of echoes — to check that the module reaches the same results and
+reports them. The order in which lines are acquired is not part of a module;
+it belongs to the loop of the sequence function of the next lesson,
+:doc:`/generated/gallery/05-sequence-modules/03_sequence_function`. The
+previous lesson, :doc:`/generated/gallery/04-non-cartesian/01_radial`, played
+its readout by hand.
 
 Learning objectives
 -------------------
 
 After this lesson, you should be able to:
 
-- design a slice-selective excitation with the excitation module and simulate
-  its slice profile;
-- measure the transition width and the passband and stopband ripple of a
-  profile;
+- design a slice-selective excitation with the excitation module, simulate
+  its slice profile and measure its transition width and ripple;
 - relate the time-bandwidth product and the pulse duration to the profile,
-  the selection gradient amplitude and the peak :math:`B_1`;
-- identify the designs the gradient amplitude limit permits.
+  the selection gradient amplitude and the peak :math:`B_1`, and identify the
+  designs the gradient amplitude limit permits;
+- design a readout with the readout module, read its events, timing, sampling
+  and achieved receiver bandwidth, and play its blocks for one repetition;
+- relate the partial-echo fraction to the shortest echo time, and explain why
+  the achieved receiver bandwidth depends on the number of samples;
+- compare monopolar and bipolar multi-echo trains.
 """
 
 # sphinx_gallery_start_ignore
@@ -131,16 +142,16 @@ THICKNESS = 5e-3
 FLIP_ANGLE_DEG = 8.0
 
 system = pp.Opts(
-    max_grad=32.0,
+    max_grad=40.0,
     grad_unit="mT/m",
-    max_slew=130.0,
+    max_slew=150.0,
     slew_unit="T/m/s",
     adc_dead_time=10e-6,
 )
 
 # %%
-# Simulating a design
-# -------------------
+# Simulating an excitation
+# ------------------------
 #
 # The excitation module designs the pulse, its selection gradient and the
 # rephaser that unwinds the second half of the selection. Its ``sim_rf``
@@ -310,3 +321,193 @@ print(f"{len(grid) - rejected} of {len(grid)} designs realizable, {rejected} rej
 # gradient amplitude supports, and choosing between a long pulse and a strong
 # gradient determines the echo time and the peak :math:`B_1` rather than the
 # profile.
+
+# %%
+# What a readout module holds
+# ---------------------------
+#
+# The excitation module designs the pulse, its selection gradient and the
+# rephaser; the readout module takes those and the prescription. With the echo
+# time unset, the module uses the shortest echo time the prescription allows.
+# The achieved receiver bandwidth is constrained by the rasters and can differ
+# from the requested one; the module reports the achieved value.
+
+FOV = 220e-3
+MATRIX = 128
+
+excitation = design.SpatialSelectiveExcitation(
+    system, FLIP_ANGLE_DEG, THICKNESS, duration_s=3e-3, time_bw_product=4.0
+)
+readout = design.LineReadout2D(
+    system,
+    excitation.rf,
+    excitation.gz,
+    excitation.gz_reph,
+    fov=(FOV, FOV),
+    matrix=(MATRIX, MATRIX),
+    te=None,
+    readout_bandwidth_hz=250e3,
+    spoiling_cycles=4.0,
+)
+
+print(
+    f"echo time {1e3 * readout.echo_time:.3f} ms, "
+    f"module {1e3 * readout.duration:.3f} ms\n"
+    f"{readout.n_samples} samples at {readout.bandwidth_hz / 1e3:.1f} kHz, "
+    f"echo on sample {readout.center_sample}, "
+    f"line spacing {readout.delta_kx:.2f} 1/m"
+)
+
+# %%
+# One repetition
+# --------------
+#
+# ``blocks`` is the module's playout in order, as tuples of events. A loop adds
+# them to a sequence, scaling the phase-encode template to the line it is
+# acquiring; here the largest step is played, and the pulse's block is added
+# first because the module is the readout half of the repetition.
+
+seq = pp.Sequence(system=system)
+seq.add_block(excitation.rf, excitation.gz)
+for block in readout.blocks:
+    seq.add_block(*block)
+
+ok, errors = seq.check_timing()
+print(f"timing {ok}, {seq.num_blocks} blocks, {1e3 * seq.duration()[0]:.3f} ms")
+
+readout.paper_plot()
+
+# %%
+# Shortest echo time against partial echo
+# ---------------------------------------
+#
+# ``partial_echo`` is the fraction of the full echo acquired, and truncates the
+# samples before it. The shortest echo time follows, as it did when the same
+# readout was built by hand: the samples that are no longer taken are the ones
+# that stood between the excitation and the echo.
+
+FRACTIONS = (1.0, 0.875, 0.75, 0.625, 0.5625)
+
+
+def solved(partial_echo=1.0, bandwidth_hz=250e3, **prescription):
+    """One readout module, solved for the shortest echo time."""
+    return design.LineReadout2D(
+        system,
+        excitation.rf,
+        excitation.gz,
+        excitation.gz_reph,
+        fov=(FOV, FOV),
+        matrix=(MATRIX, MATRIX),
+        te=None,
+        partial_echo=partial_echo,
+        readout_bandwidth_hz=bandwidth_hz,
+        spoiling_cycles=4.0,
+        **prescription,
+    )
+
+
+partial = [
+    {
+        "fraction": fraction,
+        "module": solved(partial_echo=fraction),
+    }
+    for fraction in FRACTIONS
+]
+
+# sphinx_gallery_start_ignore
+print(
+    f"\n{'partial echo':>13}  {'samples':>8}  {'echo on':>8}  {'achieved':>12}  "
+    f"{'TE':>10}  {'module':>10}"
+)
+for row in partial:
+    module = row["module"]
+    print(
+        f"{row['fraction']:13.4f}  {module.n_samples:8d}  "
+        f"{module.center_sample:8d}  {module.bandwidth_hz / 1e3:9.1f} kHz  "
+        f"{1e3 * module.echo_time:7.3f} ms  {1e3 * module.duration:7.3f} ms"
+    )
+
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
+axis.plot(
+    [row["fraction"] for row in partial],
+    [1e3 * row["module"].echo_time for row in partial],
+    "o-",
+    lw=1.2,
+    ms=5,
+    label="shortest echo time",
+)
+axis.plot(
+    [row["fraction"] for row in partial],
+    [1e3 * row["module"].duration for row in partial],
+    "s--",
+    lw=1.2,
+    ms=5,
+    label="module duration",
+)
+axis.set_xlabel("fraction of the echo acquired")
+axis.set_ylabel("time (ms)")
+figure.legend(ncols=2, loc="outside upper left")
+# sphinx_gallery_end_ignore
+
+# %%
+# The sample the echo lands on moves with the fraction, and the echo time falls
+# with it.
+#
+# The achieved bandwidth is not the requested one at every fraction, and not
+# the same one at every fraction either. A dwell time lies on the ADC raster
+# and an acquisition window on the gradient raster, and whether a given dwell
+# satisfies both depends on how many samples are taken: at 80 samples the
+# requested 250 kHz lands on both rasters and is used, and at the neighbouring
+# counts the fastest rate that does is 100 kHz. That is why the module duration
+# does not fall monotonically while the echo time does, and why the module
+# reports the achieved rate rather than the requested one.
+
+# %%
+# Monopolar against bipolar trains
+# --------------------------------
+#
+# ``n_echoes`` sets the train length, and ``flyback`` selects how it is played: a
+# monopolar train rewinds between the echoes so that every one is read in the
+# same direction, and a bipolar train alternates the readout sign, as the
+# hand-built echo train of
+# :doc:`/generated/gallery/03-gre-to-epi/03_epi` does. The bipolar train
+# is shorter by the duration of the rewinders, and its even echoes are read
+# backwards.
+
+ECHOES = 4
+
+trains = {
+    "monopolar": solved(n_echoes=ECHOES, flyback=True),
+    "bipolar": solved(n_echoes=ECHOES, flyback=False),
+}
+
+# sphinx_gallery_start_ignore
+print(f"\n{'train':>12}  {'echo spacing':>14}  {'first echo':>12}  {'module':>11}")
+for name, module in trains.items():
+    print(
+        f"{name:>12}  {1e3 * module.echo_spacing:11.3f} ms  "
+        f"{1e3 * module.echo_time:9.3f} ms  {1e3 * module.duration:8.3f} ms"
+    )
+
+figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.0), sharey=True)
+for axis, (name, module) in zip(axes, trains.items(), strict=True):
+    k_adc, _, _, _, t_adc = module.calculate_kspace()
+    samples = k_adc[0] * 2 * FOV / MATRIX
+    per_echo = samples.size // ECHOES
+    for echo in range(ECHOES):
+        window = slice(echo * per_echo, (echo + 1) * per_echo)
+        axis.plot(1e3 * t_adc[window], samples[window], lw=1.4)
+    axis.set_title(name)
+    axis.set_xlabel("time within the module (ms)")
+axes[0].set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
+figure.tight_layout()
+# sphinx_gallery_end_ignore
+
+# %%
+# Every echo of the monopolar train is traversed in the same direction and the
+# gaps between them are the rewinders; the bipolar train has no gaps and every
+# second echo runs backwards. The choice between them follows from the
+# relationship measured in the echo planar lesson: the bipolar train is
+# shorter, and any delay between the gradient and the acquisition enters it as
+# a difference between the odd and the even echoes rather than as a shift
+# common to all of them.

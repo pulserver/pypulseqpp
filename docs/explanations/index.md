@@ -7,7 +7,7 @@ assumes.
 
 | Explanation | What it covers |
 | --- | --- |
-| {doc}`pulseq-representation` | What a block holds, what each kind of event carries, how an extension is chained onto one, and the repeating unit of a sequence. |
+| {doc}`pulseq-representation` | What a block holds, what each kind of event carries, how an extension is chained onto one, and the repetition of a sequence. |
 | {doc}`shapes-and-storage` | How events and shapes are stored, deduplicated and signed, and what changes between format revisions. |
 | {doc}`timing-and-rasters` | The rasters an event time is addressed on, how a block duration follows from them, and what the timing check establishes. |
 | {doc}`sequence-design` | Sequence modules, sequence functions, and the sampling support and ordering that feed them. |

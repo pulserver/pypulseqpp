@@ -90,9 +90,7 @@ angle.
 ```
 
 The check reads the rotations the sequence holds. A prescription is evaluated
-by applying it with {class}`~pypulseqpp.TransformFOV` and checking the result;
-{func}`~pypulseqpp.apply_system_derates` returns reduced limits to design
-against.
+by applying it with {class}`~pypulseqpp.TransformFOV` and checking the result.
 
 ### Readout amplitude and resolution
 
@@ -134,15 +132,6 @@ simultaneous vector slew rate and the peak of each axis; only the per-axis
 quantity is compared with the limit. A nonpositive `max_slew` disables the
 comparison.
 
-### Within-block and boundary evaluation
-
-A gradient that ends one block at a nonzero amplitude, followed by a block that
-starts at a different amplitude, is a step over one raster period that neither
-block's waveform contains. [The continuity check](#gradient-continuity) evaluates that step with
-the same limit. Trapezoids begin and end at zero, so the boundary condition
-constrains mainly readouts that do not return to zero between blocks, such as
-zero-echo-time and joined spiral readouts.
-
 ### Minimum-duration gradient lobe
 
 For an area $A$ (1/m) at slew rate $S$ (Hz/m/s), the shortest waveform is the
@@ -157,19 +146,16 @@ longer. Halving the duration of a prewinder or phase-encode blip requires four
 times the slew rate. {func}`~pypulseqpp.make_trapezoid` raises for an `area`
 and `duration` that cannot be satisfied together under the system limits.
 
-### Derating
-
-{func}`~pypulseqpp.apply_system_derates` returns a copy of the system limits
-with `max_grad` and `max_slew` scaled from their base values, which the copy
-retains, so repeated derating does not compound.
-{func}`~pypulseqpp.cap_system` returns a copy with the limits lowered to stated
-ceilings. Passing either to the check evaluates the sequence against the reduced
-limits; a sequence that fails under them must be redesigned at the lower limit,
-which lengthens its ramps.
-
 (gradient-continuity)=
 
 ## Gradient continuity
+
+The slew-rate check evaluates the waveform within each block. A gradient that
+ends one block at a nonzero amplitude, followed by a block that starts at a
+different amplitude, is a step over one raster period that neither block's
+waveform contains. Trapezoids begin and end at zero, so the boundary condition
+constrains mainly readouts that do not return to zero between blocks, such as
+zero-echo-time and joined spiral readouts.
 
 Adjacent Pulseq blocks have no implicit gap. A change on each axis between the
 endpoint of one block and the initial amplitude of the next, after the blocks'
@@ -193,6 +179,20 @@ rate. The final gradient amplitude on every axis must also be zero; otherwise
 Each block's rotation is applied before the comparison. Endpoints equal on the
 channel axes of two blocks with different rotations can therefore differ after
 them. Returning every interleaf to zero avoids this dependence.
+
+{meth}`~pypulseqpp.Sequence.check_timing` runs the same evaluation and reports
+its findings as `GRADIENT_DISCONTINUITY` and `GRADIENT_NOT_RAMPED_DOWN`; see
+{doc}`timing-and-rasters`.
+
+## Derating
+
+{func}`~pypulseqpp.apply_system_derates` returns a copy of the system limits
+with `max_grad` and `max_slew` scaled from their base values, which the copy
+retains, so repeated derating does not compound.
+{func}`~pypulseqpp.cap_system` returns a copy with the limits lowered to stated
+ceilings. Passing either to a check evaluates the sequence against the reduced
+limits; a sequence that fails under them must be redesigned at the lower limit,
+which lengthens its ramps.
 
 ## See also
 
