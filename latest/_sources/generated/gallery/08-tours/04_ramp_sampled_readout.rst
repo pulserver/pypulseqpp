@@ -298,8 +298,6 @@ One repetition
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
-      made = factory(*args, **kwargs)
     events: adc, gx, gx_pre, gx_spoil, gy_pre, gy_rew, gz, gz_reph, rf
     388 samples at 500 kHz, echo at sample 194
     TE 2.520 ms over a 6.600 ms repetition
@@ -416,7 +414,7 @@ One repetition of the module.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.201 seconds)
+   **Total running time of the script:** (0 minutes 0.280 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_08-tours_04_ramp_sampled_readout.py:

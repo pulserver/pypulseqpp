@@ -510,6 +510,7 @@
 <span class="sd">        them under ``return_gz``.</span>
 <span class="sd">    """</span>
     <span class="n">flip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">)</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"delay"</span><span class="p">,</span> <span class="n">design</span><span class="p">[</span><span class="s2">"system"</span><span class="p">]</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">)</span>
     <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
         <span class="n">flip</span><span class="p">,</span> <span class="n">slice_thickness</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span> <span class="n">return_gz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">design</span>
     <span class="p">)</span>

@@ -228,8 +228,6 @@ gradient amplitude limit to above it.
 
  .. code-block:: none
 
-    /home/runner/work/pypulseqpp/pypulseqpp/docs/build/site/pypulseqpp/_events.py:273: UserWarning: Specified RF delay 0.00 us is less than the dead time 100 us. Delay was increased to the dead time.
-      made = factory(*args, **kwargs)
       slew         100 kHz         250 kHz         600 kHz
         40    10.96 ms band     7.49 ms slew     7.50 ms slew
         60    10.96 ms band     6.11 ms slew     6.12 ms slew
@@ -358,7 +356,7 @@ no longer does.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.983 seconds)
+   **Total running time of the script:** (0 minutes 1.291 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_08-tours_03_spiral.py:
