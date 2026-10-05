@@ -10,7 +10,7 @@ acquisition: the signal decay over an echo train tens of milliseconds long,
 and the sensitivity of a train of alternating readouts to a delay between the
 gradient waveform and the acquisition. The relationship between shot count,
 distortion and scan time is measured in
-:doc:`/generated/gallery/03-gre-to-epi/02_segmented`.
+:doc:`/generated/gallery/08-tours/02_segmented_epi`.
 
 Learning objectives
 -------------------

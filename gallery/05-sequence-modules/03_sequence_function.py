@@ -15,7 +15,7 @@ The sequence is the RF-spoiled slice-selective gradient echo of
 :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`, expressed as a sequence
 function rather than as a loop over events. Each sequence in :doc:`/sequences` is
 such a function, in its own module of ``pypulseqpp.sequences``. The structure is
-described in :doc:`/explanations/design/sequence-application`.
+described in :doc:`/explanations/sequence-design`.
 
 Learning objectives
 -------------------

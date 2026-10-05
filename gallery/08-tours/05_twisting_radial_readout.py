@@ -3,10 +3,12 @@ r"""
 A twisting radial readout module
 ================================
 
-The previous lesson wrote a Cartesian readout module with trapezoidal
-gradients. This lesson writes a non-Cartesian readout module: the trajectory
-is stated as a k-space path, solved into a gradient waveform under the
-gradient limits, and published as a module.
+This example writes a non-Cartesian readout module: the trajectory is stated
+as a k-space path, solved into a gradient waveform under the gradient limits,
+and published as a module.
+
+**Prerequisites:** Course lessons 6, :doc:`Radial sampling </generated/gallery/04-non-cartesian/01_radial>`, and 10,
+:doc:`A custom module </generated/gallery/07-custom-modules/01_excitation_module>`.
 
 A radial spoke samples the centre of k-space far more densely than the
 periphery: at radius :math:`k`, adjacent spokes of an :math:`N`-interleaf set
@@ -22,12 +24,12 @@ accumulates azimuth with radius, so that the perpendicular distance between
 neighbouring interleaves stays at the Nyquist spacing.
 
 The module concept, and the events a module publishes, are described in
-:doc:`/explanations/design/sequence-module`.
+:doc:`/explanations/sequence-design`.
 
-Learning objectives
--------------------
+Objectives
+----------
 
-After this lesson, you should be able to:
+After this example, you should be able to:
 
 - state a twisting radial interleaf as a polyline in k-space from the
   transition radius :math:`k_t`;

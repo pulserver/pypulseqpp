@@ -3,15 +3,14 @@ r"""
 Spiral readout
 ==============
 
-The previous lesson, :doc:`/generated/gallery/04-non-cartesian/01_radial`,
-acquired k-space along straight spokes. This lesson
-acquires it along a spiral arm, and establishes which of the system limits
-determines the duration of an arm. A spiral is the first trajectory of the
-course that cannot be written as a trapezoid: its waveform is solved
-numerically against the limits by
-:class:`~pypulseqpp.sequences.SpiralReadout2D`. The interface of such a module
-is the subject of :doc:`/generated/gallery/05-sequence-modules/02_readout`;
-here the module is used only for the arms it designs.
+A spiral readout acquires k-space along a spiral arm rather than along straight
+spokes. Its waveform cannot be written as a trapezoid and is solved
+numerically against the limits by :class:`~pypulseqpp.sequences.SpiralReadout2D`;
+here the module is used only for the arms it designs. This example establishes
+which of the system limits determines the duration of an arm.
+
+**Prerequisites:** Course lessons 6, :doc:`Radial sampling </generated/gallery/04-non-cartesian/01_radial>`, and 7,
+:doc:`Sequence modules </generated/gallery/05-sequence-modules/01_excitation>`.
 
 Three limits bound the traversal of an arm. Two are properties of the gradient
 system, the maximum amplitude and the maximum slew rate. The third follows from
@@ -29,10 +28,10 @@ design space and not over the rest.
 
 The binding limit of each design is read from the waveform it produces.
 
-Learning objectives
--------------------
+Objectives
+----------
 
-After this lesson, you should be able to:
+After this example, you should be able to:
 
 - state the amplitude, slew-rate and receiver limits on a spiral traversal,
   including the receiver cap :math:`G_\mathrm{bw}`;

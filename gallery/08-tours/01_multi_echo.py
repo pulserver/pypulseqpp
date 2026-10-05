@@ -3,23 +3,21 @@ r"""
 Multi-echo readouts
 ====================
 
-The gradient echo of the first section acquires one echo per excitation. This
-lesson acquires several, by following the readout gradient with further
-readout gradients of alternating polarity. The rest of the repetition is
-unchanged, and the echoes sample the same k-space line at increasing echo
-times, from which a :math:`T_2^*` estimate is computed.
+A multi-echo gradient echo follows the readout gradient with further readout
+gradients of alternating polarity, each with its own ADC event. The rest of the
+repetition is unchanged, and the echoes sample the same k-space line at
+increasing echo times, from which a :math:`T_2^*` estimate is computed. The
+measured quantities are the echo spacing, which depends on the receiver
+bandwidth, and the number of echoes that fit in the repetition time at each
+bandwidth.
 
-The train is also the basis of the rest of this section: an echo planar
-readout is this train with a phase-encode blip between the echoes, which the
-next two lessons add. The measured quantities here are the echo spacing, which
-depends on the receiver bandwidth, and the number of echoes that fit in the
-repetition time at each bandwidth. The single-shot case is
-:doc:`/generated/gallery/03-gre-to-epi/03_epi`.
+**Prerequisites:** Course lessons 3, :doc:`Gradient echo </generated/gallery/01-pulseq-basics/03_gradient_echo>`, and 5,
+:doc:`Echo planar imaging </generated/gallery/03-gre-to-epi/03_epi>`.
 
-Learning objectives
--------------------
+Objectives
+----------
 
-After this lesson, you should be able to:
+After this example, you should be able to:
 
 - build a train of readout gradients of alternating polarity, each with its
   own ADC event;

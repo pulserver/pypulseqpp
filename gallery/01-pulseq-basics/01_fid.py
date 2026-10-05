@@ -12,7 +12,7 @@ A Bloch simulation of the stored pulse relates the transverse magnetisation to
 the flip angle.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------

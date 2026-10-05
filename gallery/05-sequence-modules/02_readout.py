@@ -13,9 +13,9 @@ A readout module takes the system limits, the excitation pulse of the
 repetition and a prescription, and solves the gradients, the acquisition
 window and the timing from them. The order in which lines are acquired is not
 part of the module; it belongs to the loop, which is the subject of
-:doc:`/generated/gallery/05-sequence-modules/03_sequence_app`. The module
+:doc:`/generated/gallery/05-sequence-modules/03_sequence_function`. The module
 concept, and the reason the design is divided in this way, are described in
-:doc:`/explanations/design/sequence-module`.
+:doc:`/explanations/sequence-design`.
 
 Learning objectives
 -------------------
@@ -204,7 +204,7 @@ figure.legend(ncols=2, loc="outside upper left")
 # monopolar train rewinds between the echoes so that every one is read in the
 # same direction, and a bipolar train alternates the readout sign, as the
 # hand-built train of
-# :doc:`/generated/gallery/03-gre-to-epi/01_multi_echo` did. The bipolar train
+# :doc:`/generated/gallery/08-tours/01_multi_echo` did. The bipolar train
 # is shorter by the duration of the rewinders, and its even echoes are read
 # backwards.
 

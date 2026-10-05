@@ -56,7 +56,7 @@ repetition time. Which of the middle blocks carries the wait is a design
 choice; that the wait is a block duration rather than a field of its own is
 the format.
 
-```{figure} ../../generated/figures/gre_repetition_blocks.png
+```{figure} ../generated/figures/gre_repetition_blocks.png
 One repetition of a two-dimensional gradient echo, over its six blocks,
 numbered in the order just listed. Blocks 2 and 6 last longer than their
 events, and that difference is the echo time and the repetition time.
@@ -78,7 +78,7 @@ integer id, so an event played ten thousand times is stored once:
 A zero means the block has no event on that channel. Block and library indices
 are 1-based.
 
-```{figure} ../../generated/figures/block_table_and_libraries.png
+```{figure} ../generated/figures/block_table_and_libraries.png
 The block table of a written eight-line gradient-echo file, the libraries its
 cells index, and the shape library the RF and gradient rows index in turn. Each
 library holds one row per distinct event, however many blocks play it, so the
@@ -119,7 +119,7 @@ physical amplitude is required.
 Converting a reported amplitude from Hz/m to mT/m means dividing by the
 gyromagnetic ratio in Hz/T, which {class}`~pypulseqpp.Opts` holds as `gamma`,
 and multiplying by 1000. The constraint
-checks in {doc}`../safety/index` report their values in the file's units and
+checks in {doc}`constraint-checks` report their values in the file's units and
 convert with that constant.
 
 ## Extensions
@@ -141,7 +141,7 @@ block's `EXT` id refers to a linked list of typed rows.
 : A quaternion that rotates the block's gradients from its channel axes onto
   its logical axes. One row per orientation replaces a rotated copy of every
   waveform, so a radial or spiral acquisition references a single interleaf for
-  every shot; see {doc}`libraries-and-shapes`. A prescription rotation is
+  every shot; see {doc}`shapes-and-storage`. A prescription rotation is
   composed after it, and {class}`~pypulseqpp.TransformFOV` writes the product
   into the same extension.
 
@@ -156,6 +156,6 @@ block's `EXT` id refers to a linked list of typed rows.
 
 ## See also
 
-* {doc}`libraries-and-shapes` — how events are stored, deduplicated and written.
-* {doc}`timing-and-rasterization` — the rasters every event time is quantized to.
-* {doc}`../../api/events` — the event factories and block operations.
+* {doc}`shapes-and-storage` — how events are stored, deduplicated and written.
+* {doc}`timing-and-rasters` — the rasters every event time is quantized to.
+* {doc}`../api/events` — the event factories and block operations.

@@ -18,7 +18,7 @@ A passing check does not establish that a sequence is safe to run on a scanner
 or on a subject. The PNS, mechanical-resonance and SAR models used here are
 synthetic demonstrations. Scanner-specific checks and hardware monitoring are
 separate. The physical models are described in
-:doc:`/explanations/safety/index`.
+:doc:`/explanations/constraint-checks`.
 
 Learning objectives
 -------------------

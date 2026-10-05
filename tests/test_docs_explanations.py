@@ -10,16 +10,14 @@ import pytest
 DOCS = Path(__file__).parents[1] / "docs"
 GALLERY = Path(__file__).parents[1] / "gallery"
 EXPLANATIONS = sorted(
-    page
-    for page in (DOCS / "explanations").rglob("*.md")
-    if page.name != "index.md" and not page.parent.name.startswith("_")
+    page for page in (DOCS / "explanations").glob("*.md") if page.name != "index.md"
 )
 TLDR = "```{admonition} TL;DR"
 
 #: Landing, API and example pages, none of which carries a TL;DR.
 WITHOUT_TLDR = sorted(
     [
-        *(DOCS / "explanations").rglob("index.md"),
+        DOCS / "explanations" / "index.md",
         *(DOCS / "examples").rglob("*.md"),
         *(DOCS / "api").glob("*.md"),
         *GALLERY.rglob("*.py"),
@@ -36,6 +34,15 @@ def _sections(text: str) -> int:
 
 def test_the_explanation_directory_is_not_empty():
     assert EXPLANATIONS
+
+
+def test_the_explanations_are_one_flat_list():
+    nested = [
+        path.name
+        for path in (DOCS / "explanations").iterdir()
+        if path.is_dir() and not path.name.startswith(("_", "."))
+    ]
+    assert not nested
 
 
 @pytest.mark.parametrize(
@@ -98,7 +105,9 @@ def test_an_example_page_carries_the_colab_badge_under_its_title():
         _EXAMPLE_PAGE, "generated/gallery/01-pulseq-basics/index", "latest"
     )
     assert section == _EXAMPLE_PAGE
-    elsewhere = colab.with_badge(_EXAMPLE_PAGE, "explanations/pulseq/index", "latest")
+    elsewhere = colab.with_badge(
+        _EXAMPLE_PAGE, "explanations/pulseq-representation", "latest"
+    )
     assert elsewhere == _EXAMPLE_PAGE
 
 

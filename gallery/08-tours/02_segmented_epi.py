@@ -3,22 +3,20 @@ r"""
 Segmented echo planar
 ========================
 
-The multi-echo train of the previous lesson samples the same k-space line
-several times. This lesson adds a phase-encode blip between the echoes, so
-that one excitation acquires several k-space lines. The number of excitations
-(shots) over which the matrix is divided is then a free parameter, and it
-determines both the scan time and the off-resonance displacement in the image.
+A segmented echo planar readout divides the phase-encode lines of the matrix
+over several excitations (shots), each acquiring an interleaved subset with a
+phase-encode blip between its echoes. The shot count determines both the scan
+time and the off-resonance displacement in the image. The measured
+relationship is the bandwidth per pixel along the phase-encode direction,
+which increases in proportion to the number of shots, against the number of
+excitations and hence the scan time.
 
-The measured relationship is the bandwidth per pixel along the phase-encode
-direction, which increases in proportion to the number of shots, against the
-number of excitations and hence the scan time. The single-shot limit of this
-relationship is the subject of the next lesson,
-:doc:`/generated/gallery/03-gre-to-epi/03_epi`.
+**Prerequisites:** Course lesson 5, :doc:`Echo planar imaging </generated/gallery/03-gre-to-epi/03_epi>`.
 
-Learning objectives
--------------------
+Objectives
+----------
 
-After this lesson, you should be able to:
+After this example, you should be able to:
 
 - create a phase-encode blip from the number of lines it advances and the
   field of view;
@@ -83,7 +81,7 @@ rf, gz, gz_reph = pp.make_sinc_pulse(
     return_gz=True,
 )
 
-# The readout of the previous lesson, at a fixed dwell time.
+# A readout of alternating polarity at a fixed dwell time.
 acquisition = MATRIX * DWELL
 raster = system.grad_raster_time
 gx = pp.make_trapezoid(
@@ -281,7 +279,7 @@ figure.legend(
 # Displacement and echo train fall as the reciprocal of the shot count, and the
 # scan time rises in proportion to it, so the segmentation is a straight
 # exchange of time for geometric fidelity. The other terms of it are the echo
-# spacing, which the previous lesson shortened with the receiver bandwidth and
+# spacing, which a higher receiver bandwidth shortens and
 # which enters the displacement in the same way, and the number of lines, which
 # the prescription fixes.
 #

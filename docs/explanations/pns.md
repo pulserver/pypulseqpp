@@ -38,7 +38,7 @@ $$
 
 where $S_{\mathrm{rh}}$ is the rheobase and $c$ is the chronaxie.[^irnich]
 
-```{figure} ../../generated/figures/strength_duration.png
+```{figure} ../generated/figures/strength_duration.png
 Slew rate at unity response for a demonstration chronaxie model and the
 PyPulseq SAFE example hardware description. Shorter transitions require a
 larger stimulus.
@@ -62,7 +62,7 @@ and the estimated threshold is $R=1$. The trace below is returned directly by
 `check_pns(..., trace=True)` for a short-echo-spacing EPI sequence and a clearly
 synthetic chronaxie model; it does not describe a particular scanner.
 
-```{figure} ../../generated/figures/pns_response.png
+```{figure} ../generated/figures/pns_response.png
 Axis responses, combined response, threshold, and reported peak for one EPI
 acquisition. The checker computes every plotted response.
 ```
@@ -75,8 +75,8 @@ axis, so prescription orientation can change the estimate.
 ## See also
 
 * {func}`~pypulseqpp.safety.check_pns` — checker and diagnostic trace.
-* {doc}`slew_rate` — hardware slew-rate limit.
-* {doc}`../../examples/checks` — constraint-checking workflow.
+* {doc}`gradient-constraints` — hardware slew-rate limit.
+* {doc}`../examples/checks` — constraint-checking workflow.
 
 ## References
 

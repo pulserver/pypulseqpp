@@ -87,7 +87,7 @@ receiver bandwidth of 100 kHz; a readout of 100 samples has $\gcd(100, 10) =
 the second case and not in the first, and nothing about the first prescription
 is otherwise unusual.
 
-```{figure} ../../generated/figures/bandwidth_against_sample_count.png
+```{figure} ../generated/figures/bandwidth_against_sample_count.png
 The highest receiver bandwidth each sample count admits at the default
 rasters, over one range of readout lengths. The four levels are the four
 values $\gcd(N, r)$ takes for $r = 10$, and a request is met only where the
@@ -117,12 +117,12 @@ requires the sample count to be divisible by a fixed factor.
 
 A sequence whose gradient waveforms are within every amplitude and slew limit
 can still be unplayable because one delay is off the raster. The constraint
-checks of {doc}`../safety/index` and `check_timing` establish different
+checks of {doc}`constraint-checks` and `check_timing` establish different
 properties and are separate calls.
 
 ## See also
 
-* {doc}`events-and-blocks` — what a block contains.
-* {doc}`../../api/timing` — the quantization and ADC timing helpers.
-* {doc}`../../examples/checks` — running the checks over a finished
+* {doc}`pulseq-representation` — what a block contains.
+* {doc}`../api/timing` — the quantization and ADC timing helpers.
+* {doc}`../examples/checks` — running the checks over a finished
   sequence.

@@ -16,7 +16,7 @@ the resulting relationship: the shortest echo time the system limits allow,
 against the dephasing prescribed for the crushers.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -131,7 +131,7 @@ print(
 # put on the block duration raster with :func:`~pypulseqpp.round_to_raster`: a
 # duration that is not on it is rounded up when the block is added, which would
 # move the echo by as much as one raster period. The rasters are described in
-# :doc:`/explanations/pulseq/timing-and-rasterization`.
+# :doc:`/explanations/timing-and-rasters`.
 
 SAMPLES = 512
 

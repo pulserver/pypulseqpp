@@ -421,7 +421,7 @@ def gradient_spectra():
 
 
 # ---------------------------------------------------------------------------
-#  explanations/pulseq
+#  Pulseq representation, shapes and storage, timing and rasters
 # ---------------------------------------------------------------------------
 
 

@@ -15,7 +15,7 @@ k-space trajectory crosses zero, and the last section measures the echo time
 that follows from it.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -312,4 +312,4 @@ echo_axis.set_ylabel("echo time (ms)")
 # The repetition time is unchanged throughout, so a shorter echo time here
 # reduces the signal decay before the echo is measured; it does not shorten the
 # scan. Shortening the scan is the subject of
-# :doc:`/generated/gallery/03-gre-to-epi/02_segmented`.
+# :doc:`/generated/gallery/08-tours/02_segmented_epi`.

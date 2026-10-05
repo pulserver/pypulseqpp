@@ -1,4 +1,4 @@
-# Check conventions
+# Constraint checks
 
 ```{admonition} TL;DR
 :class: tldr
@@ -27,9 +27,27 @@
   windows. Any window exceeding its threshold or limit makes the verdict false.
 ```
 
-The conventions shared by the checks in {mod}`pypulseqpp.safety`: which system
-a check evaluates against, the frame it reads gradients in, the units of its
-report, and the interval it evaluates over.
+The checks in {mod}`pypulseqpp.safety` evaluate a finished sequence against
+stated limits and models. They are **design-time estimates**. They do not
+replace the scanner's own gate before download, nor its hardware monitor during
+the scan, and they do not establish patient safety. This page states the
+conventions the checks share: which system a check evaluates against, the frame
+it reads gradients in, the units of its report, and the interval it evaluates
+over.
+
+## Checks
+
+| Check | Compares | Needs |
+| --- | --- | --- |
+| {func}`~pypulseqpp.safety.check_max_grad` | the largest per-axis gradient amplitude | `max_grad` from the system limits |
+| {func}`~pypulseqpp.safety.check_max_slew` | the largest per-axis slew rate within a block | `max_slew` and the gradient raster from the system limits |
+| {func}`~pypulseqpp.safety.check_grad_continuity` | the amplitude step across each block boundary | `max_slew` and the gradient raster from the system limits |
+| {func}`~pypulseqpp.safety.check_pns` | a nerve model's response to the slew of each axis | a SAFE or chronaxie model |
+| {func}`~pypulseqpp.safety.check_mech_resonance` | the windowed gradient amplitude spectrum | a forbidden-band table |
+| {func}`~pypulseqpp.safety.check_sar` | window-averaged local and global SAR | virtual observation points, a drive calibration and SAR limits |
+
+The first three are explained in {doc}`gradient-constraints`, and the others in
+{doc}`pns`, {doc}`mechanical-resonance` and {doc}`sar`.
 
 ## Designed and played systems
 
@@ -92,3 +110,10 @@ than samples. The resonance check slides a window of a stated length along the
 sequence and transforms each; the SAR check averages RF energy over each
 repetition detected from the block definitions. Any window exceeding its
 threshold or limit makes the verdict false.
+
+## See also
+
+* {doc}`gradient-constraints`, {doc}`pns`, {doc}`mechanical-resonance` and
+  {doc}`sar` — what each check computes and the model it computes it from.
+* {doc}`timing-and-rasters` — the timing check.
+* {doc}`../api/safety` — the calls and their reports.

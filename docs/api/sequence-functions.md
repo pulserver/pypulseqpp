@@ -6,7 +6,7 @@ main sequence last. The functions below read its protocol, label its blocks,
 write what it returns and time it. The sequences themselves are listed in
 {doc}`../sequences`; the structure of a sequence function, its protocol and its
 prescan chain are described in
-{doc}`../explanations/design/sequence-application`.
+{doc}`../explanations/sequence-design`.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences

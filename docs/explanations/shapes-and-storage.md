@@ -25,7 +25,7 @@
   extensions, which revision 1.4.1 cannot express.
 ```
 
-The block table of {doc}`events-and-blocks` refers to events by id, and the
+The block table of {doc}`pulseq-representation` refers to events by id, and the
 events refer to shapes by id.
 
 ## Definitions and instances
@@ -45,7 +45,7 @@ For RF events, the magnitude, phase and time shapes belong to the definition;
 frequency offset, phase offset and amplitude belong to the instance.
 
 This separation allows the package to detect that a run of blocks
-repeats, which is the repetition the SAR check of {doc}`../safety/sar` averages
+repeats, which is the repetition the SAR check of {doc}`sar` averages
 over.
 
 ## Deduplication
@@ -69,7 +69,7 @@ the shape library grows in proportion to the number of shots. Referring to one
 interleaf and attaching a `ROTATIONS` extension per block writes the waveform
 once, and the per-shot cost is one quaternion.
 
-```{figure} ../../generated/figures/rotation_against_materialised_shapes.png
+```{figure} ../generated/figures/rotation_against_materialised_shapes.png
 The same spiral acquisition written both ways, at interleaf counts from 8 to
 64. A rotation extension per block leaves the shape library the size of one
 interleaf; a rotated waveform per shot adds a pair of shapes each time,
@@ -86,7 +86,7 @@ stepped between views rather than rotated as a fixed interleaf, has a shape
 library that grows with the view count.
 
 The consequence for analysis is that any quantity evaluated on played gradient
-waveforms must apply the block rotation first. {doc}`../safety/index` states
+waveforms must apply the block rotation first. {doc}`constraint-checks` states
 this for the constraint checks.
 
 ## Definitions, sequence chains and the signature
@@ -124,7 +124,7 @@ definition, and it records no dead times.
 {meth}`~pypulseqpp.Sequence.read` takes the rasters from the file and keeps the
 system the sequence was constructed with. {func}`pypulseqpp.io.read` builds the
 system from the file instead, so the design helpers and the checks of
-{doc}`../safety/index` apply limits derived from the file rather than those of
+{doc}`constraint-checks` apply limits derived from the file rather than those of
 the shared default system.
 
 ## Revisions and the binary form
@@ -150,6 +150,6 @@ signature.
 
 ## See also
 
-* {doc}`events-and-blocks` — the block table and the event kinds.
-* {doc}`timing-and-rasterization` — quantization of event times.
-* {doc}`../../api/sequence` — the container, its readers and its writers.
+* {doc}`pulseq-representation` — the block table and the event kinds.
+* {doc}`timing-and-rasters` — quantization of event times.
+* {doc}`../api/sequence` — the container, its readers and its writers.

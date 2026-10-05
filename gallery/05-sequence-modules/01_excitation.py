@@ -25,7 +25,7 @@ The measured quantities are the simulated slice profile — its transition
 width and the ripple on either side of it — and the boundary in the
 duration/time-bandwidth plane beyond which the module raises an error. The
 module concept, and the reason the design is divided in this way, are
-described in :doc:`/explanations/design/sequence-module`.
+described in :doc:`/explanations/sequence-design`.
 
 Learning objectives
 -------------------

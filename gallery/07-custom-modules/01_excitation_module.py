@@ -13,7 +13,7 @@ RF energy near the end of the waveform, so that at a fixed duration and
 time-bandwidth product the interval from the pulse to the echo is shorter. The
 peak :math:`B_1` is larger, and the phase of the slice profile is not linear.
 The module concept, and the events a module publishes, are described in
-:doc:`/explanations/design/sequence-module`.
+:doc:`/explanations/sequence-design`.
 
 Learning objectives
 -------------------

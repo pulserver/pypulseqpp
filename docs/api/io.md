@@ -3,7 +3,7 @@
 Reading a `.seq` file into a sequence whose system is built from the file,
 writing a sequence in the text or the binary form, and the tables a file of a
 sequence holds, as arrays.
-{doc}`../explanations/pulseq/libraries-and-shapes` describes what a file
+{doc}`../explanations/shapes-and-storage` describes what a file
 records, including which system limits, and the two forms.
 
 ```{eval-rst}

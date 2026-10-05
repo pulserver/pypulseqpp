@@ -3,22 +3,24 @@ r"""
 A ramp-sampled readout module
 =============================
 
-The previous lesson wrote an excitation module. This lesson writes a
-Cartesian readout module that follows the
-:class:`~pypulseqpp.sequences.SequenceModule` contract, and compares it with
-the shipped readout.
+This example writes a Cartesian readout module that follows the
+:class:`~pypulseqpp.sequences.SequenceModule` contract and samples through the
+ramps of the readout lobe, and compares it with the shipped readout.
+
+**Prerequisites:** Course lessons 7, :doc:`Sequence modules </generated/gallery/05-sequence-modules/01_excitation>`, and 10,
+:doc:`A custom module </generated/gallery/07-custom-modules/01_excitation_module>`.
 
 The shipped Cartesian readouts acquire on the flat top of the readout lobe, so
 the area under the ramps is not sampled. Sampling through the ramps as well
 covers the same extent of k-space in a shorter lobe; the resulting sampling
 locations are not evenly spaced, so the data require regridding before a
 Fourier transform. The module concept, and the events a module publishes, are
-described in :doc:`/explanations/design/sequence-module`.
+described in :doc:`/explanations/sequence-design`.
 
-Learning objectives
--------------------
+Objectives
+----------
 
-After this lesson, you should be able to:
+After this example, you should be able to:
 
 - implement ``init_module`` for a readout module and set its ``center`` to
   the echo;
