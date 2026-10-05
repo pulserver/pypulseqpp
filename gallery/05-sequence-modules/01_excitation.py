@@ -47,24 +47,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "figure.figsize": (PAGE_WIDTH, 3.4),
-        "savefig.dpi": 110,
-        "font.size": 11,
-        "axes.titlesize": 12,
-        "axes.labelsize": 11,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def profile_figure(designs, title, legend):
     """Pulse envelopes beside the slice profiles they produce."""
     figure, (envelope_axis, profile_axis) = plt.subplots(
-        1, 2, figsize=(PAGE_WIDTH, 3.4)
+        1, 2, figsize=(PAGE_WIDTH, 3.4), layout="constrained"
     )
     for label, design_ in designs.items():
         envelope_axis.plot(
@@ -73,12 +62,10 @@ def profile_figure(designs, title, legend):
         profile_axis.plot(1e3 * design_["position"], design_["profile"], lw=1.2)
     envelope_axis.set_xlabel("time (ms)")
     envelope_axis.set_ylabel("$|B_1|$ (Hz)")
-    envelope_axis.legend(
-        frameon=False,
+    figure.legend(
+        *envelope_axis.get_legend_handles_labels(),
         title=legend,
-        fontsize=9,
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.24),
+        loc="outside lower center",
     )
     profile_axis.axvspan(
         -0.5e3 * THICKNESS, 0.5e3 * THICKNESS, color="0.5", alpha=0.15, lw=0, zorder=0
@@ -88,13 +75,12 @@ def profile_figure(designs, title, legend):
     profile_axis.set_ylabel(r"$|M_{xy}|$, normalised")
     profile_axis.set_title("nominal slice in grey")
     figure.suptitle(title, y=1.02)
-    figure.tight_layout()
     return figure
 
 
 def feasibility_figure(grid, boundary_tbw, boundary_duration):
     """The designs the gradient system admits, against the amplitude bound."""
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.8))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.8), layout="constrained")
     for entry in grid:
         axis.plot(
             entry["tbw"],
@@ -114,8 +100,7 @@ def feasibility_figure(grid, boundary_tbw, boundary_duration):
     axis.plot([], [], "x", color="C7", label="rejected")
     axis.set_xlabel("time-bandwidth product")
     axis.set_ylabel("pulse duration (ms)")
-    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), fontsize=9)
-    figure.tight_layout()
+    figure.legend(loc="outside right upper")
     return figure
 
 

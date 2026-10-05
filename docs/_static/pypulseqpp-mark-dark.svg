@@ -3,6 +3,8 @@
 .ink{fill:none;stroke:#12212b;stroke-width:5;stroke-linejoin:miter;stroke-linecap:butt}
 .blue{fill:#3a77a8}
 .amber{fill:#ffbe2e}
+.ink{stroke:#e8eef3}
+.blue{fill:#5b9bd0}
 </style>
 <g transform="translate(6 38)">
 <g transform="translate(26 0)">

@@ -14,7 +14,12 @@
 [![Stars](https://img.shields.io/github/stars/pulserver/pypulseqpp?style=flat&logo=github&color=ffbd28)](https://github.com/pulserver/pypulseqpp/stargazers)
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=32322&r=133)
 
-<p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/pypulseqpp-logo.svg" alt="pypulseqpp" width="620"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/pypulseqpp-logo-dark.svg">
+    <img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/pypulseqpp-logo.svg" alt="pypulseqpp" width="620">
+  </picture>
+</p>
 
 pypulseqpp provides Pulseq sequence design and analysis through a
 PyPulseq-compatible Python interface over a C++ core. It includes RF, gradient
@@ -34,7 +39,12 @@ Passing these checks does not establish scanner or patient safety.
 - Waveform, ADC sampling-location and k-space analysis with publication figures.
 - Timing, hardware-limit, PNS, mechanical-resonance and VOP-based SAR estimates.
 
-<p align="center"><img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture.svg" alt="pypulseqpp architecture" width="900"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture-dark.svg">
+    <img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture.svg" alt="pypulseqpp architecture" width="900">
+  </picture>
+</p>
 
 ## Quick start
 

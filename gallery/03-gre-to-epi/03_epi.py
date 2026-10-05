@@ -31,7 +31,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -171,7 +171,9 @@ for t2_star in T2_STARS:
         f"{widths[t2_star]:11.2f} px"
     )
 
-figure, (envelope_axis, spread_axis) = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2))
+figure, (envelope_axis, spread_axis) = plt.subplots(
+    1, 2, figsize=(PAGE_WIDTH, 3.2), layout="constrained"
+)
 pixels = np.arange(MATRIX) - MATRIX // 2
 for t2_star in T2_STARS:
     label = f"{1e3 * t2_star:.0f} ms"
@@ -184,16 +186,12 @@ envelope_axis.set_ylabel("signal")
 spread_axis.set_xlim(-8, 8)
 spread_axis.set_xlabel("pixels along the phase-encode direction")
 spread_axis.set_ylabel("point spread, normalised")
-envelope_axis.legend(
-    frameon=False,
+figure.legend(
+    *envelope_axis.get_legend_handles_labels(),
     title=r"$T_2^*$",
-    loc="upper left",
-    bbox_to_anchor=(0.0, 1.34),
     ncols=4,
-    fontsize=9,
-    title_fontsize=9,
+    loc="outside upper left",
 )
-figure.tight_layout(rect=(0, 0, 1, 0.86))
 # sphinx_gallery_end_ignore
 
 # %%
@@ -244,7 +242,7 @@ print(f"\n{'delay':>10}  {'odd-even displacement':>24}")
 for row in displacement:
     print(f"{1e6 * row['delay']:7.1f} us  {row['samples']:20.3f} samples")
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.58, 3.0))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.58, 3.0), layout="constrained")
 axis.plot(
     1e6 * DELAYS,
     [row["samples"] for row in displacement],
@@ -255,8 +253,7 @@ axis.plot(
 )
 axis.set_xlabel("gradient delay (us)")
 axis.set_ylabel("samples")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.26), fontsize=9)
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%

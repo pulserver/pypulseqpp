@@ -378,7 +378,7 @@ def plot_rf(
             axis.set_ylabel(_AXES[plane[1]][1])
             bar = figure.colorbar(image, ax=axis, fraction=0.045, pad=0.03)
             bar.outline.set_visible(False)
-            bar.ax.tick_params(colors=_style.MUTED, labelsize=8, length=0)
+            bar.ax.tick_params(colors=_style.MUTED, labelsize="small", length=0)
             _style.image_style(axis, name)
 
     _style.figure_title(figure, title)

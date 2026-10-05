@@ -41,17 +41,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "savefig.dpi": 110,
-        "font.size": 10,
-        "axes.titlesize": 11,
-        "axes.labelsize": 10,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def summary(rows):
@@ -130,7 +120,7 @@ print("per axis:", ", ".join(f"{axis.axis} {axis.value:.2f}" for axis in pns.axe
 # it is the check's own calculation rather than a second one.
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0), layout="constrained")
 for entry in pns.axes:
     axis.plot(pns.time * 1e3, entry.response, lw=0.8, label=f"$G_{entry.axis}$")
 axis.plot(pns.time * 1e3, pns.response, lw=1.5, color="0.5", label="combined")
@@ -139,10 +129,7 @@ axis.plot(pns.peak.time * 1e3, pns.peak.value, "o", color="C7", ms=5)
 axis.set_xlabel("time (ms)")
 axis.set_ylabel("response, fraction of threshold")
 axis.set_title("Peripheral nerve stimulation response")
-axis.legend(
-    frameon=False, ncol=1, fontsize=9, loc="upper left", bbox_to_anchor=(1.01, 1.0)
-)
-figure.tight_layout(rect=(0, 0, 0.82, 1))
+figure.legend(ncols=1, loc="outside right upper")
 # sphinx_gallery_end_ignore
 
 # %%
@@ -177,7 +164,7 @@ spectrum = safety.mech_resonance_spectrum(
 )
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0), layout="constrained")
 for name, amplitude in zip(spectrum.axes, spectrum.amplitude, strict=True):
     axis.plot(spectrum.frequency, amplitude, lw=0.9, label=f"$G_{name}$")
 for band in mech.bands:
@@ -190,10 +177,7 @@ axis.set_title(
     f"Mechanical-resonance spectrum, window {spectrum.window} "
     f"at {spectrum.window_start * 1e3:.0f} ms"
 )
-axis.legend(
-    frameon=False, ncol=1, fontsize=9, loc="upper left", bbox_to_anchor=(1.01, 1.0)
-)
-figure.tight_layout(rect=(0, 0, 0.84, 1))
+figure.legend(ncols=1, loc="outside right upper")
 # sphinx_gallery_end_ignore
 
 # %%

@@ -33,7 +33,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -220,7 +220,7 @@ against_increment = {
 }
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6), layout="constrained")
 for flip, curve in against_increment.items():
     line = axis.plot(
         INCREMENTS, curve / ideally_spoiled(flip), lw=1.2, label=f"{flip:.0f} deg"
@@ -233,21 +233,17 @@ axis.annotate(
     xycoords=("data", "axes fraction"),
     textcoords="offset points",
     xytext=(4, -12),
-    fontsize=9,
+    fontsize="small",
 )
 axis.set_xlabel("phase increment (degrees)")
 axis.set_ylabel("signal / ideally spoiled")
 axis.set_xlim(0.0, 180.0)
-axis.legend(
-    frameon=False,
+figure.legend(
+    *axis.get_legend_handles_labels(),
     title="flip angle, dashed: ideally spoiled",
-    loc="upper left",
-    bbox_to_anchor=(0.0, 1.30),
     ncols=3,
-    fontsize=9,
-    title_fontsize=9,
+    loc="outside upper left",
 )
-figure.tight_layout(rect=(0, 0, 1, 0.88))
 
 print(f"\n{'flip':>5}  {'at 117 deg':>11}  {'lowest':>18}  {'highest':>18}")
 for flip, curve in against_increment.items():
@@ -284,15 +280,14 @@ spoiled = np.array(
 ideal = ideally_spoiled(FLIP_ANGLES)
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(
     FLIP_ANGLES, spoiled, lw=1.4, label=f"RF spoiling, {PHASE_INCREMENT_DEG:.0f} deg"
 )
 axis.plot(FLIP_ANGLES, ideal, lw=1.4, ls="--", label="ideally spoiled")
 axis.set_xlabel("flip angle (degrees)")
 axis.set_ylabel("steady-state signal")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.26))
-figure.tight_layout(rect=(0, 0, 1, 0.86))
+figure.legend(loc="outside upper left")
 
 print(
     f"\nlargest departure from the ideally spoiled signal: "

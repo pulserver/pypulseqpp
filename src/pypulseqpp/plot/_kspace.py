@@ -59,7 +59,7 @@ def _box(axis) -> None:
         spatial.set_pane_color((0.0, 0.0, 0.0, 0.0))
         spatial._axinfo["grid"]["color"] = _style.FAINT
         spatial.label.set_color(_style.MUTED)
-    axis.tick_params(colors=_style.MUTED, labelsize=8)
+    axis.tick_params(colors=_style.MUTED, labelsize="small")
 
 
 def _within(path: np.ndarray, points: np.ndarray) -> np.ndarray:

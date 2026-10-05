@@ -35,7 +35,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -198,7 +198,7 @@ print(
 )
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0), layout="constrained")
 for echo in range(ECHOES):
     window = slice(echo * MATRIX, (echo + 1) * MATRIX)
     axis.plot(
@@ -212,10 +212,7 @@ axis.plot([], [], color="C7", label="even echoes")
 axis.plot(1e3 * echo_times, np.zeros(ECHOES), "o", color="C2", ms=4, label="echo")
 axis.set_xlabel("time from the excitation (ms)")
 axis.set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
-axis.legend(
-    frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.26), ncols=3, fontsize=9
-)
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(ncols=3, loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%
@@ -284,7 +281,7 @@ for row in spacing:
         f"{100 * row['ramps'] / row['spacing']:6.0f}%  {row['echoes']:7d}"
     )
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(
     [row["bandwidth"] / 1e3 for row in realizable],
     [1e3 * row["spacing"] for row in realizable],
@@ -312,10 +309,7 @@ axis.set_xlabel("receiver bandwidth (kHz)")
 axis.set_xscale("log")
 axis.set_xticks(BANDWIDTHS / 1e3)
 axis.set_xticklabels([f"{b / 1e3:.0f}" for b in BANDWIDTHS])
-axis.legend(
-    frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.34), ncols=2, fontsize=9
-)
-figure.tight_layout(rect=(0, 0, 1, 0.84))
+figure.legend(ncols=2, loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%

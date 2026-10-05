@@ -38,7 +38,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -273,7 +273,7 @@ for row in measured:
     )
 
 figure, (trajectory_axis, echo_axis) = plt.subplots(
-    1, 2, figsize=(PAGE_WIDTH, 3.2), width_ratios=(1.4, 1.0)
+    1, 2, figsize=(PAGE_WIDTH, 3.2), width_ratios=(1.4, 1.0), layout="constrained"
 )
 for row in measured:
     trajectory_axis.plot(
@@ -285,14 +285,11 @@ for row in measured:
 trajectory_axis.axhline(0.0, color="0.5", lw=0.8, zorder=0)
 trajectory_axis.set_xlabel("time from the first sample (ms)")
 trajectory_axis.set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
-trajectory_axis.legend(
-    frameon=False,
+figure.legend(
+    *trajectory_axis.get_legend_handles_labels(),
     title="near side of the line, acquired",
-    loc="upper left",
-    bbox_to_anchor=(0.0, 1.30),
     ncols=4,
-    fontsize=9,
-    title_fontsize=9,
+    loc="outside upper left",
 )
 echo_axis.plot(
     [row["fraction"] for row in measured],
@@ -303,7 +300,6 @@ echo_axis.plot(
 )
 echo_axis.set_xlabel("near side of the line, acquired")
 echo_axis.set_ylabel("echo time (ms)")
-figure.tight_layout(rect=(0, 0, 1, 0.88))
 # sphinx_gallery_end_ignore
 
 # %%

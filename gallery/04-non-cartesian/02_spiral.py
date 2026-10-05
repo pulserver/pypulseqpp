@@ -50,18 +50,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "figure.figsize": (PAGE_WIDTH, 3.6),
-        "savefig.dpi": 110,
-        "font.size": 11,
-        "axes.titlesize": 12,
-        "axes.labelsize": 11,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 REGIME_LABEL = {
     "slew": "slew-limited",
@@ -77,7 +66,7 @@ REGIME_COLOUR = {
 
 def duration_figure(grid):
     """Readout duration against the slew limit, one line per sampling rate."""
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 4.0))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 4.0), layout="constrained")
     for rate, rows in grid.items():
         slews = [row["slew_limit"] for row in rows]
         axis.plot(
@@ -101,7 +90,7 @@ def duration_figure(grid):
             (slews[-1], 1e3 * rows[-1]["readout"]),
             textcoords="offset points",
             xytext=(8, -3),
-            fontsize=9,
+            fontsize="small",
         )
     for regime, colour in REGIME_COLOUR.items():
         axis.plot([], [], "o", color=colour, label=REGIME_LABEL[regime])
@@ -109,8 +98,7 @@ def duration_figure(grid):
     axis.set_ylabel("readout duration (ms)")
     axis.set_ylim(bottom=0)
     axis.margins(x=0.16)
-    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0))
-    figure.tight_layout()
+    figure.legend(loc="outside right upper")
     return figure
 
 

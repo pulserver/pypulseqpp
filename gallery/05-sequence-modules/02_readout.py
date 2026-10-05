@@ -38,7 +38,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -161,7 +161,7 @@ for row in partial:
         f"{1e3 * module.echo_time:7.3f} ms  {1e3 * module.duration:7.3f} ms"
     )
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(
     [row["fraction"] for row in partial],
     [1e3 * row["module"].echo_time for row in partial],
@@ -180,10 +180,7 @@ axis.plot(
 )
 axis.set_xlabel("fraction of the echo acquired")
 axis.set_ylabel("time (ms)")
-axis.legend(
-    frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.28), ncols=2, fontsize=9
-)
-figure.tight_layout(rect=(0, 0, 1, 0.86))
+figure.legend(ncols=2, loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%
@@ -234,7 +231,7 @@ for axis, (name, module) in zip(axes, trains.items(), strict=True):
     for echo in range(ECHOES):
         window = slice(echo * per_echo, (echo + 1) * per_echo)
         axis.plot(1e3 * t_adc[window], samples[window], lw=1.4)
-    axis.set_title(name, fontsize=10)
+    axis.set_title(name)
     axis.set_xlabel("time within the module (ms)")
 axes[0].set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
 figure.tight_layout()

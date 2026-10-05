@@ -37,18 +37,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "figure.figsize": (PAGE_WIDTH, 3.4),
-        "savefig.dpi": 110,
-        "font.size": 11,
-        "axes.titlesize": 12,
-        "axes.labelsize": 11,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def sampling_figure(k_read, spacing, nyquist):

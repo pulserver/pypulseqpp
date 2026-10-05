@@ -38,35 +38,21 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "figure.figsize": (PAGE_WIDTH, 3.4),
-        "savefig.dpi": 110,
-        "font.size": 11,
-        "axes.titlesize": 12,
-        "axes.labelsize": 11,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def design_figure(designs, thickness_m):
     """Pulse envelopes beside the slice profiles they produce."""
     figure, (envelope_axis, profile_axis) = plt.subplots(
-        1, 2, figsize=(PAGE_WIDTH, 3.4)
+        1, 2, figsize=(PAGE_WIDTH, 3.4), layout="constrained"
     )
     for label, entry in designs.items():
         envelope_axis.plot(1e3 * entry["time"], entry["envelope"], lw=1.2, label=label)
         profile_axis.plot(1e3 * entry["position"], entry["profile"], lw=1.2)
     envelope_axis.set_xlabel("time (ms)")
     envelope_axis.set_ylabel("$|B_1|$ (Hz)")
-    envelope_axis.legend(
-        frameon=False,
-        fontsize=9,
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.24),
+    figure.legend(
+        *envelope_axis.get_legend_handles_labels(), loc="outside lower center"
     )
     profile_axis.axvspan(
         -0.5e3 * thickness_m,
@@ -80,7 +66,6 @@ def design_figure(designs, thickness_m):
     profile_axis.set_xlabel("position (mm)")
     profile_axis.set_ylabel(r"$|M_{xy}|$, normalised")
     profile_axis.set_title("nominal slice in grey")
-    figure.tight_layout()
     return figure
 
 

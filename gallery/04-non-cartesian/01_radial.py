@@ -33,7 +33,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -222,7 +222,7 @@ for row in uniform:
     )
 print(f"radial sample spacing {radial_spacing:.2f} 1/m, Nyquist at {nyquist} spokes")
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(
     [row["spokes"] for row in uniform],
     [row["gap"] / radial_spacing for row in uniform],
@@ -239,10 +239,7 @@ axis.set_xticks(COUNTS)
 axis.set_xticklabels([str(count) for count in COUNTS])
 axis.set_xlabel("spokes")
 axis.set_ylabel("edge gap / radial spacing")
-axis.legend(
-    frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.32), ncols=3, fontsize=9
-)
-figure.tight_layout(rect=(0, 0, 1, 0.86))
+figure.legend(ncols=3, loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%
@@ -271,16 +268,13 @@ uniform_gap = np.array(
 )
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(PREFIXES, golden_gap / uniform_gap, lw=1.4, label="golden angle")
 axis.axhline(1.0, color="0.5", ls="--", lw=1.0, label="uniform")
 axis.set_xlabel("spokes acquired")
 axis.set_ylabel("edge gap, relative to uniform")
 axis.set_ylim(bottom=0.9)
-axis.legend(
-    frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.26), ncols=2, fontsize=9
-)
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(ncols=2, loc="outside upper left")
 
 print(
     f"\ngolden-angle gap, over prefixes of 8 to {PREFIXES.max()} spokes: "

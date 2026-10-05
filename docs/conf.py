@@ -15,7 +15,11 @@ from sphinx_gallery.sorting import ExplicitOrder
 sys.path.insert(0, str(Path(__file__).parent))
 
 import colab  # noqa: E402
-from figure_style import FIGURE_RCPARAMS, gallery_house_style  # noqa: E402
+from figure_style import (  # noqa: E402
+    FIGURE_RCPARAMS,
+    column_scraper,
+    gallery_house_style,
+)
 
 project = "pypulseqpp"
 copyright = "2026, pypulseqpp contributors"  # noqa: A001
@@ -158,6 +162,9 @@ sphinx_gallery_conf = {
     # sphinx-gallery calls rcdefaults() before each script, so the house style
     # is re-applied behind its own resets rather than set once in this file.
     "reset_modules": ("matplotlib", "seaborn", gallery_house_style),
+    # Figures wider than the column are narrowed to it before they are saved;
+    # see `figure_style.column_scraper`.
+    "image_scrapers": (column_scraper,),
     # Left off deliberately: it would strip the ignore flags before the page is
     # written, and _hide_ignored_code_from_the_page_only needs them there.
     "remove_config_comments": False,
@@ -230,15 +237,29 @@ README_REWRITES = (
 )
 
 
+#: A ``<picture>`` in the README that chooses its variant by the reader's
+#: colour scheme: the dark ``<source>`` and the light ``<img>``.
+_PICTURE = re.compile(
+    r"<picture>\s*<source[^>]*srcset=\"(?P<dark>[^\"]+)\"[^>]*>\s*"
+    r"<img (?P<attributes>[^>]*)src=\"(?P<light>[^\"]+)\"(?P<rest>[^>]*)>\s*</picture>"
+)
+
+
 def _readme_for_docs(text: str) -> str:
     """Apply `README_REWRITES` to the README's text.
 
     A rewritten page link is relative to ``docs/``, the directory of the page
-    that includes the README, which is what MyST resolves it against.
+    that includes the README, which is what MyST resolves it against. A
+    ``<picture>`` becomes the two images the theme shows one of, since the
+    theme's light and dark switch does not reach a media query.
     """
     for pattern, replacement in README_REWRITES:
         text = pattern.sub(replacement, text)
-    return text
+    return _PICTURE.sub(
+        r'<img class="only-light" \g<attributes>src="\g<light>"\g<rest>>'
+        r'<img class="only-dark" \g<attributes>src="\g<dark>"\g<rest>>',
+        text,
+    )
 
 
 def _local_readme(_app, docname, source):
@@ -456,6 +477,13 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "home_page_in_toc": True,
+    # Two files rather than one SVG with a colour-scheme media query: inside an
+    # <img> such a query follows the operating system, not the site's toggle.
+    "logo": {
+        "image_light": "_static/pypulseqpp-mark.svg",
+        "image_dark": "_static/pypulseqpp-mark-dark.svg",
+        "alt_text": "pypulseqpp",
+    },
     # The list every published version is in, written beside the versions by
     # scripts/publish_docs.py. The page fetches it when it loads, so a build
     # served from anywhere else leaves the switcher out. The theme's check of
@@ -497,7 +525,6 @@ html_title = "pypulseqpp documentation"
 # from here as well.
 html_static_path = ["_static"]
 html_css_files = ["pypulseqpp.css"]
-html_logo = "_static/pypulseqpp-mark.svg"
 plot_include_source = True
 plot_html_show_source_link = False
 plot_formats = [("svg", 96)]

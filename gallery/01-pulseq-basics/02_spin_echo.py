@@ -38,7 +38,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -276,7 +276,7 @@ for row in shortest:
         f"{1e3 * row['echo_time']:10.2f} ms  {row['timing']!s:>7}"
     )
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(
     [row["cycles"] for row in shortest],
     [1e3 * row["echo_time"] for row in shortest],
@@ -298,8 +298,7 @@ axis.set_xticks(CYCLES)
 axis.set_xticklabels([f"{c:.0f}" for c in CYCLES])
 axis.set_xlabel(f"dephasing across {1e3 * VOXEL:.0f} mm (cycles)")
 axis.set_ylabel("duration (ms)")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.28))
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%

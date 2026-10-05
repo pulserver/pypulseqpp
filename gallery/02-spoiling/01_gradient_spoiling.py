@@ -36,7 +36,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -237,7 +237,9 @@ against_area = {
 }
 
 # sphinx_gallery_start_ignore
-figure, (against_cycles, approach) = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2))
+figure, (against_cycles, approach) = plt.subplots(
+    1, 2, figsize=(PAGE_WIDTH, 3.2), layout="constrained"
+)
 for flip, curve in against_area.items():
     line = against_cycles.plot(CYCLES, curve, lw=1.4, label=f"{flip:.0f} deg")[0]
     against_cycles.axhline(
@@ -246,9 +248,9 @@ for flip, curve in against_area.items():
 against_cycles.set_xlabel(f"spoiler, cycles across {1e3 * VOXEL:.2f} mm")
 against_cycles.set_ylabel("steady-state signal")
 against_cycles.set_ylim(bottom=0.0)
-against_cycles.set_title("dashed: ideally spoiled", fontsize=10)
-against_cycles.legend(
-    frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.34), ncols=2, fontsize=9
+against_cycles.set_title("dashed: ideally spoiled")
+figure.legend(
+    *against_cycles.get_legend_handles_labels(), ncols=2, loc="outside upper left"
 )
 evolution = steady_state(SPOILER_CYCLES, 30.0)
 approach.plot(np.abs(evolution), lw=1.2, label="gradient spoiling")
@@ -258,9 +260,8 @@ approach.axhline(
 approach.set_xlabel("repetition")
 approach.set_ylabel("signal")
 approach.set_xscale("log")
-approach.set_title("30 deg, 4 cycles", fontsize=10)
-approach.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.34), fontsize=9)
-figure.tight_layout(rect=(0, 0, 1, 0.86))
+approach.set_title("30 deg, 4 cycles")
+figure.legend(*approach.get_legend_handles_labels(), loc="outside upper right")
 
 beyond = against_area[30.0][CYCLES >= 3.0]
 print(
@@ -305,13 +306,12 @@ by_flip = np.array(
 by_flip_ideal = ideally_spoiled(FLIP_ANGLES)
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(FLIP_ANGLES, by_flip, lw=1.4, label="gradient spoiling")
 axis.plot(FLIP_ANGLES, by_flip_ideal, lw=1.4, ls="--", label="ideally spoiled")
 axis.set_xlabel("flip angle (degrees)")
 axis.set_ylabel("steady-state signal")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.26), ncols=2)
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(ncols=2, loc="outside upper left")
 
 print(f"\n{'flip':>5}  {'gradient spoiled':>17}  {'ideally spoiled':>16}  {'ratio':>6}")
 for flip, spoiled, ideal in zip(FLIP_ANGLES, by_flip, by_flip_ideal, strict=True):

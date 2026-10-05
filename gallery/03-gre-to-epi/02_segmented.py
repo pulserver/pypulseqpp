@@ -36,7 +36,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -233,7 +233,7 @@ for row in trade_off:
         f"{1e3 * row['scan']:7.0f} ms"
     )
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.66, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.66, 3.2), layout="constrained")
 axis.plot(
     [row["shots"] for row in trade_off],
     [row["displacement"] for row in trade_off],
@@ -269,15 +269,12 @@ secondary.set_yscale("log")
 secondary.set_ylabel("time per slice (ms)")
 handles = axis.get_legend_handles_labels()
 extra = secondary.get_legend_handles_labels()
-axis.legend(
+figure.legend(
+    *axis.get_legend_handles_labels(),
     handles[0] + extra[0],
     handles[1] + extra[1],
-    frameon=False,
-    loc="upper left",
-    bbox_to_anchor=(0.0, 1.40),
-    fontsize=9,
+    loc="outside upper left",
 )
-figure.tight_layout(rect=(0, 0, 1, 0.80))
 # sphinx_gallery_end_ignore
 
 # %%
