@@ -28,7 +28,7 @@ suppress unwanted coherence between shots. TE controls T2 weighting, while the
 EPI train introduces off-resonance sensitivity. This sequence supports rapid,
 motion-robust structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,14 +37,14 @@ motion-robust structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
 
 Sixteen-line blades
 -------------------
 
 Sixteen lines per blade, each blade acquired after one excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-47
+.. GENERATED FROM PYTHON SOURCE LINES 25-35
 
 .. code-block:: Python
 
@@ -71,12 +71,12 @@ Sixteen lines per blade, each blade acquired after one excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 36-38
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 38-41
 
 .. code-block:: Python
 
@@ -95,7 +95,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-59
+.. GENERATED FROM PYTHON SOURCE LINES 42-47
 
 Sampling order
 --------------
@@ -103,7 +103,7 @@ Sampling order
 Colour encodes blade acquisition order. All lines within one blade are
 acquired in a single echo train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 47-50
 
 .. code-block:: Python
 
@@ -122,7 +122,7 @@ acquired in a single echo train.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-69
+.. GENERATED FROM PYTHON SOURCE LINES 51-57
 
 Wider blades
 ------------
@@ -131,7 +131,7 @@ A wider blade requires a longer echo-planar train. Each blade covers more
 of the k-space disc, and more off-resonance phase accumulates across the
 blade's phase-encode direction.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-83
+.. GENERATED FROM PYTHON SOURCE LINES 57-71
 
 .. code-block:: Python
 
@@ -156,7 +156,7 @@ blade's phase-encode direction.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-86
+.. GENERATED FROM PYTHON SOURCE LINES 72-74
 
 .. code-block:: Python
 
@@ -177,7 +177,7 @@ blade's phase-encode direction.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.219 seconds)
+   **Total running time of the script:** (0 minutes 2.214 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:

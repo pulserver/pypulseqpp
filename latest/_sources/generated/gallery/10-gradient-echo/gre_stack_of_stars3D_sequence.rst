@@ -28,7 +28,7 @@ transverse coherence between repetitions. TR and flip angle primarily
 determine T1 weighting. Stack-of-stars SPGR is used for motion-robust 3D
 structural and dynamic imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ structural and dynamic imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Nyquist angular sampling
 ------------------------
@@ -45,7 +45,7 @@ Nyquist angular sampling
 The Nyquist set of spoke angles at every partition. With the default
 ``partition_angle_shift='none'``, every partition uses the same angles.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-46
+.. GENERATED FROM PYTHON SOURCE LINES 26-34
 
 .. code-block:: Python
 
@@ -70,12 +70,12 @@ The Nyquist set of spoke angles at every partition. With the default
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-49
+.. GENERATED FROM PYTHON SOURCE LINES 35-37
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-52
+.. GENERATED FROM PYTHON SOURCE LINES 37-40
 
 .. code-block:: Python
 
@@ -94,14 +94,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-57
+.. GENERATED FROM PYTHON SOURCE LINES 41-45
 
 Sampling order
 --------------
 
 The spokes of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 45-48
 
 .. code-block:: Python
 
@@ -120,7 +120,7 @@ The spokes of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+.. GENERATED FROM PYTHON SOURCE LINES 49-54
 
 Angular undersampling
 ---------------------
@@ -128,7 +128,7 @@ Angular undersampling
 Retaining one spoke angle in four reduces the number of repetitions
 fourfold. Every acquired spoke samples the origin of its partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-78
+.. GENERATED FROM PYTHON SOURCE LINES 54-66
 
 .. code-block:: Python
 
@@ -151,7 +151,7 @@ fourfold. Every acquired spoke samples the origin of its partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-81
+.. GENERATED FROM PYTHON SOURCE LINES 67-69
 
 .. code-block:: Python
 
@@ -172,7 +172,7 @@ fourfold. Every acquired spoke samples the origin of its partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.339 seconds)
+   **Total running time of the script:** (0 minutes 5.327 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py:

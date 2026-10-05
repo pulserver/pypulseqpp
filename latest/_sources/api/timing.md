@@ -3,7 +3,7 @@
 ADC dwell times and acquisition durations compatible with both the ADC and the
 gradient raster, and the quantization of a time to a raster. Times are in s.
 Receiver bandwidth is `1 / dwell` in Hz; bandwidth per pixel is
-`1 / (num_samples * dwell)`. {doc}`../explanations/pulseq/timing-and-rasterization`
+`1 / (num_samples * dwell)`. {doc}`../explanations/timing-and-rasters`
 describes the four rasters and the coupling between the ADC and gradient
 rasters.
 

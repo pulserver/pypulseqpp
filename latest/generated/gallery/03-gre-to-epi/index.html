@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>From gradient echo to echo planar &#8212; pypulseqpp documentation</title>
+    <title>Echo planar imaging &#8212; pypulseqpp documentation</title>
   
   
   
@@ -152,8 +152,8 @@
       
     
     
-    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
-    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
+    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../../../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
   
   
 </a></div>
@@ -211,28 +211,15 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/pulseq/index.html">Pulseq representation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/pulseq/events-and-blocks.html">Events and blocks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/pulseq/libraries-and-shapes.html">Storage, deduplication and file revisions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/pulseq/timing-and-rasterization.html">Timing and rasterization</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sequence-application.html">Sequence functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/design/sampling.html">Sampling support and ordering</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../explanations/safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/gradient_amplitude.html">Gradient amplitude</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/slew_rate.html">Slew rate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/gradient_continuity.html">Gradient continuity</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/pns.html">Peripheral nerve stimulation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/mechanical_resonance.html">Mechanical resonance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/sar.html">Specific absorption rate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../explanations/safety/conventions.html">Check conventions</a></li>
-</ul>
-</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/pulseq-representation.html">Pulseq representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/shapes-and-storage.html">Storage, deduplication and file revisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/timing-and-rasters.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/sequence-design.html">Sequence design in pypulseqpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/constraint-checks.html">Constraint checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/gradient-constraints.html">Gradient amplitude, slew rate and continuity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/pns.html">Peripheral nerve stimulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/mechanical-resonance.html">Mechanical resonance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/sar.html">Specific absorption rate</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -243,25 +230,20 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../02-spoiling/01_gradient_spoiling.html">Gradient spoiling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../02-spoiling/02_rf_spoiling.html">RF spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-spoiling/01_spoiling.html">Spoiling</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/gre-to-epi.html">From gradient echo to echo planar</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="01_multi_echo.html">Multi-echo readouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="02_segmented.html">Segmented echo planar</a></li>
-<li class="toctree-l3"><a class="reference internal" href="03_epi.html">Single-shot echo planar</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/gre-to-epi.html">Echo planar imaging</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="03_epi.html">Echo planar imaging</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/non-cartesian.html">Non-Cartesian trajectories</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/non-cartesian.html">Radial sampling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../04-non-cartesian/01_radial.html">Radial sampling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../04-non-cartesian/02_spiral.html">Spiral readout</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../05-sequence-modules/01_excitation.html">Excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../05-sequence-modules/01_sequence_modules.html">Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../05-sequence-modules/03_sequence_function.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -270,8 +252,14 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../07-custom-modules/02_cartesian_readout.html">A ramp-sampled readout module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../07-custom-modules/03_noncartesian_readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../08-tours/01_multi_echo.html">Multi-echo readouts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../08-tours/02_segmented_epi.html">Segmented echo planar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../08-tours/03_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../08-tours/04_ramp_sampled_readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../08-tours/05_twisting_radial_readout.html">A twisting radial readout module</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -296,7 +284,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/apps.html">Complete sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sequence-functions.html">Sequence functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/cli.html">Command-line helpers</a></li>
@@ -513,7 +501,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>From gradient echo to echo planar</h1>
+    <h1>Echo planar imaging</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -527,18 +515,12 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="from-gradient-echo-to-echo-planar">
-<span id="sphx-glr-generated-gallery-03-gre-to-epi"></span><h1>From gradient echo to echo planar<a class="headerlink" href="#from-gradient-echo-to-echo-planar" title="Link to this heading">#</a></h1>
-<p>Several echoes per excitation: a train of readouts, the phase-encode blips between them, and single-shot echo planar imaging.</p>
-<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the first section acquires one echo per excitation. This lesson acquires several, by following the readout gradient with further readout gradients of alternating polarity. The rest of the repetition is unchanged, and the echoes sample the same k-space line at increasing echo times, from which a T_2^* estimate is computed."><img alt="" src="../../../_images/sphx_glr_01_multi_echo_thumb.png" />
-<p><a class="reference internal" href="01_multi_echo.html"><span class="doc">Multi-echo readouts</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Multi-echo readouts</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The multi-echo train of the previous lesson samples the same k-space line several times. This lesson adds a phase-encode blip between the echoes, so that one excitation acquires several k-space lines. The number of excitations (shots) over which the matrix is divided is then a free parameter, and it determines both the scan time and the off-resonance displacement in the image."><img alt="" src="../../../_images/sphx_glr_02_segmented_thumb.png" />
-<p><a class="reference internal" href="02_segmented.html"><span class="doc">Segmented echo planar</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Segmented echo planar</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="The previous lesson divided the matrix over several shots. This lesson takes the segmentation to one shot, so that the whole matrix is acquired after a single excitation, and measures the two effects that limit such an acquisition: the signal decay over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient waveform and the acquisition. The relationship between shot count, distortion and scan time is measured in /generated/gallery/03-gre-to-epi/02_segmented."><img alt="" src="../../../_images/sphx_glr_03_epi_thumb.png" />
-<p><a class="reference internal" href="03_epi.html"><span class="doc">Single-shot echo planar</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Single-shot echo planar</div>
+  <section id="echo-planar-imaging">
+<span id="sphx-glr-generated-gallery-03-gre-to-epi"></span><h1>Echo planar imaging<a class="headerlink" href="#echo-planar-imaging" title="Link to this heading">#</a></h1>
+<p>One excitation, a train of echoes with a phase-encode blip between them, and single-shot echo planar imaging.</p>
+<div id='sg-tag-list' class='sphx-glr-tag-list'></div><div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of /generated/gallery/01-pulseq-basics/03_gradient_echo acquires one k-space line per excitation, and the previous lesson, /generated/gallery/02-spoiling/01_spoiling, kept the residual magnetisation of one repetition out of the next. This lesson acquires the whole matrix after a single excitation. It first follows the readout gradient with further readout gradients of alternating polarity, each forming an echo, and then adds a phase-encode blip between the echoes so that each echo acquires a different line. It measures the two effects that limit such an acquisition: the signal decay over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient waveform and the acquisition. The next lesson, /generated/gallery/04-non-cartesian/01_radial, covers k-space with rotated readouts instead."><img alt="" src="../../../_images/sphx_glr_03_epi_thumb.png" />
+<p><a class="reference internal" href="03_epi.html"><span class="doc">Echo planar imaging</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Echo planar imaging</div>
 </div></div><div class="toctree-wrapper compound">
 </div>
 </section>

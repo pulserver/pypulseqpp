@@ -3,7 +3,7 @@
 Checks of a complete sequence against the gradient hardware limits, the
 forbidden gradient bands of a gradient coil, a peripheral-nerve-stimulation
 model and a VOP SAR model. They are estimates, not a complete scanner or
-patient-safety assessment. {doc}`../explanations/safety/index` covers what each
+patient-safety assessment. {doc}`../explanations/constraint-checks` covers what each
 one computes and the criterion it applies.
 
 ```{eval-rst}
@@ -50,7 +50,7 @@ read from `system`.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.safety.check_pns` | Sequence, SAFE or chronaxie model, `rotation`, `trace` | `(is_ok, report)`; responses as fractions of threshold | Peripheral nerve stimulation estimate. |
 | {obj}`~pypulseqpp.safety.read_safe_model` | Siemens `.asc` path | SAFE model, per-axis coefficients | SAFE model from a hardware description. |
-| {obj}`~pypulseqpp.safety.ChronaxieModel` | Chronaxie (s), rheobase (T/m/s), `alpha` | Model for `check_pns` | Rheobase–chronaxie nerve model, all axes alike. |
+| {obj}`~pypulseqpp.safety.ChronaxieModel` | Chronaxie (s), rheobase (T/m/s), `alpha` | Model for `check_pns` | Rheobase–chronaxie nerve model: one chronaxie, and rheobase and `alpha` for every axis or per physical axis. |
 
 ## SAR
 

@@ -28,7 +28,7 @@ coherence before the next TR. TE controls T2 weighting and TR controls
 longitudinal recovery. The overlapping blade centres support motion-robust
 structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,14 +37,14 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
 
 Sixteen-line blades
 -------------------
 
 Sixteen lines per blade.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-47
+.. GENERATED FROM PYTHON SOURCE LINES 25-35
 
 .. code-block:: Python
 
@@ -71,12 +71,12 @@ Sixteen lines per blade.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 36-38
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 38-41
 
 .. code-block:: Python
 
@@ -95,14 +95,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-58
+.. GENERATED FROM PYTHON SOURCE LINES 42-46
 
 Sampling order
 --------------
 
 Colour encodes blade acquisition order.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 46-49
 
 .. code-block:: Python
 
@@ -121,7 +121,7 @@ Colour encodes blade acquisition order.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 50-55
 
 Wider blades
 ------------
@@ -129,7 +129,7 @@ Wider blades
 Wider blades cover the k-space disc with fewer blade orientations, and
 each blade samples a larger central region.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-81
+.. GENERATED FROM PYTHON SOURCE LINES 55-69
 
 .. code-block:: Python
 
@@ -154,7 +154,7 @@ each blade samples a larger central region.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-84
+.. GENERATED FROM PYTHON SOURCE LINES 70-72
 
 .. code-block:: Python
 
@@ -175,7 +175,7 @@ each blade samples a larger central region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.031 seconds)
+   **Total running time of the script:** (0 minutes 4.017 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_propeller2D_sequence.py:

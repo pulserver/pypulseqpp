@@ -31,7 +31,7 @@ A Bloch simulation of the stored pulse relates the transverse magnetisation to
 the flip angle.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -222,7 +222,7 @@ sequence holds. On resonance a rectangular pulse rotates the magnetisation by
 its nominal flip angle, so the transverse component follows
 :math:`|M_{xy}| = \sin\alpha`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 136-153
+.. GENERATED FROM PYTHON SOURCE LINES 136-152
 
 .. code-block:: Python
 
@@ -245,7 +245,7 @@ its nominal flip angle, so the transverse component follows
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 154-159
+.. GENERATED FROM PYTHON SOURCE LINES 153-158
 
 Writing the file
 ----------------
@@ -253,7 +253,7 @@ Writing the file
 The definitions are written beside the block table and are what a
 reconstruction reads to interpret the acquisition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-167
+.. GENERATED FROM PYTHON SOURCE LINES 158-166
 
 .. code-block:: Python
 
@@ -281,7 +281,7 @@ reconstruction reads to interpret the acquisition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.229 seconds)
+   **Total running time of the script:** (0 minutes 0.244 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_01_fid.py:

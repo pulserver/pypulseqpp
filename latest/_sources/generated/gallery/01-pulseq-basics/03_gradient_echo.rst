@@ -34,7 +34,7 @@ k-space trajectory crosses zero, and the last section measures the echo time
 that follows from it.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -338,7 +338,7 @@ before the echo. The additional half step is the offset from the start of
 the window to the centre of its first sample; including it in the prewinder
 places the echo on a sample rather than between two.
 
-.. GENERATED FROM PYTHON SOURCE LINES 215-309
+.. GENERATED FROM PYTHON SOURCE LINES 215-305
 
 .. code-block:: Python
 
@@ -382,7 +382,7 @@ places the echo on a sample rather than between two.
 
     measured = []
     for fraction in FRACTIONS:
-        k_adc, _, t_excitation, _, t_adc = one_repetition(fraction).calculate_kspacePP()
+        k_adc, _, t_excitation, _, t_adc = one_repetition(fraction).calculate_kspace()
         echo = int(np.argmin(np.abs(k_adc[0])))
         measured.append(
             {
@@ -418,7 +418,7 @@ places the echo on a sample rather than between two.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 310-320
+.. GENERATED FROM PYTHON SOURCE LINES 306-318
 
 Every line reaches the same :math:`+k_\mathrm{max}`, so all four have the
 resolution the matrix prescribes; they differ in how far the near side is
@@ -428,13 +428,15 @@ by the amount the figure reports.
 
 The repetition time is unchanged throughout, so a shorter echo time here
 reduces the signal decay before the echo is measured; it does not shorten the
-scan. Shortening the scan is the subject of
-:doc:`/generated/gallery/03-gre-to-epi/02_segmented`.
+scan. The next lesson, :doc:`/generated/gallery/02-spoiling/01_spoiling`,
+keeps the transverse magnetisation of one repetition out of the next;
+shortening the scan is the subject of
+:doc:`/generated/gallery/03-gre-to-epi/03_epi`.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.381 seconds)
+   **Total running time of the script:** (0 minutes 0.396 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_03_gradient_echo.py:

@@ -4,7 +4,7 @@ Gradient events on one gradient channel axis, the operations on them, and the
 audio of the gradient waveforms a sequence plays.
 Amplitudes are in Hz/m, slew rates in Hz/m/s, gradient areas in 1/m and times
 in s, except where a docstring states otherwise;
-{doc}`../explanations/pulseq/events-and-blocks` describes the trapezoid and
+{doc}`../explanations/pulseq-representation` describes the trapezoid and
 arbitrary gradient events.
 
 ```{eval-rst}

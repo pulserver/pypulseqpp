@@ -28,7 +28,7 @@ transverse coherence and establishes a steady state governed by T2/T1 and
 off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP
 is widely used for cardiac cine and dynamic cardiac imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,14 +37,14 @@ is widely used for cardiac cine and dynamic cardiac imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
 
 Fully sampled acquisition
 -------------------------
 
 One cardiac phase, with every phase-encode line acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-56
+.. GENERATED FROM PYTHON SOURCE LINES 25-44
 
 .. code-block:: Python
 
@@ -81,12 +81,12 @@ One cardiac phase, with every phase-encode line acquired.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-59
+.. GENERATED FROM PYTHON SOURCE LINES 45-47
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 47-50
 
 .. code-block:: Python
 
@@ -105,7 +105,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-68
+.. GENERATED FROM PYTHON SOURCE LINES 51-56
 
 Sampling order
 --------------
@@ -113,7 +113,7 @@ Sampling order
 Colour encodes phase-encode line acquisition order; lines are acquired in
 segments of ``views_per_segment``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-71
+.. GENERATED FROM PYTHON SOURCE LINES 56-59
 
 .. code-block:: Python
 
@@ -132,7 +132,7 @@ segments of ``views_per_segment``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-79
+.. GENERATED FROM PYTHON SOURCE LINES 60-67
 
 Cine
 ----
@@ -142,7 +142,7 @@ after a trigger. Retrospective gating cycles the segment throughout one
 heartbeat and records the cycle index in ``PHS`` for later cardiac binning.
 Segment length sets the temporal footprint of each cardiac phase.
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-114
+.. GENERATED FROM PYTHON SOURCE LINES 67-102
 
 .. code-block:: Python
 
@@ -185,7 +185,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-117
+.. GENERATED FROM PYTHON SOURCE LINES 103-105
 
 .. code-block:: Python
 
@@ -206,7 +206,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.382 seconds)
+   **Total running time of the script:** (0 minutes 1.360 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

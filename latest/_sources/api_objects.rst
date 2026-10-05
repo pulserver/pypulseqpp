@@ -8,18 +8,6 @@ object lists as tables, each entry linking the stub this page writes;
 writing them here keeps them out of the toctree the sidebar is built
 from.
 
-.. currentmodule:: pypulseqpp.sequences
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   parameters
-   ProtocolParameter
-   Labels
-   write
-   duration
-
 .. currentmodule:: pypulseqpp.cli
 
 .. autosummary::
@@ -237,6 +225,22 @@ from.
    make_rf_spoiling_schedule
    make_phase_cycling_schedule
    make_traps_schedule
+
+.. currentmodule:: pypulseqpp.sequences
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   parameters
+   ProtocolParameter
+   Labels
+   write
+   duration
+   EXCITATIONS
+   make_excitation
+
+.. currentmodule:: pypulseqpp
 
 .. autosummary::
    :toctree: generated

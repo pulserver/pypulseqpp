@@ -29,8 +29,7 @@ import numpy as np
 
 from pypulseqpp.plot import SAMPLING
 
-PAGE_WIDTH = 8.6
-plt.rcParams.update({"figure.dpi": 110, "savefig.dpi": 110, "font.size": 10})
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 from pypulseqpp import sequences
 
@@ -84,7 +83,7 @@ tr = np.append(np.diff(excitations), seq.get_definition("TRPeriphery")[0])
 
 # sphinx_gallery_start_ignore
 indices = np.unique(np.linspace(0, n_shots - 1, 4, dtype=int))
-fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2))
+fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2), layout="constrained")
 for i in indices:
     n = lengths[i]
     label = f"shot {i}: ETL {n}, TR {tr[i] * 1e3:.0f} ms"
@@ -93,15 +92,7 @@ axes[0].set(xlabel="Echo index", ylabel="Refocusing flip angle (degrees)")
 axes[1].plot(np.arange(n_shots), lengths, label="ETL")
 axes[1].set(xlabel="Shot index", ylabel="Echo-train length")
 handles, labels = axes[0].get_legend_handles_labels()
-fig.legend(
-    handles,
-    labels,
-    loc="upper center",
-    ncol=2,
-    bbox_to_anchor=(0.5, 0.98),
-    frameon=False,
-)
-fig.tight_layout(rect=(0, 0, 1, 0.75))
+fig.legend(handles, labels, ncols=2, loc="outside upper center")
 # sphinx_gallery_end_ignore
 
 # %%

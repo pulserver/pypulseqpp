@@ -29,7 +29,7 @@ magnetisation between repetitions. Contrast depends on TR, flip angle, RF
 bandwidth, and very short-T2 decay. ZTE is used for anatomical imaging of
 short-T2 tissues and other minimal-TE applications.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-33
+.. GENERATED FROM PYTHON SOURCE LINES 13-21
 
 
 
@@ -38,7 +38,7 @@ short-T2 tissues and other minimal-TE applications.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-39
+.. GENERATED FROM PYTHON SOURCE LINES 22-27
 
 Nyquist angular sampling
 ------------------------
@@ -46,7 +46,7 @@ Nyquist angular sampling
 ``ceil(pi * n**2)`` half-spoke directions over the sphere, which sample its
 surface at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-50
+.. GENERATED FROM PYTHON SOURCE LINES 27-38
 
 .. code-block:: Python
 
@@ -75,7 +75,7 @@ surface at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-58
+.. GENERATED FROM PYTHON SOURCE LINES 39-46
 
 Sequence diagram
 ----------------
@@ -85,7 +85,7 @@ directions. The readout gradient reaches amplitude before the hard RF event,
 and the ADC window starts after the transmit/receive dead time. The solid trace is a
 representative repetition; shaded traces show other gradient encodes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 46-49
 
 .. code-block:: Python
 
@@ -104,7 +104,7 @@ representative repetition; shaded traces show other gradient encodes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 50-55
 
 Sampling order
 --------------
@@ -112,7 +112,7 @@ Sampling order
 The half-spokes over the three k-space axes. Each starts at the centre of
 k-space and runs outward to the surface of the sampled sphere.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-70
+.. GENERATED FROM PYTHON SOURCE LINES 55-58
 
 .. code-block:: Python
 
@@ -131,7 +131,7 @@ k-space and runs outward to the surface of the sampled sphere.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-80
+.. GENERATED FROM PYTHON SOURCE LINES 59-68
 
 Angular undersampling
 ---------------------
@@ -143,7 +143,7 @@ between acquired shells is doubled. Angular undersampling produces streak
 artefacts from the k-space periphery rather than the fold-over of an
 undersampled Cartesian acquisition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-92
+.. GENERATED FROM PYTHON SOURCE LINES 68-80
 
 .. code-block:: Python
 
@@ -166,7 +166,7 @@ undersampled Cartesian acquisition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-95
+.. GENERATED FROM PYTHON SOURCE LINES 81-83
 
 .. code-block:: Python
 
@@ -187,7 +187,7 @@ undersampled Cartesian acquisition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 20.134 seconds)
+   **Total running time of the script:** (0 minutes 20.272 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

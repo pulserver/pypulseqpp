@@ -28,7 +28,7 @@ coherence between repetitions. TR, flip angle, and TE determine contrast. The
 overlapping central k-space region supports motion estimation in structural
 imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Sixteen-line blades
 -------------------
@@ -45,7 +45,7 @@ Sixteen-line blades
 Sixteen lines per blade, with the number of blade orientations chosen to
 cover the k-space disc.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-48
+.. GENERATED FROM PYTHON SOURCE LINES 26-36
 
 .. code-block:: Python
 
@@ -72,12 +72,12 @@ cover the k-space disc.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-51
+.. GENERATED FROM PYTHON SOURCE LINES 37-39
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-54
+.. GENERATED FROM PYTHON SOURCE LINES 39-42
 
 .. code-block:: Python
 
@@ -96,7 +96,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-60
+.. GENERATED FROM PYTHON SOURCE LINES 43-48
 
 Sampling order
 --------------
@@ -104,7 +104,7 @@ Sampling order
 The colour encodes blade acquisition order. Each blade is a band
 of parallel lines; the bands overlap at the centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-63
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -123,7 +123,7 @@ of parallel lines; the bands overlap at the centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-70
+.. GENERATED FROM PYTHON SOURCE LINES 52-58
 
 Wider blades
 ------------
@@ -132,7 +132,7 @@ Increasing the blade width reduces the number of blade orientations and
 increases the duration of each blade. The larger shared central-k-space
 region provides additional data for motion estimation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-84
+.. GENERATED FROM PYTHON SOURCE LINES 58-72
 
 .. code-block:: Python
 
@@ -157,7 +157,7 @@ region provides additional data for motion estimation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-87
+.. GENERATED FROM PYTHON SOURCE LINES 73-75
 
 .. code-block:: Python
 
@@ -178,7 +178,7 @@ region provides additional data for motion estimation.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.016 seconds)
+   **Total running time of the script:** (0 minutes 3.968 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_propeller2D_sequence.py:

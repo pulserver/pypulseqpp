@@ -28,7 +28,7 @@ partition order determine the recovery time of the acquired data within and
 between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted
 3D structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-68
+.. GENERATED FROM PYTHON SOURCE LINES 12-58
 
 
 
@@ -37,7 +37,7 @@ between inversion cycles. Stack-of-spirals MPRAGE provides rapid T1-weighted
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-76
+.. GENERATED FROM PYTHON SOURCE LINES 59-66
 
 Timing structure
 ----------------
@@ -47,7 +47,7 @@ partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
 shortest timing supported by the modules. Four interleaves per partition
 produce a compact timing diagram.
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-89
+.. GENERATED FROM PYTHON SOURCE LINES 66-79
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ produce a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-92
+.. GENERATED FROM PYTHON SOURCE LINES 80-82
 
 .. code-block:: Python
 
@@ -95,7 +95,7 @@ produce a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-101
+.. GENERATED FROM PYTHON SOURCE LINES 83-91
 
 Sampling order
 --------------
@@ -106,7 +106,7 @@ readouts than an equivalent Cartesian line train, reducing the range of
 inversion-recovery weighting. ``TI`` ends at the first excitation-pulse
 centre; the first interleaf reaches the centre of k-space at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 101-110
+.. GENERATED FROM PYTHON SOURCE LINES 91-100
 
 .. code-block:: Python
 
@@ -128,7 +128,7 @@ centre; the first interleaf reaches the centre of k-space at ``TI + TE``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-117
+.. GENERATED FROM PYTHON SOURCE LINES 101-107
 
 Trajectory
 ----------
@@ -137,7 +137,7 @@ The interleaves of every partition, over the three k-space axes, coloured by
 shot. Each interleaf is the same spiral gradient waveform rotated to its own
 angle; the rotated set covers the in-plane k-space disc.
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-120
+.. GENERATED FROM PYTHON SOURCE LINES 107-110
 
 .. code-block:: Python
 
@@ -159,7 +159,7 @@ angle; the rotated set covers the in-plane k-space disc.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.240 seconds)
+   **Total running time of the script:** (0 minutes 11.257 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

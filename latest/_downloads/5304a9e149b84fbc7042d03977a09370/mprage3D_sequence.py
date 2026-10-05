@@ -20,17 +20,7 @@ import numpy as np
 
 from pypulseqpp.plot import SAMPLING
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "savefig.dpi": 110,
-        "font.size": 10,
-        "axes.titlesize": 11,
-        "axes.labelsize": 10,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def _views(seq, n_y, n_z):

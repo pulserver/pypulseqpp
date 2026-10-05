@@ -5,7 +5,7 @@ the non-Cartesian base interleaves the readout modules play. Every module takes
 the system limits, a {class}`pypulseqpp.Opts`, as its first argument; flip
 angles are in degrees, times in s, lengths in m and frequencies in Hz. The
 published encoding events are templates the scan loop scales before adding the
-blocks, as {doc}`../explanations/design/sequence-module` describes.
+blocks, as {doc}`../explanations/sequence-design` describes.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences

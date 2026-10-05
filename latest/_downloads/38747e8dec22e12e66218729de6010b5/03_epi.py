@@ -1,22 +1,30 @@
 r"""
-=======================
-Single-shot echo planar
-=======================
+===================
+Echo planar imaging
+===================
 
-The previous lesson divided the matrix over several shots. This lesson takes
-the segmentation to one shot, so that the whole matrix is acquired after a
-single excitation, and measures the two effects that limit such an
+The gradient echo of :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`
+acquires one k-space line per excitation, and the previous lesson,
+:doc:`/generated/gallery/02-spoiling/01_spoiling`, kept the residual
+magnetisation of one repetition out of the next. This lesson acquires the
+whole matrix after a single excitation. It first follows the readout gradient
+with further readout gradients of alternating polarity, each forming an echo,
+and then adds a phase-encode blip between the echoes so that each echo
+acquires a different line. It measures the two effects that limit such an
 acquisition: the signal decay over an echo train tens of milliseconds long,
 and the sensitivity of a train of alternating readouts to a delay between the
-gradient waveform and the acquisition. The relationship between shot count,
-distortion and scan time is measured in
-:doc:`/generated/gallery/03-gre-to-epi/02_segmented`.
+gradient waveform and the acquisition. The next lesson,
+:doc:`/generated/gallery/04-non-cartesian/01_radial`, covers k-space with
+rotated readouts instead.
 
 Learning objectives
 -------------------
 
 After this lesson, you should be able to:
 
+- build a train of readout gradients of alternating polarity, each with its
+  own ADC event, and locate its echoes from the k-space analysis;
+- explain why the even echoes are acquired in reverse order;
 - build a single-shot echo planar readout with a one-line phase-encode blip;
 - read the traversal order of the echo train from the k-space trajectory;
 - compute the point-spread function that :math:`T_2^*` decay across the
@@ -31,15 +39,20 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# One excitation, every line
-# --------------------------
+# A train of readouts
+# -------------------
 #
-# The blip advances one line rather than the number of shots, and the train
-# runs the length of the matrix. Nothing else changes.
+# A readout gradient traverses one k-space line from one end to the other. A
+# second gradient of the opposite polarity traverses it back, so a train of
+# them needs no rewinder between the echoes and forms one echo per gradient.
+# The gradients are played back to back, so the echo spacing is the duration of
+# one readout gradient, ramps included. Every second echo is acquired in the
+# opposite direction, and its samples are in the reverse order of the odd
+# echoes'.
 
 import numpy as np
 
@@ -88,6 +101,71 @@ gx_pre = pp.make_trapezoid(
     duration=5e-4,
     system=system,
 )
+
+ECHOES = 6
+
+train = pp.Sequence(system=system)
+train.add_block(rf, gz)
+train.add_block(gx_pre, gz_reph)
+for echo in range(ECHOES):
+    train.add_block(pp.scale_grad(gx, (-1.0) ** echo), adc)
+
+# %%
+# The analysis gives the k-space location of every sample of every acquisition
+# window. Along the readout axis the train is a triangle wave between the two
+# ends of the line, and an echo is where it crosses zero.
+
+k_train, _, t_train_excitation, _, t_train = train.calculate_kspace()
+kx_train = k_train[0] * FOV / MATRIX * 2
+echo_times = np.array(
+    [
+        t_train[
+            echo * MATRIX + int(np.argmin(np.abs(kx_train[echo * MATRIX :][:MATRIX])))
+        ]
+        - t_train_excitation[0]
+        for echo in range(ECHOES)
+    ]
+)
+print(
+    "echo times (ms): "
+    + ", ".join(f"{1e3 * time:.2f}" for time in echo_times)
+    + f"\nspacing {1e3 * np.diff(echo_times).mean():.3f} ms, "
+    f"readout gradient {1e3 * pp.calc_duration(gx):.3f} ms"
+)
+
+# sphinx_gallery_start_ignore
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0), layout="constrained")
+for echo in range(ECHOES):
+    window = slice(echo * MATRIX, (echo + 1) * MATRIX)
+    axis.plot(
+        1e3 * (t_train[window] - t_train_excitation[0]),
+        kx_train[window],
+        lw=1.4,
+        color="C0" if echo % 2 == 0 else "C7",
+    )
+axis.plot([], [], color="C0", label="odd echoes")
+axis.plot([], [], color="C7", label="even echoes")
+axis.plot(1e3 * echo_times, np.zeros(ECHOES), "o", color="C2", ms=4, label="echo")
+axis.set_xlabel("time from the excitation (ms)")
+axis.set_ylabel(r"$k_x$ / $k_\mathrm{max}$")
+figure.legend(ncols=3, loc="outside upper left")
+# sphinx_gallery_end_ignore
+
+# %%
+# The samples the analysis reports are not one line acquired six times: the
+# even echoes run from :math:`+k_\mathrm{max}` to :math:`-k_\mathrm{max}`, so
+# a reconstruction has to reverse them before they are lines of the same
+# matrix. The last section of this lesson measures what a delay between the
+# gradient and the acquisition does to such a train.
+
+# %%
+# One excitation, every line
+# --------------------------
+#
+# A phase-encode blip between the echoes advances the acquisition by one line,
+# and the train runs the length of the matrix. The prewinder on the
+# phase-encode axis starts the train at one edge of k-space.
+
 gy_pre = pp.make_trapezoid(
     channel="y", area=-MATRIX / (2 * FOV), duration=5e-4, system=system
 )
@@ -136,7 +214,7 @@ pp.plot.plot_kspace(seq, color_by="echo", plane="xy")
 # The echo times come from the analysis, and the line each echo lands on from
 # the k-space it reports, so the envelope follows the sequence's own ordering.
 
-k_adc, _, t_excitation, _, t_adc = seq.calculate_kspacePP()
+k_adc, _, t_excitation, _, t_adc = seq.calculate_kspace()
 echo_time = t_adc.reshape(MATRIX, MATRIX).mean(axis=1) - t_excitation[0]
 line = np.round(k_adc[1].reshape(MATRIX, MATRIX)[:, 0] * FOV).astype(int)
 order = np.argsort(line)
@@ -171,7 +249,9 @@ for t2_star in T2_STARS:
         f"{widths[t2_star]:11.2f} px"
     )
 
-figure, (envelope_axis, spread_axis) = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2))
+figure, (envelope_axis, spread_axis) = plt.subplots(
+    1, 2, figsize=(PAGE_WIDTH, 3.2), layout="constrained"
+)
 pixels = np.arange(MATRIX) - MATRIX // 2
 for t2_star in T2_STARS:
     label = f"{1e3 * t2_star:.0f} ms"
@@ -184,16 +264,12 @@ envelope_axis.set_ylabel("signal")
 spread_axis.set_xlim(-8, 8)
 spread_axis.set_xlabel("pixels along the phase-encode direction")
 spread_axis.set_ylabel("point spread, normalised")
-envelope_axis.legend(
-    frameon=False,
+figure.legend(
+    *envelope_axis.get_legend_handles_labels(),
     title=r"$T_2^*$",
-    loc="upper left",
-    bbox_to_anchor=(0.0, 1.34),
     ncols=4,
-    fontsize=9,
-    title_fontsize=9,
+    loc="outside upper left",
 )
-figure.tight_layout(rect=(0, 0, 1, 0.86))
 # sphinx_gallery_end_ignore
 
 # %%
@@ -206,9 +282,9 @@ figure.tight_layout(rect=(0, 0, 1, 0.86))
 # the first and the point spread is half again as wide as a pixel; at the
 # longest it is within a tenth of a pixel of the unblurred width.
 #
-# The remedies are the ones the previous lesson measured — a shorter echo
-# spacing, or fewer lines per shot — together with acquiring fewer lines
-# outright, by partial Fourier or by parallel imaging.
+# The remedies are a shorter echo spacing, fewer lines per shot (a segmented
+# acquisition), and acquiring fewer lines outright, by partial Fourier or by
+# parallel imaging.
 
 # %%
 # Gradient delay and the odd echoes
@@ -220,7 +296,7 @@ figure.tight_layout(rect=(0, 0, 1, 0.86))
 # sign: the odd and the even lines of the matrix are shifted in opposite
 # directions.
 #
-# :meth:`~pypulseqpp.Sequence.calculate_kspacePP` takes the delay as a
+# :meth:`~pypulseqpp.Sequence.calculate_kspace` takes the delay as a
 # parameter, so the displacement is measured from the trajectory the analysis
 # reports rather than computed beside it.
 
@@ -228,7 +304,7 @@ DELAYS = np.array([0.0, 1e-6, 2e-6, 4e-6, 8e-6])
 
 displacement = []
 for delay in DELAYS:
-    delayed = seq.calculate_kspacePP(trajectory_delay=delay)[0]
+    delayed = seq.calculate_kspace(trajectory_delay=delay)[0]
     kx = delayed[0].reshape(MATRIX, MATRIX)
     # The echo of each line, where the ideal trajectory crosses zero.
     centre = kx[:, MATRIX // 2] * FOV
@@ -244,7 +320,7 @@ print(f"\n{'delay':>10}  {'odd-even displacement':>24}")
 for row in displacement:
     print(f"{1e6 * row['delay']:7.1f} us  {row['samples']:20.3f} samples")
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.58, 3.0))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.58, 3.0), layout="constrained")
 axis.plot(
     1e6 * DELAYS,
     [row["samples"] for row in displacement],
@@ -255,8 +331,7 @@ axis.plot(
 )
 axis.set_xlabel("gradient delay (us)")
 axis.set_ylabel("samples")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.26), fontsize=9)
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%

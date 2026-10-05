@@ -122,35 +122,18 @@ Spoiling
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the previous section leaves transverse magnetisation at the end of each repetition, and the following pulses refocus part of it. This lesson adds a spoiler gradient after the acquisition. The spoiler dephases the remaining transverse magnetisation through several cycles across a voxel, so that it integrates to nearly zero there; because every repetition applies the same dephasing, a coherent pathway remains and contributes to the steady state.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the previous lesson, /generated/gallery/01-pulseq-basics/03_gradient_echo, leaves transverse magnetisation at the end of each repetition, and the following pulses refocus part of it. This lesson first adds a spoiler gradient after the acquisition. The spoiler dephases the remaining transverse magnetisation through several cycles across a voxel, so that it integrates to nearly zero there; because every repetition applies the same dephasing, a coherent pathway remains and contributes to the steady state. The lesson then suppresses that pathway by advancing the phase of the RF pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and measures which phase increments bring the steady-state signal close to that of ideal spoiling.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/02-spoiling/images/thumb/sphx_glr_01_gradient_spoiling_thumb.png
+  .. image:: /generated/gallery/02-spoiling/images/thumb/sphx_glr_01_spoiling_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/02-spoiling/01_gradient_spoiling`
+  :doc:`/generated/gallery/02-spoiling/01_spoiling`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Gradient spoiling</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson showed that a spoiler gradient leaves a coherent pathway in the steady state. This lesson suppresses the coherent residual transverse pathways by advancing the phase of the RF pulse and of the receiver by a quadratically increasing amount from one repetition to the next, and measures which phase increments bring the steady-state signal close to that of ideal spoiling.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/02-spoiling/images/thumb/sphx_glr_02_rf_spoiling_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/02-spoiling/02_rf_spoiling`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">RF spoiling</div>
+      <div class="sphx-glr-thumbnail-title">Spoiling</div>
     </div>
 
 
@@ -160,9 +143,9 @@ Spoiling
 
     </div>
 
-=================================
-From gradient echo to echo planar
-=================================
+===================
+Echo planar imaging
+===================
 
 .. include:: _gallery_header.md
    :parser: myst_parser.sphinx_
@@ -181,41 +164,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of the first section acquires one echo per excitation. This lesson acquires several, by following the readout gradient with further readout gradients of alternating polarity. The rest of the repetition is unchanged, and the echoes sample the same k-space line at increasing echo times, from which a T_2^* estimate is computed.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/03-gre-to-epi/images/thumb/sphx_glr_01_multi_echo_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/03-gre-to-epi/01_multi_echo`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Multi-echo readouts</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The multi-echo train of the previous lesson samples the same k-space line several times. This lesson adds a phase-encode blip between the echoes, so that one excitation acquires several k-space lines. The number of excitations (shots) over which the matrix is divided is then a free parameter, and it determines both the scan time and the off-resonance displacement in the image.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/03-gre-to-epi/images/thumb/sphx_glr_02_segmented_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/03-gre-to-epi/02_segmented`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Segmented echo planar</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson divided the matrix over several shots. This lesson takes the segmentation to one shot, so that the whole matrix is acquired after a single excitation, and measures the two effects that limit such an acquisition: the signal decay over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient waveform and the acquisition. The relationship between shot count, distortion and scan time is measured in /generated/gallery/03-gre-to-epi/02_segmented.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The gradient echo of /generated/gallery/01-pulseq-basics/03_gradient_echo acquires one k-space line per excitation, and the previous lesson, /generated/gallery/02-spoiling/01_spoiling, kept the residual magnetisation of one repetition out of the next. This lesson acquires the whole matrix after a single excitation. It first follows the readout gradient with further readout gradients of alternating polarity, each forming an echo, and then adds a phase-encode blip between the echoes so that each echo acquires a different line. It measures the two effects that limit such an acquisition: the signal decay over an echo train tens of milliseconds long, and the sensitivity of a train of alternating readouts to a delay between the gradient waveform and the acquisition. The next lesson, /generated/gallery/04-non-cartesian/01_radial, covers k-space with rotated readouts instead.">
 
 .. only:: html
 
@@ -226,7 +175,7 @@ From gradient echo to echo planar
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Single-shot echo planar</div>
+      <div class="sphx-glr-thumbnail-title">Echo planar imaging</div>
     </div>
 
 
@@ -236,9 +185,9 @@ From gradient echo to echo planar
 
     </div>
 
-==========================
-Non-Cartesian trajectories
-==========================
+===============
+Radial sampling
+===============
 
 .. include:: _gallery_header.md
    :parser: myst_parser.sphinx_
@@ -257,7 +206,7 @@ Non-Cartesian trajectories
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The Cartesian gradient echo of /generated/gallery/01-pulseq-basics/03_gradient_echo changes the acquired line with a phase encode. This lesson replaces the phase encode with a rotation of the readout gradient itself, so that every repetition acquires a spoke through the centre of k-space. It establishes how many spokes such an acquisition requires and what ordering them by the golden angle changes.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The Cartesian gradient echo of /generated/gallery/01-pulseq-basics/03_gradient_echo changes the acquired line with a phase encode, and the echo planar train of the previous lesson, /generated/gallery/03-gre-to-epi/03_epi, with a blip. This lesson replaces the phase encode with a rotation of the readout gradient itself, so that every repetition acquires a spoke through the centre of k-space. It establishes how many spokes such an acquisition requires and what ordering them by the golden angle changes.">
 
 .. only:: html
 
@@ -269,23 +218,6 @@ Non-Cartesian trajectories
 .. raw:: html
 
       <div class="sphx-glr-thumbnail-title">Radial sampling</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson, /generated/gallery/04-non-cartesian/01_radial, acquired k-space along straight spokes. This lesson acquires it along a spiral arm, and establishes which of the system limits determines the duration of an arm. A spiral is the first trajectory of the course that cannot be written as a trapezoid: its waveform is solved numerically against the limits by SpiralReadout2D. The interface of such a module is the subject of /generated/gallery/05-sequence-modules/02_readout; here the module is used only for the arms it designs.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/04-non-cartesian/images/thumb/sphx_glr_02_spiral_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/04-non-cartesian/02_spiral`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Spiral readout</div>
     </div>
 
 
@@ -316,48 +248,31 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The earlier sections built slice-selective excitations by hand with a pulse factory. This lesson designs them with the excitation module, and measures how the three numbers that specify a selective pulse — flip angle, slice thickness and time-bandwidth product — affect the slice profile, the selection gradient and the peak B_1, and which combinations of them the gradient system permits.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier lessons built the excitation and the readout of a repetition by hand, with event factories. This lesson designs them with sequence modules: a module takes the system limits and a prescription, solves the events and the timing of one part of the repetition, and publishes them, with its timing measured from its center. The module concept, and the reason the design is divided in this way, are described in /explanations/sequence-design.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_01_excitation_thumb.png
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_01_sequence_modules_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/05-sequence-modules/01_excitation`
+  :doc:`/generated/gallery/05-sequence-modules/01_sequence_modules`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Excitation modules</div>
+      <div class="sphx-glr-thumbnail-title">Sequence modules</div>
     </div>
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson replaced the hand-built excitation with a module. This lesson replaces the hand-built readout of the first sections with the readout module, and uses two prescriptions that the earlier lessons solved by hand — a partial echo and a multi-echo train — to check that the module reaches the same results and reports them.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson, /generated/gallery/05-sequence-modules/01_sequence_modules, designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence function takes the system limits and a protocol: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_02_readout_thumb.png
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_03_sequence_function_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/05-sequence-modules/02_readout`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Readout modules</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence function takes the system limits and a protocol: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_03_sequence_app_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/05-sequence-modules/03_sequence_app`
+  :doc:`/generated/gallery/05-sequence-modules/03_sequence_function`
 
 .. raw:: html
 
@@ -449,16 +364,92 @@ Custom modules
     </div>
 
 
+.. thumbnail-parent-div-close
+
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson wrote an excitation module. This lesson writes a Cartesian readout module that follows the SequenceModule contract, and compares it with the shipped readout.">
+    </div>
+
+=====
+Tours
+=====
+
+.. include:: _gallery_header.md
+   :parser: myst_parser.sphinx_
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="A multi-echo gradient echo follows the readout gradient with further readout gradients of alternating polarity, each with its own ADC event. The rest of the repetition is unchanged, and the echoes sample the same k-space line at increasing echo times. The measured quantities are the echo spacing, which depends on the receiver bandwidth, and the number of echoes that fit in the repetition time at each bandwidth. Where the echoes of such a train land, and why the even echoes are acquired in reverse order, is measured in Course lesson 5.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/07-custom-modules/images/thumb/sphx_glr_02_cartesian_readout_thumb.png
+  .. image:: /generated/gallery/08-tours/images/thumb/sphx_glr_01_multi_echo_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/07-custom-modules/02_cartesian_readout`
+  :doc:`/generated/gallery/08-tours/01_multi_echo`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Multi-echo readouts</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="A segmented echo planar readout divides the phase-encode lines of the matrix over several excitations (shots), each acquiring an interleaved subset with a phase-encode blip between its echoes. The shot count determines both the scan time and the off-resonance displacement in the image. The measured relationship is the bandwidth per pixel along the phase-encode direction, which increases in proportion to the number of shots, against the number of excitations and hence the scan time.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/08-tours/images/thumb/sphx_glr_02_segmented_epi_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/08-tours/02_segmented_epi`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Segmented echo planar</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="A spiral readout acquires k-space along a spiral arm rather than along straight spokes. Its waveform cannot be written as a trapezoid and is solved numerically against the limits by SpiralReadout2D; here the module is used only for the arms it designs. This example establishes which of the system limits determines the duration of an arm.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/08-tours/images/thumb/sphx_glr_03_spiral_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/08-tours/03_spiral`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Spiral readout</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example writes a Cartesian readout module that follows the SequenceModule contract and samples through the ramps of the readout lobe, and compares it with the shipped readout.">
+
+.. only:: html
+
+  .. image:: /generated/gallery/08-tours/images/thumb/sphx_glr_04_ramp_sampled_readout_thumb.png
+    :alt:
+
+  :doc:`/generated/gallery/08-tours/04_ramp_sampled_readout`
 
 .. raw:: html
 
@@ -468,14 +459,14 @@ Custom modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson wrote a Cartesian readout module with trapezoidal gradients. This lesson writes a non-Cartesian readout module: the trajectory is stated as a k-space path, solved into a gradient waveform under the gradient limits, and published as a module.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example writes a non-Cartesian readout module: the trajectory is stated as a k-space path, solved into a gradient waveform under the gradient limits, and published as a module.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/07-custom-modules/images/thumb/sphx_glr_03_noncartesian_readout_thumb.png
+  .. image:: /generated/gallery/08-tours/images/thumb/sphx_glr_05_twisting_radial_readout_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/07-custom-modules/03_noncartesian_readout`
+  :doc:`/generated/gallery/08-tours/05_twisting_radial_readout`
 
 .. raw:: html
 
@@ -1187,6 +1178,7 @@ Zero echo time
    /generated/gallery/05-sequence-modules/index.rst
    /generated/gallery/06-checks/index.rst
    /generated/gallery/07-custom-modules/index.rst
+   /generated/gallery/08-tours/index.rst
    /generated/gallery/10-gradient-echo/index.rst
    /generated/gallery/11-spin-echo/index.rst
    /generated/gallery/13-fast-spin-echo/index.rst

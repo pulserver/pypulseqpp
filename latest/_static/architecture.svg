@@ -9,14 +9,6 @@
 .small{font:18px Arial,sans-serif;fill:#173042}
 .arrow{stroke:#657786;stroke-width:3;marker-end:url(#m)}
 .head{fill:#657786}
-@media (prefers-color-scheme:dark){
-.box{fill:#13293a;stroke:#5b9bd0}
-.core{fill:#2b76ad;stroke:#8fc3e8}
-.a{fill:#2a2415;stroke:#ffbe2e}
-.txt,.small{fill:#dce7f0}
-.arrow{stroke:#93a7b5}
-.head{fill:#93a7b5}
-}
 </style>
 <defs><marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path class="head" d="M0,0 L0,6 L9,3 z"/></marker></defs>
 <rect class="box" x="270" y="20" rx="12" width="460" height="65"/><text class="txt" x="500" y="60" text-anchor="middle">PyPulseq-compatible Python API</text>

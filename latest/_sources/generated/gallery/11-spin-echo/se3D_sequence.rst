@@ -27,7 +27,7 @@ followed by a Cartesian ``(line, partition)`` readout. Spoilers suppress
 unwanted coherence before the next TR. TE and TR determine T2 and longitudinal
 recovery weighting. 3D spin echo supports high-resolution structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-31
+.. GENERATED FROM PYTHON SOURCE LINES 11-19
 
 
 
@@ -36,7 +36,7 @@ recovery weighting. 3D spin echo supports high-resolution structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-37
+.. GENERATED FROM PYTHON SOURCE LINES 20-25
 
 Fully sampled acquisition
 -------------------------
@@ -44,7 +44,7 @@ Fully sampled acquisition
 Every ``(line, partition)`` view inside the ellipse inscribed in the
 phase-encode plane is acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-45
+.. GENERATED FROM PYTHON SOURCE LINES 25-33
 
 .. code-block:: Python
 
@@ -69,12 +69,12 @@ phase-encode plane is acquired.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-48
+.. GENERATED FROM PYTHON SOURCE LINES 34-36
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-51
+.. GENERATED FROM PYTHON SOURCE LINES 36-39
 
 .. code-block:: Python
 
@@ -93,14 +93,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-56
+.. GENERATED FROM PYTHON SOURCE LINES 40-44
 
 Sampling order
 --------------
 
 Colour encodes acquisition order in the phase-encode plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 44-47
 
 .. code-block:: Python
 
@@ -119,7 +119,7 @@ Colour encodes acquisition order in the phase-encode plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-66
+.. GENERATED FROM PYTHON SOURCE LINES 48-54
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -128,7 +128,7 @@ Subsampling lines and partitions by two each reduces the number of
 repetitions approximately fourfold outside the calibration region. Each
 acquired view has the prescribed echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-80
+.. GENERATED FROM PYTHON SOURCE LINES 54-68
 
 .. code-block:: Python
 
@@ -153,7 +153,7 @@ acquired view has the prescribed echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-83
+.. GENERATED FROM PYTHON SOURCE LINES 69-71
 
 .. code-block:: Python
 
@@ -174,7 +174,7 @@ acquired view has the prescribed echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 23.450 seconds)
+   **Total running time of the script:** (0 minutes 23.679 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

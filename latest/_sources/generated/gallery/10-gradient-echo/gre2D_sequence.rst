@@ -29,7 +29,7 @@ residual transverse magnetisation. TR and flip angle primarily determine T1
 weighting, with T2* decay during TE. SPGR is widely used for T1-weighted
 structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-33
+.. GENERATED FROM PYTHON SOURCE LINES 13-21
 
 
 
@@ -38,14 +38,14 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-38
+.. GENERATED FROM PYTHON SOURCE LINES 22-26
 
 Fully sampled acquisition
 -------------------------
 
 Every phase-encode line of one slice is acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-49
+.. GENERATED FROM PYTHON SOURCE LINES 26-37
 
 .. code-block:: Python
 
@@ -74,12 +74,12 @@ Every phase-encode line of one slice is acquired.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-52
+.. GENERATED FROM PYTHON SOURCE LINES 38-40
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-55
+.. GENERATED FROM PYTHON SOURCE LINES 40-43
 
 .. code-block:: Python
 
@@ -98,7 +98,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-61
+.. GENERATED FROM PYTHON SOURCE LINES 44-49
 
 Sampling order
 --------------
@@ -106,7 +106,7 @@ Sampling order
 The acquisition order places central k-space near the temporal midpoint of
 the scan. Colour encodes repetition index.
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-64
+.. GENERATED FROM PYTHON SOURCE LINES 49-52
 
 .. code-block:: Python
 
@@ -125,7 +125,7 @@ the scan. Colour encodes repetition index.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-71
+.. GENERATED FROM PYTHON SOURCE LINES 53-59
 
 In-plane acceleration
 ---------------------
@@ -134,7 +134,7 @@ In-plane acceleration
 calibration region at the centre of k-space, from which a parallel-imaging
 reconstruction estimates the coil sensitivities.
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-85
+.. GENERATED FROM PYTHON SOURCE LINES 59-73
 
 .. code-block:: Python
 
@@ -159,7 +159,7 @@ reconstruction estimates the coil sensitivities.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 86-88
+.. GENERATED FROM PYTHON SOURCE LINES 74-76
 
 .. code-block:: Python
 
@@ -180,7 +180,7 @@ reconstruction estimates the coil sensitivities.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.976 seconds)
+   **Total running time of the script:** (0 minutes 1.980 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre2D_sequence.py:

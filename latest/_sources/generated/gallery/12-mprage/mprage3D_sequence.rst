@@ -29,7 +29,7 @@ sample occurs one TE later. The ordering assigns recovery times within each
 inversion cycle to ``(line, partition)`` views. MPRAGE is used for
 high-resolution 3D T1-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-69
+.. GENERATED FROM PYTHON SOURCE LINES 13-59
 
 
 
@@ -38,7 +38,7 @@ high-resolution 3D T1-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-79
+.. GENERATED FROM PYTHON SOURCE LINES 60-69
 
 Timing structure
 ----------------
@@ -50,7 +50,7 @@ partition provide a compact timing diagram. Clinical matrices typically
 require inversion times of several hundred milliseconds and much
 longer readout trains.
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-89
+.. GENERATED FROM PYTHON SOURCE LINES 69-79
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-92
+.. GENERATED FROM PYTHON SOURCE LINES 80-82
 
 .. code-block:: Python
 
@@ -95,7 +95,7 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-104
+.. GENERATED FROM PYTHON SOURCE LINES 83-94
 
 Sampling order
 --------------
@@ -109,7 +109,7 @@ inversion-pulse centre to that view's excitation-pulse centre; the central
 ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
 acquired later in the recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 104-117
+.. GENERATED FROM PYTHON SOURCE LINES 94-107
 
 .. code-block:: Python
 
@@ -141,7 +141,7 @@ acquired later in the recovery.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-127
+.. GENERATED FROM PYTHON SOURCE LINES 108-117
 
 Accelerated sampling
 --------------------
@@ -153,7 +153,7 @@ range of inversion-recovery weighting. Scan duration equals the number of
 inversion cycles multiplied by TR; the fully sampled calibration region still
 requires every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 127-143
+.. GENERATED FROM PYTHON SOURCE LINES 117-133
 
 .. code-block:: Python
 
@@ -186,7 +186,7 @@ requires every partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.807 seconds)
+   **Total running time of the script:** (0 minutes 0.746 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

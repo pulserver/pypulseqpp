@@ -28,7 +28,7 @@ spoiling suppress residual transverse coherence. TR, flip angle, and TE
 determine contrast. The overlapping blade centres support motion-robust 3D
 structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,14 +37,14 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
 
 Sixteen-line blades
 -------------------
 
 Sixteen lines per blade, at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-47
+.. GENERATED FROM PYTHON SOURCE LINES 25-35
 
 .. code-block:: Python
 
@@ -71,12 +71,12 @@ Sixteen lines per blade, at every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 36-38
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 38-41
 
 .. code-block:: Python
 
@@ -95,14 +95,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-58
+.. GENERATED FROM PYTHON SOURCE LINES 42-46
 
 Sampling order
 --------------
 
 The blades of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 46-49
 
 .. code-block:: Python
 
@@ -121,7 +121,7 @@ The blades of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 50-55
 
 Wider blades
 ------------
@@ -129,7 +129,7 @@ Wider blades
 Increasing blade width reduces the number of blade orientations and
 increases the shared central-k-space region.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-81
+.. GENERATED FROM PYTHON SOURCE LINES 55-69
 
 .. code-block:: Python
 
@@ -154,7 +154,7 @@ increases the shared central-k-space region.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-84
+.. GENERATED FROM PYTHON SOURCE LINES 70-72
 
 .. code-block:: Python
 
@@ -175,7 +175,7 @@ increases the shared central-k-space region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.712 seconds)
+   **Total running time of the script:** (0 minutes 8.728 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py:

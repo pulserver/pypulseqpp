@@ -28,7 +28,7 @@ the next TR. TE controls T2 weighting and TR controls longitudinal recovery.
 Spin echo is used for conventional T1-, T2-, and proton-density-weighted
 structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Fully sampled acquisition
 -------------------------
@@ -45,7 +45,7 @@ Fully sampled acquisition
 Every phase-encode line of one slice is acquired, at the minimum echo time
 permitted by the RF pulse and readout durations.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-49
+.. GENERATED FROM PYTHON SOURCE LINES 26-37
 
 .. code-block:: Python
 
@@ -74,12 +74,12 @@ permitted by the RF pulse and readout durations.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-52
+.. GENERATED FROM PYTHON SOURCE LINES 38-40
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-55
+.. GENERATED FROM PYTHON SOURCE LINES 40-43
 
 .. code-block:: Python
 
@@ -98,14 +98,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-60
+.. GENERATED FROM PYTHON SOURCE LINES 44-48
 
 Sampling order
 --------------
 
 Colour encodes phase-encode line acquisition order.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-63
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -124,7 +124,7 @@ Colour encodes phase-encode line acquisition order.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-70
+.. GENERATED FROM PYTHON SOURCE LINES 52-58
 
 Partial Fourier
 ---------------
@@ -133,7 +133,7 @@ Partial Fourier
 k-space. Partial-Fourier reconstruction uses conjugate symmetry and requires
 a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-84
+.. GENERATED FROM PYTHON SOURCE LINES 58-72
 
 .. code-block:: Python
 
@@ -158,7 +158,7 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-87
+.. GENERATED FROM PYTHON SOURCE LINES 73-75
 
 .. code-block:: Python
 
@@ -179,7 +179,7 @@ a phase estimate; the reduced acquisition time is accompanied by an SNR penalty.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.297 seconds)
+   **Total running time of the script:** (0 minutes 2.280 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se2D_sequence.py:

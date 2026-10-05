@@ -29,7 +29,7 @@ distributes the lattice among shots. Spoilers suppress residual
 transverse coherence between repetitions; off-resonance accumulates during
 each echo train. 3D EPI supports rapid structural and functional imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-144
+.. GENERATED FROM PYTHON SOURCE LINES 13-134
 
 
 
@@ -38,7 +38,7 @@ each echo train. 3D EPI supports rapid structural and functional imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 145-155
+.. GENERATED FROM PYTHON SOURCE LINES 135-145
 
 Accelerated acquisition
 -----------------------
@@ -51,7 +51,7 @@ the partition jump.
 ``epi3D_sequence`` returns the prescans in play order and then the scan, so
 each design below is the last element of the returned list.
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-174
+.. GENERATED FROM PYTHON SOURCE LINES 145-164
 
 .. code-block:: Python
 
@@ -88,12 +88,12 @@ each design below is the last element of the returned list.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 175-177
+.. GENERATED FROM PYTHON SOURCE LINES 165-167
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 177-180
+.. GENERATED FROM PYTHON SOURCE LINES 167-170
 
 .. code-block:: Python
 
@@ -112,7 +112,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 181-195
+.. GENERATED FROM PYTHON SOURCE LINES 171-185
 
 Skipped-CAIPI traversal
 -----------------------
@@ -129,7 +129,7 @@ are the CAIPI blips: they alternate between amplitudes
 repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
 vertical display offset separates coincident paths from different shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 195-202
+.. GENERATED FROM PYTHON SOURCE LINES 185-192
 
 
 
@@ -143,7 +143,7 @@ vertical display offset separates coincident paths from different shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-211
+.. GENERATED FROM PYTHON SOURCE LINES 193-201
 
 Single-shot comparison
 ----------------------
@@ -154,7 +154,7 @@ distortion along the phase-encode axis. The phase-encode step between
 consecutive echoes of a segmented train spans three sampled lattice lines,
 so its blips are larger than those of the single-shot train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 211-248
+.. GENERATED FROM PYTHON SOURCE LINES 201-238
 
 .. code-block:: Python
 
@@ -191,7 +191,7 @@ so its blips are larger than those of the single-shot train.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 249-256
+.. GENERATED FROM PYTHON SOURCE LINES 239-246
 
 In-plane acceleration
 ---------------------
@@ -201,7 +201,7 @@ increasing lattice spacing along :math:`k_y`. The sampled views remain on a
 single CAIPIRINHA lattice, whose CAIPI shift determines the positions of the
 aliases [BRE06]_.
 
-.. GENERATED FROM PYTHON SOURCE LINES 256-277
+.. GENERATED FROM PYTHON SOURCE LINES 246-267
 
 .. code-block:: Python
 
@@ -239,7 +239,7 @@ aliases [BRE06]_.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 278-290
+.. GENERATED FROM PYTHON SOURCE LINES 268-280
 
 References
 ----------
@@ -257,7 +257,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.558 seconds)
+   **Total running time of the script:** (0 minutes 0.587 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

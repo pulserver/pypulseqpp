@@ -28,7 +28,7 @@ residual transverse coherence before the next TR. The echo train samples T2*
 decay while TR and flip angle determine the T1 weighting. Multi-echo GRE is
 used for T2*/R2* mapping, susceptibility mapping, and structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ used for T2*/R2* mapping, susceptibility mapping, and structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Four-echo train
 ---------------
@@ -45,7 +45,7 @@ Four-echo train
 Four echoes after each excitation, with readout gradients of alternating
 polarity.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-48
+.. GENERATED FROM PYTHON SOURCE LINES 26-36
 
 .. code-block:: Python
 
@@ -73,12 +73,12 @@ polarity.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-51
+.. GENERATED FROM PYTHON SOURCE LINES 37-39
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-54
+.. GENERATED FROM PYTHON SOURCE LINES 39-42
 
 .. code-block:: Python
 
@@ -97,7 +97,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-60
+.. GENERATED FROM PYTHON SOURCE LINES 43-48
 
 Sampling order
 --------------
@@ -105,7 +105,7 @@ Sampling order
 Colour encodes acquisition order. The echoes of one excitation sample the
 same phase-encode line.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-63
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -124,7 +124,7 @@ same phase-encode line.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-69
+.. GENERATED FROM PYTHON SOURCE LINES 52-57
 
 A longer echo train
 -------------------
@@ -132,7 +132,7 @@ A longer echo train
 Additional echoes extend the sampled decay curve and increase the minimum
 repetition time and final echo time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-83
+.. GENERATED FROM PYTHON SOURCE LINES 57-71
 
 .. code-block:: Python
 
@@ -157,7 +157,7 @@ repetition time and final echo time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 84-86
+.. GENERATED FROM PYTHON SOURCE LINES 72-74
 
 .. code-block:: Python
 
@@ -178,7 +178,7 @@ repetition time and final echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 24.592 seconds)
+   **Total running time of the script:** (0 minutes 24.582 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho2D_sequence.py:

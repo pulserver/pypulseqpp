@@ -32,7 +32,7 @@ RF energy near the end of the waveform, so that at a fixed duration and
 time-bandwidth product the interval from the pulse to the echo is shorter. The
 peak :math:`B_1` is larger, and the phase of the slice profile is not linear.
 The module concept, and the events a module publishes, are described in
-:doc:`/explanations/design/sequence-module`.
+:doc:`/explanations/sequence-design`.
 
 Learning objectives
 -------------------
@@ -50,7 +50,7 @@ After this lesson, you should be able to:
 - measure the shortest echo time a readout module reaches with each
   excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-89
+.. GENERATED FROM PYTHON SOURCE LINES 34-74
 
 
 
@@ -59,7 +59,7 @@ After this lesson, you should be able to:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-108
+.. GENERATED FROM PYTHON SOURCE LINES 75-93
 
 Module interface
 ----------------
@@ -80,7 +80,7 @@ pulse against off-resonance.
 measures its echo time from. A minimum-phase pulse is used at
 ``center_pos=1.0``, its own end.
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-185
+.. GENERATED FROM PYTHON SOURCE LINES 93-170
 
 .. code-block:: Python
 
@@ -168,12 +168,12 @@ measures its echo time from. A minimum-phase pulse is used at
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 186-188
+.. GENERATED FROM PYTHON SOURCE LINES 171-173
 
 Published events
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 188-216
+.. GENERATED FROM PYTHON SOURCE LINES 173-201
 
 .. code-block:: Python
 
@@ -222,7 +222,7 @@ Published events
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 217-227
+.. GENERATED FROM PYTHON SOURCE LINES 202-212
 
 The rephaser compensates the slice-selection moment accumulated after the
 effective RF centre. At ``center_pos=1.0`` that moment is the fall ramp
@@ -235,7 +235,7 @@ Pulse envelope and slice profile
 ``sim_rf`` simulates the pulse across off-resonance; dividing by the
 selection amplitude reads the result as a position.
 
-.. GENERATED FROM PYTHON SOURCE LINES 227-246
+.. GENERATED FROM PYTHON SOURCE LINES 212-231
 
 .. code-block:: Python
 
@@ -274,7 +274,7 @@ selection amplitude reads the result as a position.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 247-254
+.. GENERATED FROM PYTHON SOURCE LINES 232-239
 
 Echo time
 ---------
@@ -284,7 +284,7 @@ and measures the echo time from the pulse's effective centre. Applying the
 same readout to each excitation isolates the resulting difference in echo
 time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 254-277
+.. GENERATED FROM PYTHON SOURCE LINES 239-262
 
 .. code-block:: Python
 
@@ -325,11 +325,11 @@ time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 278-279
+.. GENERATED FROM PYTHON SOURCE LINES 263-264
 
 One repetition of the short-TE design.
 
-.. GENERATED FROM PYTHON SOURCE LINES 279-284
+.. GENERATED FROM PYTHON SOURCE LINES 264-269
 
 .. code-block:: Python
 
@@ -353,7 +353,7 @@ One repetition of the short-TE design.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.767 seconds)
+   **Total running time of the script:** (0 minutes 0.838 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_07-custom-modules_01_excitation_module.py:

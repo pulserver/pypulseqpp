@@ -3,7 +3,7 @@
 The sequence container, the system limits a sequence is designed under, and
 the geometry transforms applied to a finished sequence. Gradient amplitude
 limits are in Hz/m, slew-rate limits in Hz/m/s and rasters in s;
-{doc}`../explanations/pulseq/index` describes the format these objects
+{doc}`../explanations/pulseq-representation` describes the format these objects
 represent.
 
 ```{eval-rst}

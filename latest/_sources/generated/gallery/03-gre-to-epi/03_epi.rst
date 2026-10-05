@@ -18,24 +18,32 @@
 .. _sphx_glr_generated_gallery_03-gre-to-epi_03_epi.py:
 
 
-=======================
-Single-shot echo planar
-=======================
+===================
+Echo planar imaging
+===================
 
-The previous lesson divided the matrix over several shots. This lesson takes
-the segmentation to one shot, so that the whole matrix is acquired after a
-single excitation, and measures the two effects that limit such an
+The gradient echo of :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo`
+acquires one k-space line per excitation, and the previous lesson,
+:doc:`/generated/gallery/02-spoiling/01_spoiling`, kept the residual
+magnetisation of one repetition out of the next. This lesson acquires the
+whole matrix after a single excitation. It first follows the readout gradient
+with further readout gradients of alternating polarity, each forming an echo,
+and then adds a phase-encode blip between the echoes so that each echo
+acquires a different line. It measures the two effects that limit such an
 acquisition: the signal decay over an echo train tens of milliseconds long,
 and the sensitivity of a train of alternating readouts to a delay between the
-gradient waveform and the acquisition. The relationship between shot count,
-distortion and scan time is measured in
-:doc:`/generated/gallery/03-gre-to-epi/02_segmented`.
+gradient waveform and the acquisition. The next lesson,
+:doc:`/generated/gallery/04-non-cartesian/01_radial`, covers k-space with
+rotated readouts instead.
 
 Learning objectives
 -------------------
 
 After this lesson, you should be able to:
 
+- build a train of readout gradients of alternating polarity, each with its
+  own ADC event, and locate its echoes from the k-space analysis;
+- explain why the even echoes are acquired in reverse order;
 - build a single-shot echo planar readout with a one-line phase-encode blip;
 - read the traversal order of the echo train from the k-space trajectory;
 - compute the point-spread function that :math:`T_2^*` decay across the
@@ -43,7 +51,7 @@ After this lesson, you should be able to:
 - measure the alternating k-space displacement a gradient delay introduces,
   and relate it to the half-field-of-view ghost.
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-37
+.. GENERATED FROM PYTHON SOURCE LINES 35-45
 
 
 
@@ -52,15 +60,20 @@ After this lesson, you should be able to:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-43
+.. GENERATED FROM PYTHON SOURCE LINES 46-56
 
-One excitation, every line
---------------------------
+A train of readouts
+-------------------
 
-The blip advances one line rather than the number of shots, and the train
-runs the length of the matrix. Nothing else changes.
+A readout gradient traverses one k-space line from one end to the other. A
+second gradient of the opposite polarity traverses it back, so a train of
+them needs no rewinder between the echoes and forms one echo per gradient.
+The gradients are played back to back, so the echo spacing is the duration of
+one readout gradient, ramps included. Every second echo is acquired in the
+opposite direction, and its samples are in the reverse order of the odd
+echoes'.
 
-.. GENERATED FROM PYTHON SOURCE LINES 43-117
+.. GENERATED FROM PYTHON SOURCE LINES 56-113
 
 .. code-block:: Python
 
@@ -112,6 +125,93 @@ runs the length of the matrix. Nothing else changes.
         duration=5e-4,
         system=system,
     )
+
+    ECHOES = 6
+
+    train = pp.Sequence(system=system)
+    train.add_block(rf, gz)
+    train.add_block(gx_pre, gz_reph)
+    for echo in range(ECHOES):
+        train.add_block(pp.scale_grad(gx, (-1.0) ** echo), adc)
+
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 114-117
+
+The analysis gives the k-space location of every sample of every acquisition
+window. Along the readout axis the train is a triangle wave between the two
+ends of the line, and an echo is where it crosses zero.
+
+.. GENERATED FROM PYTHON SOURCE LINES 117-154
+
+.. code-block:: Python
+
+
+    k_train, _, t_train_excitation, _, t_train = train.calculate_kspace()
+    kx_train = k_train[0] * FOV / MATRIX * 2
+    echo_times = np.array(
+        [
+            t_train[
+                echo * MATRIX + int(np.argmin(np.abs(kx_train[echo * MATRIX :][:MATRIX])))
+            ]
+            - t_train_excitation[0]
+            for echo in range(ECHOES)
+        ]
+    )
+    print(
+        "echo times (ms): "
+        + ", ".join(f"{1e3 * time:.2f}" for time in echo_times)
+        + f"\nspacing {1e3 * np.diff(echo_times).mean():.3f} ms, "
+        f"readout gradient {1e3 * pp.calc_duration(gx):.3f} ms"
+    )
+
+
+
+
+
+.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_001.png
+   :alt: 03 epi
+   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_001.png
+   :class: sphx-glr-single-img
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    echo times (ms): 1.99, 2.69, 3.39, 4.09, 4.79, 5.49
+    spacing 0.700 ms, readout gradient 0.700 ms
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 155-160
+
+The samples the analysis reports are not one line acquired six times: the
+even echoes run from :math:`+k_\mathrm{max}` to :math:`-k_\mathrm{max}`, so
+a reconstruction has to reverse them before they are lines of the same
+matrix. The last section of this lesson measures what a delay between the
+gradient and the acquisition does to such a train.
+
+.. GENERATED FROM PYTHON SOURCE LINES 162-168
+
+One excitation, every line
+--------------------------
+
+A phase-encode blip between the echoes advances the acquisition by one line,
+and the train runs the length of the matrix. The prewinder on the
+phase-encode axis starts the train at one edge of k-space.
+
+.. GENERATED FROM PYTHON SOURCE LINES 168-195
+
+.. code-block:: Python
+
+
     gy_pre = pp.make_trapezoid(
         channel="y", area=-MATRIX / (2 * FOV), duration=5e-4, system=system
     )
@@ -141,9 +241,9 @@ runs the length of the matrix. Nothing else changes.
 
 
 
-.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_001.png
+.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_002.png
    :alt: 03 epi
-   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_001.png
+   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_002.png
    :class: sphx-glr-single-img
 
 
@@ -156,7 +256,7 @@ runs the length of the matrix. Nothing else changes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 118-124
+.. GENERATED FROM PYTHON SOURCE LINES 196-202
 
 The trajectory
 --------------
@@ -165,7 +265,7 @@ One shot, coloured by the rank of each echo in the train: the acquisition
 starts at one corner of k-space and works across it, reversing direction at
 every line.
 
-.. GENERATED FROM PYTHON SOURCE LINES 124-127
+.. GENERATED FROM PYTHON SOURCE LINES 202-205
 
 .. code-block:: Python
 
@@ -175,16 +275,16 @@ every line.
 
 
 
-.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_002.png
+.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_003.png
    :alt: 03 epi
-   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_002.png
+   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_003.png
    :class: sphx-glr-single-img
 
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 128-138
+.. GENERATED FROM PYTHON SOURCE LINES 206-216
 
 Decay across the train
 ----------------------
@@ -197,12 +297,12 @@ decaying envelope, and the image is convolved with that envelope's transform.
 The echo times come from the analysis, and the line each echo lands on from
 the k-space it reports, so the envelope follows the sequence's own ordering.
 
-.. GENERATED FROM PYTHON SOURCE LINES 138-199
+.. GENERATED FROM PYTHON SOURCE LINES 216-275
 
 .. code-block:: Python
 
 
-    k_adc, _, t_excitation, _, t_adc = seq.calculate_kspacePP()
+    k_adc, _, t_excitation, _, t_adc = seq.calculate_kspace()
     echo_time = t_adc.reshape(MATRIX, MATRIX).mean(axis=1) - t_excitation[0]
     line = np.round(k_adc[1].reshape(MATRIX, MATRIX)[:, 0] * FOV).astype(int)
     order = np.argsort(line)
@@ -232,9 +332,9 @@ the k-space it reports, so the envelope follows the sequence's own ordering.
 
 
 
-.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_003.png
+.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_004.png
    :alt: 03 epi
-   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_003.png
+   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_004.png
    :class: sphx-glr-single-img
 
 
@@ -252,7 +352,7 @@ the k-space it reports, so the envelope follows the sequence's own ordering.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 200-212
+.. GENERATED FROM PYTHON SOURCE LINES 276-288
 
 The envelope is not centred on the middle of k-space: the train runs from one
 edge to the other, so the decay is monotonic across the lines rather than
@@ -263,11 +363,11 @@ the shortest :math:`T_2^*` here the signal at the last line is a tenth of
 the first and the point spread is half again as wide as a pixel; at the
 longest it is within a tenth of a pixel of the unblurred width.
 
-The remedies are the ones the previous lesson measured — a shorter echo
-spacing, or fewer lines per shot — together with acquiring fewer lines
-outright, by partial Fourier or by parallel imaging.
+The remedies are a shorter echo spacing, fewer lines per shot (a segmented
+acquisition), and acquiring fewer lines outright, by partial Fourier or by
+parallel imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 214-226
+.. GENERATED FROM PYTHON SOURCE LINES 290-302
 
 Gradient delay and the odd echoes
 ---------------------------------
@@ -278,11 +378,11 @@ delay. The readouts alternate in polarity, so the displacement alternates in
 sign: the odd and the even lines of the matrix are shifted in opposite
 directions.
 
-:meth:`~pypulseqpp.Sequence.calculate_kspacePP` takes the delay as a
+:meth:`~pypulseqpp.Sequence.calculate_kspace` takes the delay as a
 parameter, so the displacement is measured from the trajectory the analysis
 reports rather than computed beside it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 226-262
+.. GENERATED FROM PYTHON SOURCE LINES 302-337
 
 .. code-block:: Python
 
@@ -291,7 +391,7 @@ reports rather than computed beside it.
 
     displacement = []
     for delay in DELAYS:
-        delayed = seq.calculate_kspacePP(trajectory_delay=delay)[0]
+        delayed = seq.calculate_kspace(trajectory_delay=delay)[0]
         kx = delayed[0].reshape(MATRIX, MATRIX)
         # The echo of each line, where the ideal trajectory crosses zero.
         centre = kx[:, MATRIX // 2] * FOV
@@ -306,9 +406,9 @@ reports rather than computed beside it.
 
 
 
-.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_004.png
+.. image-sg:: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_005.png
    :alt: 03 epi
-   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_004.png
+   :srcset: /generated/gallery/03-gre-to-epi/images/sphx_glr_03_epi_005.png
    :class: sphx-glr-single-img
 
 
@@ -327,7 +427,7 @@ reports rather than computed beside it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 263-269
+.. GENERATED FROM PYTHON SOURCE LINES 338-344
 
 The displacement is the delay divided by the dwell time, and it is the same
 for every line, so the odd and the even lines differ only in its sign. A quantity that alternates from one line to the next along the
@@ -339,7 +439,7 @@ outside the scope of this package.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.512 seconds)
+   **Total running time of the script:** (0 minutes 0.682 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_03-gre-to-epi_03_epi.py:

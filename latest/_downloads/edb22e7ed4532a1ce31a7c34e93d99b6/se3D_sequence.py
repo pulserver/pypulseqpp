@@ -13,18 +13,6 @@ recovery weighting. 3D spin echo supports high-resolution structural imaging.
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "savefig.dpi": 110,
-        "font.size": 10,
-        "axes.titlesize": 11,
-        "axes.labelsize": 10,
-    }
-)
-
 
 # sphinx_gallery_end_ignore
 

@@ -28,7 +28,7 @@ repetitions. TR and flip angle primarily determine T1 weighting; off-resonance
 and T2* decay affect the spiral readout. Spiral SPGR supports rapid dynamic and
 structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Constant-density spiral
 -----------------------
@@ -45,7 +45,7 @@ Constant-density spiral
 Sixteen interleaves at a constant pitch, which sample the disc at the
 Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-48
+.. GENERATED FROM PYTHON SOURCE LINES 26-36
 
 .. code-block:: Python
 
@@ -72,12 +72,12 @@ Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-51
+.. GENERATED FROM PYTHON SOURCE LINES 37-39
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-54
+.. GENERATED FROM PYTHON SOURCE LINES 39-42
 
 .. code-block:: Python
 
@@ -96,7 +96,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-60
+.. GENERATED FROM PYTHON SOURCE LINES 43-48
 
 Sampling order
 --------------
@@ -104,7 +104,7 @@ Sampling order
 Each interleaf is the same spiral gradient waveform, rotated to its own
 angle by a rotation extension.
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-63
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -123,7 +123,7 @@ angle by a rotation extension.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 64-70
+.. GENERATED FROM PYTHON SOURCE LINES 52-58
 
 Variable density
 ----------------
@@ -132,7 +132,7 @@ Variable density
 increases the pitch at larger radii. The shorter readout requires a
 reconstruction that accounts for peripheral undersampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-91
+.. GENERATED FROM PYTHON SOURCE LINES 58-79
 
 .. code-block:: Python
 
@@ -164,7 +164,7 @@ reconstruction that accounts for peripheral undersampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-94
+.. GENERATED FROM PYTHON SOURCE LINES 80-82
 
 .. code-block:: Python
 
@@ -185,7 +185,7 @@ reconstruction that accounts for peripheral undersampling.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.367 seconds)
+   **Total running time of the script:** (0 minutes 1.372 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py:

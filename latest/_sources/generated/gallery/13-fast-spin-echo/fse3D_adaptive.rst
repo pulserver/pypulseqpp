@@ -32,7 +32,7 @@ assigned by an adaptive radial order. Longer trains and a different TR at the
 periphery can reduce scan time, while the contrast at the centre of k-space
 is set by the parameters of the central shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 16-58
+.. GENERATED FROM PYTHON SOURCE LINES 16-57
 
 .. code-block:: Python
 
@@ -67,7 +67,7 @@ is set by the parameters of the central shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-76
+.. GENERATED FROM PYTHON SOURCE LINES 58-75
 
 Train parameters
 ----------------
@@ -87,7 +87,7 @@ amplitude of the instance, which is zero past the shot's own train length.
 The TR of a shot is the interval from its excitation to the next; the last
 shot's is recorded as ``TRPeriphery``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-107
+.. GENERATED FROM PYTHON SOURCE LINES 75-98
 
 .. code-block:: Python
 
@@ -113,7 +113,7 @@ shot's is recorded as ``TRPeriphery``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-117
+.. GENERATED FROM PYTHON SOURCE LINES 99-108
 
 Adaptive radial ordering
 ------------------------
@@ -125,7 +125,7 @@ slots nearest the effective-TE echo of the central shots, and within each group 
 are assigned to shots in order of angle. Colour gives the train length and
 TR of the shot that acquired each view.
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-139
+.. GENERATED FROM PYTHON SOURCE LINES 108-130
 
 
 
@@ -139,7 +139,7 @@ TR of the shot that acquired each view.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-150
+.. GENERATED FROM PYTHON SOURCE LINES 131-141
 
 References
 ----------
@@ -155,7 +155,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.836 seconds)
+   **Total running time of the script:** (0 minutes 4.166 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

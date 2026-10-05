@@ -28,7 +28,7 @@ transverse coherence between repetitions. TR, flip angle, and TE determine
 contrast. Stack-of-spirals SPGR supports rapid 3D structural and dynamic
 imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,14 +37,14 @@ imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
 
 Sixteen interleaves
 -------------------
 
 Sixteen interleaves at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-45
+.. GENERATED FROM PYTHON SOURCE LINES 25-33
 
 .. code-block:: Python
 
@@ -69,12 +69,12 @@ Sixteen interleaves at every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-48
+.. GENERATED FROM PYTHON SOURCE LINES 34-36
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-51
+.. GENERATED FROM PYTHON SOURCE LINES 36-39
 
 .. code-block:: Python
 
@@ -93,14 +93,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-56
+.. GENERATED FROM PYTHON SOURCE LINES 40-44
 
 Sampling order
 --------------
 
 The interleaves of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 44-47
 
 .. code-block:: Python
 
@@ -119,7 +119,7 @@ The interleaves of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-65
+.. GENERATED FROM PYTHON SOURCE LINES 48-53
 
 Fewer interleaves
 -----------------
@@ -127,7 +127,7 @@ Fewer interleaves
 Halving the interleaf count halves the number of repetitions and doubles
 the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-79
+.. GENERATED FROM PYTHON SOURCE LINES 53-67
 
 .. code-block:: Python
 
@@ -152,7 +152,7 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-82
+.. GENERATED FROM PYTHON SOURCE LINES 68-70
 
 .. code-block:: Python
 
@@ -173,7 +173,7 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.171 seconds)
+   **Total running time of the script:** (0 minutes 3.167 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

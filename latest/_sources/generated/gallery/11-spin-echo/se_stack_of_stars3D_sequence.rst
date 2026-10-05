@@ -28,7 +28,7 @@ unwanted coherence between repetitions. TE and TR determine T2 and
 longitudinal recovery weighting. Stack-of-stars spin echo supports
 motion-robust 3D structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,14 +37,14 @@ motion-robust 3D structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-37
+.. GENERATED FROM PYTHON SOURCE LINES 21-25
 
 Nyquist angular sampling
 ------------------------
 
 The Nyquist set of spoke angles at every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 37-45
+.. GENERATED FROM PYTHON SOURCE LINES 25-33
 
 .. code-block:: Python
 
@@ -69,12 +69,12 @@ The Nyquist set of spoke angles at every partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 46-48
+.. GENERATED FROM PYTHON SOURCE LINES 34-36
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-51
+.. GENERATED FROM PYTHON SOURCE LINES 36-39
 
 .. code-block:: Python
 
@@ -93,14 +93,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-56
+.. GENERATED FROM PYTHON SOURCE LINES 40-44
 
 Sampling order
 --------------
 
 The spokes of every partition, over the three k-space axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 44-47
 
 .. code-block:: Python
 
@@ -119,7 +119,7 @@ The spokes of every partition, over the three k-space axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-65
+.. GENERATED FROM PYTHON SOURCE LINES 48-53
 
 Angular undersampling
 ---------------------
@@ -127,7 +127,7 @@ Angular undersampling
 Retaining one spoke angle in four reduces the number of repetitions
 fourfold while preserving samples at each partition's k-space origin.
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-79
+.. GENERATED FROM PYTHON SOURCE LINES 53-67
 
 .. code-block:: Python
 
@@ -152,7 +152,7 @@ fourfold while preserving samples at each partition's k-space origin.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-82
+.. GENERATED FROM PYTHON SOURCE LINES 68-70
 
 .. code-block:: Python
 
@@ -173,7 +173,7 @@ fourfold while preserving samples at each partition's k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.340 seconds)
+   **Total running time of the script:** (0 minutes 5.398 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py:

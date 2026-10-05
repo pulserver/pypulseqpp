@@ -28,7 +28,7 @@ before the next TR. TR and flip angle primarily determine T1 weighting, with
 T2* decay during TE. Radial SPGR is used for motion-robust dynamic and
 structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Nyquist angular sampling
 ------------------------
@@ -45,7 +45,7 @@ Nyquist angular sampling
 ``ceil(pi / 2 * n)`` spokes over half a turn, which sample the outer
 radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-46
+.. GENERATED FROM PYTHON SOURCE LINES 26-34
 
 .. code-block:: Python
 
@@ -70,12 +70,12 @@ radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-49
+.. GENERATED FROM PYTHON SOURCE LINES 35-37
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-52
+.. GENERATED FROM PYTHON SOURCE LINES 37-40
 
 .. code-block:: Python
 
@@ -94,7 +94,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-58
+.. GENERATED FROM PYTHON SOURCE LINES 41-46
 
 Sampling order
 --------------
@@ -102,7 +102,7 @@ Sampling order
 Colour encodes spoke acquisition order. Consecutive spokes use a
 distributed angular ordering rather than adjacent angles.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 46-49
 
 .. code-block:: Python
 
@@ -121,7 +121,7 @@ distributed angular ordering rather than adjacent angles.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 50-55
 
 Angular undersampling
 ---------------------
@@ -129,7 +129,7 @@ Angular undersampling
 ``ry=3`` retains one third of the spoke angles. Every spoke crosses the
 origin, whereas angular sampling density decreases with k-space radius.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-81
+.. GENERATED FROM PYTHON SOURCE LINES 55-69
 
 .. code-block:: Python
 
@@ -154,7 +154,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-84
+.. GENERATED FROM PYTHON SOURCE LINES 70-72
 
 .. code-block:: Python
 
@@ -175,7 +175,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.706 seconds)
+   **Total running time of the script:** (0 minutes 2.713 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

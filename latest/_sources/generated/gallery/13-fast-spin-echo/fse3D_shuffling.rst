@@ -33,7 +33,7 @@ spread over the sampled extent without a regular pattern, the sampling
 condition of echo-resolved subspace reconstruction [TAM17]_; no
 reconstruction is performed here.
 
-.. GENERATED FROM PYTHON SOURCE LINES 17-59
+.. GENERATED FROM PYTHON SOURCE LINES 17-58
 
 .. code-block:: Python
 
@@ -68,7 +68,7 @@ reconstruction is performed here.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-68
+.. GENERATED FROM PYTHON SOURCE LINES 59-67
 
 Variable-density sampling
 -------------------------
@@ -79,7 +79,7 @@ Poisson-disc support, selected with
 each view is then assigned by :func:`~pypulseqpp.make_shuffling_order` rather
 than by its distance from the k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-89
+.. GENERATED FROM PYTHON SOURCE LINES 67-88
 
 
 
@@ -93,7 +93,7 @@ than by its distance from the k-space centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-101
+.. GENERATED FROM PYTHON SOURCE LINES 89-100
 
 Echo-time distribution
 ----------------------
@@ -107,7 +107,7 @@ not confined to a radial k-space band. The figure gives the distance of
 every acquired view from the k-space centre against its echo time: every
 echo time samples views from the centre to the edge of the support.
 
-.. GENERATED FROM PYTHON SOURCE LINES 101-114
+.. GENERATED FROM PYTHON SOURCE LINES 100-113
 
 
 
@@ -121,7 +121,7 @@ echo time samples views from the centre to the edge of the support.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-122
+.. GENERATED FROM PYTHON SOURCE LINES 114-121
 
 References
 ----------
@@ -134,7 +134,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.663 seconds)
+   **Total running time of the script:** (0 minutes 0.710 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_shuffling.py:

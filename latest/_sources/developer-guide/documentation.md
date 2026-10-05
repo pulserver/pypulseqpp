@@ -141,7 +141,7 @@ An example should address one question. Where it compares configurations, hold e
 
 Prefer a small number of strong examples to broad coverage. A gallery is not an inventory of the public interface, and no example is warranted merely because a feature would otherwise go unrepresented.
 
-A scientific gallery example is **not a conversational tutorial**. Code, figures, and scientific results should dominate the page. Prose supplies the context necessary to understand the problem, consequential methodological choices, conventions, and interpretation. The course described under {ref}`course-lessons` is the one intentional exception, and its register is defined there.
+A scientific gallery example is **not a conversational tutorial**. Code, figures, and scientific results should dominate the page. Prose supplies the context necessary to understand the problem, consequential methodological choices, conventions, and interpretation. The Course described under {ref}`course-lessons` is the one intentional exception, and its register is defined there.
 
 A substantial example will often include:
 
@@ -257,9 +257,21 @@ The intended result is **a reproducible scientific example with concise methodol
 When a sentence merely describes what the next line of code does, it can usually be removed.
 
 (course-lessons)=
-#### Course lessons
+#### Course, Tours and catalogue
 
-The first gallery groups, from the pulse-acquire experiment to custom sequence modules, form a course in Pulseq sequence construction, adapted from the progression of the Pulseq tutorials: system limits, events and blocks, RF and ADC events, gradients, gradient echoes, spoiling, segmentation, EPI, non-Cartesian sampling, reusable modules, complete applications and custom modules. A lesson is part of that sequence rather than a standalone study, and it is written as teaching material.
+The Examples section has three parts, in this order, each with its own table on the Examples landing page:
+
+1. **Course.** Numbered lessons read in order.
+2. **Tours.** Standalone examples.
+3. **Sequence catalogue.** The executed pages of the shipped sequences, which are reference material coupled to {doc}`/sequences`.
+
+The Course is the shortest coherent path that gives a new user the framework's core mental model and enough practical competence to work independently. Tours are useful applications, advanced branches or specialised workflows that are not necessary for that core competence.
+
+A lesson belongs in the Course when that competence depends on it, including a terminal lesson that no later lesson builds on. Lesson counts follow from this criterion and are not targets. In pypulseqpp the core is events in blocks under system limits and rasters, the canonical Cartesian, echo-planar and non-Cartesian constructions, the sequence modules and sequence functions that package them, the checks applied to a finished sequence, and a module of one's own. The Course follows the progression of the Pulseq tutorials: system limits, events and blocks, RF and ADC events, gradients, gradient echoes, spoiling, EPI, non-Cartesian sampling, reusable modules, complete sequences, checks and custom modules.
+
+##### Course lessons
+
+A lesson is part of the Course sequence rather than a standalone study, and it is written as teaching material.
 
 A lesson normally contains:
 
@@ -271,7 +283,11 @@ A lesson normally contains:
 
 The section headings are the outline of the lesson; a separate outline that restates them is not added. Pedagogical transitions are allowed. Generated scaffolding is not: "The scope of this notebook is...", "The observable is...", an "Outline:" block that repeats the headings, and figurative phrasing such as "what X costs and buys". The prose rules of this guide apply otherwise unchanged: no enthusiasm, rhetorical questions, personification, code narration without teaching value, or repeated previews and recaps.
 
-The complete sequences that follow the course are scientific gallery examples and reference material, not lessons.
+##### Tours
+
+A Tour opens with its objective and a **Prerequisites** line naming the Course lessons it assumes, and has no previous/next links. Otherwise it follows the rules for scientific gallery examples above. A Tour may be a variant of a Course construction, an application of it, or a module beyond the core.
+
+The catalogue pages that follow the Tours are scientific gallery examples and reference material, not lessons; {doc}`/sequences` links each of them from its sequence's reference page.
 
 #### API examples and gallery examples
 
@@ -299,7 +315,14 @@ If the automatic choice produces a poor figure, that is a defect in the helper o
 
 A legend is placed outside the axes it describes — above them, below them or beside them — in every figure, on an explanation page, in a gallery example and in a docstring plot alike. A legend inside a panel covers data, and which data it covers depends on the values the build happened to produce.
 
-Where one legend describes series drawn in several panels, it belongs to the figure rather than to one of them, above the row it applies to. Reserve room for it with the `rect` argument of `tight_layout`, or with the `top` and `bottom` of an explicit gridspec, so nothing is clipped.
+Where one legend describes series drawn in several panels, it belongs to the figure rather than to one of them, above the row it applies to. Draw the figure with `layout="constrained"` and place the legend with `fig.legend(loc="outside upper center")`, so the layout engine reserves its room and nothing is clipped or overlaps a panel title.
+
+(documentation-figures)=
+#### Figure typography and size
+
+Every documentation figure — gallery, explanation page and docstring plot — takes its font sizes, resolution and layout engine from `docs/figure_style.py`, and is drawn on a transparent canvas in the house ink. A gallery script sets no font size, DPI or `rcParams` of its own. The gallery's image scraper narrows a figure wider than the documentation column to the column's width before saving it, so text keeps its point size on the page; a script draws at the size its content needs and no wider. The public plotting helpers of {mod}`pypulseqpp.plot` size their text relative to `font.size`, so the documentation style governs them without arguments. A change to a public plotting default, such as a canvas size, is an API decision and is not made for the documentation.
+
+A static diagram is a pair of SVG files, light and dark, shown with the `only-light` and `only-dark` classes so the site's theme selects one; a single SVG whose colours follow `prefers-color-scheme` follows the operating system instead and is not used.
 
 #### Geometry and traversal are different figures
 
@@ -363,7 +386,9 @@ Explanatory documentation may:
 * explain numerical or scientific trade-offs;
 * connect implementations to literature or upstream software.
 
-Every explanation page opens with a **TL;DR** block directly under its title: a short list of the page's conclusions, each stated as the page states it, with no claim the page does not support. It lets a reader decide whether the page answers their question. Landing pages, API reference pages and gallery examples have none.
+An explanation page with more than one `##` section opens with a **TL;DR** block directly under its title: a short list of the page's conclusions, each stated as the page states it, with no claim the page does not support. It lets a reader decide whether the page answers their question. A page with a single section may omit it. Landing pages, API reference pages and gallery examples have none.
+
+An explanation page has one obvious purpose and, where appropriate, a strong conceptual anchor: a figure, a table, an equation or a similarly compact device that the page is organised around. A figure is not required for its own sake. The explanation pages form one flat list under the Explanations section; a page is not nested below another page.
 
 Where possible, begin from the scientific, mathematical, or computational concept rather than from the Python class hierarchy.
 
@@ -756,11 +781,13 @@ A successful documentation build establishes that the documentation can be rende
 * Is background theory limited to what is needed to specify the interface?
 * Have implementation details displaced the scientific abstraction?
 
-### Course lessons
+### Course lessons and Tours
 
+* Is the lesson part of the shortest path to independent competence, or is it a Tour?
 * Does the lesson state its concept and its learning objectives?
 * Does it follow from the previous lesson, and is any transition one sentence rather than a recap?
 * Is the scaffolding free of templated phrases and outline blocks that restate the headings?
+* Does a Tour state its objective and prerequisites, without previous/next links?
 
 ### Examples and gallery
 
@@ -779,7 +806,8 @@ A successful documentation build establishes that the documentation can be rende
 
 ### Explanation
 
-* Does the page open with a TL;DR that states only what the page establishes?
+* Does the page have one obvious purpose and, where appropriate, a conceptual anchor?
+* If it has more than one section, does it open with a TL;DR that states only what the page establishes?
 * Does the page teach the underlying concept rather than narrate the API?
 * Are standard terms introduced accurately and then used consistently?
 * Are motivation, relationships, assumptions, and design choices clear?

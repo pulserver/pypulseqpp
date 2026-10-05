@@ -28,7 +28,7 @@ residual transverse coherence between repetitions. The multiple echo times
 sample T2* decay; TR and flip angle determine the T1 weighting. Applications
 include high-resolution structural imaging, R2* mapping, and QSM.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ include high-resolution structural imaging, R2* mapping, and QSM.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Fully sampled acquisition
 -------------------------
@@ -45,7 +45,7 @@ Fully sampled acquisition
 Four echoes per excitation, over every ``(line, partition)`` view inside
 the ellipse inscribed in the phase-encode plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-48
+.. GENERATED FROM PYTHON SOURCE LINES 26-36
 
 .. code-block:: Python
 
@@ -72,12 +72,12 @@ the ellipse inscribed in the phase-encode plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-51
+.. GENERATED FROM PYTHON SOURCE LINES 37-39
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-54
+.. GENERATED FROM PYTHON SOURCE LINES 39-42
 
 .. code-block:: Python
 
@@ -96,14 +96,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-59
+.. GENERATED FROM PYTHON SOURCE LINES 43-47
 
 Sampling order
 --------------
 
 Colour encodes acquisition order in the phase-encode plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 47-50
 
 .. code-block:: Python
 
@@ -122,7 +122,7 @@ Colour encodes acquisition order in the phase-encode plane.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-68
+.. GENERATED FROM PYTHON SOURCE LINES 51-56
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -130,7 +130,7 @@ Acceleration on both encoded axes
 Subsampling both phase-encode axes reduces the number of repetitions. The
 complete echo train remains within each retained repetition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-82
+.. GENERATED FROM PYTHON SOURCE LINES 56-70
 
 .. code-block:: Python
 
@@ -155,7 +155,7 @@ complete echo train remains within each retained repetition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 71-73
 
 .. code-block:: Python
 
@@ -176,7 +176,7 @@ complete echo train remains within each retained repetition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (2 minutes 58.668 seconds)
+   **Total running time of the script:** (2 minutes 59.575 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho3D_sequence.py:

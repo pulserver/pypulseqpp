@@ -27,7 +27,7 @@ followed by a spiral interleaf. Spoilers suppress unwanted coherence before
 the next TR. TE controls T2 weighting; off-resonance affects the spiral
 readout. Spiral spin echo supports rapid T2-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-31
+.. GENERATED FROM PYTHON SOURCE LINES 11-19
 
 
 
@@ -36,14 +36,14 @@ readout. Spiral spin echo supports rapid T2-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-36
+.. GENERATED FROM PYTHON SOURCE LINES 20-24
 
 Constant-density spiral
 -----------------------
 
 Sixteen interleaves at a constant pitch.
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-46
+.. GENERATED FROM PYTHON SOURCE LINES 24-34
 
 .. code-block:: Python
 
@@ -70,12 +70,12 @@ Sixteen interleaves at a constant pitch.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-49
+.. GENERATED FROM PYTHON SOURCE LINES 35-37
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-52
+.. GENERATED FROM PYTHON SOURCE LINES 37-40
 
 .. code-block:: Python
 
@@ -94,7 +94,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-58
+.. GENERATED FROM PYTHON SOURCE LINES 41-46
 
 Sampling order
 --------------
@@ -102,7 +102,7 @@ Sampling order
 Each interleaf is the same spiral gradient waveform, rotated to its own
 angle by a rotation extension.
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-61
+.. GENERATED FROM PYTHON SOURCE LINES 46-49
 
 .. code-block:: Python
 
@@ -121,7 +121,7 @@ angle by a rotation extension.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-67
+.. GENERATED FROM PYTHON SOURCE LINES 50-55
 
 Variable density
 ----------------
@@ -129,7 +129,7 @@ Variable density
 A dual-density interleaf retains the Nyquist spacing near the origin and increases
 the pitch at larger radii, reducing the readout duration.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-88
+.. GENERATED FROM PYTHON SOURCE LINES 55-76
 
 .. code-block:: Python
 
@@ -161,7 +161,7 @@ the pitch at larger radii, reducing the readout duration.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 89-91
+.. GENERATED FROM PYTHON SOURCE LINES 77-79
 
 .. code-block:: Python
 
@@ -182,7 +182,7 @@ the pitch at larger radii, reducing the readout duration.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.410 seconds)
+   **Total running time of the script:** (0 minutes 1.405 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

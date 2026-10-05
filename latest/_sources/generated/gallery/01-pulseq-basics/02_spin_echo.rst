@@ -35,7 +35,7 @@ the resulting relationship: the shortest echo time the system limits allow,
 against the dephasing prescribed for the crushers.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -201,7 +201,7 @@ pulses, their dead and ringdown times and the crushers do not occupy. Each is
 put on the block duration raster with :func:`~pypulseqpp.round_to_raster`: a
 duration that is not on it is rounded up when the block is added, which would
 move the echo by as much as one raster period. The rasters are described in
-:doc:`/explanations/pulseq/timing-and-rasterization`.
+:doc:`/explanations/timing-and-rasters`.
 
 .. GENERATED FROM PYTHON SOURCE LINES 135-203
 
@@ -302,7 +302,7 @@ is the mean of the first and the last of them.
 .. code-block:: Python
 
 
-    _, _, t_excitation, t_refocusing, t_adc = seq.calculate_kspacePP()
+    _, _, t_excitation, t_refocusing, t_adc = seq.calculate_kspace()
     window_centre = (t_adc[0] + t_adc[-1]) / 2
 
     print(
@@ -373,7 +373,7 @@ pair is the term in that budget under the designer's control: more dephasing
 is a longer gradient at the same amplitude limit, on both sides of the
 refocusing pulse.
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-305
+.. GENERATED FROM PYTHON SOURCE LINES 246-304
 
 .. code-block:: Python
 
@@ -428,7 +428,7 @@ refocusing pulse.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 306-312
+.. GENERATED FROM PYTHON SOURCE LINES 305-311
 
 Half of the acquisition window sits between the refocusing pulse and the
 echo, so the shortest echo time is bounded below by the acquisition duration
@@ -440,7 +440,7 @@ the last doublings add the most to the echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.157 seconds)
+   **Total running time of the script:** (0 minutes 0.161 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-pulseq-basics_02_spin_echo.py:

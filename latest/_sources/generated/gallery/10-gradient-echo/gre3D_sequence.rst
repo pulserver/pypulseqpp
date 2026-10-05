@@ -29,7 +29,7 @@ transverse magnetisation. TR, flip angle, and TE determine the T1 and T2*
 weighting. This sequence is used for high-resolution T1-weighted structural
 imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-33
+.. GENERATED FROM PYTHON SOURCE LINES 13-21
 
 
 
@@ -38,7 +38,7 @@ imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-39
+.. GENERATED FROM PYTHON SOURCE LINES 22-27
 
 Fully sampled acquisition
 -------------------------
@@ -46,7 +46,7 @@ Fully sampled acquisition
 Every ``(line, partition)`` view inside the ellipse inscribed in the
 phase-encode plane is acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-47
+.. GENERATED FROM PYTHON SOURCE LINES 27-35
 
 .. code-block:: Python
 
@@ -72,12 +72,12 @@ phase-encode plane is acquired.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-50
+.. GENERATED FROM PYTHON SOURCE LINES 36-38
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 50-53
+.. GENERATED FROM PYTHON SOURCE LINES 38-41
 
 .. code-block:: Python
 
@@ -96,7 +96,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-59
+.. GENERATED FROM PYTHON SOURCE LINES 42-47
 
 Sampling order
 --------------
@@ -104,7 +104,7 @@ Sampling order
 Colour encodes acquisition order in the phase-encode plane. All lines of
 one partition are acquired before the next partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-62
+.. GENERATED FROM PYTHON SOURCE LINES 47-50
 
 .. code-block:: Python
 
@@ -123,7 +123,7 @@ one partition are acquired before the next partition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-70
+.. GENERATED FROM PYTHON SOURCE LINES 51-58
 
 Acceleration on both encoded axes
 ---------------------------------
@@ -133,7 +133,7 @@ With ``ry=rz=2``, the phase-encode plane outside the central calibration
 region is acquired in approximately one quarter of the repetitions; the
 calibration region remains fully sampled.
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-84
+.. GENERATED FROM PYTHON SOURCE LINES 58-72
 
 .. code-block:: Python
 
@@ -158,7 +158,7 @@ calibration region remains fully sampled.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-87
+.. GENERATED FROM PYTHON SOURCE LINES 73-75
 
 .. code-block:: Python
 
@@ -179,7 +179,7 @@ calibration region remains fully sampled.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 23.589 seconds)
+   **Total running time of the script:** (0 minutes 23.603 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre3D_sequence.py:

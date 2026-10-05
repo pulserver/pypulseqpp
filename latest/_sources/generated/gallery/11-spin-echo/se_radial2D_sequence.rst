@@ -28,7 +28,7 @@ coherence before the next TR. TE controls T2 weighting and TR controls
 longitudinal recovery. Radial spin echo supports motion-robust structural
 imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-32
+.. GENERATED FROM PYTHON SOURCE LINES 12-20
 
 
 
@@ -37,7 +37,7 @@ imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 33-38
+.. GENERATED FROM PYTHON SOURCE LINES 21-26
 
 Nyquist angular sampling
 ------------------------
@@ -45,7 +45,7 @@ Nyquist angular sampling
 ``ceil(pi / 2 * n)`` spokes over half a turn, which sample the outer
 radius at the Nyquist spacing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 38-46
+.. GENERATED FROM PYTHON SOURCE LINES 26-34
 
 .. code-block:: Python
 
@@ -70,12 +70,12 @@ radius at the Nyquist spacing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-49
+.. GENERATED FROM PYTHON SOURCE LINES 35-37
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-52
+.. GENERATED FROM PYTHON SOURCE LINES 37-40
 
 .. code-block:: Python
 
@@ -94,14 +94,14 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-57
+.. GENERATED FROM PYTHON SOURCE LINES 41-45
 
 Sampling order
 --------------
 
 Colour encodes spoke acquisition order.
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-60
+.. GENERATED FROM PYTHON SOURCE LINES 45-48
 
 .. code-block:: Python
 
@@ -120,7 +120,7 @@ Colour encodes spoke acquisition order.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 61-66
+.. GENERATED FROM PYTHON SOURCE LINES 49-54
 
 Angular undersampling
 ---------------------
@@ -128,7 +128,7 @@ Angular undersampling
 Retaining one spoke angle in three reduces peripheral angular sampling;
 every acquired spoke still crosses the k-space origin.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-78
+.. GENERATED FROM PYTHON SOURCE LINES 54-66
 
 .. code-block:: Python
 
@@ -151,7 +151,7 @@ every acquired spoke still crosses the k-space origin.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 79-81
+.. GENERATED FROM PYTHON SOURCE LINES 67-69
 
 .. code-block:: Python
 
@@ -172,7 +172,7 @@ every acquired spoke still crosses the k-space origin.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.752 seconds)
+   **Total running time of the script:** (0 minutes 2.766 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_radial2D_sequence.py:

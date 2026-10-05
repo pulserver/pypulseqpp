@@ -24,7 +24,8 @@ Radial sampling
 
 The Cartesian gradient echo of
 :doc:`/generated/gallery/01-pulseq-basics/03_gradient_echo` changes the
-acquired line with a phase encode. This lesson replaces the phase encode with
+acquired line with a phase encode, and the echo planar train of the previous
+lesson, :doc:`/generated/gallery/03-gre-to-epi/03_epi`, with a blip. This lesson replaces the phase encode with
 a rotation of the readout gradient itself, so that every repetition acquires a
 spoke through the centre of k-space. It establishes how many spokes such an
 acquisition requires and what ordering them by the golden angle changes.
@@ -45,7 +46,7 @@ After this lesson, you should be able to:
   :math:`P = \tfrac{\pi}{2} N`;
 - compare uniform and golden-angle orderings of truncated acquisitions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-39
+.. GENERATED FROM PYTHON SOURCE LINES 30-40
 
 
 
@@ -54,7 +55,7 @@ After this lesson, you should be able to:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-49
+.. GENERATED FROM PYTHON SOURCE LINES 41-50
 
 A rotated readout
 -----------------
@@ -66,7 +67,7 @@ about the slice axis by the angle of the spoke, which
 :func:`~pypulseqpp.rotate` does by resolving each gradient onto the two
 in-plane axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-109
+.. GENERATED FROM PYTHON SOURCE LINES 50-110
 
 .. code-block:: Python
 
@@ -143,7 +144,7 @@ in-plane axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 110-115
+.. GENERATED FROM PYTHON SOURCE LINES 111-116
 
 One repetition per spoke
 ------------------------
@@ -151,7 +152,7 @@ One repetition per spoke
 The repetition is the Cartesian one with the phase encode removed and the
 readout rotated. Both in-plane axes have a gradient for every spoke.
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-155
+.. GENERATED FROM PYTHON SOURCE LINES 116-156
 
 .. code-block:: Python
 
@@ -213,7 +214,7 @@ readout rotated. Both in-plane axes have a gradient for every spoke.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 156-161
+.. GENERATED FROM PYTHON SOURCE LINES 157-162
 
 The trajectory
 --------------
@@ -221,7 +222,7 @@ The trajectory
 Every spoke passes through the centre of k-space, so the centre is sampled
 once per repetition and the periphery only where a spoke reaches it.
 
-.. GENERATED FROM PYTHON SOURCE LINES 161-164
+.. GENERATED FROM PYTHON SOURCE LINES 162-165
 
 .. code-block:: Python
 
@@ -240,7 +241,7 @@ once per repetition and the periphery only where a spoke reaches it.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 165-183
+.. GENERATED FROM PYTHON SOURCE LINES 166-184
 
 Spokes against azimuthal gap
 ----------------------------
@@ -261,7 +262,7 @@ needs lines.
 
 The gap is measured from the sampling locations the sequence produces.
 
-.. GENERATED FROM PYTHON SOURCE LINES 183-248
+.. GENERATED FROM PYTHON SOURCE LINES 184-246
 
 .. code-block:: Python
 
@@ -273,7 +274,7 @@ The gap is measured from the sampling locations the sequence produces.
 
     def spoke_angles(sequence, spokes):
         """The angle of every spoke, from the samples the analysis reports."""
-        sampled = sequence.calculate_kspacePP()[0][:2].reshape(2, spokes, MATRIX)
+        sampled = sequence.calculate_kspace()[0][:2].reshape(2, spokes, MATRIX)
         outermost = sampled[:, :, -1]
         return np.arctan2(outermost[1], outermost[0])
 
@@ -324,7 +325,7 @@ The gap is measured from the sampling locations the sequence produces.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 249-254
+.. GENERATED FROM PYTHON SOURCE LINES 247-252
 
 The measured gap falls as the reciprocal of the spoke count and crosses the
 radial sample spacing at the predicted count. An acquisition below it is
@@ -332,7 +333,7 @@ undersampled at the periphery and not at the centre, which is why the
 artefact it produces is a streak from the edge of the object rather than the
 fold-over a Cartesian acquisition produces.
 
-.. GENERATED FROM PYTHON SOURCE LINES 256-263
+.. GENERATED FROM PYTHON SOURCE LINES 254-261
 
 Golden-angle ordering
 ---------------------
@@ -342,7 +343,7 @@ of by :math:`\pi/P` gives an ordering whose every prefix is nearly uniform,
 so the acquisition can be stopped, or divided into frames, at any length. The
 gap of a prefix is, however, never exactly that of the uniform ordering.
 
-.. GENERATED FROM PYTHON SOURCE LINES 263-292
+.. GENERATED FROM PYTHON SOURCE LINES 261-287
 
 .. code-block:: Python
 
@@ -376,7 +377,7 @@ gap of a prefix is, however, never exactly that of the uniform ordering.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 293-299
+.. GENERATED FROM PYTHON SOURCE LINES 288-294
 
 Every prefix is within a small factor of the uniform ordering of the same
 length, and no prefix leaves a gap of the kind a truncated uniform ordering
@@ -388,7 +389,7 @@ exactly uniform.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.435 seconds)
+   **Total running time of the script:** (0 minutes 3.023 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_04-non-cartesian_01_radial.py:

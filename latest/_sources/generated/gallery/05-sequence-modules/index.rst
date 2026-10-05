@@ -23,48 +23,31 @@ Sequence modules
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The earlier sections built slice-selective excitations by hand with a pulse factory. This lesson designs them with the excitation module, and measures how the three numbers that specify a selective pulse — flip angle, slice thickness and time-bandwidth product — affect the slice profile, the selection gradient and the peak B_1, and which combinations of them the gradient system permits.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The earlier lessons built the excitation and the readout of a repetition by hand, with event factories. This lesson designs them with sequence modules: a module takes the system limits and a prescription, solves the events and the timing of one part of the repetition, and publishes them, with its timing measured from its center. The module concept, and the reason the design is divided in this way, are described in /explanations/sequence-design.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_01_excitation_thumb.png
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_01_sequence_modules_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/05-sequence-modules/01_excitation`
+  :doc:`/generated/gallery/05-sequence-modules/01_sequence_modules`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Excitation modules</div>
+      <div class="sphx-glr-thumbnail-title">Sequence modules</div>
     </div>
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson replaced the hand-built excitation with a module. This lesson replaces the hand-built readout of the first sections with the readout module, and uses two prescriptions that the earlier lessons solved by hand — a partial echo and a multi-echo train — to check that the module reaches the same results and reports them.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous lesson, /generated/gallery/05-sequence-modules/01_sequence_modules, designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence function takes the system limits and a protocol: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns.">
 
 .. only:: html
 
-  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_02_readout_thumb.png
+  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_03_sequence_function_thumb.png
     :alt:
 
-  :doc:`/generated/gallery/05-sequence-modules/02_readout`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Readout modules</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="The two previous lessons designed an excitation and a readout with modules. This lesson assembles them into a complete acquisition. A sequence function takes the system limits and a protocol: it designs the modules, plays one repetition per line of k-space and returns the sequence. The function records the encoding labels with Labels. parameters reads its protocol, and write writes the sequence it returns.">
-
-.. only:: html
-
-  .. image:: /generated/gallery/05-sequence-modules/images/thumb/sphx_glr_03_sequence_app_thumb.png
-    :alt:
-
-  :doc:`/generated/gallery/05-sequence-modules/03_sequence_app`
+  :doc:`/generated/gallery/05-sequence-modules/03_sequence_function`
 
 .. raw:: html
 
@@ -82,7 +65,6 @@ Sequence modules
 .. toctree::
    :hidden:
 
-   /generated/gallery/05-sequence-modules/01_excitation
-   /generated/gallery/05-sequence-modules/02_readout
-   /generated/gallery/05-sequence-modules/03_sequence_app
+   /generated/gallery/05-sequence-modules/01_sequence_modules
+   /generated/gallery/05-sequence-modules/03_sequence_function
 

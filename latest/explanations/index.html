@@ -65,7 +65,7 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/explanations/index.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Pulseq representation" href="pulseq/index.html" />
+    <link rel="next" title="Pulseq representation" href="pulseq-representation.html" />
     <link rel="prev" title="Code of conduct" href="../developer-guide/code-of-conduct.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -154,8 +154,8 @@
       
     
     
-    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp documentation - Home"/>
-    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp documentation - Home"/>
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
   
   
 </a></div>
@@ -213,28 +213,15 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Explanations</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="pulseq/index.html">Pulseq representation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="pulseq/events-and-blocks.html">Events and blocks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pulseq/libraries-and-shapes.html">Storage, deduplication and file revisions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pulseq/timing-and-rasterization.html">Timing and rasterization</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="design/index.html">Sequence design in pypulseqpp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="design/sequence-module.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="design/sequence-application.html">Sequence functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="design/sampling.html">Sampling support and ordering</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="safety/index.html">Gradient, PNS and SAR constraints</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="safety/gradient_amplitude.html">Gradient amplitude</a></li>
-<li class="toctree-l3"><a class="reference internal" href="safety/slew_rate.html">Slew rate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="safety/gradient_continuity.html">Gradient continuity</a></li>
-<li class="toctree-l3"><a class="reference internal" href="safety/pns.html">Peripheral nerve stimulation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="safety/mechanical_resonance.html">Mechanical resonance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="safety/sar.html">Specific absorption rate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="safety/conventions.html">Check conventions</a></li>
-</ul>
-</details></li>
+<li class="toctree-l2"><a class="reference internal" href="pulseq-representation.html">Pulseq representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shapes-and-storage.html">Storage, deduplication and file revisions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timing-and-rasters.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence-design.html">Sequence design in pypulseqpp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constraint-checks.html">Constraint checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gradient-constraints.html">Gradient amplitude, slew rate and continuity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pns.html">Peripheral nerve stimulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mechanical-resonance.html">Mechanical resonance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sar.html">Specific absorption rate</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -245,25 +232,20 @@
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-spoiling/01_gradient_spoiling.html">Gradient spoiling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-spoiling/02_rf_spoiling.html">RF spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-spoiling/01_spoiling.html">Spoiling</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/gre-to-epi.html">From gradient echo to echo planar</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/01_multi_echo.html">Multi-echo readouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/02_segmented.html">Segmented echo planar</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/03_epi.html">Single-shot echo planar</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/gre-to-epi.html">Echo planar imaging</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/03_epi.html">Echo planar imaging</a></li>
 </ul>
 </details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/non-cartesian.html">Non-Cartesian trajectories</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/non-cartesian.html">Radial sampling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/04-non-cartesian/01_radial.html">Radial sampling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/04-non-cartesian/02_spiral.html">Spiral readout</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/01_excitation.html">Excitation modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/02_readout.html">Readout modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_app.html">A sequence function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/01_sequence_modules.html">Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_function.html">A sequence function</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -272,8 +254,14 @@
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/02_cartesian_readout.html">A ramp-sampled readout module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/03_noncartesian_readout.html">A twisting radial readout module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/01_multi_echo.html">Multi-echo readouts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/02_segmented_epi.html">Segmented echo planar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/03_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/04_ramp_sampled_readout.html">A ramp-sampled readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/05_twisting_radial_readout.html">A twisting radial readout module</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -298,7 +286,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/apps.html">Complete sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sequence-functions.html">Sequence functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
@@ -504,7 +492,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -520,6 +510,14 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-their-limits">Checks and their limits</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -542,20 +540,45 @@ assumes.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="pulseq/index.html"><span class="doc">Pulseq representation</span></a></p></td>
-<td><p>What a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file records, how it stores it, and the rasters an event time is addressed on.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pulseq-representation.html"><span class="doc">Pulseq representation</span></a></p></td>
+<td><p>What a block holds, what each kind of event carries, how an extension is chained onto one, and the repetition of a sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="design/index.html"><span class="doc">Sequence design in pypulseqpp</span></a></p></td>
-<td><p>The two abstractions the package places above the file format, what each is responsible for, and how sampling support and ordering feed them.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="shapes-and-storage.html"><span class="doc">Storage, deduplication and file revisions</span></a></p></td>
+<td><p>How events and shapes are stored, deduplicated and signed, and what changes between format revisions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="safety/index.html"><span class="doc">Gradient, PNS and SAR constraints</span></a></p></td>
-<td><p>What each check computes, the model it computes it from, and the criterion it applies.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="timing-and-rasters.html"><span class="doc">Timing and rasterization</span></a></p></td>
+<td><p>The rasters an event time is addressed on, how a block duration follows from them, and what the timing check establishes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="sequence-design.html"><span class="doc">Sequence design in pypulseqpp</span></a></p></td>
+<td><p>Sequence modules, sequence functions, and the sampling support and ordering that feed them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="constraint-checks.html"><span class="doc">Constraint checks</span></a></p></td>
+<td><p>The checks, the system each is evaluated against, the frames, report units and evaluation intervals they share.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="gradient-constraints.html"><span class="doc">Gradient amplitude, slew rate and continuity</span></a></p></td>
+<td><p>Gradient amplitude, slew rate within a block, and continuity across block boundaries.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pns.html"><span class="doc">Peripheral nerve stimulation</span></a></p></td>
+<td><p>Peripheral nerve stimulation models and the response the check compares with a threshold.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mechanical-resonance.html"><span class="doc">Mechanical resonance</span></a></p></td>
+<td><p>The windowed gradient spectrum and the forbidden bands it is compared with.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="sar.html"><span class="doc">Specific absorption rate</span></a></p></td>
+<td><p>Window-averaged local and global SAR from virtual observation points.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<section id="checks-and-their-limits">
+<h2>Checks and their limits<a class="headerlink" href="#checks-and-their-limits" title="Link to this heading">#</a></h2>
+<p>The checks in <code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code> evaluate a finished sequence against
+stated limits and models. They are <strong>design-time estimates</strong>. They do not
+replace the scanner’s own gate before download, nor its hardware monitor during
+the scan, and they do not establish patient safety.</p>
 <div class="toctree-wrapper compound">
 </div>
+</section>
 </section>
 
 
@@ -579,7 +602,7 @@ assumes.</p>
       </div>
     </a>
     <a class="right-next"
-       href="pulseq/index.html"
+       href="pulseq-representation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
@@ -593,6 +616,23 @@ assumes.</p>
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checks-and-their-limits">Checks and their limits</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
