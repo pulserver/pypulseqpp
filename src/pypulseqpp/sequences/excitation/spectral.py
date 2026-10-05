@@ -115,6 +115,7 @@ class FrequencySelectiveExcitation(RfModule):
             stopband_ripple=stopband_ripple,
             freq_offset=freq_offset_hz,
             freq_ppm=freq_offset_ppm,
+            delay=system.rf_dead_time,
             use=use,
             system=system,
         )

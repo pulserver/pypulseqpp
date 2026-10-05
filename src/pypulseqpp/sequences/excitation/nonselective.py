@@ -77,6 +77,7 @@ class NonSelectiveExcitation(RfModule):
             duration=duration_s,
             freq_offset=freq_offset_hz,
             phase_offset=phase_offset_rad,
+            delay=system.rf_dead_time,
             use=use,
             system=system,
         )
@@ -177,6 +178,7 @@ class NonSelectiveRefocusing(RfModule):
             flip_angle=np.deg2rad(flip_angle_deg),
             duration=duration_s,
             phase_offset=phase_offset_rad,
+            delay=system.rf_dead_time,
             use=use,
             system=system,
         )

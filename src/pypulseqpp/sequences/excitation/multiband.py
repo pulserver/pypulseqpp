@@ -281,6 +281,7 @@ class MultibandExcitation(RfModule):
             np.deg2rad(flip_angle_deg),
             duration=duration_s,
             time_bw_product=time_bw_product,
+            delay=system.rf_dead_time,
             use=use,
             system=system,
         )
