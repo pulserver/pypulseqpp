@@ -402,7 +402,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.283 seconds)
+   **Total running time of the script:** (0 minutes 0.288 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_08-tours_05_twisting_radial_readout.py:

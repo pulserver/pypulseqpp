@@ -101,6 +101,7 @@ from.
    IhMtPreparation
    MtPreparation
    OffResonanceSaturation
+   SaturationBand
    T1T2Preparation
    T2Preparation
    LineReadout2D
