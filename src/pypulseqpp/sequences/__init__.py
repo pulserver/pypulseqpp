@@ -41,6 +41,7 @@ from .preparation import (
     InversionPreparation,
     MtPreparation,
     OffResonanceSaturation,
+    SaturationBand,
     T1T2Preparation,
     T2Preparation,
 )
@@ -96,6 +97,7 @@ PREPARATION = (
     "InversionPreparation",
     "MtPreparation",
     "OffResonanceSaturation",
+    "SaturationBand",
     "T1T2Preparation",
     "T2Preparation",
 )

@@ -387,25 +387,16 @@ def make_wave_gradients(
     }
 
     # The waveform is linear in its amplitude, so the slew per unit amplitude
-    # is measured on the shape. The sinusoid and its envelope are steepest at
-    # different times, so summing their bounds would underuse the limit.
-    # Samples sit at raster centres: the steps into and out of zero span half
-    # a raster and count double.
-    steepest = max(
-        float(
-            np.abs(
-                np.concatenate([[2.0 * shape[0]], np.diff(shape), [-2.0 * shape[-1]]])
-            ).max()
-        )
-        / raster
-        for shape in shapes.values()
-    )
+    # is measured on the shape, through the corners an interpreter restores
+    # from it and that the slew check reads.
+    steepest = max(_steepest(shape) for shape in shapes.values()) / raster
     # The balancing offset lifts a shape's tallest sample a few percent above
     # one, so max_grad bounds the played peak rather than the amplitude.
     tallest = max(float(np.abs(shape).max()) for shape in shapes.values())
     peak = min(
         float(amplitude) * system.gamma,
-        system.max_slew / steepest,
+        # Short of the limit by the rounding of the stored float32 samples.
+        system.max_slew * (1.0 - 1e-5) / steepest,
         system.max_grad / tallest,
     )
 
@@ -436,6 +427,30 @@ def _area(waveform: np.ndarray) -> float:
     the area is the plain sum.
     """
     return float(waveform.sum())
+
+
+def _steepest(shape: np.ndarray) -> float:
+    """Steepest slope of a raster-centred shape entered and left at zero, per raster.
+
+    Through the corners `restore_shape_corners` gives it: each interval
+    boundary from the recurrence, or the mean of its neighbours where the two
+    agree, at half-raster spacing; the samples with zero edges half a raster
+    out where the recurrence does not close.
+    """
+    count = shape.size
+    threshold = 2e-5 * float(np.abs(shape).max())
+    recurrence = np.zeros(count + 1)
+    for i in range(count):
+        recurrence[i + 1] = 2.0 * shape[i] - recurrence[i]
+    if abs(recurrence[-1]) > threshold:
+        steps = np.concatenate([[2.0 * shape[0]], np.diff(shape), [-2.0 * shape[-1]]])
+        return float(np.abs(steps).max())
+    interpolated = np.concatenate([[0.0], 0.5 * (shape[:-1] + shape[1:]), [0.0]])
+    agree = np.abs(recurrence - interpolated) <= np.finfo(float).eps + threshold
+    boundaries = np.where(agree, interpolated, recurrence)
+    dense = np.empty(2 * count + 1)
+    dense[0::2], dense[1::2] = boundaries, shape
+    return float(np.abs(np.diff(dense)).max() * 2.0)
 
 
 def _balanced(shape: np.ndarray, envelope: np.ndarray) -> np.ndarray:
