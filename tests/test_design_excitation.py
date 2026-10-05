@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from types import SimpleNamespace
 
 import numpy as np
@@ -286,3 +287,37 @@ def test_sim_rf_answers_for_the_published_pulse(system):
     # On resonance a 90 leaves essentially nothing along z.
     on_resonance = int(np.argmin(np.abs(answer.frequency)))
     assert abs(answer.mz_z[on_resonance]) < 0.2
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        lambda s: design.SpatialSelectiveExcitation(s, 15.0, 5e-3),
+        lambda s: design.SpatialSelectiveExcitation(s, 8.0, 0.12, is_slab=True),
+        lambda s: design.SpatialSelectiveRefocusing(s, 180.0, 5e-3, voxel_size_m=1e-3),
+        lambda s: design.NonSelectiveExcitation(s, 10.0),
+        lambda s: design.NonSelectiveRefocusing(s, 180.0, voxel_size_m=1e-3),
+        lambda s: design.FrequencySelectiveExcitation(s, 10.0, bandwidth_hz=500.0),
+        lambda s: design.MultibandExcitation(
+            s, 500.0, duration_s=5e-3, band_offset_hz=1000.0
+        ),
+        lambda s: design.SpatialSelective2DExcitation(s, 10.0, fov=0.2, matrix=16),
+        lambda s: design.SpspExcitation(
+            s, 30.0, thickness_m=10e-3, spectral_bandwidth_hz=300.0
+        ),
+    ],
+)
+def test_a_pulse_starts_after_the_transmit_dead_time_without_a_warning(build):
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=150,
+        slew_unit="T/m/s",
+        rf_dead_time=100e-6,
+    )
+    with warnings.catch_warnings():
+        warnings.filterwarnings("error", message="Specified RF delay")
+        module = build(system)
+    blocks = (module.seq.get_block(i) for i in range(1, len(module.blocks) + 1))
+    rf = next(block.rf for block in blocks if block.rf is not None)
+    assert float(rf.delay) >= system.rf_dead_time

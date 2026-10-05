@@ -271,6 +271,7 @@ class SpatialSelectiveRefocusing(RfModule):
             passband_ripple=passband_ripple,
             stopband_ripple=stopband_ripple,
             return_gz=True,
+            delay=system.rf_dead_time,
             use=use,
             system=system,
         )

@@ -56,6 +56,7 @@ def selective_slr(flip_angle_deg: float, thickness_m: float, **design: Any) -> t
         them under ``return_gz``.
     """
     flip = np.deg2rad(flip_angle_deg)
+    design.setdefault("delay", design["system"].rf_dead_time)
     rf, gz, _ = pp.make_slr_pulse(
         flip, slice_thickness=thickness_m, return_gz=True, **design
     )

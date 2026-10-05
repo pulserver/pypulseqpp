@@ -461,6 +461,7 @@ def make_spsp_pulse(
         dwell=rf_raster,
         time_bw_product=spatial_time_bandwidth_product,
         pulse_type="st",
+        delay=system.rf_dead_time,
         system=system,
         use=use,
     )
@@ -488,6 +489,7 @@ def make_spsp_pulse(
         flip_angle=flip_angle,
         dwell=rf_raster,
         freq_offset=freq_offset,
+        delay=system.rf_dead_time,
         system=system,
         use=use,
     )
@@ -736,6 +738,7 @@ def make_2d_selective_pulse(
             dwell=dwell,
             freq_offset=freq_offset,
             phase_offset=phase_offset,
+            delay=system.rf_dead_time,
             system=system,
             use=use,
         )
