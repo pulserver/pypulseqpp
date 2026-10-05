@@ -416,7 +416,7 @@ One repetition of the module.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.266 seconds)
+   **Total running time of the script:** (0 minutes 0.201 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_08-tours_04_ramp_sampled_readout.py:

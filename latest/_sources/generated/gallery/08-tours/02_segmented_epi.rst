@@ -353,7 +353,7 @@ image acquired in one shot is distorted whatever is done to it afterwards.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.522 seconds)
+   **Total running time of the script:** (0 minutes 0.389 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_08-tours_02_segmented_epi.py:
