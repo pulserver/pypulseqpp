@@ -163,15 +163,18 @@ def test_the_echoes_are_the_rule_written_out_over_the_whole_trajectory(build):
     ],
     ids=["radial", "epi", "spiral", "spin-echo", "propeller", "zte"],
 )
-def test_each_readout_is_its_origin_plus_the_sweep_of_its_block(build):
+def test_each_readout_is_its_start_plus_its_path_turned_by_its_rotation(build):
     seq = build()
 
     echoes = seq.adc_echoes()
 
     swept = np.concatenate(
         [
-            origin[:, None] + echoes.sweeps[sweep]
-            for origin, sweep in zip(echoes.origin, echoes.sweep, strict=True)
+            start[:, None]
+            + (echoes.rotations[turn] if turn >= 0 else np.eye(3)) @ echoes.paths[path]
+            for start, path, turn in zip(
+                echoes.start, echoes.path, echoes.rotation, strict=True
+            )
         ],
         axis=1,
     )
@@ -179,7 +182,22 @@ def test_each_readout_is_its_origin_plus_the_sweep_of_its_block(build):
     np.testing.assert_allclose(swept, k, rtol=0, atol=1e-9 * np.abs(k).max())
 
 
-def test_a_readout_beside_an_excitation_has_no_sweeps(system):
+def test_readouts_differing_only_in_their_rotation_share_one_path(system):
+    """More than 4096 spokes, each one readout turned by a rotation of its own."""
+    seq = pp.Sequence(system)
+    adc = pp.make_adc(8, duration=0.8e-3, delay=0.2e-3, system=system)
+    spoke = pp.make_trapezoid(
+        "x", area=400, duration=1.2e-3, rise_time=0.2e-3, system=system
+    )
+    for angle in 2 * np.pi * np.arange(4200) / 4200:
+        seq.add_block(adc, spoke, pp.make_rotation(angle))
+
+    echoes = seq.adc_echoes()
+
+    assert len(echoes.paths) == 1 and len(echoes.rotations) == 4200
+
+
+def test_a_readout_beside_an_excitation_has_no_paths(system):
     seq = pp.Sequence(system)
     adc = pp.make_adc(64, duration=3.2e-3, delay=1e-3, system=system)
     seq.add_block(
@@ -188,10 +206,10 @@ def test_a_readout_beside_an_excitation_has_no_sweeps(system):
 
     echoes = seq.adc_echoes()
 
-    assert echoes.origin is None and echoes.sweep is None and echoes.sweeps is None
+    assert echoes.start is None and echoes.path is None and echoes.paths is None
 
 
-def test_readouts_with_paths_of_their_own_keep_their_echoes_but_no_sweeps(system):
+def test_readouts_with_paths_of_their_own_keep_their_echoes_but_no_paths(system):
     """More than 4096 readouts, each along a direction of its own."""
     seq = pp.Sequence(system)
     adc = pp.make_adc(8, duration=0.8e-3, delay=0.2e-3, system=system)
@@ -210,7 +228,7 @@ def test_readouts_with_paths_of_their_own_keep_their_echoes_but_no_sweeps(system
 
     echoes = seq.adc_echoes()
 
-    assert echoes.origin is None and echoes.sweep is None and echoes.sweeps is None
+    assert echoes.start is None and echoes.path is None and echoes.paths is None
     _, moving, echo = plain_echoes(seq)
     np.testing.assert_array_equal(echoes.moving, moving)
     np.testing.assert_array_equal(echoes.echo, echo)

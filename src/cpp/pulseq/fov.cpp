@@ -1526,13 +1526,24 @@ namespace pulseq
                         samples[axis * m + i] = swept[axis][i] - lead[axis];
                 for (const double v : samples)
                 {
-                    uint64_t bits;
-                    std::memcpy(&bits, &v, sizeof bits);
-                    hash ^= std::hash<uint64_t>{}(bits) + 0x9e3779b97f4a7c15ULL + (hash << 6) +
+                    const float single = static_cast<float>(v);
+                    uint32_t bits;
+                    std::memcpy(&bits, &single, sizeof bits);
+                    hash ^= std::hash<uint32_t>{}(bits) + 0x9e3779b97f4a7c15ULL + (hash << 6) +
                         (hash >> 2);
                 }
             }
-            bool operator==(const Path& other) const { return samples == other.samples; }
+            /* Equal in single precision, which an MRD trajectory carries: a
+             * join to the block before rounds differently under each rotation. */
+            bool operator==(const Path& other) const
+            {
+                if (samples.size() != other.samples.size())
+                    return false;
+                for (size_t i = 0; i < samples.size(); ++i)
+                    if (static_cast<float>(samples[i]) != static_cast<float>(other.samples[i]))
+                        return false;
+                return true;
+            }
         };
         struct PathHash
         {
@@ -1545,6 +1556,14 @@ namespace pulseq
         {
           public:
             explicit DistinctPaths(size_t limit) : limit_(limit) {}
+
+            /* The number of a path already kept, or -1. Safe across threads
+             * while none adds. */
+            int32_t find(const Path& path) const
+            {
+                const auto known = index_.find(path);
+                return known == index_.end() ? -1 : known->second;
+            }
 
             /* The path's number, or -1 once more than the limit are distinct. */
             int32_t add(Path&& path)
@@ -1807,6 +1826,7 @@ namespace pulseq
                          bool rotated, const double matrix[3][3], bool joined,
                          const double origin[3])
             {
+                out_.rotation.push_back(rotated ? rotation_id(matrix) : -1);
                 /* A joined readout is not the readout its ids name. */
                 Readout* readout = nullptr;
                 if (!joined)
@@ -1840,6 +1860,8 @@ namespace pulseq
                 }
                 out_.origin.clear();
                 out_.sweep.clear();
+                out_.rotation.clear();
+                out_.rotations.clear();
             }
 
           private:
@@ -1863,7 +1885,24 @@ namespace pulseq
                 std::array<int32_t, 2> echo{};
                 uint8_t moving[3] = {0, 0, 0};
                 size_t slot = 0;
+                std::unique_ptr<Path> path;
+                /** The number of a path kept before the batch, or -1. */
+                int32_t known_path = -1;
             };
+
+            /* The readout's rotation, numbered among the distinct ones. */
+            int32_t rotation_id(const double matrix[3][3])
+            {
+                std::array<double, 9> key;
+                for (int a = 0; a < 3; ++a)
+                    for (int b = 0; b < 3; ++b)
+                        key[static_cast<size_t>(3 * a + b)] = matrix[a][b];
+                auto [found, fresh] =
+                    rotation_ids_.try_emplace(key, static_cast<int32_t>(rotation_ids_.size()));
+                if (fresh)
+                    out_.rotations.insert(out_.rotations.end(), key.begin(), key.end());
+                return found->second;
+            }
 
             /* A readout whose sweep is known, from a new origin. */
             void known(Readout& readout, const int32_t* row, const double* adc,
@@ -1922,8 +1961,9 @@ namespace pulseq
                 out_.sweep.push_back(-1);
             }
 
-            /* Sweep a readout, find which axes move and its echo from its origin. */
-            static void sweep_one(Pending& job, std::array<std::vector<double>, 3>& k,
+            /* Sweep a readout, find which axes move and its echo from its
+             * origin; with @p keep, its path before the rotation. */
+            static void sweep_one(Pending& job, bool keep, std::array<std::vector<double>, 3>& k,
                                   std::vector<double>& distance)
             {
                 Played played[3];
@@ -1935,9 +1975,16 @@ namespace pulseq
                     }
                 for (size_t a = 0; a < 3; ++a)
                     fill_axis_sweep(played[a], job.adc, job.n, job.swept[a]);
+                const size_t m = static_cast<size_t>(job.n);
+                if (keep)
+                {
+                    std::array<double, 3> lead{};
+                    for (size_t axis = 0; axis < 3; ++axis)
+                        lead[axis] = m > 0 ? job.swept[axis][0] : 0.0;
+                    job.path = std::make_unique<Path>(job.swept, lead, m);
+                }
                 if (job.rotated)
                     rotate_sweep(job.n, job.matrix, job.swept);
-                const size_t m = static_cast<size_t>(job.n);
                 moving_axes(job.swept, 0, job.n, job.moving);
                 for (size_t axis = 0; axis < 3; ++axis)
                 {
@@ -1959,7 +2006,6 @@ namespace pulseq
                 if (used_ == 0)
                     return;
                 const bool keep = paths_.kept();
-                std::vector<std::unique_ptr<Path>> paths(keep ? used_ : 0);
                 parallel_ranges(used_, worker_count(used_, 64),
                                 [&](size_t first, size_t last) {
                                     std::array<std::vector<double>, 3> k;
@@ -1967,16 +2013,18 @@ namespace pulseq
                                     for (size_t i = first; i < last; ++i)
                                     {
                                         Pending& job = batch_[i];
-                                        sweep_one(job, k, distance);
-                                        if (keep)
-                                            paths[i] = std::make_unique<Path>(
-                                                job.swept, job.lead, static_cast<size_t>(job.n));
+                                        sweep_one(job, keep, k, distance);
+                                        job.known_path = keep ? paths_.find(*job.path) : -1;
                                     }
                                 });
                 for (size_t i = 0; i < used_; ++i)
                 {
                     Pending& job = batch_[i];
-                    const int32_t id = keep ? paths_.add(std::move(*paths[i])) : -1;
+                    int32_t id = -1;
+                    if (keep && paths_.kept())
+                        id = job.known_path >= 0 ? job.known_path
+                                                 : paths_.add(std::move(*job.path));
+                    job.path.reset();
                     if (job.readout != nullptr)
                     {
                         Readout& readout = *job.readout;
@@ -2000,6 +2048,7 @@ namespace pulseq
             }
 
             std::map<std::array<int32_t, 5>, Readout> readouts_;
+            std::map<std::array<double, 9>, int32_t> rotation_ids_;
             AxisSweeps memo_;
             DistinctPaths paths_;
             AdcEchoes& out_;
@@ -2033,6 +2082,7 @@ namespace pulseq
         out.echo.reserve(2 * acquiring);
         out.origin.reserve(3 * acquiring);
         out.sweep.reserve(acquiring);
+        out.rotation.reserve(acquiring);
         EchoWalk echoes(std::max<size_t>(4096, acquiring / 16), out);
         Carry carry;
         CornerCache corners(seq);

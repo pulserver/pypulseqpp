@@ -1820,6 +1820,9 @@ PYBIND11_MODULE(_ext, module)
                 return out;
             out["origin"] = handed(std::move(found.origin), {readouts, 3});
             out["sweep"] = handed(std::move(found.sweep), {readouts});
+            out["rotation"] = handed(std::move(found.rotation), {readouts});
+            const py::ssize_t turns = static_cast<py::ssize_t>(found.rotations.size() / 9);
+            out["rotations"] = handed(std::move(found.rotations), {turns, 3, 3});
             py::list sweeps;
             for (const auto& swept : found.sweeps)
             {

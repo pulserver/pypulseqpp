@@ -245,18 +245,26 @@ class AdcEchoes:
         centre of k-space, over the moving axes, than the nearest sample plus
         1% of the larger k step beside it; -1 for a readout that does not move
         or has fewer than two samples.
-    origin : NDArray[np.float64] or None
+    start : NDArray[np.float64] or None
         ``(n, 3)``: k-space at its first sample, in 1/m.
-    sweep : NDArray[np.int32] or None
-        ``(n,)``: the entry of :attr:`sweeps` it plays.
-    sweeps : tuple of NDArray[np.float64] or None
+    path : NDArray[np.int32] or None
+        ``(n,)``: the entry of :attr:`paths` it plays.
+    paths : tuple of NDArray[np.float64] or None
         Each distinct ``(3, samples)`` path from a readout's first sample to
-        each of its samples, in 1/m, so that readout ``r`` is sampled at
-        ``origin[r, :, None] + sweeps[sweep[r]]``, as
-        :meth:`pypulseqpp.Sequence.adc_kspace` places it. Readouts whose
-        gradients differ only before their first sample share one.
+        each of its samples, in 1/m, along the axes before the block's
+        rotation, so that readout ``r`` is sampled at
+        ``start[r, :, None] + R @ paths[path[r]]``, as
+        :meth:`pypulseqpp.Sequence.adc_kspace` places it, ``R`` being
+        ``rotations[rotation[r]]``, or the identity where that is -1.
+        Readouts whose gradients differ only before their first sample, or
+        only in their rotation, share one.
+    rotation : NDArray[np.int32] or None
+        ``(n,)``: the entry of :attr:`rotations` it plays under, -1 for none.
+    rotations : NDArray[np.float64] or None
+        ``(m, 3, 3)``: each distinct block rotation a readout plays under.
 
-    :attr:`origin`, :attr:`sweep` and :attr:`sweeps` are None when an RF pulse
+    :attr:`start`, :attr:`path`, :attr:`paths`, :attr:`rotation` and
+    :attr:`rotations` are None when an RF pulse
     plays in a block that acquires, unless its use is recorded as neither
     excitation nor refocusing, and when more than one readout in 16 has a
     path of its own.
@@ -267,9 +275,11 @@ class AdcEchoes:
     first_sample: np.ndarray
     moving: np.ndarray
     echo: np.ndarray
-    origin: np.ndarray | None = None
-    sweep: np.ndarray | None = None
-    sweeps: tuple[np.ndarray, ...] | None = None
+    start: np.ndarray | None = None
+    path: np.ndarray | None = None
+    paths: tuple[np.ndarray, ...] | None = None
+    rotation: np.ndarray | None = None
+    rotations: np.ndarray | None = None
 
 
 @dataclass(frozen=True)
