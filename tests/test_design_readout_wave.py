@@ -116,9 +116,7 @@ def test_the_amplitude_gives_way_to_the_slew_rate():
 
     assert slow.wave_amplitude == pytest.approx(4e-3, rel=1e-9)
     assert fast.wave_amplitude < 8e-3
-    assert steepest(fast.gy_wave) == pytest.approx(
-        SYSTEM.max_slew / SYSTEM.gamma, rel=1e-6
-    )
+    assert steepest(fast.gy_wave) <= SYSTEM.max_slew / SYSTEM.gamma
 
 
 def test_the_two_axes_share_one_amplitude():
@@ -233,3 +231,16 @@ def test_a_wave_scaled_to_zero_encodes_nothing():
     for channel in ("y", "z"):
         off = pp.scale_grad(getattr(module, f"g{channel}_wave"), 0.0)
         assert not np.any(np.asarray(off.waveform))
+
+
+@pytest.mark.parametrize("samples_per_cycle", [4, 8, 10, 12, 16])
+def test_a_wave_passes_the_slew_check_on_the_corners_an_interpreter_restores(
+    samples_per_cycle,
+):
+    cycles = 4
+    flat = samples_per_cycle * cycles * SYSTEM.grad_raster_time
+    gy, gz = pp.make_wave_gradients(flat, cycles, 8e-3, system=SYSTEM)
+    seq = pp.Sequence(SYSTEM)
+    seq.add_block(gy, gz)
+
+    assert pp.safety.check_max_slew(seq)[0]
