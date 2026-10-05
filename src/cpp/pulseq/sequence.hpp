@@ -1221,6 +1221,17 @@ namespace pulseq
         /** Append @p block.  @return its 1-based index. */
         int add_block(const Block& block);
 
+        /** Make room for @p count blocks in all, so that appending them does not reallocate. */
+        void reserve_blocks(int count)
+        {
+            detach_blocks();
+            const size_t n = static_cast<size_t>(count);
+            blocks_->reserve(n * BLOCK_WIDTH);
+            durations_->reserve(n);
+            instance_def_.reserve(n);
+            instance_adc_def_.reserve(n);
+        }
+
         /* -- definitions and instances --------------------------------- */
         int num_block_definitions() const
         {

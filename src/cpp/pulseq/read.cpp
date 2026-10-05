@@ -15,6 +15,7 @@
 #include "pulseq/parsed.hpp"
 #include "pulseq/sequence.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdlib>
@@ -310,6 +311,24 @@ namespace pulseq
             }
         }
 
+        /** Sort blocks by number, keeping the first row of each number. */
+        void in_number_order(std::vector<std::pair<int, ParsedBlock>>& blocks)
+        {
+            const auto by_number = [](const auto& a, const auto& b) { return a.first < b.first; };
+            if (std::is_sorted(blocks.begin(), blocks.end(), by_number))
+            {
+                if (std::adjacent_find(blocks.begin(), blocks.end(), [](const auto& a, const auto& b) {
+                        return a.first == b.first;
+                    }) == blocks.end())
+                    return;
+            }
+            std::stable_sort(blocks.begin(), blocks.end(), by_number);
+            blocks.erase(
+                std::unique(blocks.begin(), blocks.end(),
+                            [](const auto& a, const auto& b) { return a.first == b.first; }),
+                blocks.end());
+        }
+
         Parsed parse(const std::string& text)
         {
             const std::vector<Significant> lines = significant_lines(text);
@@ -378,7 +397,7 @@ namespace pulseq
                         out.combined() <= 1002001 ? BLOCK_FILE_COLUMNS - 1 : BLOCK_FILE_COLUMNS;
                     for (int column = 0; column < columns; ++column)
                         block.events[static_cast<size_t>(column)] = row.integer("an event id");
-                    out.blocks.emplace(id, block);
+                    out.blocks.emplace_back(id, block);
                 }
                 else if (section == "[RF]")
                 {
@@ -488,6 +507,7 @@ namespace pulseq
                 }
                 ++at;
             }
+            in_number_order(out.blocks);
             return out;
         }
 
@@ -1002,6 +1022,7 @@ namespace pulseq
         // Last: a block is split into a definition and an instance as it
         // is added, which needs every event it names to be registered.
         const double tick = seq.block_duration_raster();
+        seq.reserve_blocks(static_cast<int>(parsed.blocks.size()));
         for (const auto& entry : parsed.blocks)
         {
             Block block;

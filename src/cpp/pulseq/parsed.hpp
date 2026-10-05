@@ -46,7 +46,8 @@ namespace pulseq
         }
 
         std::map<std::string, Definition> definitions;
-        std::map<int, ParsedBlock> blocks;
+        /** In file order; parse() sorts text rows by number, keeping the first of each. */
+        std::vector<std::pair<int, ParsedBlock>> blocks;
         std::map<int, std::array<double, RF_WIDTH>> rf;
         std::map<int, char> rf_use;
         std::map<int, std::array<double, ARB_WIDTH>> arbitrary;
