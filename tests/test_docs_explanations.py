@@ -131,9 +131,9 @@ def test_the_colab_notebook_is_the_gallery_notebook_after_a_setup_cell(tmp_path)
     assert json.loads(source.read_text()) == notebook
     install = "".join(copy["cells"][1]["source"])
     assert install.startswith("%pip install")
-    assert "'pypulseqpp[plot]==1.2.3'" in install and "torchsim" in install
+    assert "'pypulseqpp[plot]==1.2.3'" in install and "blochsim" in install
     assert copy["cells"][2:] == notebook["cells"]
     assert (
-        "torchsim"
+        "blochsim"
         not in colab.setup_cells("01-pulseq-basics", "latest")[1]["source"][0]
     )

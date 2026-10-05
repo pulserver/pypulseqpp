@@ -16,7 +16,7 @@ T2- and proton-density-weighted structural imaging.
 # sphinx_gallery_start_ignore
 import warnings
 
-# torchsim's simulator is compiled with torch.jit.script, which newer torch
+# blochsim's simulator is compiled with torch.jit.script, which newer torch
 # releases flag as deprecated; the warning concerns torch, not this sequence.
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch.jit")
 
@@ -119,16 +119,16 @@ diagram.paper_plot()
 # a maximum to a minimum over the first five echoes, increases to the
 # prescribed angle at the effective-TE echo and returns to the maximum at the
 # end of the train. The minimum and maximum angles, bounded by the prescribed
-# angle, are optimized with the extended phase graph (EPG) FSE simulator of ``torchsim`` [HEN88]_ [WEI15]_.
+# angle, are optimized with the extended phase graph (EPG) FSE simulator of ``blochsim`` [HEN88]_ [WEI15]_.
 # The cost combines an echo-to-echo signal-variation measure of blurring, the
 # contrast between two of the sequence's design tissues at the effective-TE
 # echo, and a penalty on RF power above that of the initial schedule. The same
 # simulator evaluates the resulting T2-dependent echo envelope.
-import torchsim
+import blochsim
 
 angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
 signal = np.abs(
-    np.asarray(torchsim.fse_sim(flip=angles, ESP=esp * 1e3, T1=1200.0, T2=60.0))
+    np.asarray(blochsim.fse_sim(flip=angles, ESP=esp * 1e3, T1=1200.0, T2=60.0))
 )
 # sphinx_gallery_start_ignore
 time_ms = np.arange(1, len(angles) + 1) * esp * 1e3

@@ -199,7 +199,7 @@ def design_trains(
     echoes, rises to the prescribed angle at the TE echo and returns to the
     maximum at its end (Busse et al., Magn Reson Med 2008;60:640); a TE echo
     among the first five holds the prescribed angle up to it and falls to the
-    minimum after. The minimum and maximum are designed with torchsim against
+    minimum after. The minimum and maximum are designed with blochsim against
     the sharpness of the periphery of k-space, the contrast at the centre
     between the tissues ``DESIGN_CONTRAST`` names, and the RF power of the
     starting trains. Individually parameterized trains have a minimum and a
@@ -235,15 +235,15 @@ def design_trains(
     Raises
     ------
     ImportError
-        If torchsim is not installed.
+        If blochsim is not installed.
     """
     try:
         import torch
-        from torchsim.optim import Bounded, SequenceDesign
-        from torchsim.simulators import FSESimulator
+        from blochsim.optim import Bounded, SequenceDesign
+        from blochsim.simulators import FSESimulator
     except ImportError as error:
         raise ImportError(
-            "flip_modulation='optimized' designs the trains with torchsim; "
+            "flip_modulation='optimized' designs the trains with blochsim; "
             "install it with pip install 'pypulseqpp[design]'"
         ) from error
 
@@ -469,7 +469,7 @@ def fse3d(
         support. ``'shuffling'``: variable-density Poisson-disc support
         in randomly shuffled echo order (T2 Shuffling).
     flip_modulation : {'constant', 'optimized'}, default='constant'
-        Constant refocusing angles, or trains designed with torchsim,
+        Constant refocusing angles, or trains designed with blochsim,
         which the ``design`` extra installs.
     tr_periphery : float | None, default=None
         Repetition time (s) at the periphery of k-space. ``None`` is
@@ -505,7 +505,7 @@ def fse3d(
         mode, individually parameterized trains are shuffled, a train ends
         before the TE echo, or a TR is shorter than the longest train.
     ImportError
-        If ``optimized`` is asked for without torchsim.
+        If ``optimized`` is asked for without blochsim.
 
     Examples
     --------

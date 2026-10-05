@@ -130,4 +130,4 @@ pytest -q tests/test_docs_guides.py tests/test_docs_sequences.py \
 The build runs under `-W`, so a broken reference or an unreachable page fails
 it. The PDF is the single-page build printed by headless Chromium once MathJax
 has typeset it, which needs `python -m playwright install chromium`. The gallery is executed as the pages are built, and the fast-spin-echo
-scripts need `torchsim` from the `design` extra.
+scripts need `blochsim` from the `design` extra.

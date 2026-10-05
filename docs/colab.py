@@ -23,7 +23,7 @@ REPOSITORY = "pulserver/pypulseqpp"
 
 #: What every example installs beside pypulseqpp, and what a section adds.
 PACKAGES = ["matplotlib"]
-SECTION_PACKAGES = {"13-fast-spin-echo": ["torchsim"]}
+SECTION_PACKAGES = {"13-fast-spin-echo": ["blochsim"]}
 
 #: The gallery's output directory under the documentation sources.
 GALLERY = "generated/gallery"
