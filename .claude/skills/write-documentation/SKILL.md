@@ -34,11 +34,29 @@ diagram, is reference material and belongs on that sequence's page, not in the
 gallery. A gallery example exists because running it shows something
 scientifically or computationally useful; an API demonstration, a constructor
 catalogue or a set of configurations whose only result is that they run does
-not belong there. The first gallery groups, from the pulse-acquire experiment
-to custom modules, are the exception: they are a sequential course, each lesson
-with a short introduction and explicit learning objectives, and transitions
-between lessons are allowed. The documentation guide's "Course lessons"
-section defines their register.
+not belong there. The Examples section has three parts, in this order:
+
+- **Course** — `gallery/01-pulseq-basics` to `07-custom-modules`, numbered
+  lessons read in order, each with a short introduction and explicit learning
+  objectives; transitions between lessons are allowed. The Course is the
+  shortest coherent path that gives a new user the framework's core mental
+  model and enough practical competence to work independently.
+- **Tours** — `gallery/08-tours`, standalone examples: useful applications,
+  advanced branches or specialised workflows that are not necessary for that
+  core competence. A Tour opens with its objective and a *Prerequisites* line
+  naming the Course lessons it assumes, and has no previous/next links.
+- **Sequence catalogue** — `gallery/10-*` to `16-*`, one executed page per
+  shipped sequence, linked from `docs/sequences.md`; see the `add-a-sequence`
+  skill.
+
+The documentation guide's "Course, Tours and catalogue" section defines their
+register. The Examples landing page carries one table per part, and
+`tests/test_docs_navigation.py` holds the Course and Tours tables to the
+gallery directories.
+
+Explanation pages are one flat list under `docs/explanations/`, each with one
+obvious purpose and, where appropriate, a conceptual anchor (figure, table or
+equation); no page is nested below another.
 
 ## Mechanics
 
@@ -58,9 +76,20 @@ notebook into the built site under `_colab/` with a note and a `%pip install`
 cell in front; the notebook the page offers for download is left as
 sphinx-gallery writes it. A section whose scripts import more than
 `pypulseqpp[plot]` and matplotlib lists the packages in `SECTION_PACKAGES`.
-Every explanation page, and no index page, opens with a TL;DR admonition
-(```` ```{admonition} TL;DR ```` with `:class: tldr`) directly under its
-title; `tests/test_docs_explanations.py` holds both conventions.
+An explanation page with more than one `##` section opens with a TL;DR
+admonition (```` ```{admonition} TL;DR ```` with `:class: tldr`) directly
+under its title; a single-section page may omit it, and landing, API and
+example pages have none. `tests/test_docs_explanations.py` holds both
+conventions.
+
+Figures take their typography, resolution and layout from
+`docs/figure_style.py`; no gallery script sets font sizes, DPI or `rcParams`.
+The gallery's image scraper narrows a figure wider than the column, so a
+script draws at the size its content needs. A legend describing several
+panels goes outside them, with `layout="constrained"` and
+`fig.legend(loc="outside upper center")`. A static diagram is a light/dark SVG
+pair shown with the `only-light` and `only-dark` classes. Public plotting
+defaults, such as canvas sizes, are not changed for the documentation.
 
 Three generators run on `builder-inited` and write into `docs/generated/`,
 which is not tracked: `docs/explanation_figures.py`,

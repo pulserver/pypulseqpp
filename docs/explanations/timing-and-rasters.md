@@ -87,7 +87,7 @@ receiver bandwidth of 100 kHz; a readout of 100 samples has $\gcd(100, 10) =
 the second case and not in the first, and nothing about the first prescription
 is otherwise unusual.
 
-```{figure} ../../generated/figures/bandwidth_against_sample_count.png
+```{figure} ../generated/figures/bandwidth_against_sample_count.png
 The highest receiver bandwidth each sample count admits at the default
 rasters, over one range of readout lengths. The four levels are the four
 values $\gcd(N, r)$ takes for $r = 10$, and a request is met only where the
@@ -115,14 +115,27 @@ and `POST_ADC_DEAD_TIME`. The same pass also reports `BLOCK_DURATION_MISMATCH`,
 soft-delay consistency conditions, and `ADC_SAMPLES_DIVISOR` where a vendor
 requires the sample count to be divisible by a fixed factor.
 
+`check_timing` also applies three conditions that are not timing in the
+raster sense. It runs {func}`~pypulseqpp.safety.check_grad_continuity` and
+reports a boundary step beyond the one-raster slew criterion as
+`GRADIENT_DISCONTINUITY`, and a sequence that does not end at zero gradient
+amplitude as `GRADIENT_NOT_RAMPED_DOWN`. When the system limits carry a
+positive `max_freq_offset` attribute (Hz), which {class}`~pypulseqpp.Opts`
+does not set by default, it reports an RF or ADC event whose frequency offset
+in Hz, ppm offset converted with `gamma` and `B0`, or their sum exceeds that
+limit as `FREQ_OFFSET`. It records the played duration as the `TotalDuration`
+definition when the sequence has none, and otherwise reports a recorded value
+that differs from the sum of the block durations by more than 1 ns as
+`TOTAL_DURATION_MISMATCH`.
+
 A sequence whose gradient waveforms are within every amplitude and slew limit
 can still be unplayable because one delay is off the raster. The constraint
-checks of {doc}`../safety/index` and `check_timing` establish different
+checks of {doc}`constraint-checks` and `check_timing` establish different
 properties and are separate calls.
 
 ## See also
 
-* {doc}`events-and-blocks` — what a block contains.
-* {doc}`../../api/timing` — the quantization and ADC timing helpers.
-* {doc}`../../examples/checks` — running the checks over a finished
+* {doc}`pulseq-representation` — what a block contains.
+* {doc}`../api/timing` — the quantization and ADC timing helpers.
+* {doc}`../examples/checks` — running the checks over a finished
   sequence.

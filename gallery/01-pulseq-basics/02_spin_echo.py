@@ -16,7 +16,7 @@ the resulting relationship: the shortest echo time the system limits allow,
 against the dephasing prescribed for the crushers.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -38,7 +38,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -131,7 +131,7 @@ print(
 # put on the block duration raster with :func:`~pypulseqpp.round_to_raster`: a
 # duration that is not on it is rounded up when the block is added, which would
 # move the echo by as much as one raster period. The rasters are described in
-# :doc:`/explanations/pulseq/timing-and-rasterization`.
+# :doc:`/explanations/timing-and-rasters`.
 
 SAMPLES = 512
 
@@ -207,7 +207,7 @@ print(f"timing {ok}, {seq.num_blocks} blocks, {1e3 * seq.duration()[0]:.2f} ms")
 # returns for the acquisition are sample centres, so the midpoint of the window
 # is the mean of the first and the last of them.
 
-_, _, t_excitation, t_refocusing, t_adc = seq.calculate_kspacePP()
+_, _, t_excitation, t_refocusing, t_adc = seq.calculate_kspace()
 window_centre = (t_adc[0] + t_adc[-1]) / 2
 
 print(
@@ -276,7 +276,7 @@ for row in shortest:
         f"{1e3 * row['echo_time']:10.2f} ms  {row['timing']!s:>7}"
     )
 
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.62, 3.2), layout="constrained")
 axis.plot(
     [row["cycles"] for row in shortest],
     [1e3 * row["echo_time"] for row in shortest],
@@ -298,8 +298,7 @@ axis.set_xticks(CYCLES)
 axis.set_xticklabels([f"{c:.0f}" for c in CYCLES])
 axis.set_xlabel(f"dephasing across {1e3 * VOXEL:.0f} mm (cycles)")
 axis.set_ylabel("duration (ms)")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.28))
-figure.tight_layout(rect=(0, 0, 1, 0.88))
+figure.legend(loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%

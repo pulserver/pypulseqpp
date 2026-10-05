@@ -128,3 +128,24 @@ def test_no_documentation_figure_names_a_colour_outside_the_house_palette():
                 if not 0.35 <= float(grey) <= 0.6:
                     offences.append(f"{source.name}:{number}: {line.strip()}")
     assert not offences, "\n".join(offences)
+
+
+@pytest.mark.parametrize("size", [8.0, 12.0])
+def test_the_style_helpers_size_their_text_from_the_font_size(size):
+    """Tick labels and titles follow ``font.size``, so a caller's rcParams govern them."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    with plt.rc_context({"font.size": size}):
+        figure, (plain, image) = plt.subplots(1, 2)
+        _style.axis_style(plain, "line")
+        _style.image_style(image, "heatmap")
+        _style.figure_title(figure, "figure")
+        for axis in (plain, image):
+            assert axis.xaxis.get_ticklabels()[0].get_fontsize() < size
+            assert axis.yaxis.get_ticklabels()[0].get_fontsize() < size
+            assert axis._left_title.get_fontsize() == size
+        assert figure._suptitle.get_fontsize() == size
+        plt.close(figure)

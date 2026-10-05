@@ -1,1 +1,1 @@
-New excitation and readout modules, written against the base-class contract.
+A new excitation module, written against the base-class contract.

@@ -70,7 +70,7 @@ and harmonics at odd multiples. The fundamental's amplitude lies between
 $8/\pi^2$ (triangular) and $4/\pi$ (square) of the plateau amplitude; a 500 µs
 echo spacing places it at 1 kHz for the length of the train.
 
-```{figure} ../../generated/figures/gradient_spectra.png
+```{figure} ../generated/figures/gradient_spectra.png
 The readout-axis spectrum of a 40 ms window at the middle of two sequences, both
 64 x 64. The spoiled gradient echo spreads its power below a few hundred hertz;
 the single-shot echo-planar train concentrates it in one line at the reciprocal
@@ -118,7 +118,7 @@ of the supplied table.
   {func}`~pypulseqpp.safety.mech_resonance_spectrum`,
   {func}`~pypulseqpp.safety.read_forbidden_bands` and
   {class}`~pypulseqpp.safety.ForbiddenBand` — the calls.
-* {doc}`../../examples/checks` — running the check over a
+* {doc}`../examples/checks` — running the check over a
   sequence and reading its report.
 
 ## References

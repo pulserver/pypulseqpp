@@ -6,6 +6,9 @@
 .blue{fill:#3a77a8}
 .amber{fill:#ffbe2e}
 .word{fill:#2b76ad}
+.ink{stroke:#e8eef3}
+.blue{fill:#5b9bd0}
+.word{fill:#8fc3e8}
 </style>
 <g transform="translate(24 70)">
 <g transform="translate(26 0)">

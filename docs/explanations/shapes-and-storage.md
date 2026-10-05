@@ -7,9 +7,10 @@
   and instances, which hold the playout parameters. The separation allows
   repeating runs of blocks to be detected, and the SAR check averages over
   them.
-- Writing deduplicates: equal shapes and equal events are merged and the block
-  table is renumbered. Registration ids are therefore local to a sequence and
-  are not stable across a write.
+- Writing deduplicates a copy: equal shapes and equal events are merged and the
+  block table of the copy is renumbered. Registration ids are local to a
+  sequence, are not stable across deduplication, and need not equal the ids in
+  the written file.
 - With a `ROTATIONS` extension per block, a non-Cartesian readout is written
   once as one interleaf and each shot adds one quaternion, so the shape library
   stays the size of a single repetition. Any quantity evaluated on played
@@ -25,7 +26,7 @@
   extensions, which revision 1.4.1 cannot express.
 ```
 
-The block table of {doc}`events-and-blocks` refers to events by id, and the
+The block table of {doc}`pulseq-representation` refers to events by id, and the
 events refer to shapes by id.
 
 ## Definitions and instances
@@ -45,19 +46,23 @@ For RF events, the magnitude, phase and time shapes belong to the definition;
 frequency offset, phase offset and amplitude belong to the instance.
 
 This separation allows the package to detect that a run of blocks
-repeats, which is the repetition the SAR check of {doc}`../safety/sar` averages
+repeats, which is the repetition the SAR check of {doc}`sar` averages
 over.
 
 ## Deduplication
 
 Two sequences with identical playout can differ substantially in file size,
 because nothing in the format forces equal events to share a library entry.
-Writing deduplicates: equal shapes are merged, equal events are merged, and the
-block table is renumbered.
+Writing deduplicates: {meth}`~pypulseqpp.Sequence.write` merges equal shapes
+and equal events of a copy, renumbers the copy's block table and writes the
+copy, leaving the sequence's own libraries unchanged.
+{meth}`~pypulseqpp.Sequence.remove_duplicates` with `in_place=True`, and
+{meth}`~pypulseqpp.Sequence.read` by default, renumber the sequence itself.
 
 Registration ids are therefore local to a sequence and are not stable across
 deduplication. Code that registers an event and retains its id must not assume
-the id survives a write.
+the id survives an in-place deduplication, or that it equals the id the event
+has in a written file.
 
 ## Rotation extensions and the size of the shape library
 
@@ -69,7 +74,7 @@ the shape library grows in proportion to the number of shots. Referring to one
 interleaf and attaching a `ROTATIONS` extension per block writes the waveform
 once, and the per-shot cost is one quaternion.
 
-```{figure} ../../generated/figures/rotation_against_materialised_shapes.png
+```{figure} ../generated/figures/rotation_against_materialised_shapes.png
 The same spiral acquisition written both ways, at interleaf counts from 8 to
 64. A rotation extension per block leaves the shape library the size of one
 interleaf; a rotated waveform per shot adds a pair of shapes each time,
@@ -86,7 +91,7 @@ stepped between views rather than rotated as a fixed interleaf, has a shape
 library that grows with the view count.
 
 The consequence for analysis is that any quantity evaluated on played gradient
-waveforms must apply the block rotation first. {doc}`../safety/index` states
+waveforms must apply the block rotation first. {doc}`constraint-checks` states
 this for the constraint checks.
 
 ## Definitions, sequence chains and the signature
@@ -124,7 +129,7 @@ definition, and it records no dead times.
 {meth}`~pypulseqpp.Sequence.read` takes the rasters from the file and keeps the
 system the sequence was constructed with. {func}`pypulseqpp.io.read` builds the
 system from the file instead, so the design helpers and the checks of
-{doc}`../safety/index` apply limits derived from the file rather than those of
+{doc}`constraint-checks` apply limits derived from the file rather than those of
 the shared default system.
 
 ## Revisions and the binary form
@@ -150,6 +155,6 @@ signature.
 
 ## See also
 
-* {doc}`events-and-blocks` — the block table and the event kinds.
-* {doc}`timing-and-rasterization` — quantization of event times.
-* {doc}`../../api/sequence` — the container, its readers and its writers.
+* {doc}`pulseq-representation` — the block table and the event kinds.
+* {doc}`timing-and-rasters` — quantization of event times.
+* {doc}`../api/sequence` — the container, its readers and its writers.

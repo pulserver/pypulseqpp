@@ -12,7 +12,7 @@ A Bloch simulation of the stored pulse relates the transverse magnetisation to
 the flip angle.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq/events-and-blocks`.
+:doc:`/explanations/pulseq-representation`.
 
 Learning objectives
 -------------------
@@ -33,7 +33,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
@@ -140,14 +140,13 @@ for pulse in pulses:
     on_resonance.append(abs(mz_xy[int(np.argmin(abs(frequency)))]))
 
 # sphinx_gallery_start_ignore
-figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.55, 3.0))
+figure, axis = plt.subplots(figsize=(PAGE_WIDTH * 0.55, 3.0), layout="constrained")
 angles = np.linspace(0.0, 95.0, 200)
 axis.plot(angles, np.sin(np.deg2rad(angles)), lw=1.2, label=r"$\sin\alpha$")
 axis.plot(FLIP_ANGLES_DEG, on_resonance, "o", ms=6, label="simulated")
 axis.set_xlabel("flip angle (degrees)")
 axis.set_ylabel("$|M_{xy}|$")
-axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(0.0, 1.22))
-figure.tight_layout(rect=(0, 0, 1, 0.9))
+figure.legend(loc="outside upper left")
 # sphinx_gallery_end_ignore
 
 # %%

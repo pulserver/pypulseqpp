@@ -118,9 +118,14 @@ another.
 - **prewinder** or **prephasing gradient**; **rewinder** or **rephasing
   gradient**. Not "bridge".
 - **example sequences**, **sequence implementations**, **sequence library**.
-  Not "zoo". A complete, runnable sequence implementation is a **sequence
-  function**, `sequence(system, **protocol)`; it is not called an "app" or an
-  "application".
+  Not "zoo". The constant `pypulseqpp.sequences.ZOO`, the names of the
+  shipped sequence modules, keeps its identifier: this rule governs prose, and
+  public identifiers are not renamed for it. A complete, runnable sequence
+  implementation is a **sequence function**, `sequence(system, **protocol)`;
+  it is not called an "app" or an "application".
+- **Course**, **lesson** and **Tour** name the parts of the Examples section;
+  the **sequence catalogue** is {doc}`/sequences` and the executed pages it
+  links.
 - **wave-encoding gradients** for the events; **corkscrew trajectory** for the
   k-space path they produce.
 - **k-space** coordinates are written in **1/m**. State once, where it helps,

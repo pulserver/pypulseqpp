@@ -3,15 +3,14 @@ r"""
 Spiral readout
 ==============
 
-The previous lesson, :doc:`/generated/gallery/04-non-cartesian/01_radial`,
-acquired k-space along straight spokes. This lesson
-acquires it along a spiral arm, and establishes which of the system limits
-determines the duration of an arm. A spiral is the first trajectory of the
-course that cannot be written as a trapezoid: its waveform is solved
-numerically against the limits by
-:class:`~pypulseqpp.sequences.SpiralReadout2D`. The interface of such a module
-is the subject of :doc:`/generated/gallery/05-sequence-modules/02_readout`;
-here the module is used only for the arms it designs.
+A spiral readout acquires k-space along a spiral arm rather than along straight
+spokes. Its waveform cannot be written as a trapezoid and is solved
+numerically against the limits by :class:`~pypulseqpp.sequences.SpiralReadout2D`;
+here the module is used only for the arms it designs. This example establishes
+which of the system limits determines the duration of an arm.
+
+**Prerequisites:** Course lessons 6, :doc:`Radial sampling </generated/gallery/04-non-cartesian/01_radial>`, and 7,
+:doc:`Sequence modules </generated/gallery/05-sequence-modules/01_sequence_modules>`.
 
 Three limits bound the traversal of an arm. Two are properties of the gradient
 system, the maximum amplitude and the maximum slew rate. The third follows from
@@ -29,10 +28,10 @@ design space and not over the rest.
 
 The binding limit of each design is read from the waveform it produces.
 
-Learning objectives
--------------------
+Objectives
+----------
 
-After this lesson, you should be able to:
+After this example, you should be able to:
 
 - state the amplitude, slew-rate and receiver limits on a spiral traversal,
   including the receiver cap :math:`G_\mathrm{bw}`;
@@ -50,18 +49,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "figure.figsize": (PAGE_WIDTH, 3.6),
-        "savefig.dpi": 110,
-        "font.size": 11,
-        "axes.titlesize": 12,
-        "axes.labelsize": 11,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 REGIME_LABEL = {
     "slew": "slew-limited",
@@ -77,7 +65,7 @@ REGIME_COLOUR = {
 
 def duration_figure(grid):
     """Readout duration against the slew limit, one line per sampling rate."""
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 4.0))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 4.0), layout="constrained")
     for rate, rows in grid.items():
         slews = [row["slew_limit"] for row in rows]
         axis.plot(
@@ -101,7 +89,7 @@ def duration_figure(grid):
             (slews[-1], 1e3 * rows[-1]["readout"]),
             textcoords="offset points",
             xytext=(8, -3),
-            fontsize=9,
+            fontsize="small",
         )
     for regime, colour in REGIME_COLOUR.items():
         axis.plot([], [], "o", color=colour, label=REGIME_LABEL[regime])
@@ -109,8 +97,7 @@ def duration_figure(grid):
     axis.set_ylabel("readout duration (ms)")
     axis.set_ylim(bottom=0)
     axis.margins(x=0.16)
-    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0))
-    figure.tight_layout()
+    figure.legend(loc="outside right upper")
     return figure
 
 

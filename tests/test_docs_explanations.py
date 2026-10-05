@@ -1,32 +1,74 @@
-"""Explanation pages open with a TL;DR, and gallery pages open in Colab."""
+"""Explanation pages with sections open with a TL;DR, and gallery pages open in Colab."""
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 import pytest
 
 DOCS = Path(__file__).parents[1] / "docs"
+GALLERY = Path(__file__).parents[1] / "gallery"
 EXPLANATIONS = sorted(
-    page
-    for page in (DOCS / "explanations").rglob("*.md")
-    if page.name != "index.md" and not page.parent.name.startswith("_")
+    page for page in (DOCS / "explanations").glob("*.md") if page.name != "index.md"
 )
+TLDR = "```{admonition} TL;DR"
+
+#: Landing, API and example pages, none of which carries a TL;DR.
+WITHOUT_TLDR = sorted(
+    [
+        DOCS / "explanations" / "index.md",
+        *(DOCS / "examples").rglob("*.md"),
+        *(DOCS / "api").glob("*.md"),
+        *GALLERY.rglob("*.py"),
+        *GALLERY.rglob("_gallery_header.md"),
+    ]
+)
+
+
+def _sections(text: str) -> int:
+    """The number of second-level headings outside fenced code."""
+    text = re.sub(r"^```.*?^```", "", text, flags=re.M | re.S)
+    return len(re.findall(r"^## ", text, flags=re.M))
 
 
 def test_the_explanation_directory_is_not_empty():
     assert EXPLANATIONS
 
 
+def test_the_explanations_are_one_flat_list():
+    nested = [
+        path.name
+        for path in (DOCS / "explanations").iterdir()
+        if path.is_dir() and not path.name.startswith(("_", "."))
+    ]
+    assert not nested
+
+
 @pytest.mark.parametrize(
     "page", EXPLANATIONS, ids=lambda path: str(path.relative_to(DOCS / "explanations"))
 )
-def test_every_explanation_page_opens_with_a_tldr(page):
-    """The page's title, then a TL;DR block before anything else."""
-    lines = page.read_text(encoding="utf-8").splitlines()
+def test_an_explanation_page_with_sections_opens_with_a_tldr(page):
+    """The page's title, then a TL;DR block before anything else.
+
+    A page with a single section may omit it; one that has it places it there.
+    """
+    text = page.read_text(encoding="utf-8")
+    lines = text.splitlines()
     assert lines[0].startswith("# "), page
     following = [line for line in lines[1:] if line.strip()]
-    assert following[:2] == ["```{admonition} TL;DR", ":class: tldr"], page
+    opens = following[:2] == [TLDR, ":class: tldr"]
+    if _sections(text) > 1:
+        assert opens, page
+    else:
+        assert opens or TLDR not in text, page
+
+
+@pytest.mark.parametrize(
+    "page", WITHOUT_TLDR, ids=lambda path: str(path.relative_to(path.parents[1]))
+)
+def test_landing_api_and_example_pages_carry_no_tldr(page):
+    assert "TL;DR" not in page.read_text(encoding="utf-8"), page
 
 
 def _colab():
@@ -63,7 +105,9 @@ def test_an_example_page_carries_the_colab_badge_under_its_title():
         _EXAMPLE_PAGE, "generated/gallery/01-pulseq-basics/index", "latest"
     )
     assert section == _EXAMPLE_PAGE
-    elsewhere = colab.with_badge(_EXAMPLE_PAGE, "explanations/pulseq/index", "latest")
+    elsewhere = colab.with_badge(
+        _EXAMPLE_PAGE, "explanations/pulseq-representation", "latest"
+    )
     assert elsewhere == _EXAMPLE_PAGE
 
 

@@ -1,4 +1,4 @@
-# Events and blocks
+# Pulseq representation
 
 ```{admonition} TL;DR
 :class: tldr
@@ -18,6 +18,10 @@
   tesla per metre. The gyromagnetic ratio in Hz/T, `gamma` on
   {class}`~pypulseqpp.Opts`, enters only where a physical amplitude is
   required.
+- {meth}`~pypulseqpp.Sequence.repetition` reports the period of the block
+  table: the shortest period of its block-definition stream, else of its
+  durations and channels, else the whole sequence; a declared `TRSize` takes
+  precedence.
 - Extensions carry information for which the block table has no column: labels
   (`LABELSET`, `LABELINC`), whose values remain in force until set or
   incremented again, rotations, triggers, RF shims and soft delays.
@@ -31,6 +35,18 @@ Python interface preserves the format's conventions.
 The authoritative definition is the [Pulseq
 specification](https://pulseq.github.io/specification.pdf) and the MATLAB
 reference implementation.
+
+A text file is a sequence of bracketed sections:
+
+| Section | Holds |
+| --- | --- |
+| `[VERSION]` | The format revision, as `major`, `minor` and `revision`. |
+| `[DEFINITIONS]` | Named values: the four rasters event times are quantized to (`AdcRasterTime`, `BlockDurationRaster`, `GradientRasterTime`, `RadiofrequencyRasterTime`), and any a sequence sets, such as `FOV`, `TotalDuration` or `NextSequence`. |
+| `[BLOCKS]` | One row per block: its duration in units of the block-duration raster, an event id per channel, and an extension id. |
+| `[RF]`, `[GRADIENTS]`, `[TRAP]`, `[ADC]` | The event libraries. |
+| `[EXTENSIONS]` | The extension chains and their typed rows. |
+| `[SHAPES]` | The compressed sample arrays of RF and gradient shapes. |
+| `[SIGNATURE]` | An optional digest of the file above it. |
 
 ## Blocks
 
@@ -56,7 +72,7 @@ repetition time. Which of the middle blocks carries the wait is a design
 choice; that the wait is a block duration rather than a field of its own is
 the format.
 
-```{figure} ../../generated/figures/gre_repetition_blocks.png
+```{figure} ../generated/figures/gre_repetition_blocks.png
 One repetition of a two-dimensional gradient echo, over its six blocks,
 numbered in the order just listed. Blocks 2 and 6 last longer than their
 events, and that difference is the echo time and the repetition time.
@@ -78,7 +94,7 @@ integer id, so an event played ten thousand times is stored once:
 A zero means the block has no event on that channel. Block and library indices
 are 1-based.
 
-```{figure} ../../generated/figures/block_table_and_libraries.png
+```{figure} ../generated/figures/block_table_and_libraries.png
 The block table of a written eight-line gradient-echo file, the libraries its
 cells index, and the shape library the RF and gradient rows index in turn. Each
 library holds one row per distinct event, however many blocks play it, so the
@@ -109,6 +125,32 @@ Shapes
   stored normalized; the amplitude that scales it belongs to the event, not to
   the samples.
 
+## Repetition
+
+A file has no loop, so the repetition a design script played in a loop is not
+recorded in it; {meth}`~pypulseqpp.Sequence.repetition` recovers it from the
+block table. Each block is stored as a definition, its fixed timing and
+shapes, and an instance, its playout parameters (see {doc}`shapes-and-storage`).
+The method returns `(size, start)`: the number of blocks per repetition and the
+1-based block the first repetition starts at, which is always 1. The period is
+found in three steps:
+
+1. the shortest period of the block-definition stream from the first block that
+   every later block repeats, the last copy possibly cut short;
+2. failing that, the shortest period dividing the block table over which blocks
+   match in duration and in the channels they play;
+3. failing both, the whole sequence, which is then one repetition.
+
+A phase encode changes an instance and not its definition, so the lines of a
+Cartesian acquisition are repetitions of one period. A slice acquired with its
+own preparation and dummy shots is one repetition, and a block played once
+makes the whole sequence one. A `TRSize` definition shorter than the sequence,
+over which the blocks repeat, takes precedence, so a longer period can be
+declared. The method writes nothing into the sequence. The SAR check of
+{doc}`sar` averages over the repetitions it reports. What a repetition means for
+scanner execution is described in pulserver's [scanner
+representation](https://pulserver.github.io/pulserver/latest/explanations/scanner-representation.html).
+
 ## Gyromagnetic-ratio-free units
 
 Amplitudes are in **Hz** for RF and **Hz/m** for gradients rather than in tesla
@@ -119,7 +161,7 @@ physical amplitude is required.
 Converting a reported amplitude from Hz/m to mT/m means dividing by the
 gyromagnetic ratio in Hz/T, which {class}`~pypulseqpp.Opts` holds as `gamma`,
 and multiplying by 1000. The constraint
-checks in {doc}`../safety/index` report their values in the file's units and
+checks in {doc}`constraint-checks` report their values in the file's units and
 convert with that constant.
 
 ## Extensions
@@ -141,7 +183,7 @@ block's `EXT` id refers to a linked list of typed rows.
 : A quaternion that rotates the block's gradients from its channel axes onto
   its logical axes. One row per orientation replaces a rotated copy of every
   waveform, so a radial or spiral acquisition references a single interleaf for
-  every shot; see {doc}`libraries-and-shapes`. A prescription rotation is
+  every shot; see {doc}`shapes-and-storage`. A prescription rotation is
   composed after it, and {class}`~pypulseqpp.TransformFOV` writes the product
   into the same extension.
 
@@ -156,6 +198,6 @@ block's `EXT` id refers to a linked list of typed rows.
 
 ## See also
 
-* {doc}`libraries-and-shapes` — how events are stored, deduplicated and written.
-* {doc}`timing-and-rasterization` — the rasters every event time is quantized to.
-* {doc}`../../api/events` — the event factories and block operations.
+* {doc}`shapes-and-storage` — how events are stored, deduplicated and written.
+* {doc}`timing-and-rasters` — the rasters every event time is quantized to.
+* {doc}`../api/events` — the event factories and block operations.

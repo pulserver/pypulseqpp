@@ -135,7 +135,7 @@ that model and calibration.
   {func}`~pypulseqpp.safety.example_vops` — the calls.
 * {func}`~pypulseqpp.calc_rf_power` and
   {meth}`~pypulseqpp.Sequence.calc_rf_power` — RF power in Pulseq's Hz units.
-* {doc}`../../examples/checks` — running the check over a
+* {doc}`../examples/checks` — running the check over a
   sequence and reading its report.
 
 ## References

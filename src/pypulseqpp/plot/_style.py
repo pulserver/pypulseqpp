@@ -96,12 +96,12 @@ def axis_style(axis, title: str = "") -> None:
     for side in ("left", "bottom"):
         axis.spines[side].set_color(FAINT)
     axis.set_facecolor("none")
-    axis.tick_params(colors=MUTED, labelsize=8, length=3, width=0.8)
+    axis.tick_params(colors=MUTED, labelsize="small", length=3, width=0.8)
     axis.xaxis.label.set_color(MUTED)
     axis.yaxis.label.set_color(MUTED)
     axis.grid(False)
     if title:
-        axis.set_title(title, loc="left", fontsize=9, color=INK)
+        axis.set_title(title, loc="left", fontsize="medium", color=INK)
 
 
 def image_style(axis, title: str = "") -> None:
@@ -117,11 +117,11 @@ def image_style(axis, title: str = "") -> None:
     for spine in axis.spines.values():
         spine.set_color(FAINT)
     axis.grid(False)
-    axis.tick_params(colors=MUTED, labelsize=8, length=3, width=0.8)
+    axis.tick_params(colors=MUTED, labelsize="small", length=3, width=0.8)
     axis.xaxis.label.set_color(MUTED)
     axis.yaxis.label.set_color(MUTED)
     if title:
-        axis.set_title(title, loc="left", fontsize=9, color=INK)
+        axis.set_title(title, loc="left", fontsize="medium", color=INK)
 
 
 def figure_title(figure, text: str | None) -> None:
@@ -135,4 +135,4 @@ def figure_title(figure, text: str | None) -> None:
         The title. None or empty leaves the figure without one.
     """
     if text:
-        figure.suptitle(text, x=0.01, ha="left", fontsize=10, color=INK)
+        figure.suptitle(text, x=0.01, ha="left", fontsize="medium", color=INK)

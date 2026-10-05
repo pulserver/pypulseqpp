@@ -126,9 +126,8 @@ def quantize_readout_timing(
     nx_ro : int
         Number of readout samples.
     target_bw_hz_px : float
-        Requested receiver bandwidth in Hz, i.e. ``1 / dwell``. The parameter
-        name is kept for compatibility; the value is not a per-pixel
-        bandwidth.
+        Requested receiver bandwidth ``1 / dwell`` (Hz), not a bandwidth per
+        pixel despite the ``_px`` suffix.
     grad_raster_s, adc_raster_s : float
         Gradient and ADC rasters (s).
     min_flat_time_s : float

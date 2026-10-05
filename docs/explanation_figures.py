@@ -14,7 +14,7 @@ import numpy as np
 
 from pypulseqpp.plot._style import FAINT, MUTED, SERIES
 
-PAGE_WIDTH = 7.4  # inches, the width of the documentation column
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def _pyplot():
@@ -25,16 +25,7 @@ def _pyplot():
 
     from figure_style import FIGURE_RCPARAMS
 
-    plt.rcParams.update(
-        {
-            **FIGURE_RCPARAMS,
-            "figure.dpi": 150,
-            "font.size": 9,
-            "axes.titlesize": 10,
-            "axes.labelsize": 9,
-            "legend.fontsize": 8,
-        }
-    )
+    plt.rcParams.update(FIGURE_RCPARAMS)
     return plt
 
 
@@ -73,7 +64,7 @@ def axis_peaks_against_vector():
     magnitude = np.linalg.norm(played, axis=0)
 
     figure, (trace, bars) = plt.subplots(
-        1, 2, figsize=(PAGE_WIDTH, 2.9), width_ratios=(2.0, 1.0)
+        1, 2, figsize=(PAGE_WIDTH, 3.4), width_ratios=(2.0, 1.0), layout="constrained"
     )
     for row, name in zip(played, ("$G_x$", "$G_y$", "$G_z$"), strict=True):
         trace.plot(grid * 1e3, row, lw=0.9, label=name)
@@ -81,17 +72,16 @@ def axis_peaks_against_vector():
     trace.set_xlabel("time (ms)")
     trace.set_ylabel("gradient amplitude (mT/m)")
     trace.set_title("one repetition")
-    figure.legend(frameon=False, ncols=4, loc="upper center", bbox_to_anchor=(0.36, 1.03), columnspacing=1.0)
+    figure.legend(ncols=4, loc="outside upper left", columnspacing=1.0)
 
     heights = [*axis_peaks, float(np.linalg.norm(axis_peaks)), simultaneous]
     colors = [MUTED, MUTED, MUTED, "C7", "C2"]
     bars.bar(["x", "y", "z", "RSS", "$|G|$"], heights, color=colors)
     for index, height in enumerate(heights):
-        bars.text(index, height + 1.0, f"{height:.0f}", ha="center", fontsize=8)
+        bars.text(index, height + 1.0, f"{height:.0f}", ha="center", fontsize="x-small")
     bars.set_ylim(0, 1.25 * max(heights))
     bars.set_ylabel("peak amplitude (mT/m)")
     bars.set_title("whole sequence")
-    figure.tight_layout()
     return figure
 
 
@@ -155,11 +145,8 @@ def rotation_against_per_axis_limit():
             )
         ]
 
-    figure = plt.figure(figsize=(PAGE_WIDTH, 5.9))
-    layout = figure.add_gridspec(
-        2, 2, height_ratios=(1.35, 1.0), hspace=0.62, wspace=0.28,
-        left=0.10, right=0.97, top=0.80, bottom=0.09,
-    )
+    figure = plt.figure(figsize=(PAGE_WIDTH, 7.0), layout="constrained")
+    layout = figure.add_gridspec(2, 2, height_ratios=(1.5, 1.0))
     planes = [figure.add_subplot(layout[0, column]) for column in (0, 1)]
     sweep = figure.add_subplot(layout[1, :])
 
@@ -205,7 +192,7 @@ def rotation_against_per_axis_limit():
                     "shrinkB": 0,
                 },
             )
-        axis.set_title(f"{name}\n$|G|$ = {magnitude:.1f} mT/m", fontsize=9)
+        axis.set_title(f"{name}\n$|G|$ = {magnitude:.1f} mT/m", fontsize="small")
         axis.set_xlim(-span, span)
         axis.set_ylim(-span, span)
         axis.set_aspect("equal")
@@ -220,10 +207,7 @@ def rotation_against_per_axis_limit():
         plt.Line2D([], [], color="0.5", lw=1.1, label="within the per-axis limit"),
         plt.Line2D([], [], color="C7", lw=1.1, label="over the per-axis limit"),
     ]
-    figure.legend(
-        handles=handles, frameon=False, ncols=2, loc="upper left",
-        bbox_to_anchor=(0.10, 1.0), columnspacing=1.4,
-    )
+    figure.legend(handles=handles, ncols=2, loc="outside upper center")
 
     for name, peaks in sweeps.items():
         sweep.plot(prescription, peaks, lw=1.4, label=name)
@@ -232,9 +216,7 @@ def rotation_against_per_axis_limit():
     sweep.set_xticks(np.arange(0.0, 181.0, 30.0))
     sweep.set_xlabel("prescription rotation about z (degrees)")
     sweep.set_ylabel("largest per-axis\namplitude (mT/m)")
-    sweep.legend(
-        frameon=False, fontsize=8, loc="upper left", bbox_to_anchor=(0.0, 1.42),
-    )
+    sweep.legend(loc="upper center", bbox_to_anchor=(0.5, -0.32), ncols=2)
     return figure
 
 
@@ -337,7 +319,7 @@ def strength_duration():
         ]
     )
 
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6), layout="constrained")
     for name, model in models.items():
         threshold = np.array(
             [reference_mt_per_m / response(ramp, model) for ramp in ramps]
@@ -345,14 +327,13 @@ def strength_duration():
         axis.loglog(ramps * 1e3, 1e-3 * threshold / ramps, marker="o", ms=3, label=name)
     asymptote = 20.0 / 0.333  # the chronaxie model's rheobase over its alpha
     axis.axhline(asymptote, color="0.55", ls="--", lw=0.9)
-    axis.text(3.0, 1.05 * asymptote, "rheobase / alpha", color="0.55", fontsize=8)
+    axis.text(0.045, 1.08 * asymptote, "rheobase / alpha", color="0.55", fontsize="x-small")
     axis.axvline(0.36, color="0.55", ls=":", lw=0.9)
-    axis.text(0.38, 300.0, "chronaxie", color="0.55", fontsize=8, rotation=90)
+    axis.text(0.38, 300.0, "chronaxie", color="0.55", fontsize="x-small", rotation=90)
     axis.set_xlabel("ramp duration (ms)")
     axis.set_ylabel("slew rate at threshold (T/m/s)")
     axis.set_title("Strength-duration relation of the two model families")
-    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
-    figure.tight_layout(rect=(0, 0, 0.82, 1))
+    figure.legend(loc="outside upper center", ncols=2)
     return figure
 
 
@@ -373,7 +354,7 @@ def pns_response():
     )[-1]
     model = safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333)
     _, report = safety.check_pns(seq, model, trace=True)
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6), layout="constrained")
     for entry in report.axes:
         axis.plot(
             report.time * 1e3,
@@ -394,8 +375,7 @@ def pns_response():
     axis.set_xlabel("time (ms)")
     axis.set_ylabel("response (fraction of threshold)")
     axis.set_title("EPI peripheral-nerve-stimulation response")
-    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
-    figure.tight_layout(rect=(0, 0, 0.80, 1))
+    figure.legend(loc="outside upper center", ncols=6, columnspacing=1.2)
     return figure
 
 
@@ -417,7 +397,7 @@ def gradient_spectra():
         )[-1],
     }
 
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6), layout="constrained")
     width = 40e-3
     for name, seq in designed.items():
         raster = seq.system.grad_raster_time
@@ -436,13 +416,12 @@ def gradient_spectra():
     axis.set_xlabel("frequency (Hz)")
     axis.set_ylabel("$G_x$ amplitude (mT/m)")
     axis.set_title(f"{width * 1e3:.0f} ms window at the middle of each sequence")
-    axis.legend(frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1.0))
-    figure.tight_layout(rect=(0, 0, 0.82, 1))
+    figure.legend(loc="outside upper center", ncols=2)
     return figure
 
 
 # ---------------------------------------------------------------------------
-#  explanations/pulseq
+#  Pulseq representation, shapes and storage, timing and rasters
 # ---------------------------------------------------------------------------
 
 
@@ -479,7 +458,7 @@ def block_table_and_libraries():
     table = [line.split() for line in rows("BLOCKS")[:4]]
     shapes = len(re.findall(r"^shape_id ", body.get("SHAPES", ""), flags=re.M))
 
-    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.6))
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 5.0))
     axis.set_xlim(0, 100)
     axis.set_ylim(0, 100)
     axis.axis("off")
@@ -493,26 +472,26 @@ def block_table_and_libraries():
         )
         axis.text(
             x + width / 2, y + height - 3.5, title, ha="center", va="center",
-            fontsize=8.5, color=colour,
+            fontsize="small", color=colour,
         )
         axis.text(
             x + width / 2, y + height - 8.5, f"{count} rows", ha="center",
-            va="center", fontsize=7.5, color=colour,
+            va="center", fontsize="x-small", color=colour,
         )
         axis.text(
             x + width / 2, y + height - 12.0, note, ha="center", va="top",
-            fontsize=7.5, color=MUTED, linespacing=1.6,
+            fontsize="x-small", color=MUTED, linespacing=1.3,
         )
 
     cell, line_height, left, top = 8.0, 6.0, 22.0, 96.0
     axis.text(
         left, top + 1.5, f"[BLOCKS] — {len(rows('BLOCKS'))} rows, the played order",
-        fontsize=9, color=SERIES[0], va="bottom",
+        fontsize="small", color=SERIES[0], va="bottom",
     )
     for index, name in enumerate(columns):
         axis.text(
             left + (index + 0.5) * cell, top - 1.4, name,
-            ha="center", va="center", fontsize=7.5, color=MUTED, family="monospace",
+            ha="center", va="center", fontsize="x-small", color=MUTED, family="monospace",
         )
     for line, cells in enumerate(table):
         y = top - 3.5 - (line + 1) * line_height
@@ -526,7 +505,7 @@ def block_table_and_libraries():
         for index, value in enumerate(cells):
             axis.text(
                 left + (index + 0.5) * cell, y + line_height / 2, value,
-                ha="center", va="center", fontsize=8, color=MUTED,
+                ha="center", va="center", fontsize="x-small", color=MUTED,
                 family="monospace",
             )
 
@@ -550,13 +529,13 @@ def block_table_and_libraries():
             arrowprops={"arrowstyle": "-|>", "color": MUTED, "lw": 1.0},
         )
 
-    panel(14.0, 1.0, 72.0, 18.0, SERIES[5], "[SHAPES]", shapes,
-          "run-length encoded on the derivative, so a thousand-sample "
+    panel(14.0, 0.0, 72.0, 21.0, SERIES[5], "[SHAPES]", shapes,
+          "run-length encoded on the derivative, so a\nthousand-sample "
           "linear ramp is three numbers")
     for index in (0, 1):
         x = index * (width + gap) + width / 2
         axis.annotate(
-            "", xy=(x + 9.0, 19.5), xytext=(x, 25.5),
+            "", xy=(x + 9.0, 21.5), xytext=(x, 25.5),
             arrowprops={
                 "arrowstyle": "-|>", "color": MUTED, "lw": 1.0,
                 "connectionstyle": "arc3,rad=0.15",
@@ -602,7 +581,7 @@ def gre_repetition_blocks():
         )
         strip.text(
             0.5 * (left + right) * 1e3, 0.5, str(index),
-            ha="center", va="center", fontsize=8, color=MUTED,
+            ha="center", va="center", fontsize="x-small", color=MUTED,
         )
     strip.set_ylim(0, 1)
     strip.set_ylabel("block", rotation=0, ha="right", va="center")
@@ -691,7 +670,7 @@ def rotation_against_materialised_shapes():
         measured["rotation extension"].append(written(turned))
         measured["rotated waveforms"].append(written(materialised))
 
-    figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.6))
+    figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2), layout="constrained")
     for index, (label, values) in enumerate(measured.items()):
         shapes = [shape for shape, _ in values]
         sizes = [size for _, size in values]
@@ -703,11 +682,7 @@ def rotation_against_materialised_shapes():
         axis.set_xlabel("interleaves")
         axis.set_xticks(counts)
         axis.margins(y=0.15)
-    axes[0].legend(
-        frameon=False, fontsize=8, loc="lower center",
-        bbox_to_anchor=(1.1, 1.02), ncols=2,
-    )
-    figure.tight_layout(rect=(0, 0, 1, 0.88))
+    figure.legend(*axes[0].get_legend_handles_labels(), loc="outside upper center", ncols=2)
     return figure
 
 
@@ -743,7 +718,7 @@ def bandwidth_against_sample_count():
     axis.axhline(requested * 1e-3, lw=1.0, ls="--", color=SERIES[1])
     axis.text(
         counts[-1], requested * 1e-3 + 14.0, "requested",
-        ha="right", va="bottom", fontsize=8, color=SERIES[1],
+        ha="right", va="bottom", fontsize="x-small", color=SERIES[1],
     )
     axis.set_xlabel("ADC samples")
     axis.set_ylabel("highest receiver\nbandwidth (kHz)")

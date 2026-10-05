@@ -1,4 +1,4 @@
-"""Collect the API pages' autosummary blocks into one page outside the navigation.
+"""Collect the API pages' object tables into one autosummary page outside the navigation.
 
 The API pages present their objects as tables. The stub page for each object is
 generated from this module's output instead of from the tables themselves, so

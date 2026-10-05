@@ -15,7 +15,11 @@ from sphinx_gallery.sorting import ExplicitOrder
 sys.path.insert(0, str(Path(__file__).parent))
 
 import colab  # noqa: E402
-from figure_style import FIGURE_RCPARAMS, gallery_house_style  # noqa: E402
+from figure_style import (  # noqa: E402
+    FIGURE_RCPARAMS,
+    column_scraper,
+    gallery_house_style,
+)
 
 project = "pypulseqpp"
 copyright = "2026, pypulseqpp contributors"  # noqa: A001
@@ -89,18 +93,34 @@ GALLERY_BACKREFERENCES = {
 GALLERY_BACKREFERENCES.update(
     f"pypulseqpp.sequences.{name}"
     for name in (
-        "gre2D_sequence", "gre3D_sequence", "gre_multiecho2D_sequence",
-        "gre_multiecho3D_sequence", "gre_propeller2D_sequence",
-        "gre_radial2D_sequence", "gre_spiral2D_sequence",
-        "gre_stack_of_blades3D_sequence", "gre_stack_of_spirals3D_sequence",
-        "gre_stack_of_stars3D_sequence", "se2D_sequence", "se3D_sequence",
-        "se_epi_propeller2D_sequence", "se_propeller2D_sequence",
-        "se_radial2D_sequence", "se_spiral2D_sequence",
-        "se_stack_of_blades3D_sequence", "se_stack_of_spirals3D_sequence",
-        "se_stack_of_stars3D_sequence", "mprage3D_sequence",
-        "mprage_stack_of_spirals3D_sequence", "mprage_stack_of_stars3D_sequence",
-        "fse3D_sequence", "bssfp2D_sequence", "bssfp3D_sequence",
-        "epi2D_sequence", "epi3D_sequence", "zte3D_sequence",
+        "gre2D_sequence",
+        "gre3D_sequence",
+        "gre_multiecho2D_sequence",
+        "gre_multiecho3D_sequence",
+        "gre_propeller2D_sequence",
+        "gre_radial2D_sequence",
+        "gre_spiral2D_sequence",
+        "gre_stack_of_blades3D_sequence",
+        "gre_stack_of_spirals3D_sequence",
+        "gre_stack_of_stars3D_sequence",
+        "se2D_sequence",
+        "se3D_sequence",
+        "se_epi_propeller2D_sequence",
+        "se_propeller2D_sequence",
+        "se_radial2D_sequence",
+        "se_spiral2D_sequence",
+        "se_stack_of_blades3D_sequence",
+        "se_stack_of_spirals3D_sequence",
+        "se_stack_of_stars3D_sequence",
+        "mprage3D_sequence",
+        "mprage_stack_of_spirals3D_sequence",
+        "mprage_stack_of_stars3D_sequence",
+        "fse3D_sequence",
+        "bssfp2D_sequence",
+        "bssfp3D_sequence",
+        "epi2D_sequence",
+        "epi3D_sequence",
+        "zte3D_sequence",
     )
 )
 autosummary_context = {"gallery_backreferences": GALLERY_BACKREFERENCES}
@@ -134,6 +154,7 @@ GALLERY_SECTIONS = [
     "../gallery/05-sequence-modules",
     "../gallery/06-checks",
     "../gallery/07-custom-modules",
+    "../gallery/08-tours",
     "../gallery/10-gradient-echo",
     "../gallery/11-spin-echo",
     "../gallery/13-fast-spin-echo",
@@ -158,6 +179,9 @@ sphinx_gallery_conf = {
     # sphinx-gallery calls rcdefaults() before each script, so the house style
     # is re-applied behind its own resets rather than set once in this file.
     "reset_modules": ("matplotlib", "seaborn", gallery_house_style),
+    # Figures wider than the column are narrowed to it before they are saved;
+    # see `figure_style.column_scraper`.
+    "image_scrapers": (column_scraper,),
     # Left off deliberately: it would strip the ignore flags before the page is
     # written, and _hide_ignored_code_from_the_page_only needs them there.
     "remove_config_comments": False,
@@ -201,7 +225,9 @@ class _InventoryOutageFilter(logging.Filter):
         return self._MESSAGE not in record.getMessage()
 
 
-def _compact_signature(_app, what, _name, _obj, _options, _signature, return_annotation):
+def _compact_signature(
+    _app, what, _name, _obj, _options, _signature, return_annotation
+):
     """Render callable headings compactly; leave data and attributes unchanged."""
     if what in {"function", "method", "class", "exception"}:
         return "()", return_annotation
@@ -230,15 +256,29 @@ README_REWRITES = (
 )
 
 
+#: A ``<picture>`` in the README that chooses its variant by the reader's
+#: colour scheme: the dark ``<source>`` and the light ``<img>``.
+_PICTURE = re.compile(
+    r"<picture>\s*<source[^>]*srcset=\"(?P<dark>[^\"]+)\"[^>]*>\s*"
+    r"<img (?P<attributes>[^>]*)src=\"(?P<light>[^\"]+)\"(?P<rest>[^>]*)>\s*</picture>"
+)
+
+
 def _readme_for_docs(text: str) -> str:
     """Apply `README_REWRITES` to the README's text.
 
     A rewritten page link is relative to ``docs/``, the directory of the page
-    that includes the README, which is what MyST resolves it against.
+    that includes the README, which is what MyST resolves it against. A
+    ``<picture>`` becomes the two images the theme shows one of, since the
+    theme's light and dark switch does not reach a media query.
     """
     for pattern, replacement in README_REWRITES:
         text = pattern.sub(replacement, text)
-    return text
+    return _PICTURE.sub(
+        r'<img class="only-light" \g<attributes>src="\g<light>"\g<rest>>'
+        r'<img class="only-dark" \g<attributes>src="\g<dark>"\g<rest>>',
+        text,
+    )
 
 
 def _local_readme(_app, docname, source):
@@ -406,11 +446,41 @@ def _colab_notebooks(app, exception) -> None:
         colab.write(Path(app.srcdir), Path(app.outdir), DOCS_RELEASE)
 
 
+def _constant_comment(_app, what, name, obj, _options, lines) -> None:
+    """Document a re-exported constant by the ``#:`` comment where it is defined.
+
+    Autodoc reads such a comment only from the module it documents the name
+    in, and otherwise prints the docstring of the constant's type.
+    """
+    if what != "data" or lines[:1] != (type(obj).__doc__ or "").splitlines()[:1]:
+        return
+    import sys
+
+    from sphinx.errors import PycodeError
+    from sphinx.pycode import ModuleAnalyzer
+
+    attribute = name.rpartition(".")[2]
+    for module_name, module in list(sys.modules.items()):
+        if (
+            not module_name.startswith("pypulseqpp")
+            or getattr(module, attribute, None) is not obj
+        ):
+            continue
+        try:
+            comment = ModuleAnalyzer.for_module(module_name).find_attr_docs()
+        except PycodeError:
+            continue
+        if ("", attribute) in comment:
+            lines[:] = list(comment[("", attribute)])
+            return
+
+
 def setup(app):
     """Install the filter ahead of Sphinx's own, which count the warning."""
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("autodoc-process-signature", _compact_signature)
+    app.connect("autodoc-process-docstring", _constant_comment)
     app.connect("source-read", _local_readme)
     app.connect("include-read", _included_readme)
     app.connect("source-read", _colab_badge)
@@ -456,6 +526,13 @@ html_theme_options = {
     "use_issues_button": True,
     "use_edit_page_button": True,
     "home_page_in_toc": True,
+    # Two files rather than one SVG with a colour-scheme media query: inside an
+    # <img> such a query follows the operating system, not the site's toggle.
+    "logo": {
+        "image_light": "_static/pypulseqpp-mark.svg",
+        "image_dark": "_static/pypulseqpp-mark-dark.svg",
+        "alt_text": "pypulseqpp",
+    },
     # The list every published version is in, written beside the versions by
     # scripts/publish_docs.py. The page fetches it when it loads, so a build
     # served from anywhere else leaves the switcher out. The theme's check of
@@ -497,7 +574,6 @@ html_title = "pypulseqpp documentation"
 # from here as well.
 html_static_path = ["_static"]
 html_css_files = ["pypulseqpp.css"]
-html_logo = "_static/pypulseqpp-mark.svg"
 plot_include_source = True
 plot_html_show_source_link = False
 plot_formats = [("svg", 96)]

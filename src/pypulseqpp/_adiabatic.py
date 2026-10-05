@@ -115,16 +115,12 @@ def make_adiabatic_pulse(
         ``"bir4"`` frequency-sweep shape: ``tan(kappa * s) / tan(kappa)``
         over each quarter.
     gradient_modulation : float, int, default=0.9
-        ``"goia_wurst"``: the gradient follows ``(1 - gradient_modulation) +
-        gradient_modulation * |cos(pi t / T)|^gradient_order`` of its peak,
-        ``bandwidth / slice_thickness``; ``gradient_modulation`` lies in
-        ``[0, 1)``.
-
+        ``"goia_wurst"`` gradient modulation depth, in ``[0, 1)``: the gradient
+        follows ``(1 - gradient_modulation) + gradient_modulation *
+        |cos(pi t / T)|^gradient_order`` of its peak,
+        ``bandwidth / slice_thickness``.
     gradient_order : float, int, default=4
-        ``"goia_wurst"``: the gradient follows ``(1 - gradient_modulation) +
-        gradient_modulation * |cos(pi t / T)|^gradient_order`` of its peak,
-        ``bandwidth / slice_thickness``; ``gradient_modulation`` lies in
-        ``[0, 1)``.
+        ``"goia_wurst"`` exponent of the gradient modulation.
 
     Returns
     -------

@@ -22,17 +22,7 @@ from matplotlib.colors import ListedColormap, to_rgba
 from pypulseqpp.plot import SAMPLING
 from pypulseqpp.plot._style import FAINT, MUTED
 
-PAGE_WIDTH = 8.6  # inches, the width of the documentation column
-
-plt.rcParams.update(
-    {
-        "figure.dpi": 110,
-        "savefig.dpi": 110,
-        "font.size": 10,
-        "axes.titlesize": 11,
-        "axes.labelsize": 10,
-    }
-)
+PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
 def _trains(seq):
@@ -128,7 +118,7 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
         ax.legend(
             frameon=False,
             ncol=shots,
-            fontsize=8,
+            fontsize="small",
             loc="lower center",
             bbox_to_anchor=(0.5, 1.16),
         )

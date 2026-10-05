@@ -1,1 +1,1 @@
-Spokes and spiral arms: what they cover, how many are needed, and which limit determines the duration of one.
+Spokes in place of phase encodes: what they cover, how many are needed, and what golden-angle ordering changes.
