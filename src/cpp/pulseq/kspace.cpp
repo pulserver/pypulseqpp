@@ -643,6 +643,31 @@ namespace pulseq
 
     } // namespace
 
+    void moving_axes(
+        const std::array<std::vector<double>, 3>& k, size_t offset, int n, uint8_t* moving)
+    {
+        moving[0] = moving[1] = moving[2] = 0;
+        if (n <= 0)
+            return;
+        const double* axes[3];
+        for (size_t axis = 0; axis < 3; ++axis)
+            axes[axis] = k[axis].data() + offset;
+        double low[3];
+        double high[3];
+        for (int axis = 0; axis < 3; ++axis)
+            low[axis] = high[axis] = axes[axis][0];
+        for (int i = 1; i < n; ++i)
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                low[axis] = std::min(low[axis], axes[axis][i]);
+                high[axis] = std::max(high[axis], axes[axis][i]);
+            }
+        const double widest =
+            std::max({high[0] - low[0], high[1] - low[1], high[2] - low[2]});
+        for (int axis = 0; axis < 3; ++axis)
+            moving[axis] = high[axis] - low[axis] > kStill * widest ? 1 : 0;
+    }
+
     void find_echo(
         const std::array<std::vector<double>, 3>& k,
         size_t offset,
@@ -652,62 +677,46 @@ namespace pulseq
         std::vector<double>& distance)
     {
         echo[0] = echo[1] = -1;
-        double span[3] = {0.0, 0.0, 0.0};
-        double widest = 0.0;
-        for (int axis = 0; axis < 3 && n > 0; ++axis)
-        {
-            const auto begin = k[static_cast<size_t>(axis)].begin() +
-                static_cast<std::ptrdiff_t>(offset);
-            const auto range = std::minmax_element(begin, begin + n);
-            span[axis] = *range.second - *range.first;
-            widest = std::max(widest, span[axis]);
-        }
-        bool any = false;
-        for (int axis = 0; axis < 3; ++axis)
-        {
-            moving[axis] = span[axis] > kStill * widest ? 1 : 0;
-            any = any || moving[axis];
-        }
+        moving_axes(k, offset, n, moving);
+        const bool any = moving[0] || moving[1] || moving[2];
         if (!any || n < 2)
             return;
 
-        const auto at = [&](int axis, int i) {
-            return k[static_cast<size_t>(axis)][offset + static_cast<size_t>(i)];
-        };
-        distance.assign(static_cast<size_t>(n), 0.0);
+        /* The axes that do not move weigh nothing. */
+        const double weight[3] = {
+            moving[0] ? 1.0 : 0.0, moving[1] ? 1.0 : 0.0, moving[2] ? 1.0 : 0.0};
+        const double* x = k[0].data() + offset;
+        const double* y = k[1].data() + offset;
+        const double* z = k[2].data() + offset;
+        distance.resize(static_cast<size_t>(n));
+        double* d = distance.data();
+        int nearest = 0;
         for (int i = 0; i < n; ++i)
         {
-            double squared = 0.0;
-            for (int axis = 0; axis < 3; ++axis)
-                if (moving[axis])
-                    squared += at(axis, i) * at(axis, i);
-            distance[static_cast<size_t>(i)] = std::sqrt(squared);
+            d[i] = std::sqrt(weight[0] * x[i] * x[i] + weight[1] * y[i] * y[i] +
+                             weight[2] * z[i] * z[i]);
+            if (d[i] < d[nearest])
+                nearest = i;
         }
-        const int nearest = static_cast<int>(
-            std::min_element(distance.begin(), distance.end()) - distance.begin());
         const auto step = [&](int from) {
-            double squared = 0.0;
-            for (int axis = 0; axis < 3; ++axis)
-                if (moving[axis])
-                {
-                    const double d = at(axis, from + 1) - at(axis, from);
-                    squared += d * d;
-                }
-            return std::sqrt(squared);
+            const double dx = weight[0] * (x[from + 1] - x[from]);
+            const double dy = weight[1] * (y[from + 1] - y[from]);
+            const double dz = weight[2] * (z[from + 1] - z[from]);
+            return std::sqrt(dx * dx + dy * dy + dz * dz);
         };
         const double beside = std::max(
             step(std::clamp(nearest - 1, 0, n - 2)), step(std::clamp(nearest, 0, n - 2)));
-        const double reach = distance[static_cast<size_t>(nearest)] + kTie * beside;
-        int first = n - 1;
-        int last = 0;
-        for (int i = 0; i < n; ++i)
-        {
-            if (distance[static_cast<size_t>(i)] <= reach)
+        const double reach = d[nearest] + kTie * beside;
+        int first = 0;
+        while (d[first] > reach)
+            ++first;
+        int last = nearest;
+        for (int i = n - 1; i > nearest; --i)
+            if (d[i] <= reach)
             {
-                first = std::min(first, i);
-                last = std::max(last, i);
+                last = i;
+                break;
             }
-        }
         echo[0] = first;
         echo[1] = last;
     }

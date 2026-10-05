@@ -178,13 +178,14 @@ namespace pulseq
         void read_blocks(Cursor& in, Parsed& out)
         {
             const int64_t count = count_of(in, "blocks");
+            out.blocks.reserve(static_cast<size_t>(count));
             for (int64_t i = 0; i < count; ++i)
             {
                 ParsedBlock block;
                 block.ticks = static_cast<long>(in.i64("a block duration"));
                 for (int column = 0; column < BLOCK_FILE_COLUMNS; ++column)
                     block.events[static_cast<size_t>(column)] = in.i32("a block event");
-                out.blocks.emplace(static_cast<int>(i) + 1, block);
+                out.blocks.emplace_back(static_cast<int>(i) + 1, block);
             }
         }
 

@@ -7,6 +7,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <type_traits>
 #include <array>
 #include <cstring>
 #include <memory>
@@ -1802,23 +1803,23 @@ PYBIND11_MODULE(_ext, module)
                 found = pulseq::adc_echoes(sequence, options);
             }
             const py::ssize_t readouts = static_cast<py::ssize_t>(found.block.size());
+            /* Handed over rather than copied: a few values per readout of the scan. */
+            const auto handed = [](auto&& values, std::vector<py::ssize_t> shape) {
+                using Vector = std::decay_t<decltype(values)>;
+                auto* held = new Vector(std::move(values));
+                py::capsule owner(held, [](void* p) { delete static_cast<Vector*>(p); });
+                return py::array_t<typename Vector::value_type>(shape, held->data(), owner);
+            };
             py::dict out;
-            out["block"] = py::array_t<int32_t>(readouts, found.block.data());
-            out["num_samples"] = py::array_t<int32_t>(readouts, found.num_samples.data());
-            out["first_sample"] = py::array_t<int64_t>(readouts, found.first_sample.data());
-            out["moving"] =
-                py::array_t<uint8_t>({readouts, py::ssize_t{3}}, found.moving.data());
-            out["echo"] = py::array_t<int32_t>({readouts, py::ssize_t{2}}, found.echo.data());
+            out["block"] = handed(std::move(found.block), {readouts});
+            out["num_samples"] = handed(std::move(found.num_samples), {readouts});
+            out["first_sample"] = handed(std::move(found.first_sample), {readouts});
+            out["moving"] = handed(std::move(found.moving), {readouts, 3});
+            out["echo"] = handed(std::move(found.echo), {readouts, 2});
             if (found.origin.empty())
                 return out;
-            /* The origins are handed over rather than copied: three doubles
-             * per readout of the scan. */
-            auto* origin = new std::vector<double>(std::move(found.origin));
-            py::capsule owner(origin, [](void* held) {
-                delete static_cast<std::vector<double>*>(held);
-            });
-            out["origin"] = py::array_t<double>({readouts, py::ssize_t{3}}, origin->data(), owner);
-            out["sweep"] = py::array_t<int32_t>(readouts, found.sweep.data());
+            out["origin"] = handed(std::move(found.origin), {readouts, 3});
+            out["sweep"] = handed(std::move(found.sweep), {readouts});
             py::list sweeps;
             for (const auto& swept : found.sweeps)
             {

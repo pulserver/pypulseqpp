@@ -128,6 +128,13 @@ namespace pulseq
     AdcEchoes adc_echoes(const Sequence& seq, const KspaceOptions& base);
 
     /**
+     * The moving axes, as AdcEchoes defines them, of the @p n samples from
+     * @p offset of @p k, written to @p moving (3).
+     */
+    void moving_axes(
+        const std::array<std::vector<double>, 3>& k, size_t offset, int n, uint8_t* moving);
+
+    /**
      * The moving axes and echo samples, as AdcEchoes defines them, of the
      * @p n samples from @p offset of @p k, written to @p moving (3) and
      * @p echo (2). @p distance is scratch.
