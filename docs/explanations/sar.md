@@ -17,11 +17,13 @@
   blocks do not divide into repetitions. The check does not aggregate the
   per-window values over a regulatory averaging interval such as the 6-minute
   interval of IEC 60601-2-33.
-- With `reference`, the report adds `sar_ratio` and `energy_ratio`: the
-  sequence's local SAR over the reference's peak local SAR read through the
-  cores the VOPs were compressed from, which is never below the ratio of the
-  true peaks. The scale of `drive_per_hz` and of the matrices cancels in both
-  ratios; relative channel gains and the safety factor do not.
+- With `reference`, the report adds `local_to_head`, the sequence's local SAR
+  over the reference's global SAR, and `global_sar_ratio`, global SAR over the
+  reference's body model by body model, each with an energy form. At the
+  drive scale where the reference meets the global limit, the two ratios give
+  the sequence's local and global SAR in units of that limit. The scale
+  of `drive_per_hz` and of the matrices cancels; relative channel gains and
+  the safety factor do not.
 - A `True` result states only that the computed window-averaged SAR values do
   not exceed the supplied limits under the stated VOP model and drive
   calibration. {func}`~pypulseqpp.safety.example_vops` is a synthetic model for
@@ -49,19 +51,17 @@ $$
 with one matrix $Q$ per position from an electromagnetic simulation on a body
 model. Virtual observation points (VOPs) compress these matrices into a small
 set $\{Q_k\}$ whose largest value bounds the largest value over the body
-model.[^eichfelder] Each $Q_k$ is the core $C_k$ of its cluster, one of the
-averaged matrices, plus a positive semidefinite overestimate, so for every
-drive
+model:[^eichfelder] each $Q_k$ dominates a cluster of the averaged matrices, so
+for every drive
 
 $$
-\max_k \mathbf{v}^{\mathsf H} C_k \mathbf{v}
-\;\le\; \max_{\mathbf{r}} \mathrm{SAR}(\mathbf{r})
+\max_{\mathbf{r}} \mathrm{SAR}(\mathbf{r})
 \;\le\; \max_k \mathbf{v}^{\mathsf H} Q_k \mathbf{v}.
 $$
 
 {class}`~pypulseqpp.safety.VopModel` holds the $(N, N_c, N_c)$ VOP stack, in
-W/kg per unit channel drive squared, the cores of the same shape, optional
-global matrices, one or one per body model, and the file's metadata, whose
+W/kg per unit channel drive squared, optional global matrices, one or one per
+body model, and the file's metadata, whose
 `safety_factor` $M \ge 1$ multiplies every local SAR for what the model does
 not carry, such as positioning, anatomy outside its population and the coil
 model's error against measurement. {func}`~pypulseqpp.safety.read_vops` reads
@@ -118,34 +118,47 @@ of IEC 60601-2-33; the check itself does not perform that aggregation.
 
 ## Comparison with a reference sequence
 
-With `reference`, a second sequence evaluated under the same model, drive and
-default shim, the report adds
+A scanner controls the SAR of a pulse it knows, such as a hard pulse in the
+coil's circularly polarised mode, by its own prediction of that pulse's global
+SAR: at its shortest repetition time, the reference deposits at most the
+global limit $L_G$. That fixes the drive scale of the model without a power
+calibration, and `reference` compares a sequence with such a pulse at that
+scale. Played under the same model, drive and default shim, the reference
+gives its global SAR $\mathrm{SAR}^{\mathrm{ref}}_{G_b}$ in each body model,
+in its window of largest global SAR, of duration $T^{\mathrm{ref}}$. The report
+adds
 
 $$
-r_{\mathrm{SAR}} = \max_{W} \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\max_k \mathrm{SAR}^{\mathrm{ref}}_{C_k}},
+r_{\mathrm{local}} = \max_{W} \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\min_b \mathrm{SAR}^{\mathrm{ref}}_{G_b}},
 \qquad
-r_{\mathrm{E}} = \max_{W} \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\max_k \mathrm{SAR}^{\mathrm{ref}}_{C_k}} \frac{T_W}{T^{\mathrm{ref}}},
+r_{\mathrm{global}} = \max_{W,b} \frac{\mathrm{SAR}_{G_b}(W)}{\mathrm{SAR}^{\mathrm{ref}}_{G_b}},
 $$
 
-as `sar_ratio` and `energy_ratio`, where $\mathrm{SAR}^{\mathrm{ref}}_{C_k}$ is
-the reference's time-averaged SAR through core $C_k$ in its window of largest
-local SAR. The numerator bounds the sequence's peak local SAR from above and the
-denominator bounds the reference's from below, so neither ratio is below the
-ratio of the true peaks. The VOPs on both sides would bound neither: their
-overestimate raises the reference's value as well. A model without cores gives
-no ratio. The report of an earlier call can stand for the reference only when
-the model's cores are its VOPs, the matrices of an uncompressed model.
+as `local_to_head` and `global_sar_ratio`, and the same with each window's term
+times $T_W / T^{\mathrm{ref}}$ as `local_to_head_energy` and
+`global_energy_ratio`; `windows.local_to_head` and `windows.global_ratio` hold
+each window's term. The reference reaches the global limit at the largest drive
+in the body model where it deposits least, so the smallest reference SAR over
+the models sets the local term. The global matrices are not compressed, and a
+subject's global SAR is that of one body, which the largest over all bodies on
+each side does not bound, so the global term is taken body model by body model.
 
-`global_sar_ratio` and `global_energy_ratio` are taken body model by body
-model, $\max_{W,b} \mathrm{SAR}_{G_b}(W) / \mathrm{SAR}^{\mathrm{ref}}_{G_b}$:
-the global matrices are not compressed, and the subject's global SAR is that
-of one body, which the largest over all bodies on each side does not bound.
+At the drive scale that holds the reference at $L_G$, a window's peak local SAR
+is at most $r_{\mathrm{local}} L_G$, safety factor included. For a reference
+lasting its shortest repetition time, the sequence meets both limits when each
+of its repetitions lasts at least
 
-The scale of `drive_per_hz` and of the matrices cancels in both ratios;
-relative channel gains do not, and neither does the safety factor, which
-multiplies the sequence's side only. For a reference lasting its minimum
-repetition time, $r_{\mathrm{E}}$ scales that repetition time to the energy per
-repetition of the checked sequence.
+$$
+T^{\mathrm{ref}} \max\!\left(r^{E}_{\mathrm{global}},\; r^{E}_{\mathrm{local}} \, \frac{L_G}{L_L}\right),
+$$
+
+with $L_L$ the local limit and $r^{E}$ the energy forms. The bound rests on the
+scanner's prediction for the reference not falling below the reference's true
+global SAR, and on the VOPs and the safety factor bounding local SAR; it uses
+no local SAR of the reference. The scale of `drive_per_hz` and of the matrices
+cancels in every ratio; relative channel gains do not, and neither does the
+safety factor, which multiplies the sequence's side only. The report of an
+earlier call on the reference can stand for it.
 
 ## Limitations
 

@@ -22,17 +22,12 @@ class VopModel(NamedTuple):
     one matrix per body model as a population's file carries; the global SAR of
     a window is the largest over the models. ``metadata`` is what the file says
     about itself, such as the coil, the drive unit, the channel order and the
-    ``safety_factor`` every local SAR is multiplied by. ``cores`` is
-    ``(N, Nc, Nc)``: the averaged SAR matrix each point was compressed from,
-    which the point dominates. The cores bound local SAR from below and the
-    points from above, so a ratio of SAR against a reference needs both; for
-    matrices that were never compressed, the cores are the points themselves.
+    ``safety_factor`` every local SAR is multiplied by.
     """
 
     vops: np.ndarray
     global_matrix: np.ndarray | None = None
     metadata: dict | None = None
-    cores: np.ndarray | None = None
 
 
 #: Variable names a VOP file may use, and a global SAR matrix's.
@@ -75,15 +70,6 @@ def _validated(model: VopModel) -> VopModel:
     if vops.ndim != 3 or vops.shape[1] != vops.shape[2] or vops.shape[0] == 0:
         raise ValueError(f"VOPs are (N, Nc, Nc), not {vops.shape}")
     vops = _hermitian(vops, "every VOP")
-    cores = model.cores
-    if cores is not None:
-        cores = np.asarray(cores)
-        if cores.shape != vops.shape:
-            raise ValueError(f"the cores are {cores.shape} and the VOPs {vops.shape}")
-        cores = _hermitian(cores, "every core")
-        scale = max(float(np.abs(vops).max(initial=0.0)), 1e-300)
-        if float(np.linalg.eigvalsh(vops - cores)[:, 0].min()) < -1e-9 * scale:
-            raise ValueError("a VOP does not dominate its core")
     _safety_factor(model.metadata, None)
     global_matrix = model.global_matrix
     if global_matrix is not None:
@@ -98,7 +84,7 @@ def _validated(model: VopModel) -> VopModel:
             )
         global_matrix = _hermitian(global_matrix, "every global SAR matrix")
         global_matrix = global_matrix[0] if one else global_matrix
-    return VopModel(vops, global_matrix, model.metadata, cores)
+    return VopModel(vops, global_matrix, model.metadata)
 
 
 def _safety_factor(metadata: dict | None, given: float | None) -> float:
@@ -121,8 +107,7 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     read, and a lone matrix is read as one point. The global SAR matrices are
     the array named ``Sglobal``, ``global_matrix``, ``Qglobal`` or
     ``Q_global``, a single matrix or one per body model as mariepy's
-    ``vop.write`` stores a population's. The cores are the array named
-    ``cores``, laid out as the VOPs are. An ``.npz`` file's ``metadata``, a
+    ``vop.write`` stores a population's. An ``.npz`` file's ``metadata``, a
     JSON string, is read onto the model; its ``safety_factor`` multiplies every
     local SAR. MATLAB v7.3 (HDF5) files are not read.
 
@@ -142,8 +127,7 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     ------
     ValueError
         If the file holds no recognised VOP array, or one whose shape is not a
-        stack of square matrices, a VOP does not dominate its core, or the
-        safety factor is below 1.
+        stack of square matrices, or the safety factor is below 1.
     OSError
         If the file cannot be read, a MATLAB v7.3 file among them.
     """
@@ -157,15 +141,10 @@ def read_vops(path: str | os.PathLike) -> VopModel:
             vops = _stacked(held[name], "the VOPs", column_major=False)
             global_name = next((one for one in _GLOBAL_NAMES if one in names), None)
             global_matrix = None if global_name is None else held[global_name]
-            cores = (
-                _stacked(held["cores"], "the cores", column_major=False)
-                if "cores" in names
-                else None
-            )
             metadata = (
                 json.loads(str(held["metadata"])) if "metadata" in names else None
             )
-        return _validated(VopModel(vops, global_matrix, metadata, cores))
+        return _validated(VopModel(vops, global_matrix, metadata))
 
     from scipy.io import loadmat
 
@@ -188,12 +167,7 @@ def read_vops(path: str | os.PathLike) -> VopModel:
             if whole.ndim == 2
             else _stacked(whole, "the global SAR matrices", column_major=True)
         )
-    cores = (
-        _stacked(held["cores"], "the cores", column_major=True)
-        if "cores" in held
-        else None
-    )
-    return _validated(VopModel(vops, global_matrix, cores=cores))
+    return _validated(VopModel(vops, global_matrix))
 
 
 def example_vops(num_channels: int = 8) -> SimpleNamespace:
@@ -216,8 +190,7 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
     Returns
     -------
     SimpleNamespace
-        ``model``, a :class:`VopModel` in W/kg per V^2, uncompressed so that
-        its cores are its points; ``drive_per_hz``, the
+        ``model``, a :class:`VopModel` in W/kg per V^2; ``drive_per_hz``, the
         drive in volts per channel that gives 1 Hz of B1+ at the centre in
         circular polarisation; and ``cp_shim``, that polarisation's weights.
     """
@@ -281,9 +254,7 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
     b1_per_volt = abs(np.sum(cp_shim * per_channel))
 
     return SimpleNamespace(
-        model=_validated(
-            VopModel(np.asarray(vops), global_matrix, cores=np.asarray(vops))
-        ),
+        model=_validated(VopModel(np.asarray(vops), global_matrix)),
         drive_per_hz=1.0 / (gamma * b1_per_volt),
         cp_shim=cp_shim,
     )
@@ -320,54 +291,36 @@ def _per_body(seq, model, drive, shim, found) -> np.ndarray:
     return np.asarray(each["worst"], dtype=float)
 
 
-_NO_FLOOR = (
-    "a ratio against a reference needs a lower bound on the reference's local "
-    "SAR: a model with the cores its VOPs were compressed from, or matrices "
-    "that were never compressed"
-)
-
-
 def _reference_of(reference, model, drive, shim) -> SimpleNamespace:
-    """Return what a sequence is compared with: the reference's SAR and durations.
+    """Return what a sequence is compared with: the reference's global SAR.
 
-    ``peak`` is the cores' local SAR, a lower bound on the reference's true peak
-    local SAR, in the window where it is largest, of ``duration``.
-    ``global_sar`` is each body model's global SAR in the window of largest
-    global SAR, of ``global_duration``, or None without global matrices.
+    ``head`` is each body model's global SAR in the reference's window of
+    largest global SAR, and ``duration`` that window's.
     """
+    if model.global_matrix is None:
+        raise ValueError(
+            "a ratio against a reference needs the model's global SAR matrices"
+        )
     if hasattr(reference, "worst_local"):
-        worst = reference.worst_local
-        if worst is None:
-            raise ValueError("the reference report has no window to compare with")
-        if worst.floor is None:
-            raise ValueError(_NO_FLOOR + "; pass the reference sequence instead")
         whole = reference.worst_global
-        return SimpleNamespace(
-            peak=float(worst.floor),
-            duration=float(reference.windows.duration[worst.window]),
-            global_sar=None if whole is None else np.asarray(whole.per_body),
-            global_duration=None
-            if whole is None
-            else float(reference.windows.duration[whole.window]),
+        if whole is None:
+            raise ValueError("the reference report has no window to compare with")
+        head = np.asarray(whole.per_body, dtype=float)
+        duration = float(reference.windows.duration[whole.window])
+    else:
+        _, _, found = _evaluate(reference, model.vops, model.global_matrix, drive, shim)
+        if not found["first"].size:
+            raise ValueError("the reference sequence plays nothing to compare with")
+        head = _per_body(reference, model, drive, shim, found)
+        duration = float(found["duration"][int(np.argmax(found["global"]))])
+    bodies = _bodies(model.global_matrix).shape[0]
+    if head.shape != (bodies,):
+        raise ValueError(
+            f"the reference holds {head.size} body models, and the model {bodies}"
         )
-    if model.cores is None:
-        raise ValueError(_NO_FLOOR)
-    _, _, found = _evaluate(reference, model.cores, model.global_matrix, drive, shim)
-    if not found["first"].size:
-        raise ValueError("the reference sequence plays nothing to compare with")
-    window = int(np.argmax(found["local"]))
-    against = SimpleNamespace(
-        peak=float(found["local"][window]),
-        duration=float(found["duration"][window]),
-        global_sar=None,
-        global_duration=None,
-    )
-    if model.global_matrix is not None:
-        against.global_sar = _per_body(reference, model, drive, shim, found)
-        against.global_duration = float(
-            found["duration"][int(np.argmax(found["global"]))]
-        )
-    return against
+    if not (head > 0.0).all():
+        raise ValueError("the reference deposits no global SAR in a body model")
+    return SimpleNamespace(head=head, duration=duration)
 
 
 def check_sar(
@@ -403,10 +356,10 @@ def check_sar(
         all ones by default.
     reference : Sequence or report, default=None
         What to compare with, in the same model and calibration: a sequence,
-        such as a CP-mode FID, evaluated here through the model's cores with
-        the same drive and default shim; or the report of an earlier call made
-        with a model whose cores are its VOPs. Its window of largest local SAR
-        gives the reference's peak local SAR, global SAR and duration.
+        such as a CP-mode FID, evaluated here with the same drive and default
+        shim; or the report of an earlier call. Its window of largest global
+        SAR gives the reference's global SAR in each body model and its
+        duration. The model needs its global matrices.
     safety_factor : float, default=None
         Factor, at least 1, every local SAR is multiplied by; the model's
         ``metadata["safety_factor"]`` when None, and 1 when it has none.
@@ -420,31 +373,31 @@ def check_sar(
         The limits and ``safety_factor``; ``tr_size`` and ``tr_start``
         (blocks); ``windows``, arrays ``first``, ``last`` (1-based blocks),
         ``duration`` (s), ``local_sar``, ``vop``, ``global_sar`` (W/kg) and
-        ``global_body``, and with a reference ``reference_ratio``;
+        ``global_body``, and with a reference ``local_to_head`` and
+        ``global_ratio``, each window's terms of the two ratios below;
         ``worst_local`` and ``worst_global``, each the ``sar``, ``window`` and
         its ``first`` and ``last`` block, or None (``worst_local`` also its
-        ``vop``, ``per_vop``, the SAR of every VOP in that window, and
-        ``floor``, a lower bound on that window's true peak local SAR, or None
-        when the model's cores are not its VOPs; ``worst_global`` its
-        ``body`` and ``per_body``, every body model's global SAR in that
-        window); and ``reference``, or None without one.
+        ``vop`` and ``per_vop``, the SAR of every VOP in that window, and
+        ``worst_global`` its ``body`` and ``per_body``, every body model's
+        global SAR in that window); and ``reference``, or None without one.
 
-        ``reference`` carries ``sar_ratio``, the largest over windows of the
-        window's local SAR over the reference's peak local SAR, with its
-        ``vop`` and ``window``; ``energy_ratio``, the largest of that ratio
-        times the window's duration over the reference's, with its
-        ``energy_window``; and ``global_sar_ratio`` and ``global_energy_ratio``
-        alike for the global matrices, each body model's SAR over the
-        reference's in the same body model, or None. Every window counts, a
-        shortened last window included.
+        ``reference`` carries ``head`` and ``duration``, the reference's
+        global SAR in each body model and the duration of its window;
+        ``local_to_head``, the largest over windows of the window's local SAR
+        over the smallest of ``head``, with its ``vop`` and ``window``;
+        ``local_to_head_energy``, the largest of that ratio times the window's
+        duration over the reference's, with its ``energy_window``; and
+        ``global_sar_ratio`` and ``global_energy_ratio`` alike for global SAR,
+        each body model's over the reference's in the same body model. Every
+        window counts, a shortened last window included.
 
     Raises
     ------
     ValueError
         If a reference sequence plays nothing to compare with, the model has
-        no cores to bound the reference's local SAR from below, a shim weighs
-        a different number of channels than the model has, or the safety
-        factor is below 1.
+        no global matrices to compare it through, a shim weighs a different
+        number of channels than the model has, or the safety factor is below
+        1.
 
     Notes
     -----
@@ -459,13 +412,14 @@ def check_sar(
     ``default_shim`` or ones.
 
     A window's local SAR is the largest over the VOPs, an upper bound on its
-    peak local SAR, times the safety factor. The reference's is the largest
-    over the cores, a lower bound, so ``sar_ratio`` is never below the ratio of
-    the two true peaks. The scale of ``drive_per_hz`` and of the matrices
-    cancels in the reference ratios; relative channel gains do not, and the
-    safety factor, which multiplies only the sequence's side, does not. With a
-    reference lasting its minimum TR, ``energy_ratio`` scales that minimum TR
-    to this sequence's repetition, at the energy each repetition deposits.
+    peak local SAR, times the safety factor. Where the reference is played at
+    the global limit, ``local_to_head`` times that limit is the sequence's
+    local SAR at the same drive scale. The scale of ``drive_per_hz`` and of
+    the matrices cancels in the reference ratios; relative channel gains do
+    not, and the safety factor, which multiplies only the sequence's side,
+    does not. With a reference lasting its minimum TR, the energy ratios scale
+    that minimum TR to this sequence's repetition, at the energy each
+    repetition deposits.
     """
     model = _validated(model)
     factor = _safety_factor(model.metadata, safety_factor)
@@ -485,6 +439,20 @@ def check_sar(
     size, start, found = _evaluate(
         seq, factor * model.vops, model.global_matrix, drive, shim
     )
+    local_to_head = global_ratio = None
+    if against is not None:
+        local_to_head = found["local"] / float(against.head.min())
+        global_ratio = np.zeros(0)
+        if found["first"].size:
+            _, _, each = _evaluate(
+                seq,
+                _bodies(model.global_matrix),
+                None,
+                drive,
+                shim,
+                reference=against.head,
+            )
+            global_ratio = each["ratio"]
     windows = SimpleNamespace(
         first=found["first"],
         last=found["last"],
@@ -493,10 +461,10 @@ def check_sar(
         vop=found["vop"],
         global_sar=found["global"] if model.global_matrix is not None else None,
         global_body=found["global_body"] if model.global_matrix is not None else None,
-        reference_ratio=None if against is None else found["local"] / against.peak,
+        local_to_head=local_to_head,
+        global_ratio=global_ratio,
     )
 
-    exact = model.cores is not None and np.array_equal(model.cores, model.vops)
     worst_local = worst_global = compared = None
     if windows.first.size:
         k = int(np.argmax(windows.local_sar))
@@ -507,7 +475,6 @@ def check_sar(
             first=int(windows.first[k]),
             last=int(windows.last[k]),
             per_vop=np.asarray(found["worst"], dtype=float),
-            floor=float(windows.local_sar[k]) / factor if exact else None,
         )
         if windows.global_sar is not None:
             k = int(np.argmax(windows.global_sar))
@@ -520,18 +487,7 @@ def check_sar(
                 per_body=_per_body(seq, model, drive, shim, found),
             )
         if against is not None:
-            whole = None
-            if windows.global_sar is not None and against.global_sar is not None:
-                _, _, each = _evaluate(
-                    seq,
-                    _bodies(model.global_matrix),
-                    None,
-                    drive,
-                    shim,
-                    reference=against.global_sar,
-                )
-                whole = each["ratio"]
-            compared = _compared(windows, against, whole)
+            compared = _compared(windows, against)
 
     report = SimpleNamespace(
         local_limit=local_limit,
@@ -550,23 +506,20 @@ def check_sar(
     return is_ok, report
 
 
-def _compared(windows, against, whole) -> SimpleNamespace:
-    ratio = windows.reference_ratio
-    k = int(np.argmax(ratio))
-    energy = ratio * windows.duration / against.duration
+def _compared(windows, against) -> SimpleNamespace:
+    local = windows.local_to_head
+    k = int(np.argmax(local))
+    scale = windows.duration / against.duration
+    energy = local * scale
     j = int(np.argmax(energy))
-    global_sar_ratio = global_energy_ratio = None
-    if whole is not None:
-        global_sar_ratio = float(whole.max())
-        global_energy_ratio = float(
-            (whole * windows.duration / against.global_duration).max()
-        )
     return SimpleNamespace(
-        sar_ratio=float(ratio[k]),
+        head=against.head,
+        duration=against.duration,
+        local_to_head=float(local[k]),
         vop=int(windows.vop[k]),
         window=k,
-        energy_ratio=float(energy[j]),
+        local_to_head_energy=float(energy[j]),
         energy_window=j,
-        global_sar_ratio=global_sar_ratio,
-        global_energy_ratio=global_energy_ratio,
+        global_sar_ratio=float(windows.global_ratio.max()),
+        global_energy_ratio=float((windows.global_ratio * scale).max()),
     )
