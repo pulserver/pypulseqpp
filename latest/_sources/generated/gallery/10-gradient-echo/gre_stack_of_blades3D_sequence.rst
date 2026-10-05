@@ -175,7 +175,7 @@ increases the shared central-k-space region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.139 seconds)
+   **Total running time of the script:** (0 minutes 8.712 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_blades3D_sequence.py:
