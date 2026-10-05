@@ -62,6 +62,6 @@ channel drive calibration `drive_per_hz`, and `local_limit` and
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.safety.check_sar` | Sequence, `VopModel`, `drive_per_hz`, limits (W/kg) | `(is_ok, report)`; window-averaged SAR in W/kg | Local and global SAR per window. |
-| {obj}`~pypulseqpp.safety.read_vops` | `.mat` or `.npz` path | `VopModel` | VOPs, global SAR matrices and metadata from a file. |
+| {obj}`~pypulseqpp.safety.read_vops` | `.mat` or `.npz` path | `VopModel` | VOPs, cores, global SAR matrices and metadata from a file. |
 | {obj}`~pypulseqpp.safety.example_vops` | Channel count | `model`, `drive_per_hz` (V/Hz), `cp_shim` | Synthetic VOP model, for demonstrations and tests only. |
-| {obj}`~pypulseqpp.safety.VopModel` | VOPs `(N, Nc, Nc)`, optional global matrices `(Nc, Nc)` or `(B, Nc, Nc)` | Model for `check_sar`, W/kg per unit drive squared | Virtual observation points. |
+| {obj}`~pypulseqpp.safety.VopModel` | VOPs `(N, Nc, Nc)`, optional global matrices `(Nc, Nc)` or `(B, Nc, Nc)`, metadata, cores `(N, Nc, Nc)` | Model for `check_sar`, W/kg per unit drive squared | Virtual observation points and the cores they were compressed from. |

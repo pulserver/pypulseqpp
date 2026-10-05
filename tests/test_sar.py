@@ -20,13 +20,13 @@ def system():
 
 @pytest.fixture
 def model():
-    """Random Hermitian positive semidefinite VOPs and a global matrix."""
+    """Random Hermitian positive semidefinite VOPs, uncompressed, and a global matrix."""
     rng = np.random.default_rng(7)
     raw = rng.normal(size=(5, CHANNELS, CHANNELS)) + 1j * rng.normal(
         size=(5, CHANNELS, CHANNELS)
     )
     vops = raw @ np.conj(np.swapaxes(raw, -1, -2)) * 1e-3
-    return VopModel(vops, vops.mean(axis=0) * 0.3)
+    return VopModel(vops, vops.mean(axis=0) * 0.3, cores=vops)
 
 
 def resampled(rf, dt=1e-6):
@@ -416,12 +416,13 @@ def test_a_cp_only_sequence_scales_by_its_rf_energy_whatever_the_vops(system, mo
     )
 
 
-def test_the_largest_per_vop_increase_decides_not_the_ratio_of_maxima(system):
-    # One VOP sees channel 0 alone; the other all channels in phase, which CP
-    # heats four times as much.
+def test_the_ratio_is_of_peak_local_sar_not_of_each_vop(system):
+    # One VOP sees channel 0 alone; the other all channels in phase, which the
+    # reference heats four times as much.
     alone = np.zeros((2, 2), dtype=complex)
     alone[0, 0] = 1.0
-    two = VopModel(np.stack([alone, np.ones((2, 2), dtype=complex)]))
+    stack = np.stack([alone, np.ones((2, 2), dtype=complex)])
+    two = VopModel(stack, cores=stack)
     fid = cp_fid(system)
     targeted = pp.Sequence(system)
     rf = pp.make_block_pulse(math.pi, duration=1e-3, system=system)
@@ -431,9 +432,171 @@ def test_the_largest_per_vop_increase_decides_not_the_ratio_of_maxima(system):
     _, reference = safety.check_sar(fid, two, drive_per_hz=1.0)
     _, report = safety.check_sar(targeted, two, drive_per_hz=1.0, reference=fid)
 
-    assert report.reference.sar_ratio == pytest.approx(1.0)
-    assert report.reference.vop == 0
     assert report.worst_local.sar / reference.worst_local.sar == pytest.approx(0.25)
+    assert report.reference.sar_ratio == pytest.approx(0.25)
+
+
+def test_the_global_ratio_is_taken_body_by_body(system):
+    # The first body sees channel 0 alone; the second all channels in phase,
+    # which the reference heats four times as much. The targeted pulse heats
+    # the first body as much as the reference does.
+    alone = np.zeros((2, 2), dtype=complex)
+    alone[0, 0] = 1.0
+    stack = np.stack([alone, np.ones((2, 2), dtype=complex)])
+    two = VopModel(stack, stack, cores=stack)
+    fid = cp_fid(system)
+    targeted = pp.Sequence(system)
+    rf = pp.make_block_pulse(math.pi, duration=1e-3, system=system)
+    targeted.add_block(rf, pp.make_rf_shim([1.0, 0.0]))
+    targeted.add_block(pp.make_delay(10e-3 - pp.calc_duration(rf)))
+
+    _, from_sequence = safety.check_sar(targeted, two, drive_per_hz=1.0, reference=fid)
+    _, earlier = safety.check_sar(fid, two, drive_per_hz=1.0)
+    _, from_report = safety.check_sar(
+        targeted, two, drive_per_hz=1.0, reference=earlier
+    )
+
+    assert from_sequence.reference.global_sar_ratio == pytest.approx(1.0)
+    assert from_report.reference.global_sar_ratio == pytest.approx(1.0)
+    assert from_sequence.reference.sar_ratio == pytest.approx(0.25)
+
+
+def compressed(model, margin):
+    """Points of an overestimation margin times the largest eigenvalue, and their cores."""
+    matrices = model.vops
+    largest = np.linalg.eigvalsh(matrices)[:, -1]
+    added = margin * largest.max() * np.eye(matrices.shape[-1])
+    left = list(np.argsort(-largest))
+    points, cores = [], []
+    while left:
+        core = matrices[left[0]]
+        point = core + added
+        left = [
+            index
+            for index in left
+            if np.linalg.eigvalsh(point - matrices[index])[0] < -1e-12 * largest.max()
+        ]
+        points.append(point)
+        cores.append(core)
+    return np.stack(points), np.stack(cores)
+
+
+def shim_trains(system, count, seed):
+    """Trains of one hard pulse in a random RF shim, as many as asked."""
+    rng = np.random.default_rng(seed)
+    rf = pp.make_block_pulse(math.pi / 2, duration=1e-3, system=system)
+    for _ in range(count):
+        weights = rng.normal(size=CHANNELS) + 1j * rng.normal(size=CHANNELS)
+        seq = pp.Sequence(system)
+        seq.add_block(rf, pp.make_rf_shim(weights / np.linalg.norm(weights) * 2.0))
+        seq.add_block(pp.make_delay(10e-3 - pp.calc_duration(rf)))
+        yield seq
+
+
+def test_a_compressed_model_never_gives_a_ratio_below_the_exact_one(system):
+    exact = safety.example_vops(CHANNELS)
+    points, cores = compressed(exact.model, 0.25)
+    model = VopModel(points, exact.model.global_matrix, cores=cores)
+    fid = cp_fid(system)
+    drive = {"drive_per_hz": exact.drive_per_hz, "default_shim": exact.cp_shim}
+
+    for seq in shim_trains(system, 40, seed=5):
+        _, bound = safety.check_sar(seq, model, reference=fid, **drive)
+        _, truth = safety.check_sar(seq, exact.model, reference=fid, **drive)
+        assert bound.reference.sar_ratio >= truth.reference.sar_ratio * (1 - 1e-9)
+
+
+def test_points_over_points_can_fall_below_the_exact_ratio(system):
+    """The reason the reference's side is read through the cores."""
+    exact = safety.example_vops(CHANNELS)
+    points, _ = compressed(exact.model, 0.25)
+    own = VopModel(points, cores=points)
+    fid = cp_fid(system)
+    drive = {"drive_per_hz": exact.drive_per_hz, "default_shim": exact.cp_shim}
+
+    def ratio(seq, model):
+        _, report = safety.check_sar(seq, model, reference=fid, **drive)
+        return report.reference.sar_ratio
+
+    trains = shim_trains(system, 40, seed=5)
+    assert any(ratio(seq, own) < ratio(seq, exact.model) for seq in trains)
+
+
+def test_a_ratio_needs_the_cores(system, model):
+    bare = VopModel(model.vops, model.global_matrix)
+    fid = cp_fid(system)
+
+    with pytest.raises(ValueError, match="lower bound"):
+        safety.check_sar(fid, bare, drive_per_hz=1.0, reference=fid)
+
+
+def test_a_report_on_compressed_points_cannot_stand_for_its_sequence(system, model):
+    points, cores = compressed(model, 0.25)
+    squeezed = VopModel(points, cores=cores)
+    fid = cp_fid(system)
+    _, earlier = safety.check_sar(fid, squeezed, drive_per_hz=1.0)
+
+    assert earlier.worst_local.floor is None
+    with pytest.raises(ValueError, match="pass the reference sequence"):
+        safety.check_sar(fid, squeezed, drive_per_hz=1.0, reference=earlier)
+
+
+def test_a_vop_that_does_not_dominate_its_core_is_refused(system, model):
+    with pytest.raises(ValueError, match="dominate its core"):
+        safety.check_sar(
+            cp_fid(system), VopModel(model.vops, cores=2 * model.vops), drive_per_hz=1.0
+        )
+
+
+def test_the_safety_factor_multiplies_local_sar_and_its_ratio_not_global(system, model):
+    seq, _ = shimmed(system)
+    fid = cp_fid(system)
+    marked = model._replace(metadata={"safety_factor": 2.0})
+
+    _, plain = safety.check_sar(seq, model, drive_per_hz=1.0, reference=fid)
+    _, factored = safety.check_sar(seq, marked, drive_per_hz=1.0, reference=fid)
+
+    assert factored.safety_factor == 2.0
+    assert factored.worst_local.sar == pytest.approx(2.0 * plain.worst_local.sar)
+    assert factored.reference.sar_ratio == pytest.approx(
+        2.0 * plain.reference.sar_ratio
+    )
+    assert factored.worst_global.sar == pytest.approx(plain.worst_global.sar)
+    assert factored.reference.global_sar_ratio == pytest.approx(
+        plain.reference.global_sar_ratio
+    )
+
+
+def test_a_given_safety_factor_takes_the_place_of_the_model_s(system, model):
+    marked = model._replace(metadata={"safety_factor": 2.0})
+    fid = cp_fid(system)
+
+    _, report = safety.check_sar(fid, marked, drive_per_hz=1.0, safety_factor=3.0)
+
+    assert report.safety_factor == 3.0
+
+
+@pytest.mark.parametrize("factor", [0.5, float("nan")])
+def test_a_safety_factor_below_one_is_refused(system, model, factor):
+    with pytest.raises(ValueError, match="at least 1"):
+        safety.check_sar(cp_fid(system), model, drive_per_hz=1.0, safety_factor=factor)
+
+
+def test_a_file_s_cores_and_safety_factor_are_read(tmp_path, model):
+    points, cores = compressed(model, 0.25)
+    path = tmp_path / "vops.npz"
+    np.savez(
+        path,
+        vops=points,
+        cores=cores,
+        global_matrix=model.global_matrix[None],
+        metadata=np.array('{"safety_factor": 1.5}'),
+    )
+
+    read = safety.read_vops(path)
+
+    np.testing.assert_allclose(read.cores, cores)
+    assert read.metadata["safety_factor"] == 1.5
 
 
 def test_a_report_can_stand_for_its_sequence(system, model):

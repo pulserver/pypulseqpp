@@ -10,16 +10,18 @@
   system limits.
 - Channel $c$ is driven with $v_c(t) = d_c\,s_c\,b_c(t)$, the RF waveform in Hz
   scaled by `drive_per_hz` and the block's RF shim. Local SAR in a window $W$
-  is the largest time-averaged quadratic form over the VOPs,
-  $\max_k \mathrm{SAR}_k(W)$.
+  is the largest time-averaged quadratic form over the VOPs times the model's
+  safety factor, $M \max_k \mathrm{SAR}_k(W)$.
 - The averaging windows are the repetitions detected from the block
   definitions, reported as `tr_size` blocks, or the whole sequence when its
   blocks do not divide into repetitions. The check does not aggregate the
   per-window values over a regulatory averaging interval such as the 6-minute
   interval of IEC 60601-2-33.
-- With `reference`, the report adds `sar_ratio` and `energy_ratio`. The scale
-  of `drive_per_hz` and of the VOPs cancels in both ratios; relative channel
-  gains do not.
+- With `reference`, the report adds `sar_ratio` and `energy_ratio`: the
+  sequence's local SAR over the reference's peak local SAR read through the
+  cores the VOPs were compressed from, which is never below the ratio of the
+  true peaks. The scale of `drive_per_hz` and of the matrices cancels in both
+  ratios; relative channel gains and the safety factor do not.
 - A `True` result states only that the computed window-averaged SAR values do
   not exceed the supplied limits under the stated VOP model and drive
   calibration. {func}`~pypulseqpp.safety.example_vops` is a synthetic model for
@@ -47,13 +49,25 @@ $$
 with one matrix $Q$ per position from an electromagnetic simulation on a body
 model. Virtual observation points (VOPs) compress these matrices into a small
 set $\{Q_k\}$ whose largest value bounds the largest value over the body
-model.[^eichfelder]
+model.[^eichfelder] Each $Q_k$ is the core $C_k$ of its cluster, one of the
+averaged matrices, plus a positive semidefinite overestimate, so for every
+drive
+
+$$
+\max_k \mathbf{v}^{\mathsf H} C_k \mathbf{v}
+\;\le\; \max_{\mathbf{r}} \mathrm{SAR}(\mathbf{r})
+\;\le\; \max_k \mathbf{v}^{\mathsf H} Q_k \mathbf{v}.
+$$
 
 {class}`~pypulseqpp.safety.VopModel` holds the $(N, N_c, N_c)$ VOP stack, in
-W/kg per unit channel drive squared, and optional global matrices, one or one
-per body model; {func}`~pypulseqpp.safety.read_vops` reads them from a `.mat`
-or `.npz` file, MARIE's point-first stack and MATLAB's channel-first one alike,
-including the population file that mariepy's `vop.write` stores.
+W/kg per unit channel drive squared, the cores of the same shape, optional
+global matrices, one or one per body model, and the file's metadata, whose
+`safety_factor` $M \ge 1$ multiplies every local SAR for what the model does
+not carry, such as positioning, anatomy outside its population and the coil
+model's error against measurement. {func}`~pypulseqpp.safety.read_vops` reads
+them from a `.mat` or `.npz` file, MARIE's point-first stack and MATLAB's
+channel-first one alike, including the population file that mariepy's
+`vop.write` stores.
 {func}`~pypulseqpp.safety.example_vops` returns a synthetic eight-channel model
 of a loop array around a uniform cylinder, with no tissue, coil coupling or
 conservative field, for demonstration only.
@@ -78,7 +92,7 @@ averaging window $W$ of duration $T_W$,
 $$
 \mathrm{SAR}_k(W) = \frac{1}{T_W} \int_W \mathbf{v}(t)^{\mathsf H} Q_k \, \mathbf{v}(t)\,\mathrm{d}t,
 \qquad
-\mathrm{SAR}_{\mathrm{local}}(W) = \max_k \mathrm{SAR}_k(W),
+\mathrm{SAR}_{\mathrm{local}}(W) = M \max_k \mathrm{SAR}_k(W),
 $$
 
 and global SAR is the same integral with the global matrix, or the largest
@@ -105,19 +119,33 @@ of IEC 60601-2-33; the check itself does not perform that aggregation.
 ## Comparison with a reference sequence
 
 With `reference`, a second sequence evaluated under the same model, drive and
-default shim, or the report of an earlier call, the report adds
+default shim, the report adds
 
 $$
-r_{\mathrm{SAR}} = \max_{W,k} \frac{\mathrm{SAR}_k(W)}{\mathrm{SAR}_k^{\mathrm{ref}}},
+r_{\mathrm{SAR}} = \max_{W} \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\max_k \mathrm{SAR}^{\mathrm{ref}}_{C_k}},
 \qquad
-r_{\mathrm{E}} = \max_{W} \left[ \max_k \frac{\mathrm{SAR}_k(W)}{\mathrm{SAR}_k^{\mathrm{ref}}} \right] \frac{T_W}{T^{\mathrm{ref}}},
+r_{\mathrm{E}} = \max_{W} \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\max_k \mathrm{SAR}^{\mathrm{ref}}_{C_k}} \frac{T_W}{T^{\mathrm{ref}}},
 $$
 
-as `sar_ratio` and `energy_ratio`, with the reference values taken from the
-reference's window of largest local SAR. The scale of `drive_per_hz` and of the
-VOPs cancels in both ratios; relative channel gains do not. For a reference
-lasting its minimum repetition time, $r_{\mathrm{E}}$ scales that repetition
-time to the energy per repetition of the checked sequence.
+as `sar_ratio` and `energy_ratio`, where $\mathrm{SAR}^{\mathrm{ref}}_{C_k}$ is
+the reference's time-averaged SAR through core $C_k$ in its window of largest
+local SAR. The numerator bounds the sequence's peak local SAR from above and the
+denominator bounds the reference's from below, so neither ratio is below the
+ratio of the true peaks. The VOPs on both sides would bound neither: their
+overestimate raises the reference's value as well. A model without cores gives
+no ratio. The report of an earlier call can stand for the reference only when
+the model's cores are its VOPs, the matrices of an uncompressed model.
+
+`global_sar_ratio` and `global_energy_ratio` are taken body model by body
+model, $\max_{W,b} \mathrm{SAR}_{G_b}(W) / \mathrm{SAR}^{\mathrm{ref}}_{G_b}$:
+the global matrices are not compressed, and the subject's global SAR is that
+of one body, which the largest over all bodies on each side does not bound.
+
+The scale of `drive_per_hz` and of the matrices cancels in both ratios;
+relative channel gains do not, and neither does the safety factor, which
+multiplies the sequence's side only. For a reference lasting its minimum
+repetition time, $r_{\mathrm{E}}$ scales that repetition time to the energy per
+repetition of the checked sequence.
 
 ## Limitations
 
