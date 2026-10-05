@@ -268,7 +268,6 @@ secondary.set_ylabel("time per slice (ms)")
 handles = axis.get_legend_handles_labels()
 extra = secondary.get_legend_handles_labels()
 figure.legend(
-    *axis.get_legend_handles_labels(),
     handles[0] + extra[0],
     handles[1] + extra[1],
     loc="outside upper left",
