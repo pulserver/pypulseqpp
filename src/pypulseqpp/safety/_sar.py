@@ -353,8 +353,8 @@ def check_sar(
         and ``window``; ``energy_ratio``, the largest of that ratio times the
         window's duration over the reference's, with its ``energy_window``;
         and ``global_sar_ratio`` and ``global_energy_ratio`` alike for the
-        global matrix, or None. Every window counts, prologue and tail
-        included.
+        global matrix, or None. Every window counts, a shortened last
+        window included.
 
     Raises
     ------
@@ -364,10 +364,10 @@ def check_sar(
 
     Notes
     -----
-    SAR is averaged over each window: the blocks before the first full
-    repetition, each repetition :meth:`~pypulseqpp.Sequence.repetition`
-    returns, and any blocks after the last; or the whole sequence when it does
-    not repeat.
+    SAR is averaged over each window: each repetition
+    :meth:`~pypulseqpp.Sequence.repetition` returns, from block 1, and the
+    blocks after the last full repetition as a shorter last window; or the
+    whole sequence when it does not repeat.
     Every window is compared with the limits. A pulse drives channel ``c`` with
     ``drive_c * s_c * b_c(t)``: ``b`` its waveform in Hz, resampled every
     microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform

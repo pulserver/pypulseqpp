@@ -188,7 +188,7 @@ radial_spacing = 1.0 / FOV
 
 def spoke_angles(sequence, spokes):
     """The angle of every spoke, from the samples the analysis reports."""
-    sampled = sequence.calculate_kspacePP()[0][:2].reshape(2, spokes, MATRIX)
+    sampled = sequence.calculate_kspace()[0][:2].reshape(2, spokes, MATRIX)
     outermost = sampled[:, :, -1]
     return np.arctan2(outermost[1], outermost[0])
 

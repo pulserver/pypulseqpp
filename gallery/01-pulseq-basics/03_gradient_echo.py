@@ -252,7 +252,7 @@ def one_repetition(fraction):
 
 measured = []
 for fraction in FRACTIONS:
-    k_adc, _, t_excitation, _, t_adc = one_repetition(fraction).calculate_kspacePP()
+    k_adc, _, t_excitation, _, t_adc = one_repetition(fraction).calculate_kspace()
     echo = int(np.argmin(np.abs(k_adc[0])))
     measured.append(
         {

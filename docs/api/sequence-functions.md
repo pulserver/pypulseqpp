@@ -1,9 +1,10 @@
-# Complete sequences
+# Sequence functions
 
-A complete sequence is a function `sequence(system, **protocol)` that returns a
+A sequence function is a function `sequence(system, **protocol)` that returns a
 {class}`~pypulseqpp.Sequence`, or a list of them with the prescans first and the
-main sequence last. The functions below read its protocol, label its blocks,
-write what it returns and time it. The sequences themselves are listed in
+main sequence last. The objects below read its protocol, label its blocks,
+write what it returns, time it, and build the excitation a volumetric
+prescription chooses. The sequences themselves are listed in
 {doc}`../sequences`; the structure of a sequence function, its protocol and its
 prescan chain are described in
 {doc}`../explanations/sequence-design`.
@@ -27,3 +28,14 @@ signature.
 | {obj}`~pypulseqpp.sequences.Labels` | The new value of each label, by Pulseq name | Label events to add to the block | Writer of the label events a block changes. |
 | {obj}`~pypulseqpp.sequences.write` | Path, a sequence or a list of sequences | Written paths, in play order | Write a sequence, or a chain of linked sequences, as Pulseq files. |
 | {obj}`~pypulseqpp.sequences.duration` | A sequence or a list of sequences | Duration (s) | Return the time a sequence, or a chain, plays. |
+
+## Excitation choice
+
+A volumetric sequence function offers its excitation as one protocol parameter,
+whose choices are `EXCITATIONS`, and builds the module with `make_excitation`
+from one slab prescription.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.sequences.EXCITATIONS` | — | `("nonselective", "slab", "spsp")` | The excitation kinds `make_excitation` builds. |
+| {obj}`~pypulseqpp.sequences.make_excitation` | System, kind, flip angle (deg), slab thickness (m) | Excitation module | Non-selective, slab-selective or water-selective spectral-spatial excitation of one slab. |

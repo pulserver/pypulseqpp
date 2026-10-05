@@ -10,16 +10,18 @@
   threshold $S(\tau) = S_{\mathrm{rh}}(1 + c/\tau)$, with rheobase
   $S_{\mathrm{rh}}$ and chronaxie $c$. Shorter transitions require a larger
   stimulus.
-- {class}`~pypulseqpp.safety.ChronaxieModel` uses one set of coefficients for
-  the three axes; a SAFE model, read by
+- {class}`~pypulseqpp.safety.ChronaxieModel` shares one chronaxie between the
+  three axes and takes the rheobase and the geometry factor `alpha` either as
+  one value for every axis or as one per physical axis; a SAFE model, read by
   {func}`~pypulseqpp.safety.read_safe_model`, has coefficients per axis.
 - The axis responses combine as the root-sum-square
   $R(t) = \sqrt{R_x(t)^2 + R_y(t)^2 + R_z(t)^2}$, and the estimated threshold
   is $R = 1$. The whole sequence is evaluated, because model state depends on
   preceding slew history.
-- With a common-axis chronaxie model, rotation redistributes axis components
-  without changing their root-sum-square. SAFE coefficients differ by physical
-  axis, so prescription orientation can change the estimate.
+- With the same coefficients on every axis, rotation redistributes axis
+  components without changing their root-sum-square. Per-axis rheobase or
+  `alpha`, and SAFE coefficients, differ by physical axis, so prescription
+  orientation can change the estimate.
 ```
 
 Time-varying gradients induce electric fields that can stimulate peripheral
@@ -46,7 +48,7 @@ larger stimulus.
 
 | Model | Coefficients | Typical source |
 | --- | --- | --- |
-| {class}`~pypulseqpp.safety.ChronaxieModel` | Common chronaxie, rheobase, and geometry factor for the three axes | Explicit demonstration or measured coil parameters |
+| {class}`~pypulseqpp.safety.ChronaxieModel` | One chronaxie for the three axes; rheobase and geometry factor `alpha` for every axis or per physical axis | Explicit demonstration or measured coil parameters |
 | SAFE | Three exponential terms, amplitude scale, and stimulation limit per axis | Scanner hardware description read by {func}`~pypulseqpp.safety.read_safe_model` |
 
 ## Sequence response
@@ -68,9 +70,10 @@ acquisition. The checker computes every plotted response.
 ```
 
 The check evaluates the whole sequence because model state depends on preceding
-slew history. With a common-axis chronaxie model, rotation redistributes axis
-components without changing their RSS. SAFE coefficients differ by physical
-axis, so prescription orientation can change the estimate.
+slew history. With the same coefficients on every axis, rotation redistributes
+axis components without changing their root-sum-square. Per-axis rheobase or
+`alpha`, and SAFE coefficients, differ by physical axis, so prescription
+orientation can change the estimate.
 
 ## See also
 

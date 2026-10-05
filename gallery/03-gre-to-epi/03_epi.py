@@ -136,7 +136,7 @@ pp.plot.plot_kspace(seq, color_by="echo", plane="xy")
 # The echo times come from the analysis, and the line each echo lands on from
 # the k-space it reports, so the envelope follows the sequence's own ordering.
 
-k_adc, _, t_excitation, _, t_adc = seq.calculate_kspacePP()
+k_adc, _, t_excitation, _, t_adc = seq.calculate_kspace()
 echo_time = t_adc.reshape(MATRIX, MATRIX).mean(axis=1) - t_excitation[0]
 line = np.round(k_adc[1].reshape(MATRIX, MATRIX)[:, 0] * FOV).astype(int)
 order = np.argsort(line)
@@ -218,7 +218,7 @@ figure.legend(
 # sign: the odd and the even lines of the matrix are shifted in opposite
 # directions.
 #
-# :meth:`~pypulseqpp.Sequence.calculate_kspacePP` takes the delay as a
+# :meth:`~pypulseqpp.Sequence.calculate_kspace` takes the delay as a
 # parameter, so the displacement is measured from the trajectory the analysis
 # reports rather than computed beside it.
 
@@ -226,7 +226,7 @@ DELAYS = np.array([0.0, 1e-6, 2e-6, 4e-6, 8e-6])
 
 displacement = []
 for delay in DELAYS:
-    delayed = seq.calculate_kspacePP(trajectory_delay=delay)[0]
+    delayed = seq.calculate_kspace(trajectory_delay=delay)[0]
     kx = delayed[0].reshape(MATRIX, MATRIX)
     # The echo of each line, where the ideal trajectory crosses zero.
     centre = kx[:, MATRIX // 2] * FOV

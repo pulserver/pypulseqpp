@@ -170,7 +170,7 @@ seq.paper_plot(tr=1)
 # Each excitation contributes every fourth line, and the four together cover
 # the matrix, each line once.
 
-k_adc = seq.calculate_kspacePP()[0]
+k_adc = seq.calculate_kspace()[0]
 # Every sample of one echo shares that echo's phase-encode line.
 lines = np.round(k_adc[1] * FOV).astype(int)
 covered, samples = np.unique(lines, return_counts=True)

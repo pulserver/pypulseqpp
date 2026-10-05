@@ -27,7 +27,7 @@ Concepts are in {doc}`../explanations/index` and complete workflows in the
 | --- | --- | --- |
 | {doc}`sampling` | `pypulseqpp` | Cartesian sampling support, the ordering of a selected set into loop, shot and echo positions, EPI shot offsets, non-Cartesian orientations, and per-repetition RF schedules. |
 | {doc}`modules` | `pypulseqpp.sequences` | The excitation, preparation and readout modules, and the non-Cartesian interleaves a readout plays. |
-| {doc}`sequence-functions` | `pypulseqpp.sequences` | The functions that read the protocol of a sequence function, label its blocks, write the sequences it returns and time them. |
+| {doc}`sequence-functions` | `pypulseqpp.sequences` | The functions that read the protocol of a sequence function, label its blocks, write the sequences it returns and time them, and the excitation choice of a volumetric prescription. |
 | {doc}`../sequences` | `pypulseqpp.sequences` | Every complete sequence the package ships, grouped by family, each with its own reference page. |
 
 ## Analysis and tools

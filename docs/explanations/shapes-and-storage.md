@@ -7,9 +7,10 @@
   and instances, which hold the playout parameters. The separation allows
   repeating runs of blocks to be detected, and the SAR check averages over
   them.
-- Writing deduplicates: equal shapes and equal events are merged and the block
-  table is renumbered. Registration ids are therefore local to a sequence and
-  are not stable across a write.
+- Writing deduplicates a copy: equal shapes and equal events are merged and the
+  block table of the copy is renumbered. Registration ids are local to a
+  sequence, are not stable across deduplication, and need not equal the ids in
+  the written file.
 - With a `ROTATIONS` extension per block, a non-Cartesian readout is written
   once as one interleaf and each shot adds one quaternion, so the shape library
   stays the size of a single repetition. Any quantity evaluated on played
@@ -52,12 +53,16 @@ over.
 
 Two sequences with identical playout can differ substantially in file size,
 because nothing in the format forces equal events to share a library entry.
-Writing deduplicates: equal shapes are merged, equal events are merged, and the
-block table is renumbered.
+Writing deduplicates: {meth}`~pypulseqpp.Sequence.write` merges equal shapes
+and equal events of a copy, renumbers the copy's block table and writes the
+copy, leaving the sequence's own libraries unchanged.
+{meth}`~pypulseqpp.Sequence.remove_duplicates` with `in_place=True`, and
+{meth}`~pypulseqpp.Sequence.read` by default, renumber the sequence itself.
 
 Registration ids are therefore local to a sequence and are not stable across
 deduplication. Code that registers an event and retains its id must not assume
-the id survives a write.
+the id survives an in-place deduplication, or that it equals the id the event
+has in a written file.
 
 ## Rotation extensions and the size of the shape library
 

@@ -164,7 +164,7 @@ print("transmit phase of the first repetitions (degrees): ", np.round(written, 1
 ISOCHROMATS = 201
 REPETITIONS = 500
 
-_, _, t_excitation, _, t_adc = seq.calculate_kspacePP(block_range=[1, 5])
+_, _, t_excitation, _, t_adc = seq.calculate_kspace(block_range=[1, 5])
 ECHO_TIME = float(t_adc[MATRIX // 2] - t_excitation[0])
 
 

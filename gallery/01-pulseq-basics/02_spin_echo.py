@@ -207,7 +207,7 @@ print(f"timing {ok}, {seq.num_blocks} blocks, {1e3 * seq.duration()[0]:.2f} ms")
 # returns for the acquisition are sample centres, so the midpoint of the window
 # is the mean of the first and the last of them.
 
-_, _, t_excitation, t_refocusing, t_adc = seq.calculate_kspacePP()
+_, _, t_excitation, t_refocusing, t_adc = seq.calculate_kspace()
 window_centre = (t_adc[0] + t_adc[-1]) / 2
 
 print(

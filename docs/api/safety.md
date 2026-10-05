@@ -50,7 +50,7 @@ read from `system`.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.safety.check_pns` | Sequence, SAFE or chronaxie model, `rotation`, `trace` | `(is_ok, report)`; responses as fractions of threshold | Peripheral nerve stimulation estimate. |
 | {obj}`~pypulseqpp.safety.read_safe_model` | Siemens `.asc` path | SAFE model, per-axis coefficients | SAFE model from a hardware description. |
-| {obj}`~pypulseqpp.safety.ChronaxieModel` | Chronaxie (s), rheobase (T/m/s), `alpha` | Model for `check_pns` | Rheobase–chronaxie nerve model, all axes alike. |
+| {obj}`~pypulseqpp.safety.ChronaxieModel` | Chronaxie (s), rheobase (T/m/s), `alpha` | Model for `check_pns` | Rheobase–chronaxie nerve model: one chronaxie, and rheobase and `alpha` for every axis or per physical axis. |
 
 ## SAR
 

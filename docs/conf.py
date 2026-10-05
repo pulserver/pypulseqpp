@@ -93,18 +93,34 @@ GALLERY_BACKREFERENCES = {
 GALLERY_BACKREFERENCES.update(
     f"pypulseqpp.sequences.{name}"
     for name in (
-        "gre2D_sequence", "gre3D_sequence", "gre_multiecho2D_sequence",
-        "gre_multiecho3D_sequence", "gre_propeller2D_sequence",
-        "gre_radial2D_sequence", "gre_spiral2D_sequence",
-        "gre_stack_of_blades3D_sequence", "gre_stack_of_spirals3D_sequence",
-        "gre_stack_of_stars3D_sequence", "se2D_sequence", "se3D_sequence",
-        "se_epi_propeller2D_sequence", "se_propeller2D_sequence",
-        "se_radial2D_sequence", "se_spiral2D_sequence",
-        "se_stack_of_blades3D_sequence", "se_stack_of_spirals3D_sequence",
-        "se_stack_of_stars3D_sequence", "mprage3D_sequence",
-        "mprage_stack_of_spirals3D_sequence", "mprage_stack_of_stars3D_sequence",
-        "fse3D_sequence", "bssfp2D_sequence", "bssfp3D_sequence",
-        "epi2D_sequence", "epi3D_sequence", "zte3D_sequence",
+        "gre2D_sequence",
+        "gre3D_sequence",
+        "gre_multiecho2D_sequence",
+        "gre_multiecho3D_sequence",
+        "gre_propeller2D_sequence",
+        "gre_radial2D_sequence",
+        "gre_spiral2D_sequence",
+        "gre_stack_of_blades3D_sequence",
+        "gre_stack_of_spirals3D_sequence",
+        "gre_stack_of_stars3D_sequence",
+        "se2D_sequence",
+        "se3D_sequence",
+        "se_epi_propeller2D_sequence",
+        "se_propeller2D_sequence",
+        "se_radial2D_sequence",
+        "se_spiral2D_sequence",
+        "se_stack_of_blades3D_sequence",
+        "se_stack_of_spirals3D_sequence",
+        "se_stack_of_stars3D_sequence",
+        "mprage3D_sequence",
+        "mprage_stack_of_spirals3D_sequence",
+        "mprage_stack_of_stars3D_sequence",
+        "fse3D_sequence",
+        "bssfp2D_sequence",
+        "bssfp3D_sequence",
+        "epi2D_sequence",
+        "epi3D_sequence",
+        "zte3D_sequence",
     )
 )
 autosummary_context = {"gallery_backreferences": GALLERY_BACKREFERENCES}
@@ -209,7 +225,9 @@ class _InventoryOutageFilter(logging.Filter):
         return self._MESSAGE not in record.getMessage()
 
 
-def _compact_signature(_app, what, _name, _obj, _options, _signature, return_annotation):
+def _compact_signature(
+    _app, what, _name, _obj, _options, _signature, return_annotation
+):
     """Render callable headings compactly; leave data and attributes unchanged."""
     if what in {"function", "method", "class", "exception"}:
         return "()", return_annotation
@@ -428,11 +446,41 @@ def _colab_notebooks(app, exception) -> None:
         colab.write(Path(app.srcdir), Path(app.outdir), DOCS_RELEASE)
 
 
+def _constant_comment(_app, what, name, obj, _options, lines) -> None:
+    """Document a re-exported constant by the ``#:`` comment where it is defined.
+
+    Autodoc reads such a comment only from the module it documents the name
+    in, and otherwise prints the docstring of the constant's type.
+    """
+    if what != "data" or lines[:1] != (type(obj).__doc__ or "").splitlines()[:1]:
+        return
+    import sys
+
+    from sphinx.errors import PycodeError
+    from sphinx.pycode import ModuleAnalyzer
+
+    attribute = name.rpartition(".")[2]
+    for module_name, module in list(sys.modules.items()):
+        if (
+            not module_name.startswith("pypulseqpp")
+            or getattr(module, attribute, None) is not obj
+        ):
+            continue
+        try:
+            comment = ModuleAnalyzer.for_module(module_name).find_attr_docs()
+        except PycodeError:
+            continue
+        if ("", attribute) in comment:
+            lines[:] = list(comment[("", attribute)])
+            return
+
+
 def setup(app):
     """Install the filter ahead of Sphinx's own, which count the warning."""
     _hide_ignored_code_from_the_page_only()
     app.connect("autodoc-process-bases", _public_bases)
     app.connect("autodoc-process-signature", _compact_signature)
+    app.connect("autodoc-process-docstring", _constant_comment)
     app.connect("source-read", _local_readme)
     app.connect("include-read", _included_readme)
     app.connect("source-read", _colab_badge)

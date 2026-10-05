@@ -178,7 +178,7 @@ seq.paper_plot(tr=1)
 # window. Along the readout axis the train is a triangle wave between the two
 # ends of the line, and an echo is where it crosses zero.
 
-k_adc, _, t_excitation, _, t_adc = seq.calculate_kspacePP(block_range=[1, 3 + ECHOES])
+k_adc, _, t_excitation, _, t_adc = seq.calculate_kspace(block_range=[1, 3 + ECHOES])
 kx = k_adc[0] * FOV / MATRIX * 2
 echo_times = np.array(
     [

@@ -20,12 +20,11 @@ class ChronaxieModel(NamedTuple):
     normalised by ``rheobase / alpha``: a rectangular slew S held for tau
     reaches ``S alpha tau / (rheobase (chronaxie + tau))``.
 
-    ``rheobase`` and ``alpha`` are one value, used for every axis, or one per
-    physical axis. The kernel's shape is the chronaxie's alone, so the time
-    constant is shared; what an axis brings of its own is how much
-    stimulation a given slew on it produces. A gradient coil whose axes
-    differ states that here, rather than being costed on every axis as if it
-    were the one that stimulates most.
+    ``rheobase`` and ``alpha`` are one value for every axis, or one per
+    physical axis. The chronaxie, and with it the shape of the response
+    kernel, is shared by the axes; per-axis values scale the response of each
+    axis to a given slew, so a gradient coil whose axes stimulate differently
+    is not evaluated on every axis as its most stimulating one.
     """
 
     chronaxie: float
