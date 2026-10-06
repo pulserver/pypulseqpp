@@ -1,8 +1,8 @@
-# Gradient, PNS and SAR checks
+# Gradient, PNS, acoustic and SAR checks
 
 Checks of a complete sequence against the gradient hardware limits, the
 forbidden gradient bands of a gradient coil, a peripheral-nerve-stimulation
-model and a VOP SAR model. They are estimates, not a complete scanner or
+model, a gradient coil's acoustic transfer function and a VOP SAR model. They are estimates, not a complete scanner or
 patient-safety assessment. {doc}`../explanations/constraint-checks` covers what each
 one computes and the criterion it applies.
 
@@ -51,6 +51,22 @@ read from `system`.
 | {obj}`~pypulseqpp.safety.check_pns` | Sequence, SAFE or chronaxie model, `rotation`, `trace` | `(is_ok, report)`; responses as fractions of threshold | Peripheral nerve stimulation estimate. |
 | {obj}`~pypulseqpp.safety.read_safe_model` | Siemens `.asc` path | SAFE model, per-axis coefficients | SAFE model from a hardware description. |
 | {obj}`~pypulseqpp.safety.ChronaxieModel` | Chronaxie (s), rheobase (T/m/s), `alpha` | Model for `check_pns` | Rheobase–chronaxie nerve model: one chronaxie, and rheobase and `alpha` for every axis or per physical axis. |
+
+## Acoustic noise
+
+Gradient-derived: the check evaluates the physical gradient axes after the block
+rotations and the `rotation` argument, over the repetition of
+{meth}`~pypulseqpp.Sequence.repetition` that carries the most gradient energy,
+as a periodic waveform. The transfer function is an argument; only `gamma` is
+read from `system`. Levels are referred to 20 µPa; the default limits are the
+140 dB peak and 99 dB(A) average of IEC 60601-2-33.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.safety.check_spl` | Sequence, `AcousticResponse`, `rotation`, limits (dB, dB(A)) | `(is_ok, report)`; peak in dB, average in dB(A) | Peak and A-weighted average sound pressure level. |
+| {obj}`~pypulseqpp.safety.read_acoustic_response` | HDF5 path, sampling interval (s) | `AcousticResponse` | Acoustic transfer function from a file. |
+| {obj}`~pypulseqpp.safety.AcousticResponse` | Transfer `(3, bins)` (Pa per mT/m), frequency step (Hz) | Response for `check_spl` | Acoustic transfer function of each physical axis. |
+| {obj}`~pypulseqpp.safety.a_weighting` | Frequencies (Hz) | Amplitude gain, 1 at 1 kHz | IEC 61672 A-weighting. |
 
 ## SAR
 

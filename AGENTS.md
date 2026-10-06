@@ -8,7 +8,7 @@ output. Not every upstream feature is implemented; do not document an absent
 method as available.
 
 The package owns sequence storage, text/binary I/O, deduplication, structural
-repetition detection, timing, gradient, mechanical-resonance, PNS and SAR checks,
+repetition detection, timing, gradient, mechanical-resonance, PNS, acoustic and SAR checks,
 waveform and k-space analysis, FOV transforms, RF/gradient design and
 reusable sequence modules. Tiling is deferred.
 
@@ -22,7 +22,7 @@ needs belongs there rather than in the script.
 Scanner execution, segmentation, protocol contracts and consoles belong to
 Pulserver. Vendor-specific execution logic does not belong here.
 
-Runtime dependencies are NumPy, SciPy, PyPulseq and mrsd, which draws
+Runtime dependencies are NumPy, SciPy, h5py, PyPulseq and mrsd, which draws
 `paper_plot` and needs nothing PyPulseq does not. The native extension links
 the standard library and threads. The optional GPL viewer is distributed
 separately from the MIT core.
