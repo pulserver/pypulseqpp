@@ -1,7 +1,9 @@
 name: Tests
 
 on:
+  # A branch is tested once, through its pull request.
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -19,9 +21,14 @@ jobs:
         # Every platform a wheel ships for: the compiled core is the package,
         # so a platform that is not tested is not supported.
         os: [ubuntu-latest, macos-14, windows-latest]
-        # The floor and the ceiling of the supported band: an intermediate
-        # release that fails on neither is not a plausible failure.
-        python-version: ["3.10", "3.13"]
+        # The ceiling of the supported band on every platform, and the floor
+        # on one: an intermediate release that fails on neither is not a
+        # plausible failure, and a failure only the floor shows is not a
+        # platform's.
+        python-version: ["3.14"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
     steps:
       - uses: actions/checkout@v7
         with:
@@ -38,8 +45,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .[dev] -r tests/requirements.txt
 
+      # One worker per core. The thread pools are held to one thread each, or
+      # every worker's pool spreads over every core and they contend.
       - name: Run the tests
-        run: pytest -q --cov --cov-report=xml
+        env:
+          OMP_NUM_THREADS: 1
+          OPENBLAS_NUM_THREADS: 1
+          MKL_NUM_THREADS: 1
+        run: pytest -q -n auto --cov --cov-report=xml
 
       # A rejected upload is a broken report, not a passing build: without
       # this the step is green whatever Codecov answers, and the badge goes
