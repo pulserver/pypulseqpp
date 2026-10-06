@@ -44,6 +44,7 @@ over.
 | {func}`~pypulseqpp.safety.check_grad_continuity` | the amplitude step across each block boundary | `max_slew` and the gradient raster from the system limits |
 | {func}`~pypulseqpp.safety.check_pns` | a nerve model's response to the slew of each axis | a SAFE or chronaxie model |
 | {func}`~pypulseqpp.safety.check_mech_resonance` | the windowed gradient amplitude spectrum | a forbidden-band table |
+| {func}`~pypulseqpp.safety.check_spl` | peak and A-weighted average sound pressure of the loudest repetition, played without end | an acoustic transfer function per physical axis |
 | {func}`~pypulseqpp.safety.check_sar` | window-averaged local and global SAR | virtual observation points, a drive calibration and SAR limits |
 
 The first three are explained in {doc}`gradient-constraints`, and the others in
