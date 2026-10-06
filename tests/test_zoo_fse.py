@@ -257,12 +257,12 @@ def test_constant_trains_refocus_at_the_angle_asked_for():
 
 
 @pytest.fixture
-def torchsim():
-    return pytest.importorskip("torchsim")
+def blochsim():
+    return pytest.importorskip("blochsim")
 
 
 @pytest.mark.parametrize("te", [None, 20e-3, 40e-3])
-def test_an_optimized_train_passes_the_prescribed_angle_at_te(torchsim, te):
+def test_an_optimized_train_passes_the_prescribed_angle_at_te(blochsim, te):
     seq = built(te=te, flip_modulation="optimized", refocusing_angle_deg=120.0)
     lin, par, eco = labels(seq, "LIN", "PAR", "ECO")
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
@@ -275,7 +275,7 @@ def test_an_optimized_train_passes_the_prescribed_angle_at_te(torchsim, te):
     assert seq.definitions["RefocusingFlipAngles"] == pytest.approx(flips)
 
 
-def test_optimized_individual_trains_are_silent_past_their_length(torchsim):
+def test_optimized_individual_trains_are_silent_past_their_length(blochsim):
     seq = built(flip_modulation="optimized", refocusing_angle_deg=120.0, **INDIVIDUAL)
     flips = refocusing_flips(seq)
     lengths = np.round(along_cubic(len(flips), ETL, INDIVIDUAL["etl_periphery"]))

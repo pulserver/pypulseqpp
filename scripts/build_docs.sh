@@ -11,7 +11,7 @@
 #
 # Needs the documentation tools: pip install '.[doc]' (or '.[dev]'). Every
 # gallery script under gallery/ is executed as the pages are built, and the
-# fast spin echo needs the `examples` extra, which brings torchsim.
+# fast spin echo needs the `examples` extra, which brings blochsim.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

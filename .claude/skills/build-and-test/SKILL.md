@@ -29,7 +29,7 @@ here.
   exercises the reader.
 - Skips are expected, not failures: the reference toolbox leaves gaps in block
   numbering in some fixtures, the console package is not present here, MKL is
-  optional, and the optimized fast-spin-echo trains need `torchsim` from the
+  optional, and the optimized fast-spin-echo trains need `blochsim` from the
   `design` extra.
 - A new event kind needs a reference fixture wherever the reference supports
   it, and an intentional numerical difference from the plain implementation

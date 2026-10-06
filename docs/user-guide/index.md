@@ -59,7 +59,7 @@ Optional facilities are installed as extras:
 | --- | --- | --- |
 | SeqEyes viewer | `pip install 'pypulseqpp[plot]'` | Interactive sequence viewing through the separately distributed GPL viewer. |
 | Intel MKL | `pip install 'pypulseqpp[mkl]'` | Optional FFT backend for `mech_resonance_spectrum` on x86-64. |
-| FSE design | `pip install 'pypulseqpp[design]'` | `torchsim`, used by optimized fast-spin-echo refocusing schedules. |
+| FSE design | `pip install 'pypulseqpp[design]'` | `blochsim`, used by optimized fast-spin-echo refocusing schedules. |
 
 Developer installation is documented in {doc}`../developer-guide/index`.
 
