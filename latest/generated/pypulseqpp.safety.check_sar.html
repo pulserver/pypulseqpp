@@ -546,36 +546,45 @@ value, or one per channel.</p></li>
 all ones by default.</p></li>
 <li><p><strong>reference</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em> or </em><em>report</em><em>, </em><em>default=None</em>) – What to compare with, in the same model and calibration: a sequence,
 such as a CP-mode FID, evaluated here with the same drive and default
-shim; or the report of an earlier call. Its worst window’s per-VOP SAR,
-global SAR and duration are the reference.</p></li>
+shim; or the report of an earlier call. Its window of largest global
+SAR gives the reference’s global SAR in each body model and its
+duration. The model needs its global matrices.</p></li>
+<li><p><strong>safety_factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Factor, at least 1, every local SAR is multiplied by; the model’s
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;safety_factor&quot;]</span></code> when None, and 1 when it has none.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul>
 <li><p><strong>is_ok</strong> (<em>bool</em>) – True when every window’s largest VOP SAR is within <code class="docutils literal notranslate"><span class="pre">local_limit</span></code> and,
 with a global matrix, its global SAR within <code class="docutils literal notranslate"><span class="pre">global_limit</span></code>.</p></li>
-<li><p><strong>report</strong> (<em>SimpleNamespace</em>) – The limits; <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> and <code class="docutils literal notranslate"><span class="pre">tr_start</span></code> (blocks); <code class="docutils literal notranslate"><span class="pre">windows</span></code>, arrays
-<code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (1-based blocks), <code class="docutils literal notranslate"><span class="pre">duration</span></code> (s), <code class="docutils literal notranslate"><span class="pre">local_sar</span></code>,
-<code class="docutils literal notranslate"><span class="pre">vop</span></code>, <code class="docutils literal notranslate"><span class="pre">global_sar</span></code> (W/kg) and <code class="docutils literal notranslate"><span class="pre">global_body</span></code>, and with a
-reference <code class="docutils literal notranslate"><span class="pre">reference_ratio</span></code>; <code class="docutils literal notranslate"><span class="pre">worst_local</span></code> and <code class="docutils literal notranslate"><span class="pre">worst_global</span></code>,
-each the <code class="docutils literal notranslate"><span class="pre">sar</span></code>, <code class="docutils literal notranslate"><span class="pre">window</span></code> and its <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> block, or
-None (<code class="docutils literal notranslate"><span class="pre">worst_local</span></code> also its <code class="docutils literal notranslate"><span class="pre">vop</span></code> and <code class="docutils literal notranslate"><span class="pre">per_vop</span></code>, the SAR of
-every VOP in that window, and <code class="docutils literal notranslate"><span class="pre">worst_global</span></code> its <code class="docutils literal notranslate"><span class="pre">body</span></code>); and
-<code class="docutils literal notranslate"><span class="pre">reference</span></code>, or None without one.</p>
-<p><code class="docutils literal notranslate"><span class="pre">reference</span></code> carries <code class="docutils literal notranslate"><span class="pre">sar_ratio</span></code>, the largest over windows and VOPs
-of a VOP’s SAR over the reference’s for the same VOP, with its <code class="docutils literal notranslate"><span class="pre">vop</span></code>
-and <code class="docutils literal notranslate"><span class="pre">window</span></code>; <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code>, the largest of that ratio times the
-window’s duration over the reference’s, with its <code class="docutils literal notranslate"><span class="pre">energy_window</span></code>;
-and <code class="docutils literal notranslate"><span class="pre">global_sar_ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">global_energy_ratio</span></code> alike for the
-global matrix, or None. Every window counts, a shortened last
-window included.</p>
+<li><p><strong>report</strong> (<em>SimpleNamespace</em>) – The limits and <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code>; <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> and <code class="docutils literal notranslate"><span class="pre">tr_start</span></code>
+(blocks); <code class="docutils literal notranslate"><span class="pre">windows</span></code>, arrays <code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (1-based blocks),
+<code class="docutils literal notranslate"><span class="pre">duration</span></code> (s), <code class="docutils literal notranslate"><span class="pre">local_sar</span></code>, <code class="docutils literal notranslate"><span class="pre">vop</span></code>, <code class="docutils literal notranslate"><span class="pre">global_sar</span></code> (W/kg) and
+<code class="docutils literal notranslate"><span class="pre">global_body</span></code>, and with a reference <code class="docutils literal notranslate"><span class="pre">local_to_head</span></code> and
+<code class="docutils literal notranslate"><span class="pre">global_ratio</span></code>, each window’s terms of the two ratios below;
+<code class="docutils literal notranslate"><span class="pre">worst_local</span></code> and <code class="docutils literal notranslate"><span class="pre">worst_global</span></code>, each the <code class="docutils literal notranslate"><span class="pre">sar</span></code>, <code class="docutils literal notranslate"><span class="pre">window</span></code> and
+its <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">last</span></code> block, or None (<code class="docutils literal notranslate"><span class="pre">worst_local</span></code> also its
+<code class="docutils literal notranslate"><span class="pre">vop</span></code> and <code class="docutils literal notranslate"><span class="pre">per_vop</span></code>, the SAR of every VOP in that window, and
+<code class="docutils literal notranslate"><span class="pre">worst_global</span></code> its <code class="docutils literal notranslate"><span class="pre">body</span></code> and <code class="docutils literal notranslate"><span class="pre">per_body</span></code>, every body model’s
+global SAR in that window); and <code class="docutils literal notranslate"><span class="pre">reference</span></code>, or None without one.</p>
+<p><code class="docutils literal notranslate"><span class="pre">reference</span></code> carries <code class="docutils literal notranslate"><span class="pre">head</span></code> and <code class="docutils literal notranslate"><span class="pre">duration</span></code>, the reference’s
+global SAR in each body model and the duration of its window;
+<code class="docutils literal notranslate"><span class="pre">local_to_head</span></code>, the largest over windows of the window’s local SAR
+over the smallest of <code class="docutils literal notranslate"><span class="pre">head</span></code>, with its <code class="docutils literal notranslate"><span class="pre">vop</span></code> and <code class="docutils literal notranslate"><span class="pre">window</span></code>;
+<code class="docutils literal notranslate"><span class="pre">local_to_head_energy</span></code>, the largest of that ratio times the window’s
+duration over the reference’s, with its <code class="docutils literal notranslate"><span class="pre">energy_window</span></code>; and
+<code class="docutils literal notranslate"><span class="pre">global_sar_ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">global_energy_ratio</span></code> alike for global SAR,
+each body model’s over the reference’s in the same body model. Every
+window counts, a shortened last window included.</p>
 </li>
 </ul>
 </p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a reference sequence plays nothing to compare with, or a shim
-    weighs a different number of channels than the model has.</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a reference sequence plays nothing to compare with, the model has
+    no global matrices to compare it through, a shim weighs a different
+    number of channels than the model has, or the safety factor is below
+    1.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -588,11 +597,15 @@ Every window is compared with the limits. A pulse drives channel <code class="do
 microsecond as <a class="reference internal" href="pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.calc_rf_power()</span></code></a> does (one channel’s waveform
 on every channel for a single-channel pulse), and <code class="docutils literal notranslate"><span class="pre">s</span></code> its block’s RF shim,
 <code class="docutils literal notranslate"><span class="pre">default_shim</span></code> or ones.</p>
-<p>The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the VOPs cancels in the reference
-ratios; relative channel gains do not. With a reference lasting its
-minimum TR, <code class="docutils literal notranslate"><span class="pre">energy_ratio</span></code> scales that minimum TR to this sequence’s
-repetition, at the energy each repetition deposits. For a sequence played
-only in the default shim, every VOP’s ratio is the ratio of RF energy.</p>
+<p>A window’s local SAR is the largest over the VOPs, an upper bound on its
+peak local SAR, times the safety factor. Where the reference is played at
+the global limit, <code class="docutils literal notranslate"><span class="pre">local_to_head</span></code> times that limit is the sequence’s
+local SAR at the same drive scale. The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of
+the matrices cancels in the reference ratios; relative channel gains do
+not, and the safety factor, which multiplies only the sequence’s side,
+does not. With a reference lasting its minimum TR, the energy ratios scale
+that minimum TR to this sequence’s repetition, at the energy each
+repetition deposits.</p>
 </dd></dl>
 
 </section>

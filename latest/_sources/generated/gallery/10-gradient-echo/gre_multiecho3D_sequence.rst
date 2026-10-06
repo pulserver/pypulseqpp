@@ -176,7 +176,7 @@ complete echo train remains within each retained repetition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (2 minutes 57.871 seconds)
+   **Total running time of the script:** (2 minutes 59.051 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_multiecho3D_sequence.py:

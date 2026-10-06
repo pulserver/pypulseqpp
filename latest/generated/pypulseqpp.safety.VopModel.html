@@ -537,8 +537,8 @@ drive squared: SAR is <code class="docutils literal notranslate"><span class="pr
 peak amplitude. <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code> is <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> with
 one matrix per body model as a population’s file carries; the global SAR of
 a window is the largest over the models. <code class="docutils literal notranslate"><span class="pre">metadata</span></code> is what the file says
-about itself, such as the coil, the drive unit and the channel order, and
-is carried for the caller to read.</p>
+about itself, such as the coil, the drive unit, the channel order and the
+<code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is multiplied by.</p>
 </dd></dl>
 
 <p class="rubric">Methods</p>

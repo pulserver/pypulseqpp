@@ -477,8 +477,8 @@
 <span class="sd">    peak amplitude. ``global_matrix`` is ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with</span>
 <span class="sd">    one matrix per body model as a population's file carries; the global SAR of</span>
 <span class="sd">    a window is the largest over the models. ``metadata`` is what the file says</span>
-<span class="sd">    about itself, such as the coil, the drive unit and the channel order, and</span>
-<span class="sd">    is carried for the caller to read.</span>
+<span class="sd">    about itself, such as the coil, the drive unit, the channel order and the</span>
+<span class="sd">    ``safety_factor`` every local SAR is multiplied by.</span>
 <span class="sd">    """</span>
 
     <span class="n">vops</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -527,6 +527,7 @@
     <span class="k">if</span> <span class="n">vops</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"VOPs are (N, Nc, Nc), not </span><span class="si">{</span><span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">vops</span> <span class="o">=</span> <span class="n">_hermitian</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="s2">"every VOP"</span><span class="p">)</span>
+    <span class="n">_safety_factor</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">global_matrix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span>
     <span class="k">if</span> <span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">one</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
@@ -543,6 +544,17 @@
     <span class="k">return</span> <span class="n">VopModel</span><span class="p">(</span><span class="n">vops</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_safety_factor</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">given</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the factor on local SAR: the one given, else the file's, else 1."""</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="n">given</span>
+    <span class="k">if</span> <span class="n">factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="p">(</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"safety_factor"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">&gt;=</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a safety factor is at least 1, not </span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">factor</span>
+
+
 <div class="viewcode-block" id="read_vops">
 <a class="viewcode-back" href="../../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_vops</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VopModel</span><span class="p">:</span>
@@ -555,7 +567,8 @@
 <span class="sd">    the array named ``Sglobal``, ``global_matrix``, ``Qglobal`` or</span>
 <span class="sd">    ``Q_global``, a single matrix or one per body model as mariepy's</span>
 <span class="sd">    ``vop.write`` stores a population's. An ``.npz`` file's ``metadata``, a</span>
-<span class="sd">    JSON string, is read onto the model. MATLAB v7.3 (HDF5) files are not read.</span>
+<span class="sd">    JSON string, is read onto the model; its ``safety_factor`` multiplies every</span>
+<span class="sd">    local SAR. MATLAB v7.3 (HDF5) files are not read.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -573,7 +586,7 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If the file holds no recognised VOP array, or one whose shape is not a</span>
-<span class="sd">        stack of square matrices.</span>
+<span class="sd">        stack of square matrices, or the safety factor is below 1.</span>
 <span class="sd">    OSError</span>
 <span class="sd">        If the file cannot be read, a MATLAB v7.3 file among them.</span>
 <span class="sd">    """</span>
@@ -710,14 +723,14 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">matrices</span><span class="p">,</span> <span class="n">global_matrix</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">repetition</span><span class="p">()</span> <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">num_blocks</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">vop_sar</span><span class="p">(</span>
         <span class="n">seq</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span>
-        <span class="n">vops</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="p">),</span>
+        <span class="n">vops</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">matrices</span><span class="p">),</span>
         <span class="n">global_matrix</span><span class="o">=</span><span class="kc">None</span>
-        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="kc">None</span>
-        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="p">),</span>
+        <span class="k">if</span> <span class="n">global_matrix</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">),</span>
         <span class="n">drive</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">drive</span><span class="p">),</span>
         <span class="n">default_shim</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">shim</span><span class="p">),</span>
         <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
@@ -727,37 +740,50 @@
     <span class="k">return</span> <span class="n">size</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">found</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_bodies</span><span class="p">(</span><span class="n">global_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the global matrices as a stack, one per body model."""</span>
+    <span class="k">return</span> <span class="n">global_matrix</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">global_matrix</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">global_matrix</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_per_body</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="n">found</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return each body model's global SAR in the window of largest global SAR."""</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"global"</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">found</span><span class="p">[</span><span class="s2">"global"</span><span class="p">][</span><span class="n">k</span><span class="p">]])</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">each</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">each</span><span class="p">[</span><span class="s2">"worst"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_reference_of</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return the per-VOP SAR, global SAR and duration a sequence is compared with."""</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="s2">"worst_local"</span><span class="p">):</span>
-        <span class="n">worst</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">worst_local</span>
-        <span class="k">if</span> <span class="n">worst</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the reference report has no window to compare with"</span><span class="p">)</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="n">worst</span><span class="o">.</span><span class="n">window</span>
-        <span class="n">global_sar</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">global_sar</span>
-        <span class="n">against</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
-            <span class="n">per_vop</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">worst</span><span class="o">.</span><span class="n">per_vop</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-            <span class="n">global_sar</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">global_sar</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">global_sar</span><span class="p">[</span><span class="n">window</span><span class="p">]),</span>
-            <span class="n">duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">duration</span><span class="p">[</span><span class="n">window</span><span class="p">]),</span>
+<span class="w">    </span><span class="sd">"""Return what a sequence is compared with: the reference's global SAR.</span>
+
+<span class="sd">    ``head`` is each body model's global SAR in the reference's window of</span>
+<span class="sd">    largest global SAR, and ``duration`` that window's.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"a ratio against a reference needs the model's global SAR matrices"</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="s2">"worst_local"</span><span class="p">):</span>
+        <span class="n">whole</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">worst_global</span>
+        <span class="k">if</span> <span class="n">whole</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the reference report has no window to compare with"</span><span class="p">)</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">whole</span><span class="o">.</span><span class="n">per_body</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">duration</span><span class="p">[</span><span class="n">whole</span><span class="o">.</span><span class="n">window</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">found</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">found</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">[</span><span class="s2">"first"</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the reference sequence plays nothing to compare with"</span><span class="p">)</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"local"</span><span class="p">]))</span>
-        <span class="n">against</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
-            <span class="n">per_vop</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"worst"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-            <span class="n">global_sar</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"global"</span><span class="p">][</span><span class="n">window</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">][</span><span class="n">window</span><span class="p">]),</span>
-        <span class="p">)</span>
-    <span class="k">if</span> <span class="n">against</span><span class="o">.</span><span class="n">per_vop</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],):</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">_per_body</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="n">found</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"global"</span><span class="p">]))])</span>
+    <span class="n">bodies</span> <span class="o">=</span> <span class="n">_bodies</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">head</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">bodies</span><span class="p">,):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"the reference holds </span><span class="si">{</span><span class="n">against</span><span class="o">.</span><span class="n">per_vop</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2"> VOPs, and the model "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"the reference holds </span><span class="si">{</span><span class="n">head</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2"> body models, and the model </span><span class="si">{</span><span class="n">bodies</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
-    <span class="k">return</span> <span class="n">against</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">head</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the reference deposits no global SAR in a body model"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="n">head</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="check_sar">
@@ -771,6 +797,7 @@
     <span class="n">global_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.2</span><span class="p">,</span>
     <span class="n">default_shim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">safety_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SimpleNamespace</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Check window-averaged local and global SAR against their limits.</span>
 
@@ -795,8 +822,12 @@
 <span class="sd">    reference : Sequence or report, default=None</span>
 <span class="sd">        What to compare with, in the same model and calibration: a sequence,</span>
 <span class="sd">        such as a CP-mode FID, evaluated here with the same drive and default</span>
-<span class="sd">        shim; or the report of an earlier call. Its worst window's per-VOP SAR,</span>
-<span class="sd">        global SAR and duration are the reference.</span>
+<span class="sd">        shim; or the report of an earlier call. Its window of largest global</span>
+<span class="sd">        SAR gives the reference's global SAR in each body model and its</span>
+<span class="sd">        duration. The model needs its global matrices.</span>
+<span class="sd">    safety_factor : float, default=None</span>
+<span class="sd">        Factor, at least 1, every local SAR is multiplied by; the model's</span>
+<span class="sd">        ``metadata["safety_factor"]`` when None, and 1 when it has none.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -804,28 +835,34 @@
 <span class="sd">        True when every window's largest VOP SAR is within ``local_limit`` and,</span>
 <span class="sd">        with a global matrix, its global SAR within ``global_limit``.</span>
 <span class="sd">    report : SimpleNamespace</span>
-<span class="sd">        The limits; ``tr_size`` and ``tr_start`` (blocks); ``windows``, arrays</span>
-<span class="sd">        ``first``, ``last`` (1-based blocks), ``duration`` (s), ``local_sar``,</span>
-<span class="sd">        ``vop``, ``global_sar`` (W/kg) and ``global_body``, and with a</span>
-<span class="sd">        reference ``reference_ratio``; ``worst_local`` and ``worst_global``,</span>
-<span class="sd">        each the ``sar``, ``window`` and its ``first`` and ``last`` block, or</span>
-<span class="sd">        None (``worst_local`` also its ``vop`` and ``per_vop``, the SAR of</span>
-<span class="sd">        every VOP in that window, and ``worst_global`` its ``body``); and</span>
-<span class="sd">        ``reference``, or None without one.</span>
+<span class="sd">        The limits and ``safety_factor``; ``tr_size`` and ``tr_start``</span>
+<span class="sd">        (blocks); ``windows``, arrays ``first``, ``last`` (1-based blocks),</span>
+<span class="sd">        ``duration`` (s), ``local_sar``, ``vop``, ``global_sar`` (W/kg) and</span>
+<span class="sd">        ``global_body``, and with a reference ``local_to_head`` and</span>
+<span class="sd">        ``global_ratio``, each window's terms of the two ratios below;</span>
+<span class="sd">        ``worst_local`` and ``worst_global``, each the ``sar``, ``window`` and</span>
+<span class="sd">        its ``first`` and ``last`` block, or None (``worst_local`` also its</span>
+<span class="sd">        ``vop`` and ``per_vop``, the SAR of every VOP in that window, and</span>
+<span class="sd">        ``worst_global`` its ``body`` and ``per_body``, every body model's</span>
+<span class="sd">        global SAR in that window); and ``reference``, or None without one.</span>
 
-<span class="sd">        ``reference`` carries ``sar_ratio``, the largest over windows and VOPs</span>
-<span class="sd">        of a VOP's SAR over the reference's for the same VOP, with its ``vop``</span>
-<span class="sd">        and ``window``; ``energy_ratio``, the largest of that ratio times the</span>
-<span class="sd">        window's duration over the reference's, with its ``energy_window``;</span>
-<span class="sd">        and ``global_sar_ratio`` and ``global_energy_ratio`` alike for the</span>
-<span class="sd">        global matrix, or None. Every window counts, a shortened last</span>
-<span class="sd">        window included.</span>
+<span class="sd">        ``reference`` carries ``head`` and ``duration``, the reference's</span>
+<span class="sd">        global SAR in each body model and the duration of its window;</span>
+<span class="sd">        ``local_to_head``, the largest over windows of the window's local SAR</span>
+<span class="sd">        over the smallest of ``head``, with its ``vop`` and ``window``;</span>
+<span class="sd">        ``local_to_head_energy``, the largest of that ratio times the window's</span>
+<span class="sd">        duration over the reference's, with its ``energy_window``; and</span>
+<span class="sd">        ``global_sar_ratio`` and ``global_energy_ratio`` alike for global SAR,</span>
+<span class="sd">        each body model's over the reference's in the same body model. Every</span>
+<span class="sd">        window counts, a shortened last window included.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a reference sequence plays nothing to compare with, or a shim</span>
-<span class="sd">        weighs a different number of channels than the model has.</span>
+<span class="sd">        If a reference sequence plays nothing to compare with, the model has</span>
+<span class="sd">        no global matrices to compare it through, a shim weighs a different</span>
+<span class="sd">        number of channels than the model has, or the safety factor is below</span>
+<span class="sd">        1.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -839,13 +876,18 @@
 <span class="sd">    on every channel for a single-channel pulse), and ``s`` its block's RF shim,</span>
 <span class="sd">    ``default_shim`` or ones.</span>
 
-<span class="sd">    The scale of ``drive_per_hz`` and of the VOPs cancels in the reference</span>
-<span class="sd">    ratios; relative channel gains do not. With a reference lasting its</span>
-<span class="sd">    minimum TR, ``energy_ratio`` scales that minimum TR to this sequence's</span>
-<span class="sd">    repetition, at the energy each repetition deposits. For a sequence played</span>
-<span class="sd">    only in the default shim, every VOP's ratio is the ratio of RF energy.</span>
+<span class="sd">    A window's local SAR is the largest over the VOPs, an upper bound on its</span>
+<span class="sd">    peak local SAR, times the safety factor. Where the reference is played at</span>
+<span class="sd">    the global limit, ``local_to_head`` times that limit is the sequence's</span>
+<span class="sd">    local SAR at the same drive scale. The scale of ``drive_per_hz`` and of</span>
+<span class="sd">    the matrices cancels in the reference ratios; relative channel gains do</span>
+<span class="sd">    not, and the safety factor, which multiplies only the sequence's side,</span>
+<span class="sd">    does not. With a reference lasting its minimum TR, the energy ratios scale</span>
+<span class="sd">    that minimum TR to this sequence's repetition, at the energy each</span>
+<span class="sd">    repetition deposits.</span>
 <span class="sd">    """</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">_validated</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="n">_safety_factor</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">safety_factor</span><span class="p">)</span>
     <span class="n">channels</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">drive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">drive_per_hz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="p">(</span><span class="n">channels</span><span class="p">,))</span>
     <span class="n">shim</span> <span class="o">=</span> <span class="p">(</span>
@@ -860,8 +902,22 @@
         <span class="kc">None</span> <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_reference_of</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">size</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">found</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span>
-        <span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">against</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">against</span><span class="o">.</span><span class="n">per_vop</span>
+        <span class="n">seq</span><span class="p">,</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span>
     <span class="p">)</span>
+    <span class="n">local_to_head</span> <span class="o">=</span> <span class="n">global_ratio</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">against</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local_to_head</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="s2">"local"</span><span class="p">]</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">against</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="n">global_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found</span><span class="p">[</span><span class="s2">"first"</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">each</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span>
+                <span class="n">seq</span><span class="p">,</span>
+                <span class="n">_bodies</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span><span class="p">),</span>
+                <span class="kc">None</span><span class="p">,</span>
+                <span class="n">drive</span><span class="p">,</span>
+                <span class="n">shim</span><span class="p">,</span>
+                <span class="n">reference</span><span class="o">=</span><span class="n">against</span><span class="o">.</span><span class="n">head</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">global_ratio</span> <span class="o">=</span> <span class="n">each</span><span class="p">[</span><span class="s2">"ratio"</span><span class="p">]</span>
     <span class="n">windows</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
         <span class="n">first</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"first"</span><span class="p">],</span>
         <span class="n">last</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"last"</span><span class="p">],</span>
@@ -870,7 +926,8 @@
         <span class="n">vop</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"vop"</span><span class="p">],</span>
         <span class="n">global_sar</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"global"</span><span class="p">]</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">global_body</span><span class="o">=</span><span class="n">found</span><span class="p">[</span><span class="s2">"global_body"</span><span class="p">]</span> <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">global_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">reference_ratio</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">against</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">found</span><span class="p">[</span><span class="s2">"ratio"</span><span class="p">],</span>
+        <span class="n">local_to_head</span><span class="o">=</span><span class="n">local_to_head</span><span class="p">,</span>
+        <span class="n">global_ratio</span><span class="o">=</span><span class="n">global_ratio</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">worst_local</span> <span class="o">=</span> <span class="n">worst_global</span> <span class="o">=</span> <span class="n">compared</span> <span class="o">=</span> <span class="kc">None</span>
@@ -892,13 +949,15 @@
                 <span class="n">window</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
                 <span class="n">first</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">first</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
                 <span class="n">last</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">last</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
+                <span class="n">per_body</span><span class="o">=</span><span class="n">_per_body</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">drive</span><span class="p">,</span> <span class="n">shim</span><span class="p">,</span> <span class="n">found</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">against</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">compared</span> <span class="o">=</span> <span class="n">_compared</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="s2">"ratio_vop"</span><span class="p">],</span> <span class="n">against</span><span class="p">)</span>
+            <span class="n">compared</span> <span class="o">=</span> <span class="n">_compared</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">against</span><span class="p">)</span>
 
     <span class="n">report</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
         <span class="n">local_limit</span><span class="o">=</span><span class="n">local_limit</span><span class="p">,</span>
         <span class="n">global_limit</span><span class="o">=</span><span class="n">global_limit</span><span class="p">,</span>
+        <span class="n">safety_factor</span><span class="o">=</span><span class="n">factor</span><span class="p">,</span>
         <span class="n">tr_size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
         <span class="n">tr_start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
         <span class="n">windows</span><span class="o">=</span><span class="n">windows</span><span class="p">,</span>
@@ -913,24 +972,22 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_compared</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">ratio_vop</span><span class="p">,</span> <span class="n">against</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
-    <span class="n">ratio</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">reference_ratio</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">ratio</span><span class="p">))</span>
-    <span class="n">energy</span> <span class="o">=</span> <span class="n">ratio</span> <span class="o">*</span> <span class="n">windows</span><span class="o">.</span><span class="n">duration</span> <span class="o">/</span> <span class="n">against</span><span class="o">.</span><span class="n">duration</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compared</span><span class="p">(</span><span class="n">windows</span><span class="p">,</span> <span class="n">against</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
+    <span class="n">local</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">local_to_head</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">local</span><span class="p">))</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">duration</span> <span class="o">/</span> <span class="n">against</span><span class="o">.</span><span class="n">duration</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">local</span> <span class="o">*</span> <span class="n">scale</span>
     <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">energy</span><span class="p">))</span>
-    <span class="n">global_sar_ratio</span> <span class="o">=</span> <span class="n">global_energy_ratio</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">windows</span><span class="o">.</span><span class="n">global_sar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">against</span><span class="o">.</span><span class="n">global_sar</span><span class="p">:</span>
-        <span class="n">whole</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">global_sar</span> <span class="o">/</span> <span class="n">against</span><span class="o">.</span><span class="n">global_sar</span>
-        <span class="n">global_sar_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">whole</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-        <span class="n">global_energy_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">whole</span> <span class="o">*</span> <span class="n">windows</span><span class="o">.</span><span class="n">duration</span> <span class="o">/</span> <span class="n">against</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
-        <span class="n">sar_ratio</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
-        <span class="n">vop</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">ratio_vop</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
+        <span class="n">head</span><span class="o">=</span><span class="n">against</span><span class="o">.</span><span class="n">head</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">against</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">local_to_head</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">local</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
+        <span class="n">vop</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">vop</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span>
         <span class="n">window</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
-        <span class="n">energy_ratio</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">energy</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span>
+        <span class="n">local_to_head_energy</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">energy</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span>
         <span class="n">energy_window</span><span class="o">=</span><span class="n">j</span><span class="p">,</span>
-        <span class="n">global_sar_ratio</span><span class="o">=</span><span class="n">global_sar_ratio</span><span class="p">,</span>
-        <span class="n">global_energy_ratio</span><span class="o">=</span><span class="n">global_energy_ratio</span><span class="p">,</span>
+        <span class="n">global_sar_ratio</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">windows</span><span class="o">.</span><span class="n">global_ratio</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+        <span class="n">global_energy_ratio</span><span class="o">=</span><span class="nb">float</span><span class="p">((</span><span class="n">windows</span><span class="o">.</span><span class="n">global_ratio</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
     <span class="p">)</span>
 </pre></div>
 
