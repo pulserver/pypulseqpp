@@ -1,4 +1,4 @@
-"""Gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS and SAR checks.
+"""Gradient amplitude, slew-rate, continuity, mechanical-resonance, PNS, acoustic and SAR checks.
 
 The gradient checks evaluate the waveforms after each block's rotation.
 These checks do not establish scanner or patient safety.
@@ -9,6 +9,12 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from .. import _ext as _cxx
+from ._acoustic import (
+    AcousticResponse,
+    a_weighting,
+    check_spl,
+    read_acoustic_response,
+)
 from ._pns import ChronaxieModel, check_pns, read_safe_model
 from ._resonance import (
     ForbiddenBand,
@@ -19,17 +25,21 @@ from ._resonance import (
 from ._sar import VopModel, check_sar, example_vops, read_vops
 
 __all__ = [
+    "AcousticResponse",
     "ChronaxieModel",
     "ForbiddenBand",
     "VopModel",
+    "a_weighting",
     "check_grad_continuity",
     "check_max_grad",
     "check_max_slew",
     "check_mech_resonance",
     "check_pns",
     "check_sar",
+    "check_spl",
     "example_vops",
     "mech_resonance_spectrum",
+    "read_acoustic_response",
     "read_forbidden_bands",
     "read_safe_model",
     "read_vops",

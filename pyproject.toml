@@ -28,7 +28,7 @@ classifiers = [
 # namespace alongside native sequence storage and additional design factories.
 # mrsd draws Sequence.paper_plot's diagram; it needs nothing pypulseq does not
 # already bring.
-dependencies = ["mrsd>=1.0", "numpy>=2.0", "pypulseq>=1.5", "scipy>=1.10"]
+dependencies = ["h5py>=3.11", "mrsd>=1.0", "numpy>=2.0", "pypulseq>=1.5", "scipy>=1.10"]
 
 [project.optional-dependencies]
 # The viewer `Sequence.plot` draws in: SeqEyes, built in viewer/ and published
