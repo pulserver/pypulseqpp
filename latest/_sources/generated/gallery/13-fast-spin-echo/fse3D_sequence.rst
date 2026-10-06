@@ -127,7 +127,7 @@ The refocusing schedule has the form of [BUS08a]_: the angle decreases from
 a maximum to a minimum over the first five echoes, increases to the
 prescribed angle at the effective-TE echo and returns to the maximum at the
 end of the train. The minimum and maximum angles, bounded by the prescribed
-angle, are optimized with the extended phase graph (EPG) FSE simulator of ``torchsim`` [HEN88]_ [WEI15]_.
+angle, are optimized with the extended phase graph (EPG) FSE simulator of ``blochsim`` [HEN88]_ [WEI15]_.
 The cost combines an echo-to-echo signal-variation measure of blurring, the
 contrast between two of the sequence's design tissues at the effective-TE
 echo, and a penalty on RF power above that of the initial schedule. The same
@@ -137,11 +137,11 @@ simulator evaluates the resulting T2-dependent echo envelope.
 
 .. code-block:: Python
 
-    import torchsim
+    import blochsim
 
     angles = np.asarray(seq.get_definition("RefocusingFlipAngles"))
     signal = np.abs(
-        np.asarray(torchsim.fse_sim(flip=angles, ESP=esp * 1e3, T1=1200.0, T2=60.0))
+        np.asarray(blochsim.fse_sim(flip=angles, ESP=esp * 1e3, T1=1200.0, T2=60.0))
     )
 
 
@@ -225,7 +225,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.728 seconds)
+   **Total running time of the script:** (0 minutes 1.287 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

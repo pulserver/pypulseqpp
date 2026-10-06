@@ -624,7 +624,7 @@ and the partition encode, when undersampled.</p></li>
 <li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'}</em><em>, </em><em>default='radial'</em>) – <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: adaptive radial reordering of CAIPIRINHA lattice
 support. <code class="docutils literal notranslate"><span class="pre">'shuffling'</span></code>: variable-density Poisson-disc support
 in randomly shuffled echo order (T2 Shuffling).</p></li>
-<li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or trains designed with torchsim,
+<li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or trains designed with blochsim,
 which the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra installs.</p></li>
 <li><p><strong>tr_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetition time (s) at the periphery of k-space. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
 <code class="docutils literal notranslate"><span class="pre">tr</span></code>.</p></li>
@@ -654,7 +654,7 @@ the shortest TR holds up to <code class="docutils literal notranslate"><span cla
     one, <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">rz)</span></code>, <code class="docutils literal notranslate"><span class="pre">wave</span></code> names no wave
     mode, individually parameterized trains are shuffled, a train ends
     before the TE echo, or a TR is shorter than the longest train.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.14)"><strong>ImportError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">optimized</span></code> is asked for without torchsim.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.14)"><strong>ImportError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">optimized</span></code> is asked for without blochsim.</p></li>
 </ul>
 </dd>
 </dl>
