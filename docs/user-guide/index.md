@@ -29,8 +29,8 @@ from-pypulseq
 
 ## Prerequisites and supported platforms
 
-pypulseqpp supports Python 3.10 through 3.13. CI tests the lower and upper
-bounds on Linux, macOS and Windows.
+pypulseqpp supports Python 3.10 through 3.14. CI tests the upper bound on
+Linux, macOS and Windows, and the lower bound on Linux.
 
 Published wheels cover:
 
