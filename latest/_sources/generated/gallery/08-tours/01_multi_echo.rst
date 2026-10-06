@@ -323,7 +323,7 @@ number of echoes and a shorter shortest echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.288 seconds)
+   **Total running time of the script:** (0 minutes 0.286 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_08-tours_01_multi_echo.py:
