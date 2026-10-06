@@ -287,7 +287,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/sequence-functions.html">Sequence functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/cli.html">Command-line helpers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sequences.html">Sequence catalogue</a></li>
@@ -961,6 +961,18 @@ from.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a></p></td>
 <td><p>Rheobase-chronaxie nerve model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_spl.html#pypulseqpp.safety.check_spl" title="pypulseqpp.safety.check_spl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_spl</span></code></a></p></td>
+<td><p>Check the sound pressure level of the sequence's loudest repetition, played without end.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.read_acoustic_response.html#pypulseqpp.safety.read_acoustic_response" title="pypulseqpp.safety.read_acoustic_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_acoustic_response</span></code></a></p></td>
+<td><p>Read a gradient coil's acoustic transfer function from an HDF5 file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.AcousticResponse.html#pypulseqpp.safety.AcousticResponse" title="pypulseqpp.safety.AcousticResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AcousticResponse</span></code></a></p></td>
+<td><p>A gradient coil's acoustic transfer function, per physical axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.a_weighting.html#pypulseqpp.safety.a_weighting" title="pypulseqpp.safety.a_weighting"><code class="xref py py-obj docutils literal notranslate"><span class="pre">a_weighting</span></code></a></p></td>
+<td><p>Return the IEC 61672 A-weighting gain at <code class="docutils literal notranslate"><span class="pre">frequency</span></code> Hz, 1 at 1 kHz.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_sar</span></code></a></p></td>
 <td><p>Check window-averaged local and global SAR against their limits.</p></td>

@@ -287,7 +287,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/sequence-functions.html">Sequence functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
@@ -598,7 +598,11 @@ over.</p>
 <td><p>the windowed gradient amplitude spectrum</p></td>
 <td><p>a forbidden-band table</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_spl.html#pypulseqpp.safety.check_spl" title="pypulseqpp.safety.check_spl"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_spl()</span></code></a></p></td>
+<td><p>peak and A-weighted average sound pressure of the loudest repetition, played without end</p></td>
+<td><p>an acoustic transfer function per physical axis</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a></p></td>
 <td><p>window-averaged local and global SAR</p></td>
 <td><p>virtual observation points, a drive calibration and SAR limits</p></td>
 </tr>
@@ -671,7 +675,7 @@ threshold or limit makes the verdict false.</p>
 <li><p><a class="reference internal" href="gradient-constraints.html"><span class="doc">Gradient amplitude, slew rate and continuity</span></a>, <a class="reference internal" href="pns.html"><span class="doc">Peripheral nerve stimulation</span></a>, <a class="reference internal" href="mechanical-resonance.html"><span class="doc">Mechanical resonance</span></a> and
 <a class="reference internal" href="sar.html"><span class="doc">Specific absorption rate</span></a> — what each check computes and the model it computes it from.</p></li>
 <li><p><a class="reference internal" href="timing-and-rasters.html"><span class="doc">Timing and rasterization</span></a> — the timing check.</p></li>
-<li><p><a class="reference internal" href="../api/safety.html"><span class="doc">Gradient, PNS and SAR checks</span></a> — the calls and their reports.</p></li>
+<li><p><a class="reference internal" href="../api/safety.html"><span class="doc">Gradient, PNS, acoustic and SAR checks</span></a> — the calls and their reports.</p></li>
 </ul>
 </section>
 </section>

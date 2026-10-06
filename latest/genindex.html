@@ -286,7 +286,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling and scan-loop schedules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/modules.html">Sequence modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/sequence-functions.html">Sequence functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/plotting.html">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/cli.html">Command-line helpers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sequences.html">Sequence catalogue</a></li>
@@ -482,7 +482,11 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/pypulseqpp.safety.a_weighting.html#pypulseqpp.safety.a_weighting">a_weighting() (in module pypulseqpp.safety)</a>
+</li>
       <li><a href="generated/pypulseqpp.io.SequenceLibraries.absolute_offsets.html#pypulseqpp.io.SequenceLibraries.absolute_offsets">absolute_offsets() (pypulseqpp.io.SequenceLibraries method)</a>
+</li>
+      <li><a href="generated/pypulseqpp.safety.AcousticResponse.html#pypulseqpp.safety.AcousticResponse">AcousticResponse (class in pypulseqpp.safety)</a>
 </li>
       <li><a href="generated/pypulseqpp.io.SequenceLibraries.adc.html#pypulseqpp.io.SequenceLibraries.adc">adc (pypulseqpp.io.SequenceLibraries attribute)</a>
 </li>
@@ -514,10 +518,10 @@
 </li>
       <li><a href="generated/pypulseqpp.sequences.Arbitrary.html#pypulseqpp.sequences.Arbitrary">Arbitrary (class in pypulseqpp.sequences)</a>
 </li>
-      <li><a href="generated/pypulseqpp.io.SequenceLibraries.arbitrary_gradient_ids.html#pypulseqpp.io.SequenceLibraries.arbitrary_gradient_ids">arbitrary_gradient_ids (pypulseqpp.io.SequenceLibraries attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/pypulseqpp.io.SequenceLibraries.arbitrary_gradient_ids.html#pypulseqpp.io.SequenceLibraries.arbitrary_gradient_ids">arbitrary_gradient_ids (pypulseqpp.io.SequenceLibraries attribute)</a>
+</li>
       <li><a href="generated/pypulseqpp.io.SequenceLibraries.arbitrary_gradients.html#pypulseqpp.io.SequenceLibraries.arbitrary_gradients">arbitrary_gradients (pypulseqpp.io.SequenceLibraries attribute)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.NonCartesianReadout.arm.html#pypulseqpp.sequences.NonCartesianReadout.arm">arm() (pypulseqpp.sequences.NonCartesianReadout method)</a>
@@ -720,10 +724,10 @@
 </li>
       <li><a href="generated/pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace">calculate_kspace() (pypulseqpp.Sequence method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system">cap_system() (in module pypulseqpp)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.ceil_to_raster.html#pypulseqpp.ceil_to_raster">ceil_to_raster() (in module pypulseqpp)</a>
 </li>
       <li><a href="generated/pypulseqpp.RfDefinition.center.html#pypulseqpp.RfDefinition.center">center (pypulseqpp.RfDefinition attribute)</a>
@@ -740,6 +744,8 @@
 </li>
       <li><a href="generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar">check_sar() (in module pypulseqpp.safety)</a>
 </li>
+      <li><a href="generated/pypulseqpp.safety.check_spl.html#pypulseqpp.safety.check_spl">check_spl() (in module pypulseqpp.safety)</a>
+</li>
       <li><a href="generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing">check_timing() (pypulseqpp.Sequence method)</a>
 </li>
       <li><a href="generated/pypulseqpp.sequences.ProtocolParameter.choices.html#pypulseqpp.sequences.ProtocolParameter.choices">choices (pypulseqpp.sequences.ProtocolParameter attribute)</a>
@@ -754,9 +760,11 @@
 </li>
       <li><a href="generated/pypulseqpp.Sequence.copy_definitions.html#pypulseqpp.Sequence.copy_definitions">copy_definitions() (pypulseqpp.Sequence method)</a>
 </li>
-      <li><a href="generated/pypulseqpp.safety.ChronaxieModel.count.html#pypulseqpp.safety.ChronaxieModel.count">count() (pypulseqpp.safety.ChronaxieModel method)</a>
+      <li><a href="generated/pypulseqpp.safety.AcousticResponse.count.html#pypulseqpp.safety.AcousticResponse.count">count() (pypulseqpp.safety.AcousticResponse method)</a>
 
       <ul>
+        <li><a href="generated/pypulseqpp.safety.ChronaxieModel.count.html#pypulseqpp.safety.ChronaxieModel.count">(pypulseqpp.safety.ChronaxieModel method)</a>
+</li>
         <li><a href="generated/pypulseqpp.safety.ForbiddenBand.count.html#pypulseqpp.safety.ForbiddenBand.count">(pypulseqpp.safety.ForbiddenBand method)</a>
 </li>
         <li><a href="generated/pypulseqpp.safety.VopModel.count.html#pypulseqpp.safety.VopModel.count">(pypulseqpp.safety.VopModel method)</a>
@@ -944,6 +952,8 @@
 </li>
       <li><a href="generated/pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand">ForbiddenBand (class in pypulseqpp.safety)</a>
 </li>
+      <li><a href="generated/pypulseqpp.safety.AcousticResponse.frequency_step.html#pypulseqpp.safety.AcousticResponse.frequency_step">frequency_step (pypulseqpp.safety.AcousticResponse attribute)</a>
+</li>
       <li><a href="generated/pypulseqpp.sequences.FrequencySelectiveExcitation.html#pypulseqpp.sequences.FrequencySelectiveExcitation">FrequencySelectiveExcitation (class in pypulseqpp.sequences)</a>
 </li>
       <li><a href="generated/sequences/fse3D_sequence.html#pypulseqpp.sequences.fse3D_sequence">fse3D_sequence() (in module pypulseqpp.sequences)</a>
@@ -1064,9 +1074,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.sequences.IhMtPreparation.html#pypulseqpp.sequences.IhMtPreparation">IhMtPreparation (class in pypulseqpp.sequences)</a>
 </li>
-      <li><a href="generated/pypulseqpp.safety.ChronaxieModel.index.html#pypulseqpp.safety.ChronaxieModel.index">index() (pypulseqpp.safety.ChronaxieModel method)</a>
+      <li><a href="generated/pypulseqpp.safety.AcousticResponse.index.html#pypulseqpp.safety.AcousticResponse.index">index() (pypulseqpp.safety.AcousticResponse method)</a>
 
       <ul>
+        <li><a href="generated/pypulseqpp.safety.ChronaxieModel.index.html#pypulseqpp.safety.ChronaxieModel.index">(pypulseqpp.safety.ChronaxieModel method)</a>
+</li>
         <li><a href="generated/pypulseqpp.safety.ForbiddenBand.index.html#pypulseqpp.safety.ForbiddenBand.index">(pypulseqpp.safety.ForbiddenBand method)</a>
 </li>
         <li><a href="generated/pypulseqpp.safety.VopModel.index.html#pypulseqpp.safety.VopModel.index">(pypulseqpp.safety.VopModel method)</a>
@@ -1512,6 +1524,8 @@
         <li><a href="generated/pypulseqpp.Sequence.read.html#pypulseqpp.Sequence.read">(pypulseqpp.Sequence method)</a>
 </li>
       </ul></li>
+      <li><a href="generated/pypulseqpp.safety.read_acoustic_response.html#pypulseqpp.safety.read_acoustic_response">read_acoustic_response() (in module pypulseqpp.safety)</a>
+</li>
       <li><a href="generated/pypulseqpp.io.read_chain.html#pypulseqpp.io.read_chain">read_chain() (in module pypulseqpp.io)</a>
 </li>
       <li><a href="generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands">read_forbidden_bands() (in module pypulseqpp.safety)</a>
@@ -1908,11 +1922,13 @@
 </li>
       <li><a href="generated/pypulseqpp.safety.ForbiddenBand.tolerance.html#pypulseqpp.safety.ForbiddenBand.tolerance">tolerance (pypulseqpp.safety.ForbiddenBand attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.traj_to_grad.html#pypulseqpp.traj_to_grad">traj_to_grad() (in module pypulseqpp)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/pypulseqpp.TransformFOV.trajectories.html#pypulseqpp.TransformFOV.trajectories">trajectories() (pypulseqpp.TransformFOV method)</a>
+</li>
+      <li><a href="generated/pypulseqpp.safety.AcousticResponse.transfer.html#pypulseqpp.safety.AcousticResponse.transfer">transfer (pypulseqpp.safety.AcousticResponse attribute)</a>
 </li>
       <li><a href="generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV">TransformFOV (class in pypulseqpp)</a>
 </li>

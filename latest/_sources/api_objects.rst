@@ -195,6 +195,10 @@ from.
    check_pns
    read_safe_model
    ChronaxieModel
+   check_spl
+   read_acoustic_response
+   AcousticResponse
+   a_weighting
    check_sar
    read_vops
    example_vops
