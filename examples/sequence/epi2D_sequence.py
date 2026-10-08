@@ -224,7 +224,9 @@ def epi2d(
     multiband : int, default=1
         Slices excited at once. It must divide ``n_slices``.
     fat_saturation : bool, default=False
-        Saturate fat before every shot.
+        Saturate fat before every shot, at the flip
+        :func:`~pypulseqpp.sequences.fat_null_flip_deg` gives, which leaves it
+        at zero when the shot's excitation comes.
     n_dummy : int or None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots per slice before each packet.
@@ -405,6 +407,19 @@ def epi2d(
         )
     if cycle is None:
         cycle = max(map(len, packets)) * shot_duration
+    if fatsat is not None:
+        # The flip that leaves fat at zero when the train's excitation comes,
+        # in the steady state of one saturation every shot. The pulse's
+        # duration is its bandwidth's, so the timing stands.
+        to_excitation = (
+            fatsat.duration - fatsat.center + float(epi.rf.delay) + float(epi.rf.center)
+        )
+        fatsat = sequences.FatSaturation(
+            system,
+            flip_angle_deg=sequences.fat_null_flip_deg(to_excitation, shot_duration),
+            voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+        )
+        prep = [fatsat]
     pads = {
         size: pp.round_to_raster(cycle - size * shot_duration, raster) + raster
         for size in {len(packet) for packet in packets}
