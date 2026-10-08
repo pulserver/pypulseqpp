@@ -561,8 +561,9 @@ def epi2d(
         """Add one shot of slice (multiband group) ``g``; ``frame=None`` is a dummy.
 
         ``pad`` is the closing delay the shot would have without echo shift,
-        in s. ``reversed_encode`` negates every phase-encode event and keeps
-        the labels of the forward shot.
+        in s. ``reversed_encode`` negates every phase-encode event, so each
+        line L of the forward shot is read at its mirror, ``LIN = n_y - L``;
+        the mirror of line 0 lies outside the matrix and is played unsampled.
         """
         train = shot_trains[shot]
         train.rf.freq_offset = selection_amplitude * centers[g]
@@ -582,7 +583,7 @@ def epi2d(
             if not n_dummy:
                 del flags["ONCE"]
         label_events = labels(**flags)
-        train.shot_labels[0].value = origin
+        train.shot_labels[0].value = n_y - origin if reversed_encode else origin
         # The prewinder and the rewinder closing the shot are scaled alike.
         ky = sign * (origin - n_y // 2) / (n_y / 2)
         swap = {
@@ -601,6 +602,15 @@ def epi2d(
                 for blip in train.gy_blips
                 if blip is not None
             )
+            swap.update(
+                (
+                    id(step[0]),
+                    pp.make_label(type="INC", label="LIN", value=-step[0].value),
+                )
+                for step in train.line_labels
+                if step
+            )
+        lines = origin + np.asarray(train.order).reshape(train.etl, -1)[:, 0]
         step = shot * train.echo_shift_step
         wait_shift = getattr(train, "wait_shift", None)
         if wait_shift is not None:
@@ -614,15 +624,18 @@ def epi2d(
                 label_events = []
         navigator = {id(event) for event in getattr(train, "gx_navigator", ())}
         readouts = {id(event) for event in train.gx}
-        polarity = 0
+        polarity, line = 0, 0
         for index, block in enumerate(train.blocks):
             head = block[0]
             if head is wait_tr:
                 continue
+            reading = id(head) in readouts and id(head) not in navigator
+            sampled = acquire and not (reversed_encode and reading and lines[line] == 0)
+            line += reading
             events = [
                 swap.get(id(event), event)
                 for event in block
-                if acquire or event.type != "adc"
+                if sampled or event.type != "adc"
             ]
             if index == 0:
                 events += [*label_events, *([output_pulse] if output else [])]
