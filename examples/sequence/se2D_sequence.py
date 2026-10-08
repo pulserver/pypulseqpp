@@ -21,6 +21,9 @@ CRUSHER_CYCLES = 4.0
 #: Dephasing left on the readout axis at the end of each repetition, in
 #: cycles across one voxel.
 SPOILING_CYCLES = 4.0
+#: Sinc design of the spatial saturation bands.
+BAND_DURATION = 3e-3
+BAND_TIME_BW_PRODUCT = 4.0
 
 
 def se2d(
@@ -42,6 +45,16 @@ def se2d(
     n_dummy: int = 0,
     readout_oversampling: float = 2.0,
     n_acs_y: int = 24,
+    sat1_normal_x: float = 0.0,
+    sat1_normal_y: float = 0.0,
+    sat1_normal_z: float = 0.0,
+    sat1_position: float = 0.0,
+    sat1_thickness: float = 0.0,
+    sat2_normal_x: float = 0.0,
+    sat2_normal_y: float = 0.0,
+    sat2_normal_z: float = 0.0,
+    sat2_position: float = 0.0,
+    sat2_thickness: float = 0.0,
 ) -> pp.Sequence:
     """Multi-slice 2D Cartesian spin echo: one line per excitation.
 
@@ -50,6 +63,11 @@ def se2d(
     are offset to the slice, each at its own selection gradient. Slices are
     dealt into packets, and ordered within one, as :mod:`gre2D_sequence` deals
     them; under undersampling the calibration lines are acquired first.
+
+    Up to two spatial saturation bands (``sat1_*``, ``sat2_*``) are played
+    before every excitation. Each lies in the physical frame, centred
+    ``position`` from the isocentre along its normal, and the field-of-view
+    offset and rotation leave it there.
 
     Parameters
     ----------
@@ -91,6 +109,20 @@ def se2d(
     n_acs_y : int, default=24
         Fully sampled calibration lines at the centre of k-space, acquired
         ahead of the rest when ``ry > 1``.
+    sat1_normal_x, sat1_normal_y, sat1_normal_z : float, default=0.0
+        Normal of the first spatial saturation band along the physical
+        gradient axes. Normalised; not the zero vector for a band with a
+        thickness.
+    sat1_position : float, default=0.0
+        Centre of the first band along its normal, from the isocentre (m).
+    sat1_thickness : float, default=0.0
+        Thickness of the first band (m). Zero plays no band.
+    sat2_normal_x, sat2_normal_y, sat2_normal_z : float, default=0.0
+        Normal of the second band, as for the first.
+    sat2_position : float, default=0.0
+        Centre of the second band along its normal, from the isocentre (m).
+    sat2_thickness : float, default=0.0
+        Thickness of the second band (m). Zero plays no band.
 
     Returns
     -------
@@ -101,8 +133,9 @@ def se2d(
     ------
     ValueError
         If a partial Fourier fraction is outside ``[0.75, 1]``, ``ry`` is
-        below one, or the TE or TR is shorter than the pulses and the
-        readout take.
+        below one, a saturation band has a thickness and a zero normal or a
+        negative thickness, or the TE or TR is shorter than the pulses and
+        the readout take.
 
     Examples
     --------
@@ -179,10 +212,30 @@ def se2d(
     wait_half_te = pp.make_delay(wait) if wait > 0 else None
     echo_time = 2 * (half_floor + wait)
 
+    bands = sequences.spatial_saturations(
+        system,
+        (
+            (
+                (sat1_normal_x, sat1_normal_y, sat1_normal_z),
+                sat1_position,
+                sat1_thickness,
+            ),
+            (
+                (sat2_normal_x, sat2_normal_y, sat2_normal_z),
+                sat2_position,
+                sat2_thickness,
+            ),
+        ),
+        duration_s=BAND_DURATION,
+        time_bw_product=BAND_TIME_BW_PRODUCT,
+        voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+    )
+    band_duration = sum(band.duration for band in bands)
+
     # Slices one TR cannot hold are dealt round-robin into packets, even
     # slices of a packet first; every shot closes with a pure delay, as
     # gre2D_sequence closes them.
-    shot = exc.duration + wait + ro.duration + raster
+    shot = band_duration + exc.duration + wait + ro.duration + raster
     per_packet = n_slices if tr is None else max(1, int(tr / shot + 1e-9))
     n_packets = -(-n_slices // per_packet)
     dealt = [range(start, n_slices, n_packets) for start in range(n_packets)]
@@ -237,6 +290,10 @@ def se2d(
                 SLC=s, LIN=line, IMA=is_calibration, SEG=not is_calibration, ONCE=0
             )
 
+        for band in bands:
+            for block in band.blocks:
+                seq.add_block(*block, *label_events)
+                label_events = []
         seq.add_block(exc.rf, exc.gz, *label_events)
         seq.add_block(exc.gz_reph)
         if wait_half_te is not None:

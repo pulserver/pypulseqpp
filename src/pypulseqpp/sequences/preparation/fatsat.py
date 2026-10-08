@@ -1,34 +1,27 @@
-"""Fat saturation, optionally confined to a spatial band on a chosen axis."""
+"""Fat saturation of the whole transmit volume."""
 
 from __future__ import annotations
 
 __all__ = ["FatSaturation"]
-
-from typing import Any
 
 import numpy as np
 
 import pypulseqpp as pp
 
 from ..excitation._base import RfModule, rf_reference
-from ._common import AXES, spoiler_gradients
+from ._common import spoiler_gradients
 
 #: Where the main fat resonance sits relative to water. Negative: fat precesses
 #: more slowly, so it is downfield of water in frequency.
 FAT_SHIFT_PPM = -3.45
 
-#: The transform exemptions a placed module carries. Its pulse already points
-#: where it was told to, so nothing downstream may point it again.
-FOV_EXEMPT_FLAGS = ("NOPOS", "NOROT")
-
 
 class FatSaturation(RfModule):
-    """SLR fat saturation with a three-axis spoiler and optional spatial selection.
+    """Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.
 
-    Position and orientation place the selection band at construction.
-    NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV
-    placement leaves the band unchanged. Position is specified in millimetres
-    along the channel axes; the RF frequency offset remains in ppm.
+    The pulse plays no gradient, so a field-of-view offset or rotation applied
+    afterwards leaves it as it is: it saturates fat wherever the prescription
+    puts the image.
 
     Parameters
     ----------
@@ -45,22 +38,6 @@ class FatSaturation(RfModule):
         duration, which is ``time_bw_product / bandwidth_hz``.
     time_bw_product : float, default=2.0
         Time-bandwidth product.
-    thickness_m : float, default=None
-        Band thickness (m). ``None`` saturates the whole transmit volume,
-        which is the usual fat saturation and the only form that needs no
-        gradient.
-    axis : {'z', 'x', 'y'}, default='z'
-        Band normal, before ``orientation`` turns it.
-    position_mm : sequence of float, default=None
-        ``(dx, dy, dz)`` offset of the band from the isocentre, along the
-        channel axes, in millimetres. Needs ``thickness_m``.
-    orientation : array_like or scipy.spatial.transform.Rotation, default=None
-        A ``(3, 3)`` matrix, or a rotation, taking the channel axes to the
-        axes the band lies on: the band's own rotation. Needs ``thickness_m``.
-    use_rotation_extension : bool, default=True
-        Encode the orientation as a ``ROTATIONS`` extension rather than
-        rotating the gradient waveforms. Only ``True`` is implemented; see
-        :class:`~pypulseqpp.TransformFOV`.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.
     voxel_size_m : float, default=0.001
@@ -69,17 +46,10 @@ class FatSaturation(RfModule):
     Attributes
     ----------
     rf_prep : RfEvent
-        The saturation pulse, as placed.
-    gz : GradEvent
-        Its selection gradient. Only when ``thickness_m`` was given, and named
-        for the channel axis it is drawn on whatever ``axis`` was.
+        The saturation pulse.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
         Closing spoiler on all three axes.
-    prep_labels : list of LabelSetEvent
-        ``NOPOS`` and ``NOROT``, set on the first block.
-    reset_labels : list of LabelSetEvent
-        The same two cleared, on the last.
-    freq_offset_ppm : float, default=FAT_SHIFT_PPM
+    freq_offset_ppm : float
         The fat offset the pulse carries (ppm).
     freq_offset_hz : float
         What that comes to at ``system.B0`` (Hz), for reference; the pulse
@@ -88,9 +58,8 @@ class FatSaturation(RfModule):
     Raises
     ------
     ValueError
-        If a bandwidth, thickness or voxel size is not positive, ``axis`` is
-        not a gradient channel, the spoiler was asked for zero cycles, or a
-        position or orientation was given for a band that has no thickness.
+        If a bandwidth, time-bandwidth product or voxel size is not positive,
+        or the spoiler was asked for zero cycles.
 
     Examples
     --------
@@ -101,7 +70,7 @@ class FatSaturation(RfModule):
     (2, -441)
 
     >>> [event.type for event in fatsat.blocks[0]]
-    ['rf', 'labelset', 'labelset']
+    ['rf']
 
     The pulse with its spoiler, and the longitudinal magnetization left
     across the spectrum. The band sits at the fat resonance for the field
@@ -129,11 +98,6 @@ class FatSaturation(RfModule):
         flip_angle_deg: float = 110.0,
         bandwidth_hz: float = 250.0,
         time_bw_product: float = 2.0,
-        thickness_m: float | None = None,
-        axis: str = "z",
-        position_mm: Any = None,
-        orientation: Any = None,
-        use_rotation_extension: bool = True,
         spoiling_cycles: float = 4.0,
         voxel_size_m: float = 1e-3,
     ) -> None:
@@ -146,101 +110,26 @@ class FatSaturation(RfModule):
                 "a fat saturation has to be spoiled: without it the fat the pulse just "
                 "tipped over stays in the transverse plane and is read with the water"
             )
-        if axis not in AXES:
-            raise ValueError(f"axis must be one of {AXES}, got {axis!r}")
-        if thickness_m is not None and thickness_m <= 0:
-            raise ValueError("thickness_m must be positive")
-        if thickness_m is None and (position_mm is not None or orientation is not None):
-            raise ValueError(
-                "a saturation without a thickness covers the whole transmit volume, so it "
-                "has nowhere to be put; give thickness_m to make it a band"
-            )
 
-        designed = pp.make_slr_pulse(
+        rf_prep = pp.make_slr_pulse(
             np.deg2rad(flip_angle_deg),
             duration=time_bw_product / bandwidth_hz,
-            slice_thickness=0.0 if thickness_m is None else thickness_m,
+            slice_thickness=0.0,
             time_bw_product=time_bw_product,
             pulse_type="sat",
             freq_ppm=freq_offset_ppm,
-            return_gz=thickness_m is not None,
+            return_gz=False,
             use="saturation",
             system=system,
         )
-        rf_prep, gz = (
-            (designed[0], designed[1]) if thickness_m is not None else (designed, None)
-        )
-        if gz is not None:
-            gz.channel = axis
-
         gx_spoil, gy_spoil, gz_spoil = spoiler_gradients(
             system, spoiling_cycles, voxel_size_m
         )
 
-        designed_seq = pp.Sequence(system)
-        if gz is not None:
-            designed_seq.add_block(rf_prep, gz)
-        else:
-            designed_seq.add_block(rf_prep)
-        designed_seq.add_block(gx_spoil, gy_spoil, gz_spoil)
-
-        if position_mm is not None or orientation is not None:
-            # Over the pulse block only. The spoiler has no orientation to get
-            # right -- it dephases the same however it is turned -- and turning
-            # it would mix three lobes each already solved against the full
-            # slew limit, so the rotated sum would exceed it.
-            designed_seq = pp.TransformFOV(
-                rotation=_as_matrix(orientation),
-                # A shift is written in metres; the argument is millimetres
-                # because a prescription is.
-                translation=None
-                if position_mm is None
-                else tuple(float(v) * 1e-3 for v in position_mm),
-                use_rotation_extension=use_rotation_extension,
-                system=system,
-            ).apply_to_sequence(
-                designed_seq,
-                time_range=[0.0, 0.5 * designed_seq.block_durations[1]],
-            )
-
-        # Rebuilt rather than edited in place: the placement rewrote the pulse,
-        # so what this module plays -- and therefore publishes -- is the
-        # transformed event, and the flags go on with it. The exemption belongs
-        # on the block that carries the pulse, and a block of its own would be
-        # a block of dead time.
-        placed = [designed_seq.get_block(index) for index in designed_seq.block_events]
-        rf_prep, gz = placed[0].rf, placed[0].gz
-        gx_spoil, gy_spoil, gz_spoil = placed[-1].gx, placed[-1].gy, placed[-1].gz
-
-        prep_labels = [
-            pp.make_label(type="SET", label=name, value=1) for name in FOV_EXEMPT_FLAGS
-        ]
-        # Cleared on the way out: Pulseq labels are sticky, so an exemption left
-        # set would go on exempting every block after this module.
-        reset_labels = [
-            pp.make_label(type="SET", label=name, value=0) for name in FOV_EXEMPT_FLAGS
-        ]
-
         self.seq = pp.Sequence(system)
-        for index, block in enumerate(placed):
-            self.seq.add_block(
-                *(
-                    event
-                    for event in pp.block_to_events(block)
-                    if hasattr(event, "type")
-                ),
-                *(prep_labels if index == 0 else ()),
-                *(reset_labels if index == len(placed) - 1 else ()),
-            )
+        self.seq.add_block(rf_prep)
+        self.seq.add_block(gx_spoil, gy_spoil, gz_spoil)
 
         self.center = rf_reference(rf_prep)
         self.freq_offset_ppm = float(freq_offset_ppm)
         self.freq_offset_hz = float(1e-6 * system.gamma * system.B0 * freq_offset_ppm)
-
-
-def _as_matrix(orientation: Any) -> np.ndarray | None:
-    if orientation is None:
-        return None
-    if hasattr(orientation, "as_matrix"):
-        return orientation.as_matrix()
-    return np.asarray(orientation, dtype=float)

@@ -41,9 +41,10 @@ from .preparation import (
     InversionPreparation,
     MtPreparation,
     OffResonanceSaturation,
-    SaturationBand,
+    SpatialSaturation,
     T1T2Preparation,
     T2Preparation,
+    spatial_saturations,
 )
 from .readout import (
     Arbitrary,
@@ -97,7 +98,8 @@ PREPARATION = (
     "InversionPreparation",
     "MtPreparation",
     "OffResonanceSaturation",
-    "SaturationBand",
+    "SpatialSaturation",
+    "spatial_saturations",
     "T1T2Preparation",
     "T2Preparation",
 )

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from .band import SaturationBand
 from .diffusion import DiffusionPreparation
 from .fatsat import FatSaturation
 from .inversion import InversionPreparation
@@ -12,6 +11,7 @@ from .saturation import (
     MtPreparation,
     OffResonanceSaturation,
 )
+from .spatialsat import SpatialSaturation, spatial_saturations
 from .t2prep import T1T2Preparation, T2Preparation
 
 __all__ = [
@@ -22,7 +22,8 @@ __all__ = [
     "InversionPreparation",
     "MtPreparation",
     "OffResonanceSaturation",
-    "SaturationBand",
+    "SpatialSaturation",
     "T1T2Preparation",
     "T2Preparation",
+    "spatial_saturations",
 ]
