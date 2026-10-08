@@ -518,6 +518,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Sequence functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation-choice">Excitation choice</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dummy-repetitions">Dummy repetitions</a></li>
 </ul>
             </nav>
         </div>
@@ -636,6 +637,34 @@ thickness is off.</p>
 </table>
 </div>
 </section>
+<section id="dummy-repetitions">
+<h2>Dummy repetitions<a class="headerlink" href="#dummy-repetitions" title="Link to this heading">#</a></h2>
+<p>A sequence function whose <code class="docutils literal notranslate"><span class="pre">n_dummy</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many dummy repetitions
+as bring its spoiled steady state within 1 % for a T1 of
+<code class="docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code>, from its repetition time and flip angle.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">steady_state_dummies</span></code></a></p></td>
+<td><p>Repetition time (s), flip angle (deg), T1 (s), tolerance</p></td>
+<td><p>Repetitions</p></td>
+<td><p>The repetitions to play before acquiring.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.STEADY_STATE_T1_S.html#pypulseqpp.sequences.STEADY_STATE_T1_S" title="pypulseqpp.sequences.STEADY_STATE_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code></a></p></td>
+<td><p>—</p></td>
+<td><p>1.5 s</p></td>
+<td><p>T1 the dummies are counted for: grey matter at 3 T.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 
 
@@ -688,6 +717,7 @@ thickness is off.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Sequence functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation-choice">Excitation choice</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dummy-repetitions">Dummy repetitions</a></li>
 </ul>
   </nav></div>
 

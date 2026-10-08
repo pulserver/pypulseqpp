@@ -578,8 +578,9 @@ packet.</p></li>
 <li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested receiver bandwidth (Hz).</p></li>
 <li><p><strong>ry</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=1</em>) – Angular undersampling: one blade in every <code class="docutils literal notranslate"><span class="pre">ry</span></code> of the Nyquist set
 is played.</p></li>
-<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Non-acquiring repetitions, at the first blade’s angle, before each
-packet.</p></li>
+<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring repetitions, at the first blade’s angle, before each
+packet.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
 <li><p><strong>blade_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=16</em>) – Phase-encode lines per blade, at most <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p></li>
 </ul>
 </dd>

@@ -584,8 +584,9 @@ line (s). <code class="docutils literal notranslate"><span class="pre">None</spa
 pass.</p></li>
 <li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested receiver bandwidth (Hz).</p></li>
 <li><p><strong>crusher_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each crusher beside the refocusing pulse winds.</p></li>
-<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=0</em>) – Non-acquiring blades, at the first blade’s angle, before the first
-acquired blade of each pass.</p></li>
+<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring blades, at the first blade’s angle, before the first
+acquired blade of each pass.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
 <li><p><strong>n_gain_calibration_readouts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Written as the <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code> definition. <code class="docutils literal notranslate"><span class="pre">None</span></code>
 is one per slice.</p></li>
 </ul>

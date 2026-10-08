@@ -245,6 +245,8 @@ from.
    EXCITATIONS
    make_excitation
    spatial_saturations
+   steady_state_dummies
+   STEADY_STATE_T1_S
 
 .. currentmodule:: pypulseqpp
 

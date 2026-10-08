@@ -50,3 +50,14 @@ thickness is off.
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.spatial_saturations` | System, `(normal, position, thickness)` per band | List of `SpatialSaturation` | The bands a sequence function plays, those with a thickness. |
+
+## Dummy repetitions
+
+A sequence function whose `n_dummy` is `None` plays as many dummy repetitions
+as bring its spoiled steady state within 1 % for a T1 of
+`STEADY_STATE_T1_S`, from its repetition time and flip angle.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), tolerance | Repetitions | The repetitions to play before acquiring. |
+| {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 1.5 s | T1 the dummies are counted for: grey matter at 3 T. |
