@@ -330,6 +330,15 @@ def test_the_reference_defines_the_echo_and_repetition_time_of_the_main_scan(cas
         assert reference.definitions[key] == pytest.approx(scan.main.definitions[key])
 
 
+@pytest.mark.parametrize("prescan", ["calibration", "reference"])
+def test_each_prescan_of_a_2d_scan_places_its_slices_as_the_scan_does(prescan):
+    scan = scan2d(n_slices=3, slice_spacing=2e-3, ry=2, n_acs_y=4)
+    seq = scan.prescan(prescan)
+
+    for key in ("SlicePositions", "SliceThickness", "SliceGap"):
+        assert seq.definitions[key] == pytest.approx(scan.main.definitions[key]), key
+
+
 # -- volumes, dummies and the output ----------------------------------------
 
 
