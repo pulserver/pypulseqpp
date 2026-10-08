@@ -61,3 +61,10 @@ as bring its spoiled steady state within 1 % for a T1 of
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), tolerance | Repetitions | The repetitions to play before acquiring. |
 | {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 1.5 s | T1 the dummies are counted for: grey matter at 3 T. |
+
+## Fat saturation timing
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.sequences.fat_null_flip_deg` | Delay to the excitation (s), period (s), fat T1 (s) | Flip angle (deg) | The fat-saturation flip that leaves fat at zero at the excitation, in the steady state. |
+| {obj}`~pypulseqpp.sequences.FAT_T1_S` | — | 0.37 s | T1 of fat at 3 T. |

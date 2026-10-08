@@ -183,3 +183,56 @@ def test_an_unspoiled_saturation_is_refused(system):
 def test_it_checks_its_arguments(system, kwargs, message):
     with pytest.raises(ValueError, match=message):
         design.FatSaturation(system, **kwargs)
+
+
+# ----------------------------------------------------------------------
+# The flip that nulls fat at the excitation
+# ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("delay", "period"), [(5e-3, 50e-3), (3e-3, 0.5), (10e-3, 30e-3)]
+)
+def test_the_null_flip_leaves_fat_at_zero_at_the_excitation_in_the_steady_state(
+    delay, period
+):
+    flip = np.deg2rad(design.fat_null_flip_deg(delay, period))
+    t1 = design.FAT_T1_S
+    at_excitation = 1.0
+    for _ in range(2000):
+        before = 1.0 - np.exp(-(period - delay) / t1)  # recovered from zero
+        at_excitation = 1.0 - (1.0 - before * np.cos(flip)) * np.exp(-delay / t1)
+    assert at_excitation == pytest.approx(0.0, abs=1e-12)
+    assert 90.0 < np.rad2deg(flip) < 180.0
+
+
+def test_fat_recovering_faster_than_any_flip_can_null_is_refused():
+    with pytest.raises(ValueError, match="recovers too fast"):
+        design.fat_null_flip_deg(20e-3, 25e-3)
+
+
+def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
+    monkeypatch,
+):
+    asked = []
+    null_flip = design.fat_null_flip_deg
+
+    def recorded(delay, period, **kwargs):
+        asked.append((delay, period, null_flip(delay, period, **kwargs)))
+        return asked[-1][2]
+
+    monkeypatch.setattr(design, "fat_null_flip_deg", recorded)
+    *_, seq = design.epi2D_sequence(n_x=32, n_y=16, n_dummy=0, fat_saturation=True)
+    saturation = next(
+        rf
+        for i in seq.block_events
+        if (rf := seq.get_block(i).rf) is not None and rf.use == "saturation"
+    )
+
+    ((delay, period, flip),) = asked
+    assert 0 < delay < period
+    assert 90.0 < flip < 180.0
+    expected = design.FatSaturation(seq.system, flip_angle_deg=flip).rf_prep
+    np.testing.assert_allclose(
+        np.abs(saturation.signal), np.abs(expected.signal), rtol=1e-6
+    )

@@ -35,6 +35,7 @@ from .excitation import (
     make_excitation,
 )
 from .preparation import (
+    FAT_T1_S,
     BlochSiegertPreparation,
     DiffusionPreparation,
     FatSaturation,
@@ -45,6 +46,7 @@ from .preparation import (
     SpatialSaturation,
     T1T2Preparation,
     T2Preparation,
+    fat_null_flip_deg,
     spatial_saturations,
 )
 from .readout import (
@@ -94,7 +96,9 @@ EXCITATION = (
 PREPARATION = (
     "BlochSiegertPreparation",
     "DiffusionPreparation",
+    "FAT_T1_S",
     "FatSaturation",
+    "fat_null_flip_deg",
     "IhMtPreparation",
     "InversionPreparation",
     "MtPreparation",
