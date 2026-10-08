@@ -174,6 +174,44 @@ def test_a_spsp_pulse_refuses_what_the_hardware_cannot_do(system):
         pp.make_spsp_pulse(np.deg2rad(30), 10e-3, 300.0, n_subpulses=2, system=system)
 
 
+SLOW = pp.Opts(
+    max_grad=40 / np.sqrt(3),
+    grad_unit="mT/m",
+    max_slew=150 / np.sqrt(3),
+    slew_unit="T/m/s",
+    B0=3.0,
+)
+WATER_FAT_HZ = 3.45e-6 * SLOW.gamma * SLOW.B0
+
+
+def _ramps(gz):
+    """The steepest slope and the first ramp's duration of a trapezoidal train."""
+    tt, waveform = np.asarray(gz.tt), np.asarray(gz.waveform)
+    return np.max(np.abs(np.diff(waveform) / np.diff(tt))), tt[1] - tt[0]
+
+
+@pytest.mark.parametrize("thickness", [24e-3, 48e-3, 96e-3])
+def test_a_spsp_slab_lengthens_its_ramps_only_as_far_as_the_slew_needs(thickness):
+    """A tenth of each lobe while that is steep enough, and longer for a thinner slab."""
+    _, gz, _ = pp.make_spsp_pulse(np.deg2rad(20), thickness, WATER_FAT_HZ, system=SLOW)
+    steepest, ramp = _ramps(gz)
+    lobe = (
+        round(3.0 / WATER_FAT_HZ / 10 / SLOW.grad_raster_time) * SLOW.grad_raster_time
+    )
+
+    assert steepest <= SLOW.max_slew * (1 + 1e-9)
+    tenth = round(0.1 * lobe / SLOW.grad_raster_time) * SLOW.grad_raster_time
+    if thickness >= 48e-3:
+        assert ramp == pytest.approx(tenth)
+    else:
+        assert ramp > tenth
+
+
+def test_a_spsp_slab_too_thin_for_the_slew_is_refused_saying_so():
+    with pytest.raises(ValueError, match="too thin"):
+        pp.make_spsp_pulse(np.deg2rad(20), 12e-3, WATER_FAT_HZ, system=SLOW)
+
+
 def test_sms_bands_are_symmetric_and_include_zero(system):
     base = pp.make_sinc_pulse(flip_angle=np.deg2rad(30), duration=2e-3, system=system)
     for count, expected in (
