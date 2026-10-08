@@ -125,7 +125,7 @@ slots nearest the effective-TE echo of the central shots, and within each group 
 are assigned to shots in order of angle. Colour gives the train length and
 TR of the shot that acquired each view.
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-130
+.. GENERATED FROM PYTHON SOURCE LINES 108-141
 
 
 
@@ -139,7 +139,7 @@ TR of the shot that acquired each view.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 131-141
+.. GENERATED FROM PYTHON SOURCE LINES 142-152
 
 References
 ----------
@@ -155,7 +155,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.831 seconds)
+   **Total running time of the script:** (0 minutes 2.459 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

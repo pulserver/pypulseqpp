@@ -29,7 +29,7 @@ sample occurs one TE later. The ordering assigns recovery times within each
 inversion cycle to ``(line, partition)`` views. MPRAGE is used for
 high-resolution 3D T1-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 13-59
+.. GENERATED FROM PYTHON SOURCE LINES 13-73
 
 
 
@@ -38,7 +38,7 @@ high-resolution 3D T1-weighted structural imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-69
+.. GENERATED FROM PYTHON SOURCE LINES 74-83
 
 Timing structure
 ----------------
@@ -50,7 +50,7 @@ partition provide a compact timing diagram. Clinical matrices typically
 require inversion times of several hundred milliseconds and much
 longer readout trains.
 
-.. GENERATED FROM PYTHON SOURCE LINES 69-79
+.. GENERATED FROM PYTHON SOURCE LINES 83-93
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-82
+.. GENERATED FROM PYTHON SOURCE LINES 94-96
 
 .. code-block:: Python
 
@@ -95,7 +95,7 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-94
+.. GENERATED FROM PYTHON SOURCE LINES 97-108
 
 Sampling order
 --------------
@@ -109,7 +109,7 @@ inversion-pulse centre to that view's excitation-pulse centre; the central
 ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
 acquired later in the recovery.
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-107
+.. GENERATED FROM PYTHON SOURCE LINES 108-121
 
 .. code-block:: Python
 
@@ -117,7 +117,7 @@ acquired later in the recovery.
     protocol = mprage3D_sequence(n_x=192, n_y=128, n_z=24, ti=0.9, tr=2.3, n_dummy=0)
     print(
         f"{protocol.duration()[0]:.1f} s, "
-        f"{int(np.asarray(protocol.evaluate_labels(evolution='adc')['ECO']).max()) + 1} "
+        f"{int(_places(protocol, 'inversion').max()) + 1} "
         "readouts in the longest train, "
         f"central ADC at {(protocol.get_definition('TI')[0] + protocol.get_definition('TE')[0]) * 1e3:.1f} ms"
     )
@@ -141,7 +141,7 @@ acquired later in the recovery.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-117
+.. GENERATED FROM PYTHON SOURCE LINES 122-131
 
 Accelerated sampling
 --------------------
@@ -153,7 +153,7 @@ range of inversion-recovery weighting. Scan duration equals the number of
 inversion cycles multiplied by TR; the fully sampled calibration region still
 requires every partition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-133
+.. GENERATED FROM PYTHON SOURCE LINES 131-147
 
 .. code-block:: Python
 
@@ -186,7 +186,7 @@ requires every partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.811 seconds)
+   **Total running time of the script:** (0 minutes 0.546 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

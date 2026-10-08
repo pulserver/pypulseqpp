@@ -28,7 +28,7 @@ in-plane k-space centre; spoke and partition order determine the recovery time
 of the acquired data within and between inversion cycles. Stack-of-stars
 MPRAGE provides T1-weighted 3D structural imaging with radial sampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-58
+.. GENERATED FROM PYTHON SOURCE LINES 12-72
 
 
 
@@ -37,7 +37,7 @@ MPRAGE provides T1-weighted 3D structural imaging with radial sampling.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-66
+.. GENERATED FROM PYTHON SOURCE LINES 73-80
 
 Timing structure
 ----------------
@@ -47,7 +47,7 @@ partition and a recovery interval. ``ti=None`` and ``tr=None`` use the
 shortest timing supported by the modules. Angular undersampling leaves four
 spokes per partition and produces a compact timing diagram.
 
-.. GENERATED FROM PYTHON SOURCE LINES 66-79
+.. GENERATED FROM PYTHON SOURCE LINES 80-93
 
 .. code-block:: Python
 
@@ -77,7 +77,7 @@ spokes per partition and produces a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-82
+.. GENERATED FROM PYTHON SOURCE LINES 94-96
 
 .. code-block:: Python
 
@@ -95,7 +95,7 @@ spokes per partition and produces a compact timing diagram.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-93
+.. GENERATED FROM PYTHON SOURCE LINES 97-107
 
 Sampling order
 --------------
@@ -108,7 +108,7 @@ angles. ``TI`` ends at the first
 excitation-pulse centre; the centre of
 k-space on its spoke is sampled at ``TI + TE``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 93-102
+.. GENERATED FROM PYTHON SOURCE LINES 107-116
 
 .. code-block:: Python
 
@@ -130,14 +130,14 @@ k-space on its spoke is sampled at ``TI + TE``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 103-107
+.. GENERATED FROM PYTHON SOURCE LINES 117-121
 
 Trajectory
 ----------
 
 The spokes of every partition, over the three k-space axes, coloured by shot.
 
-.. GENERATED FROM PYTHON SOURCE LINES 107-110
+.. GENERATED FROM PYTHON SOURCE LINES 121-124
 
 .. code-block:: Python
 
@@ -159,7 +159,7 @@ The spokes of every partition, over the three k-space axes, coloured by shot.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.513 seconds)
+   **Total running time of the script:** (0 minutes 4.942 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:

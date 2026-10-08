@@ -557,7 +557,7 @@ remainder.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 12.235 seconds)
+   **Total running time of the script:** (0 minutes 6.491 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-spoiling_01_spoiling.py:

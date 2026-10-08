@@ -560,8 +560,9 @@ variable-density Poisson-disc support and assigns it to random echo
 positions with <a class="reference internal" href="../pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_shuffling_order()</span></code></a> (T2 Shuffling,
 Tamir et al., Magn Reson Med 2017;77:180-195), for an echo-resolved
 reconstruction. Every
-acquisition carries its line, partition and echo as <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code> and
-<code class="docutils literal notranslate"><span class="pre">ECO</span></code>, and calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>; under wave-CAIPI the
+acquisition carries its line and partition as <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, and,
+shuffled, its echo, the contrast an echo-resolved reconstruction resolves,
+as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>; calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>; under wave-CAIPI the
 calibration region is first acquired wave-free in trains of its own,
 marked <code class="docutils literal notranslate"><span class="pre">REF</span></code>.</p>
 <p>The refocusing angle is constant, or, under <code class="docutils literal notranslate"><span class="pre">optimized</span></code>, the angle at the
