@@ -23,6 +23,10 @@ RF_SPOILING_INCREMENT_DEG = 117.0
 #: cycles across one voxel.
 SPOILING_CYCLES = 4.0
 
+#: Sinc design of the spatial saturation bands.
+BAND_DURATION = 3e-3
+BAND_TIME_BW_PRODUCT = 4.0
+
 
 def gre2d(
     system: pp.Opts | None = None,
@@ -44,6 +48,16 @@ def gre2d(
     n_dummy: int = 16,
     readout_oversampling: float = 2.0,
     n_acs_y: int = 24,
+    sat1_normal_x: float = 0.0,
+    sat1_normal_y: float = 0.0,
+    sat1_normal_z: float = 0.0,
+    sat1_position: float = 0.0,
+    sat1_thickness: float = 0.0,
+    sat2_normal_x: float = 0.0,
+    sat2_normal_y: float = 0.0,
+    sat2_normal_z: float = 0.0,
+    sat2_position: float = 0.0,
+    sat2_thickness: float = 0.0,
 ) -> pp.Sequence:
     """RF-spoiled, multi-slice 2D Cartesian gradient echo.
 
@@ -53,6 +67,11 @@ def gre2d(
     repetitions, and the last slice of a packet waits out the rest of the TR.
     Under undersampling the calibration lines are acquired first, marked
     ``IMA``.
+
+    Up to two spatial saturation bands (``sat1_*``, ``sat2_*``) are played
+    before every excitation. Each lies in the physical frame, centred
+    ``position`` from the isocentre along its normal, and the field-of-view
+    offset and rotation leave it there.
 
     Parameters
     ----------
@@ -98,6 +117,20 @@ def gre2d(
     n_acs_y : int, default=24
         Fully sampled calibration lines at the centre of k-space, acquired
         ahead of the rest when ``ry > 1``.
+    sat1_normal_x, sat1_normal_y, sat1_normal_z : float, default=0.0
+        Normal of the first spatial saturation band along the physical
+        gradient axes. Normalised; not the zero vector for a band with a
+        thickness.
+    sat1_position : float, default=0.0
+        Centre of the first band along its normal, from the isocentre (m).
+    sat1_thickness : float, default=0.0
+        Thickness of the first band (m). Zero plays no band.
+    sat2_normal_x, sat2_normal_y, sat2_normal_z : float, default=0.0
+        Normal of the second band, as for the first.
+    sat2_position : float, default=0.0
+        Centre of the second band along its normal, from the isocentre (m).
+    sat2_thickness : float, default=0.0
+        Thickness of the second band (m). Zero plays no band.
 
     Returns
     -------
@@ -108,7 +141,8 @@ def gre2d(
     ------
     ValueError
         If a partial Fourier fraction is outside ``[0.75, 1]``, ``ry`` is
-        below one, or the TR cannot hold one slice.
+        below one, a saturation band has a thickness and a zero normal or a
+        negative thickness, or the TR cannot hold one slice.
 
     Examples
     --------
@@ -155,11 +189,31 @@ def gre2d(
         spoiling_cycles=SPOILING_CYCLES,
     )
 
+    bands = sequences.spatial_saturations(
+        system,
+        (
+            (
+                (sat1_normal_x, sat1_normal_y, sat1_normal_z),
+                sat1_position,
+                sat1_thickness,
+            ),
+            (
+                (sat2_normal_x, sat2_normal_y, sat2_normal_z),
+                sat2_position,
+                sat2_thickness,
+            ),
+        ),
+        duration_s=BAND_DURATION,
+        time_bw_product=BAND_TIME_BW_PRODUCT,
+        voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+    )
+    band_duration = sum(band.duration for band in bands)
+
     # Slices one TR cannot hold are dealt round-robin into packets, so the
     # slices of a packet sit a packet count apart and neighbours are never
     # excited back to back.
     raster = system.block_duration_raster
-    shot = ro.duration + raster
+    shot = band_duration + ro.duration + raster
     per_packet = n_slices if tr is None else max(1, int(tr / shot + 1e-9))
     n_packets = -(-n_slices // per_packet)
     dealt = [range(start, n_slices, n_packets) for start in range(n_packets)]
@@ -214,6 +268,10 @@ def gre2d(
                 SLC=s, LIN=line, IMA=is_calibration, SEG=not is_calibration, ONCE=0
             )
 
+        for band in bands:
+            for block in band.blocks:
+                seq.add_block(*block, *label_events)
+                label_events = []
         seq.add_block(rf, gz, *label_events)
         wait_te = getattr(ro, "wait_te", None)
         if wait_te is not None:

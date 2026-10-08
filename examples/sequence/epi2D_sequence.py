@@ -126,9 +126,6 @@ MAX_SLEW = 200.0
 #: thickness.
 PULSE_DURATION = 3e-3
 TIME_BW_PRODUCT = 4.0
-#: Sinc design of the spatial saturation bands.
-BAND_DURATION = 3e-3
-BAND_TIME_BW_PRODUCT = 4.0
 #: Centre lines read without blips at the start of every shot.
 NAVIGATOR_LINES = 3
 #: Dephasing left on the readout axis at the end of each shot, in cycles
@@ -160,16 +157,6 @@ def epi2d(
     n_shots: int = 1,
     multiband: int = 1,
     fat_saturation: bool = False,
-    sat1_normal_x: float = 0.0,
-    sat1_normal_y: float = 0.0,
-    sat1_normal_z: float = 0.0,
-    sat1_position: float = 0.0,
-    sat1_thickness: float = 0.0,
-    sat2_normal_x: float = 0.0,
-    sat2_normal_y: float = 0.0,
-    sat2_normal_z: float = 0.0,
-    sat2_position: float = 0.0,
-    sat2_thickness: float = 0.0,
     n_dummy: int = 2,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
@@ -189,13 +176,6 @@ def epi2d(
     dealt round-robin into packets; a time series must fit every slice in
     one. A multiband shot excites ``multiband`` slices at once and a
     blipped-CAIPI train encodes the band in ``PAR``.
-
-    Up to two spatial saturation bands (``sat1_*``, ``sat2_*``) and the fat
-    saturation, in that order, are played at the start of every shot. A band
-    is centred ``position`` from the isocentre of the logical frame; the
-    volume's field-of-view offset, applied afterwards with
-    ``pypulseqpp.TransformFOV``, shifts the band with the rest of the
-    sequence, so ``position`` is measured from the field-of-view centre.
 
     Two prescans are linked ahead of the imaging: the
     ``calibration``, a single-band gradient echo per slice over the central
@@ -245,22 +225,6 @@ def epi2d(
         Slices excited at once. It must divide ``n_slices``.
     fat_saturation : bool, default=False
         Saturate fat before every shot.
-    sat1_normal_x, sat1_normal_y, sat1_normal_z : float, default=0.0
-        Normal of the first spatial saturation band, as readout, phase and
-        slice components of the logical frame. Normalised; not the zero vector
-        for a band with a thickness.
-    sat1_position : float, default=0.0
-        Centre of the first band along its normal, from the field-of-view
-        centre (m).
-    sat1_thickness : float, default=0.0
-        Thickness of the first band (m). Zero plays no band.
-    sat2_normal_x, sat2_normal_y, sat2_normal_z : float, default=0.0
-        Normal of the second saturation band, as for the first.
-    sat2_position : float, default=0.0
-        Centre of the second band along its normal, from the field-of-view
-        centre (m).
-    sat2_thickness : float, default=0.0
-        Thickness of the second band (m). Zero plays no band.
     n_dummy : int, default=2
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots per slice before each packet.
@@ -284,8 +248,7 @@ def epi2d(
     ------
     ValueError
         If ``partial_fourier_y`` is outside ``[0.5, 1]``, a count is below
-        one, a saturation band has a thickness and a zero normal, or a
-        thickness is negative, ``multiband`` does not divide ``n_slices``, the shots cannot
+        one, ``multiband`` does not divide ``n_slices``, the shots cannot
         share the lines, the TE is shorter than the train admits, or the TR
         cannot hold one slice, or every slice when ``n_frames`` is above
         one.
@@ -413,38 +376,6 @@ def epi2d(
     epi = shot_trains[0]
     echo_time = epi.echo_time
 
-    bands = []
-    for normal, position, thickness in (
-        (
-            (sat1_normal_x, sat1_normal_y, sat1_normal_z),
-            sat1_position,
-            sat1_thickness,
-        ),
-        (
-            (sat2_normal_x, sat2_normal_y, sat2_normal_z),
-            sat2_position,
-            sat2_thickness,
-        ),
-    ):
-        if thickness < 0:
-            raise ValueError(f"a band thickness must not be negative, got {thickness}")
-        if thickness and not any(normal):
-            raise ValueError(
-                "a saturation band with a thickness needs a nonzero normal"
-            )
-        if thickness:
-            bands.append(
-                sequences.SaturationBand(
-                    system,
-                    normal,
-                    position,
-                    thickness,
-                    duration_s=BAND_DURATION,
-                    time_bw_product=BAND_TIME_BW_PRODUCT,
-                    voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
-                )
-            )
-
     fatsat = (
         sequences.FatSaturation(
             system, voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness)
@@ -457,7 +388,7 @@ def epi2d(
     # least one raster; the last shot of a packet waits out the cycle. A
     # cycle is one shot of every slice of a packet, and a volume is
     # n_shots cycles.
-    prep = [*bands, *([fatsat] if fatsat is not None else [])]
+    prep = [fatsat] if fatsat is not None else []
     prep_duration = sum(module.duration for module in prep)
     shot_duration = prep_duration + epi.duration + raster
     cycle = None if tr is None else tr / n_shots

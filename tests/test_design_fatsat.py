@@ -1,4 +1,4 @@
-"""Fat-saturation selectivity and persistence of prescribed band placement."""
+"""Fat saturation: its selectivity, and a prescription leaving it as it is."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
-from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
@@ -119,95 +118,17 @@ def test_it_is_a_pulse_and_a_three_axis_spoiler(system):
     }
 
 
-def test_a_global_saturation_needs_no_gradient(system):
+def test_it_plays_no_gradient_and_no_flags(system):
+    """Nothing about it depends on where the image is, so nothing exempts it."""
     fatsat = design.FatSaturation(system)
     assert not hasattr(fatsat.events, "gz")
+    assert [event.type for event in fatsat.blocks[0]] == ["rf"]
+    assert flags(fatsat.seq.get_block(1)) == flags(fatsat.seq.get_block(2)) == []
     assert fatsat.check_timing()[0]
 
 
-def test_a_band_gets_a_selection_gradient(system):
-    band = design.FatSaturation(system, thickness_m=0.08)
-    assert band.gz.channel == "z"
-    assert band.check_timing()[0]
-
-
-@no_transform
-def test_the_exemption_rides_the_pulse_block(system):
-    """Not a block of its own: that would be a block of dead time."""
-    fatsat = design.FatSaturation(system)
-    assert [event.type for event in fatsat.blocks[0]] == ["rf", "labelset", "labelset"]
-    assert flags(fatsat.seq.get_block(1)) == [
-        ("labelset", "NOPOS", 1),
-        ("labelset", "NOROT", 1),
-    ]
-
-
-@no_transform
-def test_the_exemption_is_cleared_on_the_way_out(system):
-    """Pulseq labels are sticky, so an uncleared flag would exempt the whole scan."""
-    fatsat = design.FatSaturation(system)
-    assert flags(fatsat.seq.get_block(2)) == [
-        ("labelset", "NOPOS", 0),
-        ("labelset", "NOROT", 0),
-    ]
-
-
 # ----------------------------------------------------------------------
-# Placement
-# ----------------------------------------------------------------------
-
-
-@no_transform
-def test_an_offset_band_carries_the_frequency_that_moves_it(system):
-    """A slab under its constant gradient moves by the slice-offset pair --
-    a frequency of gamma * G * dz, with the waveform itself untouched."""
-    here = design.FatSaturation(system, thickness_m=0.08)
-    moved = design.FatSaturation(system, thickness_m=0.08, position_mm=(0.0, 0.0, 25.0))
-    assert float(moved.rf_prep.freq_offset) - float(
-        here.rf_prep.freq_offset
-    ) == pytest.approx(float(here.gz.amplitude) * 0.025)
-    np.testing.assert_allclose(
-        np.asarray(moved.rf_prep.signal), np.asarray(here.rf_prep.signal), atol=1e-12
-    )
-
-
-@no_transform
-def test_a_tilted_band_carries_a_rotation_extension(system):
-    band = design.FatSaturation(
-        system, thickness_m=0.08, orientation=Rotation.from_euler("y", 30, degrees=True)
-    )
-    assert band.seq.get_block(1).rotation is not None
-    assert np.allclose(
-        band.seq.get_block(1).rotation.quaternion,
-        Rotation.from_euler("y", 30, degrees=True).as_quat(scalar_first=True),
-    )
-
-
-@no_transform
-def test_an_orientation_may_be_given_as_a_matrix(system):
-    turn = Rotation.from_euler("y", 30, degrees=True)
-    as_object = design.FatSaturation(system, thickness_m=0.08, orientation=turn)
-    as_matrix = design.FatSaturation(
-        system, thickness_m=0.08, orientation=turn.as_matrix()
-    )
-    assert np.allclose(
-        as_object.seq.get_block(1).rotation.quaternion,
-        as_matrix.seq.get_block(1).rotation.quaternion,
-    )
-
-
-@no_transform
-def test_the_spoiler_is_not_turned_with_the_band(system):
-    """It dephases the same either way, and three full-slew lobes cannot be mixed."""
-    band = design.FatSaturation(
-        system, thickness_m=0.08, orientation=Rotation.from_euler("y", 30, degrees=True)
-    )
-    assert band.seq.get_block(2).rotation is None
-    assert band.check_timing()[0]
-
-
-# ----------------------------------------------------------------------
-# What the exemption is for
+# A prescription applied afterwards
 # ----------------------------------------------------------------------
 
 
@@ -222,10 +143,10 @@ def _scan_with(fatsat, system):
 
 
 @no_transform
-def test_a_later_transform_moves_the_imaging_pulse_and_not_the_band(system):
-    band = design.FatSaturation(system, thickness_m=0.08, position_mm=(0.0, 0.0, 25.0))
-    scan = _scan_with(band, system)
-    moved = pp.TransformFOV(translation=(0.0, 0.0, 40.0)).apply_to_sequence(scan)
+def test_a_later_offset_moves_the_imaging_pulse_and_leaves_the_fat_saturation(system):
+    """Under no gradient, a shift writes no frequency or phase onto the pulse."""
+    scan = _scan_with(design.FatSaturation(system), system)
+    moved = pp.TransformFOV(translation=(0.01, -0.02, 0.04)).apply_to_sequence(scan)
 
     saturation_before, saturation_after = scan.get_block(1).rf, moved.get_block(1).rf
     imaging_before, imaging_after = scan.get_block(3).rf, moved.get_block(3).rf
@@ -236,46 +157,15 @@ def test_a_later_transform_moves_the_imaging_pulse_and_not_the_band(system):
     assert float(saturation_after.freq_offset) == pytest.approx(
         float(saturation_before.freq_offset)
     )
+    assert float(saturation_after.freq_ppm) == pytest.approx(FAT_SHIFT_PPM)
     assert float(imaging_after.freq_offset) != pytest.approx(
         float(imaging_before.freq_offset)
     )
 
 
-@no_transform
-def test_a_later_rotation_turns_the_imaging_pulse_and_not_the_band(system):
-    band = design.FatSaturation(
-        system, thickness_m=0.08, orientation=Rotation.from_euler("y", 30, degrees=True)
-    )
-    scan = _scan_with(band, system)
-    turned = pp.TransformFOV(
-        rotation=Rotation.from_euler("x", 20, degrees=True).as_matrix()
-    ).apply_to_sequence(scan)
-
-    assert np.allclose(
-        turned.get_block(1).rotation.quaternion, scan.get_block(1).rotation.quaternion
-    )
-    assert turned.get_block(3).rotation is not None
-    assert scan.get_block(3).rotation is None
-
-
-@no_transform
-def test_the_exemption_does_not_outlive_the_module(system):
-    """The clearing block is what stops the flag following the rest of the scan."""
-    scan = _scan_with(design.FatSaturation(system), system)
-    turned = pp.TransformFOV(
-        rotation=Rotation.from_euler("x", 20, degrees=True).as_matrix()
-    ).apply_to_sequence(scan)
-    assert turned.get_block(3).rotation is not None
-
-
 # ----------------------------------------------------------------------
 # Refusals
 # ----------------------------------------------------------------------
-
-
-def test_a_saturation_of_everything_has_nowhere_to_be_put(system):
-    with pytest.raises(ValueError, match="nowhere to be put"):
-        design.FatSaturation(system, position_mm=(0.0, 0.0, 25.0))
 
 
 def test_an_unspoiled_saturation_is_refused(system):
@@ -288,21 +178,8 @@ def test_an_unspoiled_saturation_is_refused(system):
     [
         ({"bandwidth_hz": 0.0}, "bandwidth_hz"),
         ({"voxel_size_m": 0.0}, "voxel_size_m"),
-        ({"axis": "w"}, "axis"),
-        ({"thickness_m": -1.0}, "thickness_m"),
     ],
 )
 def test_it_checks_its_arguments(system, kwargs, message):
     with pytest.raises(ValueError, match=message):
         design.FatSaturation(system, **kwargs)
-
-
-@no_transform
-def test_baking_the_rotation_into_waveforms_is_not_offered(system):
-    with pytest.raises(NotImplementedError):
-        design.FatSaturation(
-            system,
-            thickness_m=0.08,
-            orientation=Rotation.from_euler("y", 30, degrees=True),
-            use_rotation_extension=False,
-        )
