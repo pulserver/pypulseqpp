@@ -175,7 +175,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.593 seconds)
+   **Total running time of the script:** (0 minutes 3.148 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

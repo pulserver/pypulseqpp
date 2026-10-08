@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.474** total execution time for 1 file **from generated/gallery/07-custom-modules**:
+**00:00.995** total execution time for 1 file **from generated/gallery/07-custom-modules**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_07-custom-modules_01_excitation_module.py` (``01_excitation_module.py``)
-     - 00:00.474
+     - 00:00.995
      - 0.0
