@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:20.163** total execution time for 1 file **from generated/gallery/16-zte**:
+**00:20.037** total execution time for 1 file **from generated/gallery/16-zte**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_16-zte_zte3D_sequence.py` (``zte3D_sequence.py``)
-     - 00:20.163
+     - 00:20.037
      - 0.0

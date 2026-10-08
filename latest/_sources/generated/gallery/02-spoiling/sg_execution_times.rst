@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:11.983** total execution time for 1 file **from generated/gallery/02-spoiling**:
+**00:12.235** total execution time for 1 file **from generated/gallery/02-spoiling**:
 
 .. container::
 
@@ -33,5 +33,5 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_02-spoiling_01_spoiling.py` (``01_spoiling.py``)
-     - 00:11.983
+     - 00:12.235
      - 0.0

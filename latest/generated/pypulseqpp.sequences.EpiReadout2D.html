@@ -607,8 +607,11 @@ train, one for 2D.</p></li>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The excitation.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient, if one was given.</p></li>
-<li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given.</p></li>
-<li><p><strong>gx_pre</strong> (<em>TrapEvent</em>) – Read prewinder, half a line lobe against the first line’s polarity.</p></li>
+<li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given, left-aligned in whichever block follows
+the pulse.</p></li>
+<li><p><strong>gx_pre</strong> (<em>TrapEvent</em>) – Read prewinder, half a line lobe against the first line’s polarity,
+right-aligned in the prewinder block so that it ends where the first
+line starts.</p></li>
 <li><p><strong>gx</strong> (<em>list[GradEvent]</em>) – One read lobe per line: alternating polarity for a blipped train, the
 same lobe every time for a flyback one.</p></li>
 <li><p><strong>gx_navigator</strong> (<em>list[GradEvent]</em>) – One read lobe per navigator line, the first positive. Present only
@@ -620,9 +623,10 @@ half of the step into the line and the first half of the next out of
 it; a flyback train’s is the whole step, played in the rewind block
 <em>after</em> that line, so its last entry is always <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 <code class="docutils literal notranslate"><span class="pre">gz_blips</span></code> is 3D only.</p></li>
-<li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>
-is 3D only.</p></li>
-<li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The encodes negated, in the last block of the repetition.</p></li>
+<li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot,
+right-aligned with <code class="docutils literal notranslate"><span class="pre">gx_pre</span></code>; with <code class="docutils literal notranslate"><span class="pre">navigator_lines</span></code> they take a
+block of their own after the navigator. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code> is 3D only.</p></li>
+<li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The encodes negated, left-aligned in the last block of the repetition.</p></li>
 <li><p><strong>gx_spoil</strong> (<em>GradEvent</em>) – Read-axis trapezoid in the last block: returns the read axis from the
 end of the last line through k = 0 and adds the requested spoiling.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, shared by every line.</p></li>

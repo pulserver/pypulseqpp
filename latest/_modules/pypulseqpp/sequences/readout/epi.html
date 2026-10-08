@@ -500,9 +500,12 @@
 <span class="sd">    gz : GradEvent</span>
 <span class="sd">        Its selection gradient, if one was given.</span>
 <span class="sd">    gz_reph : GradEvent</span>
-<span class="sd">        Its rephaser, if one was given.</span>
+<span class="sd">        Its rephaser, if one was given, left-aligned in whichever block follows</span>
+<span class="sd">        the pulse.</span>
 <span class="sd">    gx_pre : TrapEvent</span>
-<span class="sd">        Read prewinder, half a line lobe against the first line's polarity.</span>
+<span class="sd">        Read prewinder, half a line lobe against the first line's polarity,</span>
+<span class="sd">        right-aligned in the prewinder block so that it ends where the first</span>
+<span class="sd">        line starts.</span>
 <span class="sd">    gx : list[GradEvent]</span>
 <span class="sd">        One read lobe per line: alternating polarity for a blipped train, the</span>
 <span class="sd">        same lobe every time for a flyback one.</span>
@@ -519,10 +522,11 @@
 <span class="sd">        *after* that line, so its last entry is always ``None``.</span>
 <span class="sd">        ``gz_blips`` is 3D only.</span>
 <span class="sd">    gy_pre, gz_pre : TrapEvent</span>
-<span class="sd">        Phase encodes at their largest step, to be scaled per shot. ``gz_pre``</span>
-<span class="sd">        is 3D only.</span>
+<span class="sd">        Phase encodes at their largest step, to be scaled per shot,</span>
+<span class="sd">        right-aligned with ``gx_pre``; with ``navigator_lines`` they take a</span>
+<span class="sd">        block of their own after the navigator. ``gz_pre`` is 3D only.</span>
 <span class="sd">    gy_rew, gz_rew : TrapEvent</span>
-<span class="sd">        The encodes negated, in the last block of the repetition.</span>
+<span class="sd">        The encodes negated, left-aligned in the last block of the repetition.</span>
 <span class="sd">    gx_spoil : GradEvent</span>
 <span class="sd">        Read-axis trapezoid in the last block: returns the read axis from the</span>
 <span class="sd">        end of the last line through k = 0 and adds the requested spoiling.</span>
@@ -915,12 +919,23 @@
         <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>
             <span class="n">wait_te</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">))</span>
+        <span class="c1"># A rephaser sharing the block can make it longer than the encodes were</span>
+        <span class="c1"># stretched to; they are right-aligned so they still end at the first</span>
+        <span class="c1"># line, while the rephaser stays left-aligned against the pulse.</span>
+        <span class="k">if</span> <span class="n">navigator_lines</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">gx_pre</span><span class="p">,)</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)])[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span>
+                <span class="n">right</span><span class="o">=</span><span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">gz_pre</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)]</span>
+            <span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)])[</span>
+                <span class="p">:</span><span class="o">-</span><span class="mi">1</span>
+            <span class="p">]</span>
         <span class="n">encode</span> <span class="o">=</span> <span class="p">[</span><span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span> <span class="o">*</span><span class="n">shot_labels</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">)]</span>
         <span class="n">prewinder</span> <span class="o">=</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">]</span> <span class="k">if</span> <span class="n">navigator_lines</span> <span class="k">else</span> <span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">encode</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">wait</span><span class="p">:</span>
             <span class="n">prewinder</span> <span class="o">+=</span> <span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">pre_span</span> <span class="o">&gt;</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">prewinder</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">:</span>
-            <span class="n">prewinder</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">prewinder</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">navigator_lines</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_navigator</span><span class="p">[</span><span class="n">line</span><span class="p">],</span> <span class="n">adc</span><span class="p">)</span>
