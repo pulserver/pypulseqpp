@@ -62,15 +62,65 @@ def test_each_repetition_past_the_first_numbers_itself_once_on_its_first_block()
     assert avg == 2
 
 
-def test_one_repetition_removes_the_flags_and_plays_as_before():
+def test_one_repetition_leaves_the_scan_as_it_is():
     seq = built([(1e-3, 1), (2e-3, 0), (4e-3, 2)])
 
     counts = seq.expand_repeats(1)
 
     assert counts["blocks_after"] == 3
     assert durations(seq) == [1, 2, 4]
-    assert "ONCE" not in seq.evaluate_labels(evolution="blocks")
+    assert labels(seq, "ONCE") == [1, 0, 2]
     assert "AVG" not in seq.evaluate_labels(evolution="blocks")
+
+
+def test_an_incremented_counter_restarts_with_every_repetition():
+    seq = pp.Sequence(pp.Opts())
+    for _ in range(3):
+        seq.add_block(pp.make_delay(1e-3), pp.make_label("LIN", "INC", 1))
+
+    seq.expand_repeats(3)
+
+    assert labels(seq, "LIN") == [1, 2, 3] * 3
+    assert labels(seq, "AVG") == [0, 0, 0, 1, 1, 1, 2, 2, 2]
+
+
+def test_a_counter_set_only_in_the_preparation_starts_later_repetitions_at_zero():
+    seq = pp.Sequence(pp.Opts())
+    seq.add_block(
+        pp.make_delay(1e-3),
+        pp.make_label("ONCE", "SET", 1),
+        pp.make_label("SLC", "SET", 3),
+    )
+    seq.add_block(pp.make_delay(2e-3), pp.make_label("ONCE", "SET", 0))
+    seq.add_block(pp.make_delay(2e-3))
+
+    seq.expand_repeats(2)
+
+    assert labels(seq, "SLC") == [3, 3, 3, 0, 0]
+
+
+def test_a_counter_the_first_block_of_a_repetition_sets_itself_is_left_to_it():
+    seq = pp.Sequence(pp.Opts())
+    seq.add_block(pp.make_delay(1e-3), pp.make_label("LIN", "SET", 5))
+    seq.add_block(pp.make_delay(1e-3), pp.make_label("LIN", "INC", 1))
+
+    seq.expand_repeats(2)
+
+    assert labels(seq, "LIN") == [5, 6, 5, 6]
+
+
+def test_a_block_sets_its_once_before_it_increments_it():
+    seq = pp.Sequence(pp.Opts())
+    seq.add_block(
+        pp.make_delay(1e-3),
+        pp.make_label("ONCE", "INC", 1),
+        pp.make_label("ONCE", "SET", 0),
+    )
+    seq.add_block(pp.make_delay(2e-3), pp.make_label("ONCE", "SET", 0))
+
+    seq.expand_repeats(2)
+
+    assert durations(seq) == [1, 2, 2]
 
 
 def test_flags_kept_still_mark_the_preparation_of_the_expanded_scan():

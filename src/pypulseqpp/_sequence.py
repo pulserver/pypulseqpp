@@ -2825,16 +2825,20 @@ class Sequence:
 
         A block whose ``ONCE`` label is 1 plays on the first repetition only, 2
         on the last only, and 0 on every one; ``ONCE`` is sticky and is read per
-        block, as an interpreter plays it. A repetition plays the same events,
-        so only the block table grows and no library row is added. Each
-        repetition past the first sets ``label`` to its index, 1 to
-        ``repeats - 1``, on the first block it plays. A recorded
-        ``TotalDuration`` is replaced by the duration of the expanded scan.
+        block, as an interpreter plays it, a block's ``LABELSET`` directives
+        before its ``LABELINC`` ones. Every repetition starts as the scan
+        starts, with every counter at zero but ``label``, which numbers it: the
+        first block a repetition past the first plays sets back to zero the
+        counters the repetition before left elsewhere, those it sets itself
+        aside, and sets ``label`` to its index, 1 to ``repeats - 1``. A
+        repetition plays the same events, so only the block table grows and
+        no event row is added. A recorded ``TotalDuration`` is replaced by the
+        duration of the expanded scan. One repetition leaves the scan as it is.
 
         Parameters
         ----------
         repeats : int
-            How many times the scan plays; 1 resolves the ``ONCE`` labels only.
+            How many times the scan plays.
         label : str, default="AVG"
             The counter that numbers the repetitions; empty for none.
         strip_once : bool, default=True

@@ -1394,11 +1394,14 @@ namespace pulseq
          * every library and every block definition is kept, and a block that
          * plays no event takes the definition its new chain gives it.
          *
-         * Each repetition past the first sets @p label to its index on the
-         * first block it plays, one `LABELSET` per repetition; an empty label
-         * writes none. With @p strip_once the `ONCE` links are removed from
-         * the chains, which the table no longer needs to be played by.
-         * `repeats == 1` resolves and strips the flags all the same.
+         * Every repetition starts as the scan starts, its counters at zero
+         * but @p label, which numbers it: the first block a repetition past
+         * the first plays sets back to zero the counters the repetition before
+         * left elsewhere, those it sets itself aside, and sets @p label to its
+         * index; an empty label numbers none. A block's `LABELSET` directives
+         * apply before its `LABELINC` ones. With @p strip_once the `ONCE`
+         * links are removed from the chains, which the table no longer needs
+         * to be played by. `repeats == 1` leaves the scan as it is.
          *
          * @throws std::invalid_argument if @p repeats is below 1.
          * @throws std::runtime_error if a block's `ONCE` is outside {0, 1, 2},

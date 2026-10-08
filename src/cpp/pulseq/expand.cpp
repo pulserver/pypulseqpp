@@ -2,10 +2,14 @@
  * @file expand.cpp
  * @brief A scan played more than once, resolved into its block table.
  *
- * The block table and the per-block definition arrays are built in one pass
- * over the source table: a repeated block is its source row, and only a chain
- * that loses its `ONCE` links or gains the repetition's label is renamed, once
- * per distinct chain.
+ * Every repetition starts as a scan starts, its counters at zero, the
+ * repetition's own counter aside: the first block each repetition past the
+ * first plays sets back to zero the counters the repetition before left
+ * elsewhere. A block's `LABELSET` directives apply before its `LABELINC`
+ * directives, as an interpreter applies them. The block table and the
+ * per-block definition arrays are built in one pass over the source table: a
+ * repeated block is its source row, and only a chain that loses its `ONCE`
+ * links or starts a repetition is renamed.
  */
 
 #include "pulseq/sequence.hpp"
@@ -13,10 +17,50 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace pulseq
 {
+
+    namespace
+    {
+
+        /** The label directives of one chain: the counters it sets and those it increments. */
+        struct Directives
+        {
+            std::vector<std::pair<int32_t, int32_t>> sets;
+            std::vector<std::pair<int32_t, int32_t>> incs;
+
+            bool sets_label(int32_t label) const
+            {
+                for (const auto& [id, value] : sets)
+                    if (id == label)
+                        return true;
+                return false;
+            }
+
+            bool writes(int32_t label) const
+            {
+                if (sets_label(label))
+                    return true;
+                for (const auto& [id, value] : incs)
+                    if (id == label)
+                        return true;
+                return false;
+            }
+
+            /** Apply to @p state, sets first, as a block applies them. */
+            void apply(std::vector<int32_t>& state) const
+            {
+                for (const auto& [id, value] : sets)
+                    state[static_cast<size_t>(id)] = value;
+                for (const auto& [id, value] : incs)
+                    state[static_cast<size_t>(id)] += value;
+            }
+        };
+
+    } // namespace
 
     ExpandResult Sequence::expand_repeats(int repeats, const std::string& label, bool strip_once)
     {
@@ -30,34 +74,69 @@ namespace pulseq
         const int once_id = find_label_id("ONCE");
         const int counter_id = (!label.empty() && repeats > 1) ? find_label_id(label) : 0;
 
-        // The ONCE value in force at each block, and whether the scan writes the
-        // counter already: one walk of each block's chain, ONCE being sticky.
-        std::vector<int8_t> once(static_cast<size_t>(n), 0);
-        bool counter_written = false;
+        // The directives of each distinct chain, and of each block through it.
+        std::vector<Directives> directives(1);  // 0: none
+        std::unordered_map<int32_t, int32_t> directives_of_chain;
+        std::vector<int32_t> directive(static_cast<size_t>(n), 0);
         {
-            int current = 0;
             const int32_t* events = blocks_->data();
             for (int b = 0; b < n; ++b)
             {
-                for (int32_t link = events[static_cast<size_t>(b) * BLOCK_WIDTH + 5]; link != 0;)
+                const int32_t head = events[static_cast<size_t>(b) * BLOCK_WIDTH + 5];
+                if (head == 0)
+                    continue;
+                const auto found = directives_of_chain.find(head);
+                if (found != directives_of_chain.end())
+                {
+                    directive[static_cast<size_t>(b)] = found->second;
+                    continue;
+                }
+                Directives d;
+                for (int32_t link = head; link != 0;)
                 {
                     const int32_t* row = extensions_.row(link);
                     if (row[1] != 0 && labelset != 0 && row[0] == labelset)
                     {
                         const int32_t* entry = label_set_.row(row[1]);
-                        if (once_id != 0 && entry[1] == once_id)
-                            current = entry[0];
-                        counter_written |= counter_id != 0 && entry[1] == counter_id;
+                        d.sets.emplace_back(entry[1], entry[0]);
                     }
                     else if (row[1] != 0 && labelinc != 0 && row[0] == labelinc)
                     {
                         const int32_t* entry = label_inc_.row(row[1]);
-                        if (once_id != 0 && entry[1] == once_id)
-                            current += entry[0];
-                        counter_written |= counter_id != 0 && entry[1] == counter_id;
+                        d.incs.emplace_back(entry[1], entry[0]);
                     }
                     link = row[2];
                 }
+                int32_t index = 0;
+                if (!d.sets.empty() || !d.incs.empty())
+                {
+                    index = static_cast<int32_t>(directives.size());
+                    directives.push_back(std::move(d));
+                }
+                directives_of_chain.emplace(head, index);
+                directive[static_cast<size_t>(b)] = index;
+            }
+        }
+
+        const size_t labels = label_names_.size() + 1;
+        bool counter_written = false;
+        for (const Directives& d : directives)
+            counter_written |= counter_id != 0 && d.writes(counter_id);
+        if (counter_written)
+            throw std::runtime_error(
+                "expand_repeats: the scan already writes " + label +
+                ", which would then count two things; label the repetitions with another counter, "
+                "or with none");
+
+        // The ONCE value in force at each block, ONCE being sticky.
+        std::vector<int8_t> once(static_cast<size_t>(n), 0);
+        if (once_id != 0)
+        {
+            std::vector<int32_t> state(labels, 0);
+            for (int b = 0; b < n; ++b)
+            {
+                directives[static_cast<size_t>(directive[static_cast<size_t>(b)])].apply(state);
+                const int32_t current = state[static_cast<size_t>(once_id)];
                 if (current < 0 || current > 2)
                     throw std::runtime_error(
                         "expand_repeats: block " + std::to_string(b + 1) + " plays with ONCE=" +
@@ -65,11 +144,6 @@ namespace pulseq
                 once[static_cast<size_t>(b)] = static_cast<int8_t>(current);
             }
         }
-        if (counter_written)
-            throw std::runtime_error(
-                "expand_repeats: the scan already writes " + label +
-                ", which would then count two things; label the repetitions with another counter, "
-                "or with none");
 
         ExpandResult result;
         result.repeats = repeats;
@@ -83,10 +157,33 @@ namespace pulseq
             else
                 ++result.body_blocks;
         }
-        if (repeats > 1 && result.body_blocks == 0)
+        result.blocks_after = n;
+        if (repeats == 1)
+            return result;
+        if (result.body_blocks == 0)
             throw std::runtime_error(
                 "expand_repeats: every block plays with ONCE=1 or ONCE=2, so nothing plays on "
                 "every repetition");
+
+        // The counters a repetition leaves behind, from zero: the first plays
+        // its ONCE=1 blocks, a later one only its ONCE=0 blocks. A stripped
+        // ONCE is not a counter of the expanded scan.
+        const auto left_by = [&](bool first) -> std::vector<int32_t>
+        {
+            std::vector<int32_t> state(labels, 0);
+            for (int b = 0; b < n; ++b)
+            {
+                const int8_t state_of_block = once[static_cast<size_t>(b)];
+                if (state_of_block == 2 || (state_of_block == 1 && !first))
+                    continue;
+                directives[static_cast<size_t>(directive[static_cast<size_t>(b)])].apply(state);
+            }
+            if (strip_once && once_id != 0)
+                state[static_cast<size_t>(once_id)] = 0;
+            return state;
+        };
+        const std::vector<int32_t> after_first = left_by(true);
+        const std::vector<int32_t> after_later = repeats > 2 ? left_by(false) : after_first;
 
         // Each distinct chain without its ONCE links, rebuilt in its order.
         std::unordered_map<int32_t, int32_t> stripped;
@@ -117,20 +214,26 @@ namespace pulseq
             return chain;
         };
 
-        // Each repetition's label in front of a chain, once per chain and value.
-        const int32_t counter = (!label.empty() && repeats > 1) ? label_id(label) : 0;
-        const int32_t labelset_out = counter != 0 ? extension_type_id("LABELSET") : 0;
-        std::unordered_map<int64_t, int32_t> stamped_chains;
-        const auto stamped = [&](int32_t pass, int32_t chain) -> int32_t
+        const int32_t counter = label.empty() ? 0 : label_id(label);
+        const int32_t labelset_out = extension_type_id("LABELSET");
+
+        /* The chain of the first block a repetition past the first plays: the
+         * counters the repetition before left elsewhere than zero set back to
+         * zero, those the block sets itself aside, and the repetition's own
+         * counter set to its index. */
+        const auto starting = [&](int pass, int32_t chain, const Directives& own) -> int32_t
         {
-            const int64_t key = (static_cast<int64_t>(pass) << 32) | static_cast<uint32_t>(chain);
-            const auto found = stamped_chains.find(key);
-            if (found != stamped_chains.end())
-                return found->second;
-            const int32_t row = intern_label_set(pass, counter);
-            const int32_t out = chain_extension(labelset_out, row, chain);
-            stamped_chains.emplace(key, out);
-            return out;
+            const std::vector<int32_t>& left = pass == 1 ? after_first : after_later;
+            for (size_t id = 1; id < labels; ++id)
+            {
+                const int32_t name = static_cast<int32_t>(id);
+                if (left[id] == 0 || name == counter || own.sets_label(name))
+                    continue;
+                chain = chain_extension(labelset_out, intern_label_set(0, name), chain);
+            }
+            if (counter != 0)
+                chain = chain_extension(labelset_out, intern_label_set(pass, counter), chain);
+            return chain;
         };
 
         const size_t total = static_cast<size_t>(repeats) * result.body_blocks +
@@ -145,21 +248,22 @@ namespace pulseq
 
         for (int pass = 0; pass < repeats; ++pass)
         {
-            bool labelled = counter == 0 || pass == 0;
+            bool started = pass == 0;
             for (int b = 0; b < n; ++b)
             {
                 const int8_t state = once[static_cast<size_t>(b)];
                 if ((state == 1 && pass != 0) || (state == 2 && pass != repeats - 1))
                     continue;
                 // The source table is read through blocks_ every block: the
-                // chains registered above grow only the libraries, never it.
+                // chains registered here grow only the libraries, never it.
                 const int32_t* row = blocks_->data() + static_cast<size_t>(b) * BLOCK_WIDTH;
                 const int32_t source_ext = row[5];
                 int32_t ext = without_once(source_ext);
-                if (!labelled)
+                if (!started)
                 {
-                    ext = stamped(pass, ext);
-                    labelled = true;
+                    ext = starting(
+                        pass, ext, directives[static_cast<size_t>(directive[static_cast<size_t>(b)])]);
+                    started = true;
                 }
                 table.insert(table.end(), row, row + BLOCK_WIDTH);
                 int32_t* out = table.data() + table.size() - BLOCK_WIDTH;
