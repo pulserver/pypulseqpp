@@ -231,10 +231,12 @@ def test_every_file_of_the_chain_repeats_from_its_first_block(tmp_path, case):
 
 
 @pytest.mark.parametrize("case", CASES)
-def test_every_line_is_labelled_with_the_view_it_samples(case):
+@pytest.mark.parametrize("prescan", [None, "reference"], ids=["main", "reference"])
+def test_every_line_is_labelled_with_the_view_it_samples(case, prescan):
     scan = CASES[case]()
-    rows = echoes(scan.main, scan.samples)
-    lin, par, nav = labels(scan.main, "LIN", "PAR", "NAV")
+    seq = scan.main if prescan is None else scan.prescan(prescan)
+    rows = echoes(seq, scan.samples)
+    lin, par, nav = labels(seq, "LIN", "PAR", "NAV")
     imaging = nav == 0
     n_y = scan.matrix[1]
 
@@ -248,15 +250,22 @@ def test_every_line_is_labelled_with_the_view_it_samples(case):
 @pytest.mark.parametrize("prescan", [None, "reference"], ids=["main", "reference"])
 def test_every_shot_opens_with_its_navigator_at_the_centre_of_k_space(case, prescan):
     scan = CASES[case]()
-    seq = scan.main if prescan is None else scan.prescan(prescan)
-    rows = echoes(seq, scan.samples)
-    nav, rev = labels(seq, "NAV", "REV")
+    rows = echoes(scan.main, scan.samples)
+    nav, rev, lin = labels(scan.main, "NAV", "REV", "LIN")
     navigator = scan.module.NAVIGATOR_LINES
     per_shot = navigator + scan.etl
     shots = len(nav) // per_shot
-
-    assert list(nav) == ([1] * navigator + [0] * scan.etl) * shots
-    assert list(rev) == [i % 2 for i in range(per_shot)] * shots
+    if prescan is not None:
+        # The reference samples every line of the scan but the mirror of line 0.
+        kept = (nav == 1) | (lin != 0)
+        nav, rev = nav[kept], rev[kept]
+        rows = echoes(scan.prescan(prescan), scan.samples)
+        found_nav, found_rev = labels(scan.prescan(prescan), "NAV", "REV")
+        assert list(found_nav) == list(nav)
+        assert list(found_rev) == list(rev)
+    else:
+        assert list(nav) == ([1] * navigator + [0] * scan.etl) * shots
+        assert list(rev) == [i % 2 for i in range(per_shot)] * shots
     assert rows[nav == 1, :2] == pytest.approx(0.0, abs=1e-9)
 
 
@@ -295,18 +304,21 @@ def test_shifted_echoes_grow_evenly_across_the_lattice_lines(case):
 
 
 @pytest.mark.parametrize("case", CASES)
-def test_the_reference_reverses_the_phase_encode_and_keeps_the_labels(case):
+def test_the_reference_reads_the_mirror_of_every_line_and_is_labelled_there(case):
     scan = CASES[case]()
     forward, reversed_ = scan.main, scan.prescan("reference")
-    n = scan.samples
+    n, n_y = scan.samples, scan.matrix[1]
     ahead, behind = echoes(forward, n), echoes(reversed_, n)
     lin, nav = labels(forward, "LIN", "NAV")
     lin_r, nav_r, set_r = labels(reversed_, "LIN", "NAV", "SET")
+    # The mirror of line 0, n_y, lies outside the matrix and is not sampled.
+    kept = (nav == 1) | (lin != 0)
+    imaging = (nav == 0) & kept
 
-    assert list(lin_r) == list(lin)
+    assert list(lin_r[nav_r == 0]) == list(n_y - lin[imaging])
     assert set(set_r) == {1}
-    assert behind[nav_r == 0, 0] == pytest.approx(-ahead[nav == 0, 0])
-    assert behind[:, 1] == pytest.approx(ahead[:, 1])
+    assert behind[nav_r == 0, 0] == pytest.approx(-ahead[imaging, 0])
+    assert behind[:, 1:] == pytest.approx(ahead[kept, 1:])
 
 
 @pytest.mark.parametrize("case", CASES)
