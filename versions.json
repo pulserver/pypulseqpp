@@ -1,19 +1,19 @@
 [
   {
-    "name": "v0.0.30 (stable)",
-    "version": "v0.0.30",
+    "name": "v0.0.31 (stable)",
+    "version": "v0.0.31",
     "url": "https://pulserver.github.io/pypulseqpp/stable/",
     "preferred": true
+  },
+  {
+    "name": "v0.0.30",
+    "version": "v0.0.30",
+    "url": "https://pulserver.github.io/pypulseqpp/v0.0.30/"
   },
   {
     "name": "v0.0.29",
     "version": "v0.0.29",
     "url": "https://pulserver.github.io/pypulseqpp/v0.0.29/"
-  },
-  {
-    "name": "v0.0.28",
-    "version": "v0.0.28",
-    "url": "https://pulserver.github.io/pypulseqpp/v0.0.28/"
   },
   {
     "name": "latest",
