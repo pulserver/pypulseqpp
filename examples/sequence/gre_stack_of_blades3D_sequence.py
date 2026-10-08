@@ -212,8 +212,6 @@ def gre_stack_of_blades3d(
     shot = ro.duration + pp.ceil_to_raster(pp.calc_duration(gz_spoil), raster)
     wait_tr = None
     repetition_time = shot
-    if n_dummy is None:
-        n_dummy = sequences.steady_state_dummies(repetition_time, flip_angle_deg)
     if tr is not None:
         if tr < shot - 1e-9:
             raise ValueError(
@@ -224,6 +222,8 @@ def gre_stack_of_blades3d(
         if pad > 0:
             wait_tr = pp.make_delay(pad)
             repetition_time += pad
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, flip_angle_deg)
 
     seq, labels = pp.Sequence(system), sequences.Labels()
 
