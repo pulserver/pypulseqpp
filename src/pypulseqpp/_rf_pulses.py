@@ -441,8 +441,23 @@ def make_spsp_pulse(
             "spectral bandwidth is too large for the requested subpulse count"
         )
 
-    # Reserve a fifth of each lobe for its two ramps, on the gradient raster.
-    ramp_time = max(grad_raster, round(0.1 * lobe_duration / grad_raster) * grad_raster)
+    # Each ramp takes a tenth of the lobe, or as much more as the slew needs:
+    # a ramp r under a flat top of lobe - 2 r reaches the amplitude
+    # tbw / ((lobe - 2 r) th) at the slew limit S when r (lobe - 2 r) is
+    # tbw / (th S), and the shorter root keeps the flat top longest.
+    selectivity = spatial_time_bandwidth_product / (slice_thickness * system.max_slew)
+    discriminant = lobe_duration**2 - 8.0 * selectivity
+    if discriminant < 0.0:
+        raise ValueError(
+            "SPSP slice-selection ramps exceed system.max_slew: the slab is too "
+            "thin for subpulses this short at this slew rate"
+        )
+    shortest = (lobe_duration - math.sqrt(discriminant)) / 4.0
+    ramp_time = grad_raster * max(
+        1,
+        round(0.1 * lobe_duration / grad_raster),
+        math.ceil(shortest / grad_raster - 1e-9),
+    )
     flat_time = lobe_duration - 2.0 * ramp_time
     if flat_time < 8 * rf_raster:
         raise ValueError("SPSP sublobes leave fewer than 8 RF samples")
