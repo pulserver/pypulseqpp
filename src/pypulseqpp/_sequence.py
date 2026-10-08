@@ -2828,7 +2828,8 @@ class Sequence:
         block, as an interpreter plays it. A repetition plays the same events,
         so only the block table grows and no library row is added. Each
         repetition past the first sets ``label`` to its index, 1 to
-        ``repeats - 1``, on the first block it plays.
+        ``repeats - 1``, on the first block it plays. A recorded
+        ``TotalDuration`` is replaced by the duration of the expanded scan.
 
         Parameters
         ----------
@@ -2865,7 +2866,11 @@ class Sequence:
         >>> seq.expand_repeats(3)["blocks_after"]
         4
         """
-        return dict(self._native.expand_repeats(repeats, label, strip_once))
+        counts = dict(self._native.expand_repeats(repeats, label, strip_once))
+        if self.get_definition("TotalDuration") != "":
+            self.set_definition("TotalDuration", self.duration()[0])
+            self._duration = 1
+        return counts
 
     def _copy(self) -> Sequence:
         """Copy through binary serialisation, sharing the system object.

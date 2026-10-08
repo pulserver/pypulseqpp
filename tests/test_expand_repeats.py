@@ -176,3 +176,16 @@ def test_a_shipped_scan_grows_only_its_block_table_and_keeps_its_definitions():
     assert list(seq._native.instance_definitions()) == (
         definitions[:prep] + body_definitions * 2 + definitions[prep + body :]
     )
+
+
+def test_a_recorded_total_duration_states_the_expanded_scan(tmp_path):
+    seq = built([(1e-3, 1), (2e-3, 0)])
+    assert seq.check_timing()[0]
+
+    seq.expand_repeats(3)
+    path = tmp_path / "expanded.bin"
+    pp.io.write(seq, str(path), binary=True)
+    back = pp.io.read(str(path))
+
+    assert float(back.get_definition("TotalDuration")[0]) == pytest.approx(7e-3)
+    assert back.check_timing()[0]
