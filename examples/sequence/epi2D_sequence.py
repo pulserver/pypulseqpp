@@ -444,9 +444,14 @@ def epi2d(
         )
 
     def define(seq: pp.Sequence, **definitions) -> None:
+        # Every file of the chain places its slices, so a reconstruction reads
+        # a prescan's geometry from the prescan.
         for key, value in {
             "FOV": [*fov, slab_thickness],
             "Matrix": [n_x, n_y, n_slices],
+            "SlicePositions": positions.tolist(),
+            "SliceThickness": excited_thickness,
+            "SliceGap": slice_gap,
             **definitions,
         }.items():
             seq.set_definition(key=key, value=value)
