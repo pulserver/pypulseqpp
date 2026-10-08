@@ -185,7 +185,7 @@ def gre(**kwargs):
 
 
 def test_every_line_is_one_repetition_of_the_same_blocks():
-    seq = gre(n_y=16)
+    seq = gre(n_y=16, n_dummy=0)
 
     assert len(seq.block_events) % 16 == 0
 

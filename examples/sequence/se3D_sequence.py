@@ -44,7 +44,7 @@ def se3d(
     partial_fourier_x: float = 1.0,
     partial_fourier_y: float = 1.0,
     partial_fourier_z: float = 1.0,
-    n_dummy: int = 0,
+    n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 2.0,
     n_acs_y: int = 24,
@@ -102,8 +102,9 @@ def se3d(
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
-    n_dummy : int, default=0
+    n_dummy : int or None, default=None
         Non-acquiring repetitions before the first view.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
@@ -254,6 +255,8 @@ def se3d(
             wait_tr = pp.make_delay(pad)
             length += pad
     repetition_time = length
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, 90.0)
 
     calibrating, imaging = pp.make_cartesian_plane_sampling(
         (n_y, n_z),

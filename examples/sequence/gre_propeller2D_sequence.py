@@ -38,7 +38,7 @@ def gre_propeller2d(
     tr: float | None = 250e-3,
     readout_bandwidth_hz: float = 250e3,
     ry: int = 1,
-    n_dummy: int = 16,
+    n_dummy: int | None = None,
     blade_width: int = 16,
 ) -> pp.Sequence:
     """RF-spoiled, multi-slice 2D PROPELLER gradient echo: one blade line per repetition.
@@ -79,9 +79,10 @@ def gre_propeller2d(
     ry : int, default=1
         Angular undersampling: one blade in every ``ry`` of the Nyquist set
         is played.
-    n_dummy : int, default=16
+    n_dummy : int or None, default=None
         Non-acquiring repetitions, at the first blade's angle, before each
         packet.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     blade_width : int, default=16
         Phase-encode lines per blade, at most ``n``.
 
@@ -164,6 +165,8 @@ def gre_propeller2d(
         )
     packet_time = {size: size * shot - raster + pad for size, pad in pads.items()}
     repetition_time = max(packet_time.values())
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, flip_angle_deg)
 
     views = [
         (blade, line) for blade in range(len(angles)) for line in range(blade_width)

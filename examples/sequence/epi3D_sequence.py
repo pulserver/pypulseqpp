@@ -175,7 +175,7 @@ def epi3d(
     partial_fourier_y: float = 1.0,
     partial_fourier_z: float = 1.0,
     n_shots: int = 1,
-    n_dummy: int = 2,
+    n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
@@ -251,9 +251,10 @@ def epi3d(
         ``[0.5, 1]``. Truncates the lines and the shells before the centre.
     n_shots : int, default=1
         Interleaved shots each shell's lines are split into.
-    n_dummy : int, default=2
+    n_dummy : int or None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
@@ -387,6 +388,10 @@ def epi3d(
         pad += pp.round_to_raster(per_shot - shortest_shot, raster)
     shot_duration = shortest_shot - raster + pad
     repetition_time = len(volume) * shot_duration
+    if n_dummy is None:
+        # Every shot excites the slab; a volume holds len(volume) shots.
+        excitations = sequences.steady_state_dummies(shot_duration, flip_angle_deg)
+        n_dummy = -(-excitations // len(volume)) if n_frames > 1 else excitations
     n_dummy_shots = n_dummy * (len(volume) if n_frames > 1 else 1)
     dummies = [volume[i % len(volume)] for i in range(n_dummy_shots)]
     output_pulse = pp.make_digital_output_pulse(

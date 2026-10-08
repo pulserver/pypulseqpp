@@ -36,7 +36,7 @@ def se_radial2d(
     tr: float | None = 500e-3,
     readout_bandwidth_hz: float = 250e3,
     ry: int = 1,
-    n_dummy: int = 0,
+    n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
 ) -> pp.Sequence:
     """Multi-slice 2D radial spin echo: one full spoke per excitation.
@@ -76,9 +76,10 @@ def se_radial2d(
     ry : int, default=1
         Angular undersampling: one spoke in every ``ry`` of the Nyquist set
         is played.
-    n_dummy : int, default=0
+    n_dummy : int or None, default=None
         Non-acquiring repetitions, at the first spoke's angle, before each
         packet.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
 
@@ -185,6 +186,8 @@ def se_radial2d(
         )
     packet_time = {size: size * shot - raster + pad for size, pad in pads.items()}
     repetition_time = max(packet_time.values())
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, 90.0)
 
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
         slice_thickness + slice_spacing
