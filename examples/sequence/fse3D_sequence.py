@@ -388,8 +388,9 @@ def fse3d(
     positions with :func:`~pypulseqpp.make_shuffling_order` (T2 Shuffling,
     Tamir et al., Magn Reson Med 2017;77:180-195), for an echo-resolved
     reconstruction. Every
-    acquisition carries its line, partition and echo as ``LIN``, ``PAR`` and
-    ``ECO``, and calibration views are marked ``IMA``; under wave-CAIPI the
+    acquisition carries its line and partition as ``LIN`` and ``PAR``, and,
+    shuffled, its echo, the contrast an echo-resolved reconstruction resolves,
+    as ``ECO``; calibration views are marked ``IMA``; under wave-CAIPI the
     calibration region is first acquired wave-free in trains of its own,
     marked ``REF``.
 
@@ -738,9 +739,10 @@ def fse3d(
             )
             if kind != "dummy" and view is not None:
                 is_calibration = not waves and view in calibration
-                label_events = labels(
-                    LIN=line, PAR=partition, ECO=echo, IMA=is_calibration
-                )
+                counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
+                if ordering == "shuffling":
+                    counters["ECO"] = echo
+                label_events = labels(**counters)
                 seq.add_block(fse.gx, *wave_events, fse.adc, *label_events)
             else:
                 seq.add_block(fse.gx, *wave_events)

@@ -97,8 +97,7 @@ def mprage_stack_of_stars3d(
     ``ry``-th of them is played in a golden order (:func:`golden_order`), so a
     train binned in time still covers the half turn; one spoke waveform serves
     every repetition, turned by a rotation extension. Acquisitions carry the
-    spoke as ``LIN``, the partition as ``PAR`` and the place in the train as
-    ``ECO``; under partition undersampling the central ``n_acs_z`` partitions
+    spoke as ``LIN`` and the partition as ``PAR``; under partition undersampling the central ``n_acs_z`` partitions
     are acquired too, marked ``IMA``.
 
     Parameters
@@ -311,7 +310,7 @@ def mprage_stack_of_stars3d(
         seq.add_block(inv.rf_prep, *labels(**flags))
         seq.add_block(inv.gz_spoil)
         seq.add_block(wait_ti)
-        for echo, (spoke, phase) in enumerate(zip(spokes, phases, strict=True)):
+        for spoke, phase in zip(spokes, phases, strict=True):
             exc.rf.phase_offset = phase
             ro.adc.phase_offset = phase
             turn = rotation(spoke, z)
@@ -323,7 +322,7 @@ def mprage_stack_of_stars3d(
                     if acquire or event is not ro.adc
                 ]
                 if acquire and any(event is ro.adc for event in block):
-                    events += labels(LIN=spoke, ECO=echo)
+                    events += labels(LIN=spoke)
                 if any(getattr(e, "channel", None) in ("x", "y") for e in events):
                     events.append(turn)
                 seq.add_block(*events)

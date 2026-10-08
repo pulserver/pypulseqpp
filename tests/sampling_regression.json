@@ -152,13 +152,11 @@
   "label:SEG": "e773f58f3800ee71"
  },
  "fse3D-individual": {
-  "label:ECO": "8e80874ad8094625",
   "label:IMA": "9395f0c2d19beb20",
   "label:LIN": "5b88421106f012c9",
   "label:PAR": "040495fa9fcabb38"
  },
  "fse3D-radial": {
-  "label:ECO": "9139ea1097318c35",
   "label:IMA": "a1a791e577c156f8",
   "label:LIN": "c9306b4d56e45b11",
   "label:PAR": "c47c340c899228de"
@@ -240,14 +238,12 @@
   "label:PAR": "26d85bce843e0ea6"
  },
  "mprage3D-caipi": {
-  "label:ECO": "24114dd05b0e7356",
   "label:IMA": "7b4d6e605bb73e0a",
   "label:LIN": "385d04b6efb678ee",
   "label:ONCE": "75031b52cdaa5329",
   "label:PAR": "941adc3df1850e62"
  },
  "mprage3D-radial": {
-  "label:ECO": "9dd48d80cfc5fc24",
   "label:IMA": "9395f0c2d19beb20",
   "label:LIN": "d78f7f10fd9de6b7",
   "label:ONCE": "9395f0c2d19beb20",
@@ -261,14 +257,12 @@
   "label:PAR": "3f6b2ae98ebdeb51"
  },
  "mprage_stack_of_spirals3D": {
-  "label:ECO": "ab1133f3e599e2a0",
   "label:IMA": "1e93268a1e1c81f3",
   "label:LIN": "1c65fee3864f1477",
   "label:ONCE": "298b7784d13a28bc",
   "label:PAR": "5d8d96fb191900b5"
  },
  "mprage_stack_of_stars3D": {
-  "label:ECO": "e9d41d4f2c543519",
   "label:IMA": "f7b1bca9cb4adbcd",
   "label:LIN": "bf2c403a810cb661",
   "label:ONCE": "85b3161b146ce000",

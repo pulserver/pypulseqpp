@@ -108,9 +108,9 @@ def mprage3d(
     has no line for play without acquiring. ``ordering`` plays a partition's
     lines centre-out, so the centre line's excitation occurs at TI and its ADC
     echo at TI + TE, or shuffled for a time-resolved reconstruction. Each
-    acquisition carries its line, its
-    partition and its place in the train as ``LIN``, ``PAR`` and ``ECO``;
-    calibration views are marked ``IMA``, and under wave-CAIPI the
+    acquisition carries its line and its partition as ``LIN`` and ``PAR``, and,
+    shuffled, its place in the train, the time a time-resolved reconstruction
+    resolves, as ``ECO``; calibration views are marked ``IMA``, and under wave-CAIPI the
     calibration region is first acquired wave-free in shots of its own,
     marked ``REF``.
 
@@ -397,9 +397,10 @@ def mprage3d(
             )
             if kind != "dummy" and line is not None:
                 is_calibration = not waves and (line, partition) in calibration
-                label_events = labels(
-                    LIN=line, PAR=partition, ECO=echo, IMA=is_calibration
-                )
+                counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
+                if ordering == "shuffling":
+                    counters["ECO"] = echo
+                label_events = labels(**counters)
                 seq.add_block(ro.gx, *wave_events, ro.adc, *label_events)
             else:
                 seq.add_block(ro.gx, *wave_events)

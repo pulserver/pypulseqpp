@@ -31,10 +31,24 @@ from pypulseqpp.plot import SAMPLING
 PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
+def _places(seq, start):
+    """Each acquisition's place in its train: the acquisitions since the last RF pulse whose use is ``start``."""
+    places, place = [], -1
+    for n in range(1, len(seq.block_events) + 1):
+        block = seq.get_block(n)
+        rf = getattr(block, "rf", None)
+        if rf is not None and rf.use == start:
+            place = -1
+        if getattr(block, "adc", None) is not None:
+            place += 1
+            places.append(place)
+    return np.asarray(places)
+
+
 def views(seq, ny, nz):
     """Return acquired coordinates, echo indices, and shot indices."""
     labels = seq.evaluate_labels(evolution="adc")
-    echo = np.asarray(labels["ECO"])
+    echo = _places(seq, "excitation")
     return (
         np.asarray(labels["LIN"]) - ny // 2,
         np.asarray(labels["PAR"]) - nz // 2,
