@@ -747,6 +747,18 @@ namespace pulseq
         double duration = 0.0;
     };
 
+    /** What @ref Sequence::expand_repeats found and wrote. */
+    struct ExpandResult
+    {
+        int repeats = 1;
+        int blocks_before = 0;
+        int blocks_after = 0;
+        /** Blocks of one pass whose `ONCE` is 1, 0 and 2. */
+        int prep_blocks = 0;
+        int body_blocks = 0;
+        int cooldown_blocks = 0;
+    };
+
     /** What a gradient id resolves to. */
     enum class GradKind
     {
@@ -1369,6 +1381,31 @@ namespace pulseq
          * dedup.cpp for the per-library profiles.
          */
         void remove_duplicates();
+
+        /* -- repetitions ------------------------------------------------- */
+
+        /**
+         * Play the scan @p repeats times, written into the block table.
+         *
+         * A block whose `ONCE` is 1 plays on the first repetition only, 2 on
+         * the last only, 0 on every one; `ONCE` is sticky, and it is read per
+         * block rather than as sections, as an interpreter plays it. A
+         * repetition plays the same events, so only the block table grows:
+         * every library and every block definition is kept, and a block that
+         * plays no event takes the definition its new chain gives it.
+         *
+         * Each repetition past the first sets @p label to its index on the
+         * first block it plays, one `LABELSET` per repetition; an empty label
+         * writes none. With @p strip_once the `ONCE` links are removed from
+         * the chains, which the table no longer needs to be played by.
+         * `repeats == 1` resolves and strips the flags all the same.
+         *
+         * @throws std::invalid_argument if @p repeats is below 1.
+         * @throws std::runtime_error if a block's `ONCE` is outside {0, 1, 2},
+         *         if @p repeats exceeds 1 and no block plays on every
+         *         repetition, or if the scan already writes @p label.
+         */
+        ExpandResult expand_repeats(int repeats, const std::string& label = "AVG", bool strip_once = true);
 
         /**
          * Whether every library is already down to its distinct rows.

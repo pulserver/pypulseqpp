@@ -2818,6 +2818,55 @@ class Sequence:
         target._native.remove_duplicates()
         return target
 
+    def expand_repeats(
+        self, repeats: int, *, label: str = "AVG", strip_once: bool = True
+    ) -> dict[str, int]:
+        """Play the scan a number of times, written into the block table, in place.
+
+        A block whose ``ONCE`` label is 1 plays on the first repetition only, 2
+        on the last only, and 0 on every one; ``ONCE`` is sticky and is read per
+        block, as an interpreter plays it. A repetition plays the same events,
+        so only the block table grows and no library row is added. Each
+        repetition past the first sets ``label`` to its index, 1 to
+        ``repeats - 1``, on the first block it plays.
+
+        Parameters
+        ----------
+        repeats : int
+            How many times the scan plays; 1 resolves the ``ONCE`` labels only.
+        label : str, default="AVG"
+            The counter that numbers the repetitions; empty for none.
+        strip_once : bool, default=True
+            Remove the ``ONCE`` labels, which the expanded table no longer
+            needs to be played by.
+
+        Returns
+        -------
+        dict
+            ``repeats``, ``blocks_before`` and ``blocks_after``, and the blocks
+            of one pass whose ``ONCE`` is 1, 0 and 2: ``prep_blocks``,
+            ``body_blocks`` and ``cooldown_blocks``.
+
+        Raises
+        ------
+        ValueError
+            If ``repeats`` is below 1.
+        RuntimeError
+            If a block's ``ONCE`` is outside 0, 1 and 2, if ``repeats`` exceeds
+            1 and no block plays on every repetition, or if the scan already
+            writes ``label``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> _ = seq.add_block(pp.make_delay(1e-3), pp.make_label("ONCE", "SET", 1))
+        >>> _ = seq.add_block(pp.make_delay(2e-3), pp.make_label("ONCE", "SET", 0))
+        >>> seq.expand_repeats(3)["blocks_after"]
+        4
+        """
+        return dict(self._native.expand_repeats(repeats, label, strip_once))
+
     def _copy(self) -> Sequence:
         """Copy through binary serialisation, sharing the system object.
 
