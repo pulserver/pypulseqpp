@@ -1,7 +1,7 @@
-SaturationBand.blocks
+SpatialSaturation.seq
 =====================
 
 .. currentmodule:: pypulseqpp.sequences
 
-.. autoproperty:: SaturationBand.blocks
+.. autoproperty:: SpatialSaturation.seq
 

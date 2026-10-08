@@ -717,7 +717,7 @@ from.</p>
 <td><p>Non-selective diffusion preparation with hard tip-down and storage pulses.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.FatSaturation.html#pypulseqpp.sequences.FatSaturation" title="pypulseqpp.sequences.FatSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></p></td>
-<td><p>SLR fat saturation with a three-axis spoiler and optional spatial selection.</p></td>
+<td><p>Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.IhMtPreparation.html#pypulseqpp.sequences.IhMtPreparation" title="pypulseqpp.sequences.IhMtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></p></td>
 <td><p>Simultaneous dual-offset saturation for ihMT measurements.</p></td>
@@ -728,8 +728,8 @@ from.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.OffResonanceSaturation.html#pypulseqpp.sequences.OffResonanceSaturation" title="pypulseqpp.sequences.OffResonanceSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffResonanceSaturation</span></code></a></p></td>
 <td><p>Repeat one off-resonance pulse, followed by an optional three-axis spoiler.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SaturationBand.html#pypulseqpp.sequences.SaturationBand" title="pypulseqpp.sequences.SaturationBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SaturationBand</span></code></a></p></td>
-<td><p>Slab-selective saturation pulse followed by a three-axis spoiler.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a></p></td>
+<td><p>Slab-selective saturation pulse in the physical frame, followed by a three-axis spoiler.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.T1T2Preparation.html#pypulseqpp.sequences.T1T2Preparation" title="pypulseqpp.sequences.T1T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1T2Preparation</span></code></a></p></td>
 <td><p>T2 preparation with storage on -z to initiate T1 recovery.</p></td>
@@ -1076,6 +1076,9 @@ from.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.make_excitation.html#pypulseqpp.sequences.make_excitation" title="pypulseqpp.sequences.make_excitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_excitation</span></code></a></p></td>
 <td><p>Build the excitation <code class="docutils literal notranslate"><span class="pre">kind</span></code> names, from one prescription of a slab.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.spatial_saturations.html#pypulseqpp.sequences.spatial_saturations" title="pypulseqpp.sequences.spatial_saturations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_saturations</span></code></a></p></td>
+<td><p>Return the <a class="reference internal" href="generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a> of each <code class="docutils literal notranslate"><span class="pre">(normal,</span> <span class="pre">position,</span> <span class="pre">thickness)</span></code> band with a thickness.</p></td>
 </tr>
 </tbody>
 </table>

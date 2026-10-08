@@ -39,3 +39,14 @@ from one slab prescription.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.EXCITATIONS` | — | `("nonselective", "slab", "spsp")` | The excitation kinds `make_excitation` builds. |
 | {obj}`~pypulseqpp.sequences.make_excitation` | System, kind, flip angle (deg), slab thickness (m) | Excitation module | Non-selective, slab-selective or water-selective spectral-spatial excitation of one slab. |
+
+## Spatial saturation bands
+
+A sequence function offers each spatial saturation band as `sat<k>_normal_x`,
+`_y`, `_z`, `sat<k>_position` and `sat<k>_thickness`, in the physical frame,
+and builds the bands it plays with `spatial_saturations`; a band of zero
+thickness is off.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.sequences.spatial_saturations` | System, `(normal, position, thickness)` per band | List of `SpatialSaturation` | The bands a sequence function plays, those with a thickness. |

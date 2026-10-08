@@ -564,12 +564,6 @@ packets, even ones first. With one frame, slices one TR cannot hold are
 dealt round-robin into packets; a time series must fit every slice in
 one. A multiband shot excites <code class="docutils literal notranslate"><span class="pre">multiband</span></code> slices at once and a
 blipped-CAIPI train encodes the band in <code class="docutils literal notranslate"><span class="pre">PAR</span></code>.</p>
-<p>Up to two spatial saturation bands (<code class="docutils literal notranslate"><span class="pre">sat1_*</span></code>, <code class="docutils literal notranslate"><span class="pre">sat2_*</span></code>) and the fat
-saturation, in that order, are played at the start of every shot. A band
-is centred <code class="docutils literal notranslate"><span class="pre">position</span></code> from the isocentre of the logical frame; the
-volume’s field-of-view offset, applied afterwards with
-<code class="docutils literal notranslate"><span class="pre">pypulseqpp.TransformFOV</span></code>, shifts the band with the rest of the
-sequence, so <code class="docutils literal notranslate"><span class="pre">position</span></code> is measured from the field-of-view centre.</p>
 <p>Two prescans are linked ahead of the imaging: the
 <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, a single-band gradient echo per slice over the central
 <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines (<code class="docutils literal notranslate"><span class="pre">REF</span></code>), when undersampled or multiband; and the
@@ -602,24 +596,6 @@ TE.</p></li>
 <li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=1</em>) – Interleaved shots each volume’s phase encode is split into.</p></li>
 <li><p><strong>multiband</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=1</em>) – Slices excited at once. It must divide <code class="docutils literal notranslate"><span class="pre">n_slices</span></code>.</p></li>
 <li><p><strong>fat_saturation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Saturate fat before every shot.</p></li>
-<li><p><strong>sat1_normal_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the first spatial saturation band, as readout, phase and
-slice components of the logical frame. Normalised; not the zero vector
-for a band with a thickness.</p></li>
-<li><p><strong>sat1_normal_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the first spatial saturation band, as readout, phase and
-slice components of the logical frame. Normalised; not the zero vector
-for a band with a thickness.</p></li>
-<li><p><strong>sat1_normal_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the first spatial saturation band, as readout, phase and
-slice components of the logical frame. Normalised; not the zero vector
-for a band with a thickness.</p></li>
-<li><p><strong>sat1_position</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Centre of the first band along its normal, from the field-of-view
-centre (m).</p></li>
-<li><p><strong>sat1_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Thickness of the first band (m). Zero plays no band.</p></li>
-<li><p><strong>sat2_normal_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the second saturation band, as for the first.</p></li>
-<li><p><strong>sat2_normal_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the second saturation band, as for the first.</p></li>
-<li><p><strong>sat2_normal_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the second saturation band, as for the first.</p></li>
-<li><p><strong>sat2_position</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Centre of the second band along its normal, from the field-of-view
-centre (m).</p></li>
-<li><p><strong>sat2_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Thickness of the second band (m). Zero plays no band.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=2</em>) – Non-acquiring volumes before a time series; with one frame,
 non-acquiring shots per slice before each packet.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
@@ -639,8 +615,7 @@ through <code class="docutils literal notranslate"><span class="pre">NextSequenc
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">1]</span></code>, a count is below
-    one, a saturation band has a thickness and a zero normal, or a
-    thickness is negative, <code class="docutils literal notranslate"><span class="pre">multiband</span></code> does not divide <code class="docutils literal notranslate"><span class="pre">n_slices</span></code>, the shots cannot
+    one, <code class="docutils literal notranslate"><span class="pre">multiband</span></code> does not divide <code class="docutils literal notranslate"><span class="pre">n_slices</span></code>, the shots cannot
     share the lines, the TE is shorter than the train admits, or the TR
     cannot hold one slice, or every slice when <code class="docutils literal notranslate"><span class="pre">n_frames</span></code> is above
     one.</p>

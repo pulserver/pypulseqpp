@@ -531,11 +531,10 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.FatSaturation">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">FatSaturation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/fatsat.html#FatSaturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
-<p>SLR fat saturation with a three-axis spoiler and optional spatial selection.</p>
-<p>Position and orientation place the selection band at construction.
-NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV
-placement leaves the band unchanged. Position is specified in millimetres
-along the channel axes; the RF frequency offset remains in ppm.</p>
+<p>Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.</p>
+<p>The pulse plays no gradient, so a field-of-view offset or rotation applied
+afterwards leaves it as it is: it saturates fat wherever the prescription
+puts the image.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -547,38 +546,22 @@ field the scan actually runs at.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=250.0</em>) – Spectral passband (Hz). With <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code> it fixes the pulse
 duration, which is <code class="docutils literal notranslate"><span class="pre">time_bw_product</span> <span class="pre">/</span> <span class="pre">bandwidth_hz</span></code>.</p></li>
 <li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Time-bandwidth product.</p></li>
-<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Band thickness (m). <code class="docutils literal notranslate"><span class="pre">None</span></code> saturates the whole transmit volume,
-which is the usual fat saturation and the only form that needs no
-gradient.</p></li>
-<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Band normal, before <code class="docutils literal notranslate"><span class="pre">orientation</span></code> turns it.</p></li>
-<li><p><strong>position_mm</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">(dx,</span> <span class="pre">dy,</span> <span class="pre">dz)</span></code> offset of the band from the isocentre, along the
-channel axes, in millimetres. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
-<li><p><strong>orientation</strong> (<em>array_like</em><em> or </em><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html#scipy.spatial.transform.Rotation" title="(in SciPy v1.18.0)"><em>scipy.spatial.transform.Rotation</em></a><em>, </em><em>default=None</em>) – A <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code> matrix, or a rotation, taking the channel axes to the
-axes the band lies on: the band’s own rotation. Needs <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code>.</p></li>
-<li><p><strong>use_rotation_extension</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Encode the orientation as a <code class="docutils literal notranslate"><span class="pre">ROTATIONS</span></code> extension rather than
-rotating the gradient waveforms. Only <code class="docutils literal notranslate"><span class="pre">True</span></code> is implemented; see
-<a class="reference internal" href="pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a>.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each spoiler axis winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The saturation pulse, as placed.</p></li>
-<li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient. Only when <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> was given, and named
-for the channel axis it is drawn on whatever <code class="docutils literal notranslate"><span class="pre">axis</span></code> was.</p></li>
+<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The saturation pulse.</p></li>
 <li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Closing spoiler on all three axes.</p></li>
-<li><p><strong>prep_labels</strong> (<em>list of LabelSetEvent</em>) – <code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> and <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>, set on the first block.</p></li>
-<li><p><strong>reset_labels</strong> (<em>list of LabelSetEvent</em>) – The same two cleared, on the last.</p></li>
-<li><p><strong>freq_offset_ppm</strong> (<em>float, default=FAT_SHIFT_PPM</em>) – The fat offset the pulse carries (ppm).</p></li>
+<li><p><strong>freq_offset_ppm</strong> (<em>float</em>) – The fat offset the pulse carries (ppm).</p></li>
 <li><p><strong>freq_offset_hz</strong> (<em>float</em>) – What that comes to at <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> (Hz), for reference; the pulse
 itself is field-independent.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a bandwidth, thickness or voxel size is not positive, <code class="docutils literal notranslate"><span class="pre">axis</span></code> is
-    not a gradient channel, the spoiler was asked for zero cycles, or a
-    position or orientation was given for a band that has no thickness.</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a bandwidth, time-bandwidth product or voxel size is not positive,
+    or the spoiler was asked for zero cycles.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -590,7 +573,7 @@ itself is field-independent.</p></li>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">fatsat</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-<span class="go">['rf', 'labelset', 'labelset']</span>
+<span class="go">['rf']</span>
 </pre></div>
 </div>
 <p>The pulse with its spoiler, and the longitudinal magnetization left

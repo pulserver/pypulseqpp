@@ -652,9 +652,9 @@ blocks, as <a class="reference internal" href="../explanations/sequence-design.h
 <td><p>Non-selective diffusion preparation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FatSaturation.html#pypulseqpp.sequences.FatSaturation" title="pypulseqpp.sequences.FatSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FatSaturation</span></code></a></p></td>
-<td><p>Offset (ppm), flip angle, bandwidth, optional thickness</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers, <code class="docutils literal notranslate"><span class="pre">gz</span></code> when selective</p></td>
-<td><p>SLR fat saturation.</p></td>
+<td><p>Offset (ppm), flip angle, bandwidth</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
+<td><p>SLR fat saturation of the whole transmit volume.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.IhMtPreparation.html#pypulseqpp.sequences.IhMtPreparation" title="pypulseqpp.sequences.IhMtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></p></td>
 <td><p>Flip angle, frequency offset, duration, pulse count</p></td>
@@ -671,10 +671,10 @@ blocks, as <a class="reference internal" href="../explanations/sequence-design.h
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
 <td><p>Repeated off-resonance saturation pulse.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SaturationBand.html#pypulseqpp.sequences.SaturationBand" title="pypulseqpp.sequences.SaturationBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SaturationBand</span></code></a></p></td>
-<td><p>Normal, position and thickness (m), flip angle, duration</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a></p></td>
+<td><p>Normal, position and thickness (m) in the physical frame, flip angle, duration</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">gx_sel</span></code>, <code class="docutils literal notranslate"><span class="pre">gy_sel</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_sel</span></code>, spoilers</p></td>
-<td><p>Slab-selective saturation along an arbitrary normal.</p></td>
+<td><p>Slab-selective saturation along any normal; exempt from the prescription (<code class="docutils literal notranslate"><span class="pre">NOPOS</span></code>, <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T1T2Preparation.html#pypulseqpp.sequences.T1T2Preparation" title="pypulseqpp.sequences.T1T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1T2Preparation</span></code></a></p></td>
 <td><p>Preparation echo time, refocusing count</p></td>

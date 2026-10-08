@@ -3418,6 +3418,67 @@
         <span class="k">return</span> <span class="n">target</span></div>
 
 
+<div class="viewcode-block" id="Sequence.expand_repeats">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.expand_repeats.html#pypulseqpp.Sequence.expand_repeats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expand_repeats</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">repeats</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"AVG"</span><span class="p">,</span> <span class="n">strip_once</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Play the scan a number of times, written into the block table, in place.</span>
+
+<span class="sd">        A block whose ``ONCE`` label is 1 plays on the first repetition only, 2</span>
+<span class="sd">        on the last only, and 0 on every one; ``ONCE`` is sticky and is read per</span>
+<span class="sd">        block, as an interpreter plays it, a block's ``LABELSET`` directives</span>
+<span class="sd">        before its ``LABELINC`` ones. Every repetition starts as the scan</span>
+<span class="sd">        starts, with every counter at zero but ``label``, which numbers it: the</span>
+<span class="sd">        first block a repetition past the first plays sets back to zero the</span>
+<span class="sd">        counters the repetition before left elsewhere, those it sets itself</span>
+<span class="sd">        aside, and sets ``label`` to its index, 1 to ``repeats - 1``. A</span>
+<span class="sd">        repetition plays the same events, so only the block table grows and</span>
+<span class="sd">        no event row is added. A recorded ``TotalDuration`` is replaced by the</span>
+<span class="sd">        duration of the expanded scan. One repetition leaves the scan as it is.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        repeats : int</span>
+<span class="sd">            How many times the scan plays.</span>
+<span class="sd">        label : str, default="AVG"</span>
+<span class="sd">            The counter that numbers the repetitions; empty for none.</span>
+<span class="sd">        strip_once : bool, default=True</span>
+<span class="sd">            Remove the ``ONCE`` labels, which the expanded table no longer</span>
+<span class="sd">            needs to be played by.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            ``repeats``, ``blocks_before`` and ``blocks_after``, and the blocks</span>
+<span class="sd">            of one pass whose ``ONCE`` is 1, 0 and 2: ``prep_blocks``,</span>
+<span class="sd">            ``body_blocks`` and ``cooldown_blocks``.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``repeats`` is below 1.</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If a block's ``ONCE`` is outside 0, 1 and 2, if ``repeats`` exceeds</span>
+<span class="sd">            1 and no block plays on every repetition, or if the scan already</span>
+<span class="sd">            writes ``label``.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pp.make_delay(1e-3), pp.make_label("ONCE", "SET", 1))</span>
+<span class="sd">        &gt;&gt;&gt; _ = seq.add_block(pp.make_delay(2e-3), pp.make_label("ONCE", "SET", 0))</span>
+<span class="sd">        &gt;&gt;&gt; seq.expand_repeats(3)["blocks_after"]</span>
+<span class="sd">        4</span>
+<span class="sd">        """</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">expand_repeats</span><span class="p">(</span><span class="n">repeats</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">strip_once</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"TotalDuration"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_definition</span><span class="p">(</span><span class="s2">"TotalDuration"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_duration</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">counts</span></div>
+
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Copy through binary serialisation, sharing the system object.</span>
 

@@ -517,6 +517,7 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Sequence functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation-choice">Excitation choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
 </ul>
             </nav>
         </div>
@@ -611,6 +612,30 @@ from one slab prescription.</p>
 </table>
 </div>
 </section>
+<section id="spatial-saturation-bands">
+<h2>Spatial saturation bands<a class="headerlink" href="#spatial-saturation-bands" title="Link to this heading">#</a></h2>
+<p>A sequence function offers each spatial saturation band as <code class="docutils literal notranslate"><span class="pre">sat&lt;k&gt;_normal_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">_y</span></code>, <code class="docutils literal notranslate"><span class="pre">_z</span></code>, <code class="docutils literal notranslate"><span class="pre">sat&lt;k&gt;_position</span></code> and <code class="docutils literal notranslate"><span class="pre">sat&lt;k&gt;_thickness</span></code>, in the physical frame,
+and builds the bands it plays with <code class="docutils literal notranslate"><span class="pre">spatial_saturations</span></code>; a band of zero
+thickness is off.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.spatial_saturations.html#pypulseqpp.sequences.spatial_saturations" title="pypulseqpp.sequences.spatial_saturations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_saturations</span></code></a></p></td>
+<td><p>System, <code class="docutils literal notranslate"><span class="pre">(normal,</span> <span class="pre">position,</span> <span class="pre">thickness)</span></code> per band</p></td>
+<td><p>List of <code class="docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></p></td>
+<td><p>The bands a sequence function plays, those with a thickness.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 
 
@@ -662,6 +687,7 @@ from one slab prescription.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Sequence functions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation-choice">Excitation choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
 </ul>
   </nav></div>
 

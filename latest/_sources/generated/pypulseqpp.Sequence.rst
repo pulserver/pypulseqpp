@@ -17,6 +17,7 @@ Blocks
    ~Sequence.get_block
    ~Sequence.find_block_by_time
    ~Sequence.remove_duplicates
+   ~Sequence.expand_repeats
    ~Sequence.event_definitions
    ~Sequence.block_definitions
    ~Sequence.repetition

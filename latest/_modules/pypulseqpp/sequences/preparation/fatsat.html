@@ -452,39 +452,32 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp.sequences.preparation.fatsat</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Fat saturation, optionally confined to a spatial band on a chosen axis."""</span>
+<span></span><span class="sd">"""Fat saturation of the whole transmit volume."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FatSaturation"</span><span class="p">]</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..excitation._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">AXES</span><span class="p">,</span> <span class="n">spoiler_gradients</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">spoiler_gradients</span>
 
 <span class="c1">#: Where the main fat resonance sits relative to water. Negative: fat precesses</span>
 <span class="c1">#: more slowly, so it is downfield of water in frequency.</span>
 <span class="n">FAT_SHIFT_PPM</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.45</span>
 
-<span class="c1">#: The transform exemptions a placed module carries. Its pulse already points</span>
-<span class="c1">#: where it was told to, so nothing downstream may point it again.</span>
-<span class="n">FOV_EXEMPT_FLAGS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"NOPOS"</span><span class="p">,</span> <span class="s2">"NOROT"</span><span class="p">)</span>
-
 
 <div class="viewcode-block" id="FatSaturation">
 <a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.FatSaturation.html#pypulseqpp.sequences.FatSaturation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FatSaturation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""SLR fat saturation with a three-axis spoiler and optional spatial selection.</span>
+<span class="w">    </span><span class="sd">"""Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.</span>
 
-<span class="sd">    Position and orientation place the selection band at construction.</span>
-<span class="sd">    NOPOS and NOROT are set on entry and cleared on exit so subsequent FOV</span>
-<span class="sd">    placement leaves the band unchanged. Position is specified in millimetres</span>
-<span class="sd">    along the channel axes; the RF frequency offset remains in ppm.</span>
+<span class="sd">    The pulse plays no gradient, so a field-of-view offset or rotation applied</span>
+<span class="sd">    afterwards leaves it as it is: it saturates fat wherever the prescription</span>
+<span class="sd">    puts the image.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -501,22 +494,6 @@
 <span class="sd">        duration, which is ``time_bw_product / bandwidth_hz``.</span>
 <span class="sd">    time_bw_product : float, default=2.0</span>
 <span class="sd">        Time-bandwidth product.</span>
-<span class="sd">    thickness_m : float, default=None</span>
-<span class="sd">        Band thickness (m). ``None`` saturates the whole transmit volume,</span>
-<span class="sd">        which is the usual fat saturation and the only form that needs no</span>
-<span class="sd">        gradient.</span>
-<span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
-<span class="sd">        Band normal, before ``orientation`` turns it.</span>
-<span class="sd">    position_mm : sequence of float, default=None</span>
-<span class="sd">        ``(dx, dy, dz)`` offset of the band from the isocentre, along the</span>
-<span class="sd">        channel axes, in millimetres. Needs ``thickness_m``.</span>
-<span class="sd">    orientation : array_like or scipy.spatial.transform.Rotation, default=None</span>
-<span class="sd">        A ``(3, 3)`` matrix, or a rotation, taking the channel axes to the</span>
-<span class="sd">        axes the band lies on: the band's own rotation. Needs ``thickness_m``.</span>
-<span class="sd">    use_rotation_extension : bool, default=True</span>
-<span class="sd">        Encode the orientation as a ``ROTATIONS`` extension rather than</span>
-<span class="sd">        rotating the gradient waveforms. Only ``True`` is implemented; see</span>
-<span class="sd">        :class:`~pypulseqpp.TransformFOV`.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.</span>
 <span class="sd">    voxel_size_m : float, default=0.001</span>
@@ -525,17 +502,10 @@
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf_prep : RfEvent</span>
-<span class="sd">        The saturation pulse, as placed.</span>
-<span class="sd">    gz : GradEvent</span>
-<span class="sd">        Its selection gradient. Only when ``thickness_m`` was given, and named</span>
-<span class="sd">        for the channel axis it is drawn on whatever ``axis`` was.</span>
+<span class="sd">        The saturation pulse.</span>
 <span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
 <span class="sd">        Closing spoiler on all three axes.</span>
-<span class="sd">    prep_labels : list of LabelSetEvent</span>
-<span class="sd">        ``NOPOS`` and ``NOROT``, set on the first block.</span>
-<span class="sd">    reset_labels : list of LabelSetEvent</span>
-<span class="sd">        The same two cleared, on the last.</span>
-<span class="sd">    freq_offset_ppm : float, default=FAT_SHIFT_PPM</span>
+<span class="sd">    freq_offset_ppm : float</span>
 <span class="sd">        The fat offset the pulse carries (ppm).</span>
 <span class="sd">    freq_offset_hz : float</span>
 <span class="sd">        What that comes to at ``system.B0`` (Hz), for reference; the pulse</span>
@@ -544,9 +514,8 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a bandwidth, thickness or voxel size is not positive, ``axis`` is</span>
-<span class="sd">        not a gradient channel, the spoiler was asked for zero cycles, or a</span>
-<span class="sd">        position or orientation was given for a band that has no thickness.</span>
+<span class="sd">        If a bandwidth, time-bandwidth product or voxel size is not positive,</span>
+<span class="sd">        or the spoiler was asked for zero cycles.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -557,7 +526,7 @@
 <span class="sd">    (2, -441)</span>
 
 <span class="sd">    &gt;&gt;&gt; [event.type for event in fatsat.blocks[0]]</span>
-<span class="sd">    ['rf', 'labelset', 'labelset']</span>
+<span class="sd">    ['rf']</span>
 
 <span class="sd">    The pulse with its spoiler, and the longitudinal magnetization left</span>
 <span class="sd">    across the spectrum. The band sits at the fat resonance for the field</span>
@@ -587,11 +556,6 @@
         <span class="n">flip_angle_deg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">110.0</span><span class="p">,</span>
         <span class="n">bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">250.0</span><span class="p">,</span>
         <span class="n">time_bw_product</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
-        <span class="n">thickness_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"z"</span><span class="p">,</span>
-        <span class="n">position_mm</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">orientation</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">use_rotation_extension</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">spoiling_cycles</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>
         <span class="n">voxel_size_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -604,106 +568,31 @@
                 <span class="s2">"a fat saturation has to be spoiled: without it the fat the pulse just "</span>
                 <span class="s2">"tipped over stays in the transverse plane and is read with the water"</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AXES</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"axis must be one of </span><span class="si">{</span><span class="n">AXES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">thickness_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">thickness_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"thickness_m must be positive"</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">thickness_m</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">position_mm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">"a saturation without a thickness covers the whole transmit volume, so it "</span>
-                <span class="s2">"has nowhere to be put; give thickness_m to make it a band"</span>
-            <span class="p">)</span>
 
-        <span class="n">designed</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
+        <span class="n">rf_prep</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
             <span class="n">duration</span><span class="o">=</span><span class="n">time_bw_product</span> <span class="o">/</span> <span class="n">bandwidth_hz</span><span class="p">,</span>
-            <span class="n">slice_thickness</span><span class="o">=</span><span class="mf">0.0</span> <span class="k">if</span> <span class="n">thickness_m</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">thickness_m</span><span class="p">,</span>
+            <span class="n">slice_thickness</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
             <span class="n">time_bw_product</span><span class="o">=</span><span class="n">time_bw_product</span><span class="p">,</span>
             <span class="n">pulse_type</span><span class="o">=</span><span class="s2">"sat"</span><span class="p">,</span>
             <span class="n">freq_ppm</span><span class="o">=</span><span class="n">freq_offset_ppm</span><span class="p">,</span>
-            <span class="n">return_gz</span><span class="o">=</span><span class="n">thickness_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">return_gz</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">use</span><span class="o">=</span><span class="s2">"saturation"</span><span class="p">,</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">rf_prep</span><span class="p">,</span> <span class="n">gz</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">designed</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">designed</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">thickness_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">designed</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">gz</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">axis</span>
-
         <span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span> <span class="o">=</span> <span class="n">spoiler_gradients</span><span class="p">(</span>
             <span class="n">system</span><span class="p">,</span> <span class="n">spoiling_cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span>
         <span class="p">)</span>
 
-        <span class="n">designed_seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">designed_seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">designed_seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span>
-        <span class="n">designed_seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">position_mm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Over the pulse block only. The spoiler has no orientation to get</span>
-            <span class="c1"># right -- it dephases the same however it is turned -- and turning</span>
-            <span class="c1"># it would mix three lobes each already solved against the full</span>
-            <span class="c1"># slew limit, so the rotated sum would exceed it.</span>
-            <span class="n">designed_seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">TransformFOV</span><span class="p">(</span>
-                <span class="n">rotation</span><span class="o">=</span><span class="n">_as_matrix</span><span class="p">(</span><span class="n">orientation</span><span class="p">),</span>
-                <span class="c1"># A shift is written in metres; the argument is millimetres</span>
-                <span class="c1"># because a prescription is.</span>
-                <span class="n">translation</span><span class="o">=</span><span class="kc">None</span>
-                <span class="k">if</span> <span class="n">position_mm</span> <span class="ow">is</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">position_mm</span><span class="p">),</span>
-                <span class="n">use_rotation_extension</span><span class="o">=</span><span class="n">use_rotation_extension</span><span class="p">,</span>
-                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">apply_to_sequence</span><span class="p">(</span>
-                <span class="n">designed_seq</span><span class="p">,</span>
-                <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">designed_seq</span><span class="o">.</span><span class="n">block_durations</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Rebuilt rather than edited in place: the placement rewrote the pulse,</span>
-        <span class="c1"># so what this module plays -- and therefore publishes -- is the</span>
-        <span class="c1"># transformed event, and the flags go on with it. The exemption belongs</span>
-        <span class="c1"># on the block that carries the pulse, and a block of its own would be</span>
-        <span class="c1"># a block of dead time.</span>
-        <span class="n">placed</span> <span class="o">=</span> <span class="p">[</span><span class="n">designed_seq</span><span class="o">.</span><span class="n">get_block</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">designed_seq</span><span class="o">.</span><span class="n">block_events</span><span class="p">]</span>
-        <span class="n">rf_prep</span><span class="p">,</span> <span class="n">gz</span> <span class="o">=</span> <span class="n">placed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rf</span><span class="p">,</span> <span class="n">placed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">gz</span>
-        <span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span> <span class="o">=</span> <span class="n">placed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">gx</span><span class="p">,</span> <span class="n">placed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">gy</span><span class="p">,</span> <span class="n">placed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">gz</span>
-
-        <span class="n">prep_labels</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOV_EXEMPT_FLAGS</span>
-        <span class="p">]</span>
-        <span class="c1"># Cleared on the way out: Pulseq labels are sticky, so an exemption left</span>
-        <span class="c1"># set would go on exempting every block after this module.</span>
-        <span class="n">reset_labels</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOV_EXEMPT_FLAGS</span>
-        <span class="p">]</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">placed</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                <span class="o">*</span><span class="p">(</span>
-                    <span class="n">event</span>
-                    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pp</span><span class="o">.</span><span class="n">block_to_events</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">)</span>
-                <span class="p">),</span>
-                <span class="o">*</span><span class="p">(</span><span class="n">prep_labels</span> <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">()),</span>
-                <span class="o">*</span><span class="p">(</span><span class="n">reset_labels</span> <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">placed</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">()),</span>
-            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">rf_reference</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq_offset_ppm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">freq_offset_ppm</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq_offset_hz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span> <span class="o">*</span> <span class="n">freq_offset_ppm</span><span class="p">)</span></div>
 </div>
 
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_as_matrix</span><span class="p">(</span><span class="n">orientation</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="s2">"as_matrix"</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">orientation</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 </pre></div>
 
                 </article>

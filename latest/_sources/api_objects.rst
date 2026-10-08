@@ -101,7 +101,7 @@ from.
    IhMtPreparation
    MtPreparation
    OffResonanceSaturation
-   SaturationBand
+   SpatialSaturation
    T1T2Preparation
    T2Preparation
    LineReadout2D
@@ -244,6 +244,7 @@ from.
    duration
    EXCITATIONS
    make_excitation
+   spatial_saturations
 
 .. currentmodule:: pypulseqpp
 

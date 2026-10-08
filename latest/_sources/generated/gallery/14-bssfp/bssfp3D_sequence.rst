@@ -174,7 +174,7 @@ each repetition are unchanged, so the steady state is the same.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 27.543 seconds)
+   **Total running time of the script:** (0 minutes 23.179 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp3D_sequence.py:

@@ -559,6 +559,10 @@ are excited before the odd ones. Every packet starts with its own dummy
 repetitions, and the last slice of a packet waits out the rest of the TR.
 Under undersampling the calibration lines are acquired first, marked
 <code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
+<p>Up to two spatial saturation bands (<code class="docutils literal notranslate"><span class="pre">sat1_*</span></code>, <code class="docutils literal notranslate"><span class="pre">sat2_*</span></code>) are played
+before every excitation. Each lies in the physical frame, centred
+<code class="docutils literal notranslate"><span class="pre">position</span></code> from the isocentre along its normal, and the field-of-view
+offset and rotation leave it there.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -588,6 +592,22 @@ Truncates the lines before the centre.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>default=24</em>) – Fully sampled calibration lines at the centre of k-space, acquired
 ahead of the rest when <code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>.</p></li>
+<li><p><strong>sat1_normal_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the first spatial saturation band along the physical
+gradient axes. Normalised; not the zero vector for a band with a
+thickness.</p></li>
+<li><p><strong>sat1_normal_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the first spatial saturation band along the physical
+gradient axes. Normalised; not the zero vector for a band with a
+thickness.</p></li>
+<li><p><strong>sat1_normal_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the first spatial saturation band along the physical
+gradient axes. Normalised; not the zero vector for a band with a
+thickness.</p></li>
+<li><p><strong>sat1_position</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Centre of the first band along its normal, from the isocentre (m).</p></li>
+<li><p><strong>sat1_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Thickness of the first band (m). Zero plays no band.</p></li>
+<li><p><strong>sat2_normal_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the second band, as for the first.</p></li>
+<li><p><strong>sat2_normal_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the second band, as for the first.</p></li>
+<li><p><strong>sat2_normal_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Normal of the second band, as for the first.</p></li>
+<li><p><strong>sat2_position</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Centre of the second band along its normal, from the isocentre (m).</p></li>
+<li><p><strong>sat2_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Thickness of the second band (m). Zero plays no band.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -598,7 +618,8 @@ ahead of the rest when <code class="docutils literal notranslate"><span class="p
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If a partial Fourier fraction is outside <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, <code class="docutils literal notranslate"><span class="pre">ry</span></code> is
-    below one, or the TR cannot hold one slice.</p>
+    below one, a saturation band has a thickness and a zero normal or a
+    negative thickness, or the TR cannot hold one slice.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

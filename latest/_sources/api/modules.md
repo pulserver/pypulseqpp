@@ -39,11 +39,11 @@ blocks, as {doc}`../explanations/sequence-design` describes.
 | {obj}`~pypulseqpp.sequences.InversionPreparation` | Duration, adiabatic pulse type, bandwidth, crusher cycles | `rf_prep`, `gz_spoil`, `prep_labels` | Non-selective adiabatic inversion. |
 | {obj}`~pypulseqpp.sequences.BlochSiegertPreparation` | Frequency offset, duration, peak B1 (Hz) | `rf_prep`, spoilers, `kbs` (rad/Hz²) | Off-resonance Fermi pulse for Bloch-Siegert B1 mapping. |
 | {obj}`~pypulseqpp.sequences.DiffusionPreparation` | b-value (s/mm²), gradient duration and separation | `rf_prep`, `rf_ref`, `rf_store`, `g_diff`, spoilers | Non-selective diffusion preparation. |
-| {obj}`~pypulseqpp.sequences.FatSaturation` | Offset (ppm), flip angle, bandwidth, optional thickness | `rf_prep`, spoilers, `gz` when selective | SLR fat saturation. |
+| {obj}`~pypulseqpp.sequences.FatSaturation` | Offset (ppm), flip angle, bandwidth | `rf_prep`, spoilers | SLR fat saturation of the whole transmit volume. |
 | {obj}`~pypulseqpp.sequences.IhMtPreparation` | Flip angle, frequency offset, duration, pulse count | `rf_prep`, spoilers, `band_offsets_hz` | Dual-offset saturation for ihMT. |
 | {obj}`~pypulseqpp.sequences.MtPreparation` | Flip angle, frequency offset, duration, pulse count | `rf_prep`, spoilers | Off-resonance SLR saturation for MT. |
 | {obj}`~pypulseqpp.sequences.OffResonanceSaturation` | RF event, pulse count, spoiler cycles | `rf_prep`, spoilers | Repeated off-resonance saturation pulse. |
-| {obj}`~pypulseqpp.sequences.SaturationBand` | Normal, position and thickness (m), flip angle, duration | `rf_prep`, `gx_sel`, `gy_sel`, `gz_sel`, spoilers | Slab-selective saturation along an arbitrary normal. |
+| {obj}`~pypulseqpp.sequences.SpatialSaturation` | Normal, position and thickness (m) in the physical frame, flip angle, duration | `rf_prep`, `gx_sel`, `gy_sel`, `gz_sel`, spoilers | Slab-selective saturation along any normal; exempt from the prescription (`NOPOS`, `NOROT`). |
 | {obj}`~pypulseqpp.sequences.T1T2Preparation` | Preparation echo time, refocusing count | `rf_prep`, `rf_ref`, `rf_store`, spoilers | T2 preparation stored on −z. |
 | {obj}`~pypulseqpp.sequences.T2Preparation` | Preparation echo time, final tip, refocusing count | `rf_prep`, `rf_ref`, `rf_store`, spoilers | Adiabatic T2 preparation. |
 

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>SaturationBand &#8212; pypulseqpp documentation</title>
+    <title>SpatialSaturation.duration &#8212; pypulseqpp documentation</title>
   
   
   
@@ -53,7 +53,7 @@
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.sequences.SaturationBand';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/pypulseqpp.sequences.SpatialSaturation.duration';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
@@ -62,7 +62,7 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.sequences.SaturationBand.html" />
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/generated/pypulseqpp.sequences.SpatialSaturation.duration.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -373,7 +373,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.sequences.SaturationBand.rst" target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/pypulseqpp.sequences.SpatialSaturation.duration.rst" target="_blank"
    class="btn btn-sm btn-source-edit-button dropdown-item"
    title="Suggest edit"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -390,7 +390,7 @@
       
       
       
-      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.sequences.SaturationBand.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/pypulseqpp.sequences.SpatialSaturation.duration.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -420,7 +420,7 @@
       
       
       
-      <li><a href="../_sources/generated/pypulseqpp.sequences.SaturationBand.rst" target="_blank"
+      <li><a href="../_sources/generated/pypulseqpp.sequences.SpatialSaturation.duration.rst" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -503,7 +503,7 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>SaturationBand</h1>
+    <h1>SpatialSaturation.duration</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -513,7 +513,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SaturationBand"><code class="docutils literal notranslate"><span class="pre">SaturationBand</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSaturation.duration"><code class="docutils literal notranslate"><span class="pre">SpatialSaturation.duration</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -525,95 +525,16 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="saturationband">
-<h1>SaturationBand<a class="headerlink" href="#saturationband" title="Link to this heading">#</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="pypulseqpp.sequences.SaturationBand">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">SaturationBand</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/band.html#SaturationBand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.SaturationBand" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
-<p>Slab-selective saturation pulse followed by a three-axis spoiler.</p>
-<p>The selection gradient points along <code class="docutils literal notranslate"><span class="pre">normal</span></code> and is played on the
-channels in proportion to its components. The slab is centred <code class="docutils literal notranslate"><span class="pre">position</span></code>
-from the isocentre of the logical frame; a subsequent
-<a class="reference internal" href="pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> translation moves it with the rest of
-the sequence.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>normal</strong> (<em>array_like</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Slab normal as <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">z)</span></code> in the logical frame: readout, phase,
-slice. Normalised by the module; not the zero vector.</p></li>
-<li><p><strong>position</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Centre of the slab along <code class="docutils literal notranslate"><span class="pre">normal</span></code> from the isocentre (m).</p></li>
-<li><p><strong>thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Slab thickness along <code class="docutils literal notranslate"><span class="pre">normal</span></code> (m).</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=90.0</em>) – Saturation flip angle (degrees).</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Pulse duration (s).</p></li>
-<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product. With the duration it fixes the selection
-amplitude <code class="docutils literal notranslate"><span class="pre">time_bw_product</span> <span class="pre">/</span> <span class="pre">(duration_s</span> <span class="pre">*</span> <span class="pre">thickness)</span></code> (Hz/m).</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each spoiler axis winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
-<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the pulse block.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Attributes<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The saturation pulse. Its frequency offset is the selection amplitude
-times <code class="docutils literal notranslate"><span class="pre">position</span></code> (Hz) and its phase offset references the phase to
-the pulse centre.</p></li>
-<li><p><strong>gx_sel, gy_sel, gz_sel</strong> (<em>GradEvent</em>) – Selection gradient on each channel, <code class="docutils literal notranslate"><span class="pre">gz.amplitude</span> <span class="pre">*</span> <span class="pre">normal</span></code> as
-stored (Hz/m); absent for a channel whose component is zero.</p></li>
-<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Closing spoiler on all three axes.</p></li>
-<li><p><strong>prep_labels</strong> (<em>list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
-</ul>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">normal</span></code> is the zero vector or not three components, or a
-    thickness, duration, time-bandwidth product, spoiling count or voxel
-    size is not positive.</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp.sequences</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">design</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">band</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">SaturationBand</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">band</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span>
-<span class="go">2</span>
-</pre></div>
-</div>
+  <section id="spatialsaturation-duration">
+<h1>SpatialSaturation.duration<a class="headerlink" href="#spatialsaturation-duration" title="Link to this heading">#</a></h1>
+<dl class="py property">
+<dt class="sig sig-object py" id="pypulseqpp.sequences.SpatialSaturation.duration">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SpatialSaturation.</span></span><span class="sig-name descname"><span class="pre">duration</span></span><a class="headerlink" href="#pypulseqpp.sequences.SpatialSaturation.duration" title="Link to this definition">#</a></dt>
+<dd><p>Duration of the module in seconds.</p>
+<p>Summed from the blocks, unless the module derived its timing
+analytically and assigned the answer.</p>
 </dd></dl>
 
-<p class="rubric">Methods</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.init_module.html#pypulseqpp.sequences.SaturationBand.init_module" title="pypulseqpp.sequences.SaturationBand.init_module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_module</span></code></a></p></td>
-<td><p>Build the module's block layout; implemented by the subclass.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.publish.html#pypulseqpp.sequences.SaturationBand.publish" title="pypulseqpp.sequences.SaturationBand.publish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish</span></code></a></p></td>
-<td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.register.html#pypulseqpp.sequences.SaturationBand.register" title="pypulseqpp.sequences.SaturationBand.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.sim_rf.html#pypulseqpp.sequences.SaturationBand.sim_rf" title="pypulseqpp.sequences.SaturationBand.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
-<td><p>Simulate this module's pulse across off-resonance.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p class="rubric">Attributes</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.blocks.html#pypulseqpp.sequences.SaturationBand.blocks" title="pypulseqpp.sequences.SaturationBand.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.duration.html#pypulseqpp.sequences.SaturationBand.duration" title="pypulseqpp.sequences.SaturationBand.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SaturationBand.seq.html#pypulseqpp.sequences.SaturationBand.seq" title="pypulseqpp.sequences.SaturationBand.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
-<td><p>Sequence holding the module's construction-time block layout.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
 </section>
 
 
@@ -645,7 +566,7 @@ stored (Hz/m); absent for a channel whose component is zero.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SaturationBand"><code class="docutils literal notranslate"><span class="pre">SaturationBand</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pypulseqpp.sequences.SpatialSaturation.duration"><code class="docutils literal notranslate"><span class="pre">SpatialSaturation.duration</span></code></a></li>
 </ul>
   </nav></div>
 
