@@ -957,6 +957,8 @@ namespace pulseq
      */
     constexpr int INSTANCE_WIDTH = 16;
 
+    class RepeatExpansion;
+
     /* ================================================================== */
     /*  The sequence                                                      */
     /* ================================================================== */
@@ -1624,6 +1626,8 @@ namespace pulseq
         }
 
     private:
+        friend class RepeatExpansion;
+
         /* The format version of a sequence built here, until a file read into
          * it sets another: the revision this package writes. */
         int version_major_ = 1;
