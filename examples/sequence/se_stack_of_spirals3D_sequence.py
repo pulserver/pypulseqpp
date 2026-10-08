@@ -58,7 +58,7 @@ def se_stack_of_spirals3d(
     ry: int = 1,
     rz: int = 1,
     partial_fourier_z: float = 1.0,
-    n_dummy: int = 0,
+    n_dummy: int | None = None,
     excitation: str = "slab",
     partition_angle_shift: str = "none",
     n_acs_z: int = 16,
@@ -109,9 +109,10 @@ def se_stack_of_spirals3d(
         acquired, the centre one among them.
     partial_fourier_z : float, default=1.0
         Fraction of the partition extent acquired, in ``[0.75, 1]``.
-    n_dummy : int, default=0
+    n_dummy : int or None, default=None
         Non-acquiring repetitions, at the first interleaf's angle and the
         centre partition, before the scan.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
@@ -277,6 +278,8 @@ def se_stack_of_spirals3d(
             wait_tr = pp.make_delay(pad)
             length += pad
     repetition_time = length
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, 90.0)
 
     seq, labels = pp.Sequence(system), sequences.Labels()
 

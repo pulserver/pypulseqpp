@@ -33,7 +33,7 @@ def se_epi_propeller2d(
     tr: float | None = 2000e-3,
     readout_bandwidth_hz: float = 250e3,
     crusher_cycles: float = 4.0,
-    n_dummy: int = 0,
+    n_dummy: int | None = None,
     n_gain_calibration_readouts: int | None = None,
 ) -> pp.Sequence:
     """Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation.
@@ -83,9 +83,10 @@ def se_epi_propeller2d(
         Requested receiver bandwidth (Hz).
     crusher_cycles : float, default=4.0
         Cycles of dephasing each crusher beside the refocusing pulse winds.
-    n_dummy : int, default=0
+    n_dummy : int or None, default=None
         Non-acquiring blades, at the first blade's angle, before the first
         acquired blade of each pass.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     n_gain_calibration_readouts : int or None, default=None
         Written as the ``NumGainCalibrationReadouts`` definition. ``None``
         is one per slice.
@@ -213,6 +214,8 @@ def se_epi_propeller2d(
         for size, w in waits.items()
     }
     repetition_time = max(pass_time.values())
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, 90.0)
 
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
         slice_thickness + slice_gap

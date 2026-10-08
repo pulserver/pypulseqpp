@@ -18,6 +18,7 @@ from typing import Any
 from ._labels import Labels
 from ._module import SequenceModule
 from ._parameters import ProtocolParameter, parameters
+from ._steady import STEADY_STATE_T1_S, steady_state_dummies
 from ._write import duration, write
 from .excitation import (
     EXCITATIONS,
@@ -98,8 +99,10 @@ PREPARATION = (
     "InversionPreparation",
     "MtPreparation",
     "OffResonanceSaturation",
+    "STEADY_STATE_T1_S",
     "SpatialSaturation",
     "spatial_saturations",
+    "steady_state_dummies",
     "T1T2Preparation",
     "T2Preparation",
 )

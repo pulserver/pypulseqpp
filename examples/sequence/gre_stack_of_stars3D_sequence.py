@@ -51,7 +51,7 @@ def gre_stack_of_stars3d(
     ry: int = 1,
     rz: int = 1,
     partial_fourier_z: float = 1.0,
-    n_dummy: int = 32,
+    n_dummy: int | None = None,
     excitation: str = "slab",
     partition_angle_shift: str = "none",
     n_acs_z: int = 16,
@@ -101,9 +101,10 @@ def gre_stack_of_stars3d(
         acquired, the centre one among them.
     partial_fourier_z : float, default=1.0
         Fraction of the partition extent acquired, in ``[0.75, 1]``.
-    n_dummy : int, default=32
+    n_dummy : int or None, default=None
         Non-acquiring repetitions, at the first spoke's angle and the
         centre partition, before the scan.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
@@ -202,6 +203,8 @@ def gre_stack_of_stars3d(
     raster = system.block_duration_raster
     wait_tr = None
     repetition_time = ro.duration
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, flip_angle_deg)
     if tr is not None:
         if tr < ro.duration - 1e-9:
             raise ValueError(

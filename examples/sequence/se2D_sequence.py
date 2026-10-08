@@ -42,7 +42,7 @@ def se2d(
     ry: int = 1,
     partial_fourier_x: float = 1.0,
     partial_fourier_y: float = 1.0,
-    n_dummy: int = 0,
+    n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
     n_acs_y: int = 24,
     sat1_normal_x: float = 0.0,
@@ -102,8 +102,9 @@ def se2d(
         Fraction of the echo acquired, in ``[0.75, 1]``.
     partial_fourier_y : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
-    n_dummy : int, default=0
+    n_dummy : int or None, default=None
         Non-acquiring repetitions before the first line of each packet.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
@@ -253,6 +254,8 @@ def se2d(
     # The last slice of a packet plays its pad in place of the closing raster.
     packet_time = {n: n * shot - raster + pad for n, pad in pads.items()}
     repetition_time = max(packet_time.values())
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, 90.0)
 
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         n_y, ry, n_acs_y, partial_fourier=partial_fourier_y

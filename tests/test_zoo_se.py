@@ -17,8 +17,16 @@ MODULES = {"se2D_sequence": se2D, "se3D_sequence": se3D}
 
 #: A prescription small enough to build in a moment, per sequence.
 SMALL = {
-    "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
+    "se2D_sequence": {
+        "n_dummy": 0,
+        "n_x": 32,
+        "n_y": 16,
+        "n_slices": 1,
+        "n_acs_y": 0,
+        "tr": None,
+    },
     "se3D_sequence": {
+        "n_dummy": 0,
         "n_x": 32,
         "n_y": 8,
         "n_z": 4,

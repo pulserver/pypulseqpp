@@ -157,7 +157,7 @@ def epi2d(
     n_shots: int = 1,
     multiband: int = 1,
     fat_saturation: bool = False,
-    n_dummy: int = 2,
+    n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
     volume_output: bool = False,
@@ -225,9 +225,10 @@ def epi2d(
         Slices excited at once. It must divide ``n_slices``.
     fat_saturation : bool, default=False
         Saturate fat before every shot.
-    n_dummy : int, default=2
+    n_dummy : int or None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots per slice before each packet.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=1.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
@@ -415,6 +416,10 @@ def epi2d(
         )
     packet_time = {n: n * shot_duration - raster + pad for n, pad in pads.items()}
     repetition_time = n_shots * max(packet_time.values())
+    if n_dummy is None:
+        # A slice is excited once a cycle; a volume holds n_shots cycles.
+        excitations = sequences.steady_state_dummies(cycle, flip_angle_deg)
+        n_dummy = -(-excitations // n_shots) if n_frames > 1 else excitations
     dummy_cycles = n_dummy * (n_shots if n_frames > 1 else 1)
     output_pulse = pp.make_digital_output_pulse(
         OUTPUT_CHANNEL,

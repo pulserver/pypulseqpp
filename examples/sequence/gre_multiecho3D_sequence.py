@@ -47,7 +47,7 @@ def gre_multiecho3d(
     partial_fourier_x: float = 1.0,
     partial_fourier_y: float = 1.0,
     partial_fourier_z: float = 1.0,
-    n_dummy: int = 64,
+    n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 2.0,
     n_acs_y: int = 24,
@@ -117,8 +117,9 @@ def gre_multiecho3d(
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
-    n_dummy : int, default=64
+    n_dummy : int or None, default=None
         Non-acquiring repetitions before the first view.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
@@ -261,6 +262,8 @@ def gre_multiecho3d(
     no_waves = [pp.scale_grad(g, 0.0) for g in waves]
     reference_views = views[: len(calibration)] if waves else []
     repetition_time = ro.duration
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, flip_angle_deg)
 
     seq, labels = pp.Sequence(system), sequences.Labels()
 

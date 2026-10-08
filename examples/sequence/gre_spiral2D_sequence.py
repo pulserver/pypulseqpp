@@ -42,7 +42,7 @@ def gre_spiral2d(
     tr: float | None = 20e-3,
     readout_bandwidth_hz: float = 250e3,
     ry: int = 1,
-    n_dummy: int = 16,
+    n_dummy: int | None = None,
     n_shots: int = 16,
     density: str = "constant",
     periphery_undersampling: float = 2.0,
@@ -86,9 +86,10 @@ def gre_spiral2d(
     ry : int, default=1
         Angular undersampling: one interleaf in every ``ry`` of the
         ``n_shots`` is played.
-    n_dummy : int, default=16
+    n_dummy : int or None, default=None
         Non-acquiring repetitions, at the first interleaf's angle, before
         each packet.
+        ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     n_shots : int, default=16
         Interleaves that sample the centre of k-space at Nyquist.
     density : {'constant', 'variable', 'dual'}, default='constant'
@@ -189,6 +190,8 @@ def gre_spiral2d(
         )
     packet_time = {size: size * shot - raster + pad for size, pad in pads.items()}
     repetition_time = max(packet_time.values())
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, flip_angle_deg)
 
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
         slice_thickness + slice_spacing

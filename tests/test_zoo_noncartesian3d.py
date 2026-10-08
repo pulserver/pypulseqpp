@@ -14,9 +14,16 @@ SMALL = {
     "gre_stack_of_stars3D_sequence": {"n": 32, "n_z": 4},
     "gre_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4},
     "gre_stack_of_blades3D_sequence": {"n": 32, "n_z": 4, "blade_width": 8},
-    "se_stack_of_stars3D_sequence": {"n": 32, "n_z": 4, "tr": None},
-    "se_stack_of_spirals3D_sequence": {"n": 32, "n_z": 4, "n_shots": 4, "tr": None},
+    "se_stack_of_stars3D_sequence": {"n_dummy": 0, "n": 32, "n_z": 4, "tr": None},
+    "se_stack_of_spirals3D_sequence": {
+        "n_dummy": 0,
+        "n": 32,
+        "n_z": 4,
+        "n_shots": 4,
+        "tr": None,
+    },
     "se_stack_of_blades3D_sequence": {
+        "n_dummy": 0,
         "n": 32,
         "n_z": 4,
         "blade_width": 8,
