@@ -107,8 +107,8 @@ def mprage_stack_of_spirals3d(
     of each plane at Nyquist, and every ``ry``-th of them is played in a
     golden order (:func:`golden_order`), so a train binned in time still
     covers the full turn; one solved interleaf serves every repetition, turned
-    by a rotation extension. Acquisitions carry the interleaf as ``LIN``, the
-    partition as ``PAR`` and the place in the train as ``ECO``; under
+    by a rotation extension. Acquisitions carry the interleaf as ``LIN`` and the
+    partition as ``PAR``; under
     partition undersampling the central ``n_acs_z`` partitions are acquired
     too, marked ``IMA``.
 
@@ -349,7 +349,7 @@ def mprage_stack_of_spirals3d(
         seq.add_block(inv.rf_prep, *labels(**flags))
         seq.add_block(inv.gz_spoil)
         seq.add_block(wait_ti)
-        for echo, (arm, phase) in enumerate(zip(arms, phases, strict=True)):
+        for arm, phase in zip(arms, phases, strict=True):
             exc.rf.phase_offset = phase
             ro.adc.phase_offset = phase
             turn = rotation(arm, z)
@@ -361,7 +361,7 @@ def mprage_stack_of_spirals3d(
                     if acquire or event is not ro.adc
                 ]
                 if acquire and any(event is ro.adc for event in block):
-                    events += labels(LIN=arm, ECO=echo)
+                    events += labels(LIN=arm)
                 if any(getattr(e, "channel", None) in ("x", "y") for e in events):
                     events.append(turn)
                 seq.add_block(*events)

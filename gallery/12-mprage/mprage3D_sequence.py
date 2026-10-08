@@ -23,10 +23,24 @@ from pypulseqpp.plot import SAMPLING
 PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 
 
+def _places(seq, start):
+    """Each acquisition's place in its train: the acquisitions since the last RF pulse whose use is ``start``."""
+    places, place = [], -1
+    for n in range(1, len(seq.block_events) + 1):
+        block = seq.get_block(n)
+        rf = getattr(block, "rf", None)
+        if rf is not None and rf.use == start:
+            place = -1
+        if getattr(block, "adc", None) is not None:
+            place += 1
+            places.append(place)
+    return np.asarray(places)
+
+
 def _views(seq, n_y, n_z):
     """Every acquisition as (line, partition, index in the train, inversion cycle)."""
     labels = seq.evaluate_labels(evolution="adc")
-    index = np.asarray(labels["ECO"])
+    index = _places(seq, "inversion")
     return (
         np.asarray(labels["LIN"]) - n_y // 2,
         np.asarray(labels["PAR"]) - n_z // 2,
@@ -95,7 +109,7 @@ compact.paper_plot()
 protocol = mprage3D_sequence(n_x=192, n_y=128, n_z=24, ti=0.9, tr=2.3, n_dummy=0)
 print(
     f"{protocol.duration()[0]:.1f} s, "
-    f"{int(np.asarray(protocol.evaluate_labels(evolution='adc')['ECO']).max()) + 1} "
+    f"{int(_places(protocol, 'inversion').max()) + 1} "
     "readouts in the longest train, "
     f"central ADC at {(protocol.get_definition('TI')[0] + protocol.get_definition('TE')[0]) * 1e3:.1f} ms"
 )

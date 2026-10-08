@@ -108,7 +108,18 @@ fig.legend(handles, labels, ncols=2, loc="outside upper center")
 
 # sphinx_gallery_start_ignore
 labels = seq.evaluate_labels(evolution="adc")
-echo = np.asarray(labels["ECO"])
+echo = np.zeros(len(np.atleast_1d(labels["LIN"])), dtype=int)
+place = -1
+at = 0
+for n in range(1, len(seq.block_events) + 1):
+    block = seq.get_block(n)
+    rf = getattr(block, "rf", None)
+    if rf is not None and rf.use == "excitation":
+        place = -1
+    if getattr(block, "adc", None) is not None:
+        place += 1
+        echo[at] = place
+        at += 1
 shot = np.cumsum(echo == 0) - 1
 ky = np.asarray(labels["LIN"]) - P["n_y"] // 2
 kz = np.asarray(labels["PAR"]) - P["n_z"] // 2

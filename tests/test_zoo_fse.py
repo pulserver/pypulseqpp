@@ -61,14 +61,20 @@ def echo_times(seq):
     return np.asarray(found)
 
 
+def places(seq):
+    """Each acquisition's line, partition and place in its train, as arrays in play order."""
+    acquisitions = [a for train in trains(seq) for a in train]
+    return (np.array([a[k] for a in acquisitions]) for k in range(3))
+
+
 def trains(seq):
-    """The acquisitions of each train as ``(line, partition, ECO, echo)``, in play order.
+    """The acquisitions of each train as ``(line, partition, echo)``, in play order.
 
     ``echo`` counts the refocusing pulses played since the train's excitation,
     from 0. A train that acquires nothing is an empty list. The sequence has
     no navigators.
     """
-    found = iter(zip(*labels(seq, "LIN", "PAR", "ECO"), strict=True))
+    found = iter(zip(*labels(seq, "LIN", "PAR"), strict=True))
     played, echo = [], -1
     for block in blocks(seq):
         rf = getattr(block, "rf", None)
@@ -191,14 +197,28 @@ def test_every_view_is_read_once_at_its_place_in_its_train(prescription):
     seq = built(**prescription)
     calibrating, imaging = sampling(**prescription)
     acquisitions = [a for train in trains(seq) for a in train]
-    views = [(line, partition) for line, partition, _, _ in acquisitions]
+    views = [(line, partition) for line, partition, _ in acquisitions]
 
-    assert all(echo == place for _, _, echo, place in acquisitions)
     assert len(set(views)) == len(views)
     assert set(views) == {*calibrating, *imaging}
     for train in trains(seq):
         places = [place for *_, place in train]
         assert places == sorted(set(places))
+
+
+def test_a_radial_train_leaves_the_echo_counter_alone_as_one_image_fills_it():
+    (eco,) = labels(built(), "ECO")
+
+    assert set(eco) == {0}
+
+
+def test_a_shuffled_train_counts_its_echoes_as_the_contrasts_it_resolves():
+    seq = built(ordering="shuffling")
+    _, _, place = places(seq)
+    (eco,) = labels(seq, "ECO")
+
+    assert list(eco) == list(place)
+    assert len(set(eco)) > 1
 
 
 def test_only_views_inside_the_inscribed_ellipse_are_read():
@@ -212,7 +232,7 @@ def test_only_views_inside_the_inscribed_ellipse_are_read():
 def test_the_centre_of_k_space_is_read_at_the_te_written(te):
     seq = built(te=te)
     written, esp = definition(seq, "TE"), definition(seq, "EchoSpacing")
-    lin, par, eco = labels(seq, "LIN", "PAR", "ECO")
+    lin, par, eco = places(seq)
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
     times = echo_times(seq)
 
@@ -227,7 +247,7 @@ def test_the_centre_of_k_space_is_read_at_the_te_written(te):
 
 def test_radial_trains_read_further_out_the_further_the_echo_is_from_te():
     seq = built(te=40e-3)
-    lin, par, eco = labels(seq, "LIN", "PAR", "ECO")
+    lin, par, eco = places(seq)
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
     by_echo = {}
     for line, partition, echo in zip(lin, par, eco, strict=True):
@@ -264,7 +284,7 @@ def blochsim():
 @pytest.mark.parametrize("te", [None, 20e-3, 40e-3])
 def test_an_optimized_train_passes_the_prescribed_angle_at_te(blochsim, te):
     seq = built(te=te, flip_modulation="optimized", refocusing_angle_deg=120.0)
-    lin, par, eco = labels(seq, "LIN", "PAR", "ECO")
+    lin, par, eco = places(seq)
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
     flips = refocusing_flips(seq)[0]
 

@@ -106,14 +106,28 @@ def test_a_small_mprage_passes_its_timing_check_and_repeats_one_shot(name):
 @pytest.mark.parametrize("name", SMALL)
 def test_every_shot_reads_one_partition_in_order(name):
     seq = built(name)
-    par, eco = labels(seq, "PAR", "ECO")
+    (par,) = labels(seq, "PAR")
     acquired = partitions(name)
     per_shot = [int(n) for n in np.bincount(par)[acquired]]
 
     assert sorted(set(par)) == acquired
     assert list(par) == sorted(par)
-    assert all(np.diff(eco)[np.diff(par) == 0] == 1)
     assert max(per_shot) <= shots_of(seq)
+
+
+@pytest.mark.parametrize("name", SMALL)
+def test_a_train_read_into_one_image_leaves_the_echo_counter_alone(name):
+    (eco,) = labels(built(name), "ECO")
+
+    assert set(eco) == {0}
+
+
+def test_a_shuffled_train_counts_its_place_as_the_time_it_resolves():
+    seq = built(CARTESIAN, ordering="shuffling")
+    par, eco = labels(seq, "PAR", "ECO")
+
+    assert all(np.diff(eco)[np.diff(par) == 0] == 1)
+    assert len(set(eco)) > 1
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -306,7 +320,7 @@ def test_the_wave_free_reference_shots_lead_and_are_marked_ref():
 @pytest.mark.parametrize("name", [STARS, SPIRALS])
 def test_every_angle_is_read_once_at_every_partition(name):
     seq = built(name, rz=2, n_z=8, n_acs_z=2)
-    lin, par, eco, ima = labels(seq, "LIN", "PAR", "ECO", "IMA")
+    lin, par, ima = labels(seq, "LIN", "PAR", "IMA")
     calibrating, imaging = pp.make_cartesian_axis_sampling(8, 2, 2, partial_fourier=1.0)
     acquired = sorted({*calibrating, *imaging})
     angles = module(name).golden_order(int(definition(seq, ANGLES[name])))
@@ -314,7 +328,6 @@ def test_every_angle_is_read_once_at_every_partition(name):
     assert list(zip(lin, par, strict=True)) == [
         (a, z) for z in acquired for a in angles
     ]
-    assert list(eco) == list(range(len(angles))) * len(acquired)
     assert list(ima) == [int(z in calibrating) for z in par]
 
 
