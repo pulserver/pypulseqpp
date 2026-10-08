@@ -903,8 +903,23 @@
             <span class="s2">"spectral bandwidth is too large for the requested subpulse count"</span>
         <span class="p">)</span>
 
-    <span class="c1"># Reserve a fifth of each lobe for its two ramps, on the gradient raster.</span>
-    <span class="n">ramp_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">grad_raster</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">lobe_duration</span> <span class="o">/</span> <span class="n">grad_raster</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad_raster</span><span class="p">)</span>
+    <span class="c1"># Each ramp takes a tenth of the lobe, or as much more as the slew needs:</span>
+    <span class="c1"># a ramp r under a flat top of lobe - 2 r reaches the amplitude</span>
+    <span class="c1"># tbw / ((lobe - 2 r) th) at the slew limit S when r (lobe - 2 r) is</span>
+    <span class="c1"># tbw / (th S), and the shorter root keeps the flat top longest.</span>
+    <span class="n">selectivity</span> <span class="o">=</span> <span class="n">spatial_time_bandwidth_product</span> <span class="o">/</span> <span class="p">(</span><span class="n">slice_thickness</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">)</span>
+    <span class="n">discriminant</span> <span class="o">=</span> <span class="n">lobe_duration</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mf">8.0</span> <span class="o">*</span> <span class="n">selectivity</span>
+    <span class="k">if</span> <span class="n">discriminant</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"SPSP slice-selection ramps exceed system.max_slew: the slab is too "</span>
+            <span class="s2">"thin for subpulses this short at this slew rate"</span>
+        <span class="p">)</span>
+    <span class="n">shortest</span> <span class="o">=</span> <span class="p">(</span><span class="n">lobe_duration</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">discriminant</span><span class="p">))</span> <span class="o">/</span> <span class="mf">4.0</span>
+    <span class="n">ramp_time</span> <span class="o">=</span> <span class="n">grad_raster</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="nb">round</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">lobe_duration</span> <span class="o">/</span> <span class="n">grad_raster</span><span class="p">),</span>
+        <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">shortest</span> <span class="o">/</span> <span class="n">grad_raster</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">flat_time</span> <span class="o">=</span> <span class="n">lobe_duration</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">ramp_time</span>
     <span class="k">if</span> <span class="n">flat_time</span> <span class="o">&lt;</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">rf_raster</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"SPSP sublobes leave fewer than 8 RF samples"</span><span class="p">)</span>
