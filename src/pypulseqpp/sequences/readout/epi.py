@@ -46,9 +46,12 @@ class _EpiReadout(SequenceModule):
     gz : GradEvent
         Its selection gradient, if one was given.
     gz_reph : GradEvent
-        Its rephaser, if one was given.
+        Its rephaser, if one was given, left-aligned in whichever block follows
+        the pulse.
     gx_pre : TrapEvent
-        Read prewinder, half a line lobe against the first line's polarity.
+        Read prewinder, half a line lobe against the first line's polarity,
+        right-aligned in the prewinder block so that it ends where the first
+        line starts.
     gx : list[GradEvent]
         One read lobe per line: alternating polarity for a blipped train, the
         same lobe every time for a flyback one.
@@ -65,10 +68,11 @@ class _EpiReadout(SequenceModule):
         *after* that line, so its last entry is always ``None``.
         ``gz_blips`` is 3D only.
     gy_pre, gz_pre : TrapEvent
-        Phase encodes at their largest step, to be scaled per shot. ``gz_pre``
-        is 3D only.
+        Phase encodes at their largest step, to be scaled per shot,
+        right-aligned with ``gx_pre``; with ``navigator_lines`` they take a
+        block of their own after the navigator. ``gz_pre`` is 3D only.
     gy_rew, gz_rew : TrapEvent
-        The encodes negated, in the last block of the repetition.
+        The encodes negated, left-aligned in the last block of the repetition.
     gx_spoil : GradEvent
         Read-axis trapezoid in the last block: returns the read axis from the
         end of the last line through k = 0 and adds the requested spoiling.
@@ -461,12 +465,23 @@ class _EpiReadout(SequenceModule):
         if wait:
             wait_te = pp.make_delay(wait)
             self.seq.add_block(wait_te, *present(gz_reph))
+        # A rephaser sharing the block can make it longer than the encodes were
+        # stretched to; they are right-aligned so they still end at the first
+        # line, while the rephaser stays left-aligned against the pulse.
+        if navigator_lines:
+            (gx_pre,) = pp.align(right=[gx_pre, pp.make_delay(pre_span)])[:-1]
+        elif ndim == 3:
+            gx_pre, gy_pre, gz_pre = pp.align(
+                right=[gx_pre, gy_pre, gz_pre, pp.make_delay(pre_span)]
+            )[:-1]
+        else:
+            gx_pre, gy_pre = pp.align(right=[gx_pre, gy_pre, pp.make_delay(pre_span)])[
+                :-1
+            ]
         encode = [gy_pre, *present(gz_pre), *shot_labels, *present(trigger)]
         prewinder = [gx_pre] if navigator_lines else [gx_pre, *encode]
         if not wait:
             prewinder += present(gz_reph)
-        if pre_span > pp.calc_duration(*prewinder) + 1e-12:
-            prewinder.append(pp.make_delay(pre_span))
         self.seq.add_block(*prewinder)
         for line in range(navigator_lines):
             self.seq.add_block(gx_navigator[line], adc)

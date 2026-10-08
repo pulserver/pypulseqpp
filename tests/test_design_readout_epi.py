@@ -269,6 +269,22 @@ def test_a_longer_echo_time_is_waited_out(system, excitation):
     assert delayed.duration > tight.duration
 
 
+@pytest.mark.parametrize("navigator_lines", [0, 3])
+def test_a_rephaser_that_lengthens_the_prewinder_leaves_the_encodes_ending_at_the_train(
+    system, excitation, navigator_lines
+):
+    epi = readout(
+        system, excitation, etl=8, acceleration=4, navigator_lines=navigator_lines
+    )
+    block = epi.blocks[1]
+    span = pp.calc_duration(*block)
+    assert epi.gz_reph in block and epi.gz_reph.delay == 0
+    encodes = [epi.gx_pre] if navigator_lines else [epi.gx_pre, epi.gy_pre]
+    assert all(event in block for event in encodes)
+    assert all(pp.calc_duration(event) == pytest.approx(span) for event in encodes)
+    assert all(event.delay > 0 for event in encodes)
+
+
 def test_an_echo_time_shorter_than_the_prewinder_is_refused(system, excitation):
     tight = readout(system, excitation, etl=8, acceleration=4)
     with pytest.raises(ValueError, match="TE"):
