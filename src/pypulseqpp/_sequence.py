@@ -2818,6 +2818,64 @@ class Sequence:
         target._native.remove_duplicates()
         return target
 
+    def expand_repeats(
+        self, repeats: int, *, label: str = "AVG", strip_once: bool = True
+    ) -> dict[str, int]:
+        """Play the scan a number of times, written into the block table, in place.
+
+        A block whose ``ONCE`` label is 1 plays on the first repetition only, 2
+        on the last only, and 0 on every one; ``ONCE`` is sticky and is read per
+        block, as an interpreter plays it, a block's ``LABELSET`` directives
+        before its ``LABELINC`` ones. Every repetition starts as the scan
+        starts, with every counter at zero but ``label``, which numbers it: the
+        first block a repetition past the first plays sets back to zero the
+        counters the repetition before left elsewhere, those it sets itself
+        aside, and sets ``label`` to its index, 1 to ``repeats - 1``. A
+        repetition plays the same events, so only the block table grows and
+        no event row is added. A recorded ``TotalDuration`` is replaced by the
+        duration of the expanded scan. One repetition leaves the scan as it is.
+
+        Parameters
+        ----------
+        repeats : int
+            How many times the scan plays.
+        label : str, default="AVG"
+            The counter that numbers the repetitions; empty for none.
+        strip_once : bool, default=True
+            Remove the ``ONCE`` labels, which the expanded table no longer
+            needs to be played by.
+
+        Returns
+        -------
+        dict
+            ``repeats``, ``blocks_before`` and ``blocks_after``, and the blocks
+            of one pass whose ``ONCE`` is 1, 0 and 2: ``prep_blocks``,
+            ``body_blocks`` and ``cooldown_blocks``.
+
+        Raises
+        ------
+        ValueError
+            If ``repeats`` is below 1.
+        RuntimeError
+            If a block's ``ONCE`` is outside 0, 1 and 2, if ``repeats`` exceeds
+            1 and no block plays on every repetition, or if the scan already
+            writes ``label``.
+
+        Examples
+        --------
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> _ = seq.add_block(pp.make_delay(1e-3), pp.make_label("ONCE", "SET", 1))
+        >>> _ = seq.add_block(pp.make_delay(2e-3), pp.make_label("ONCE", "SET", 0))
+        >>> seq.expand_repeats(3)["blocks_after"]
+        4
+        """
+        counts = dict(self._native.expand_repeats(repeats, label, strip_once))
+        if self.get_definition("TotalDuration") != "":
+            self.set_definition("TotalDuration", self.duration()[0])
+            self._duration = 1
+        return counts
+
     def _copy(self) -> Sequence:
         """Copy through binary serialisation, sharing the system object.
 

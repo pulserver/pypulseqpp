@@ -1034,6 +1034,28 @@ PYBIND11_MODULE(_ext, module)
         .def("remove_duplicates", &Sequence::remove_duplicates,
              py::call_guard<py::gil_scoped_release>(),
              "Collapse identical library rows and renumber the block table.")
+        .def(
+            "expand_repeats",
+            [](Sequence& seq, int repeats, const std::string& label, bool strip_once)
+            {
+                pulseq::ExpandResult result;
+                {
+                    py::gil_scoped_release release;
+                    result = seq.expand_repeats(repeats, label, strip_once);
+                }
+                py::dict out;
+                out["repeats"] = result.repeats;
+                out["blocks_before"] = result.blocks_before;
+                out["blocks_after"] = result.blocks_after;
+                out["prep_blocks"] = result.prep_blocks;
+                out["body_blocks"] = result.body_blocks;
+                out["cooldown_blocks"] = result.cooldown_blocks;
+                return out;
+            },
+            py::arg("repeats"),
+            py::arg("label") = "AVG",
+            py::arg("strip_once") = true,
+            "Play the scan a number of times, written into the block table; return the block counts.")
         .def("__len__", &Sequence::num_blocks);
 
     // METH_FASTCALL has no pybind11 spelling, so the descriptor is built by

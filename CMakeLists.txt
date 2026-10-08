@@ -26,6 +26,7 @@ pybind11_add_module(_ext
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/analysis.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/corners.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/dedup.cpp
+    ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/expand.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/md5.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/read.cpp
     ${CMAKE_SOURCE_DIR}/src/cpp/pulseq/read_binary.cpp

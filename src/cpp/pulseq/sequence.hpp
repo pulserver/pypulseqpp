@@ -747,6 +747,18 @@ namespace pulseq
         double duration = 0.0;
     };
 
+    /** What @ref Sequence::expand_repeats found and wrote. */
+    struct ExpandResult
+    {
+        int repeats = 1;
+        int blocks_before = 0;
+        int blocks_after = 0;
+        /** Blocks of one pass whose `ONCE` is 1, 0 and 2. */
+        int prep_blocks = 0;
+        int body_blocks = 0;
+        int cooldown_blocks = 0;
+    };
+
     /** What a gradient id resolves to. */
     enum class GradKind
     {
@@ -944,6 +956,8 @@ namespace pulseq
      *  11-15  adc freq, phase, freq_ppm, phase_ppm, phase modulation shape
      */
     constexpr int INSTANCE_WIDTH = 16;
+
+    class RepeatExpansion;
 
     /* ================================================================== */
     /*  The sequence                                                      */
@@ -1370,6 +1384,34 @@ namespace pulseq
          */
         void remove_duplicates();
 
+        /* -- repetitions ------------------------------------------------- */
+
+        /**
+         * Play the scan @p repeats times, written into the block table.
+         *
+         * A block whose `ONCE` is 1 plays on the first repetition only, 2 on
+         * the last only, 0 on every one; `ONCE` is sticky, and it is read per
+         * block rather than as sections, as an interpreter plays it. A
+         * repetition plays the same events, so only the block table grows:
+         * every library and every block definition is kept, and a block that
+         * plays no event takes the definition its new chain gives it.
+         *
+         * Every repetition starts as the scan starts, its counters at zero
+         * but @p label, which numbers it: the first block a repetition past
+         * the first plays sets back to zero the counters the repetition before
+         * left elsewhere, those it sets itself aside, and sets @p label to its
+         * index; an empty label numbers none. A block's `LABELSET` directives
+         * apply before its `LABELINC` ones. With @p strip_once the `ONCE`
+         * links are removed from the chains, which the table no longer needs
+         * to be played by. `repeats == 1` leaves the scan as it is.
+         *
+         * @throws std::invalid_argument if @p repeats is below 1.
+         * @throws std::runtime_error if a block's `ONCE` is outside {0, 1, 2},
+         *         if @p repeats exceeds 1 and no block plays on every
+         *         repetition, or if the scan already writes @p label.
+         */
+        ExpandResult expand_repeats(int repeats, const std::string& label = "AVG", bool strip_once = true);
+
         /**
          * Whether every library is already down to its distinct rows.
          *
@@ -1584,6 +1626,8 @@ namespace pulseq
         }
 
     private:
+        friend class RepeatExpansion;
+
         /* The format version of a sequence built here, until a file read into
          * it sets another: the revision this package writes. */
         int version_major_ = 1;
