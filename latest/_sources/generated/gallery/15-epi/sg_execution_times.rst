@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:01.533** total execution time for 2 files **from generated/gallery/15-epi**:
+**00:01.539** total execution time for 2 files **from generated/gallery/15-epi**:
 
 .. container::
 
@@ -36,5 +36,5 @@ Computation times
      - 00:00.905
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_15-epi_epi3D_sequence.py` (``epi3D_sequence.py``)
-     - 00:00.627
+     - 00:00.634
      - 0.0
