@@ -36,12 +36,12 @@ scientifically or computationally useful; an API demonstration, a constructor
 catalogue or a set of configurations whose only result is that they run does
 not belong there. The Examples section has three parts, in this order:
 
-- **Course** — `gallery/01-pulseq-basics` to `07-custom-modules`, numbered
+- **Course** — `gallery/01-course`, numbered
   lessons read in order, each with a short introduction and explicit learning
   objectives; transitions between lessons are allowed. The Course is the
   shortest coherent path that gives a new user the framework's core mental
   model and enough practical competence to work independently.
-- **Tours** — `gallery/08-tours`, standalone examples: useful applications,
+- **Tours** — `gallery/02-tours`, standalone examples: useful applications,
   advanced branches or specialised workflows that are not necessary for that
   core competence. A Tour opens with its objective and a *Prerequisites* line
   naming the Course lessons it assumes, and has no previous/next links.

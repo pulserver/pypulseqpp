@@ -79,7 +79,7 @@ def _colab():
     return module
 
 
-_EXAMPLE_PAGE = """.. _sphx_glr_generated_gallery_01-pulseq-basics_01_fid.py:
+_EXAMPLE_PAGE = """.. _sphx_glr_generated_gallery_01-course_01_first_gradient_echo.py:
 
 
 ====================
@@ -93,16 +93,16 @@ The smallest complete Pulseq sequence is a pulse-acquire experiment.
 def test_an_example_page_carries_the_colab_badge_under_its_title():
     colab = _colab()
     text = colab.with_badge(
-        _EXAMPLE_PAGE, "generated/gallery/01-pulseq-basics/01_fid", "latest"
+        _EXAMPLE_PAGE, "generated/gallery/01-course/01_first_gradient_echo", "latest"
     )
     title_end = (
         text.index("====================\n\n", text.index("Free induction")) + 22
     )
     badge = text.index("colab-badge.svg")
     assert title_end < badge < text.index("The smallest complete")
-    assert "blob/gh-pages/latest/_colab/01-pulseq-basics/01_fid.ipynb" in text
+    assert "blob/gh-pages/latest/_colab/01-course/01_first_gradient_echo.ipynb" in text
     section = colab.with_badge(
-        _EXAMPLE_PAGE, "generated/gallery/01-pulseq-basics/index", "latest"
+        _EXAMPLE_PAGE, "generated/gallery/01-course/index", "latest"
     )
     assert section == _EXAMPLE_PAGE
     elsewhere = colab.with_badge(
@@ -133,7 +133,4 @@ def test_the_colab_notebook_is_the_gallery_notebook_after_a_setup_cell(tmp_path)
     assert install.startswith("%pip install")
     assert "'pypulseqpp[plot]==1.2.3'" in install and "blochsim" in install
     assert copy["cells"][2:] == notebook["cells"]
-    assert (
-        "blochsim"
-        not in colab.setup_cells("01-pulseq-basics", "latest")[1]["source"][0]
-    )
+    assert "blochsim" not in colab.setup_cells("01-course", "latest")[1]["source"][0]

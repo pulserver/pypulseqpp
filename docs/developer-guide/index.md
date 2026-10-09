@@ -13,6 +13,7 @@ Repository development, contribution and release procedures.
 | {doc}`pre-commit` | Local hooks, deliberate bypasses and CI. |
 | {doc}`pull-requests` | Pull-request contents and validation. |
 | {doc}`code-of-conduct` | Project participation policy. |
+| {doc}`internals/index` | The rules and derivations behind the explanation pages. |
 
 ```{toctree}
 :hidden:
@@ -26,4 +27,5 @@ terminology
 pre-commit
 pull-requests
 code-of-conduct
+internals/index
 ```

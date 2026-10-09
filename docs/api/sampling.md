@@ -5,7 +5,7 @@ already selected set into loop, shot and echo positions, and supply the
 per-shot orientations and per-repetition RF values of a scan loop. None of
 them creates events or labels: a sequence function scales the gradients and
 creates the `LIN`, `PAR`, `ECO` and other labels from their results, as
-{doc}`../explanations/sequence-design` describes.
+{doc}`../explanations/sampling-and-ordering` describes.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp
