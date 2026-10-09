@@ -24,7 +24,7 @@ needs a proportionally stronger selection gradient and a proportionally larger
 
 **Prerequisites:** lessons 1 and 9 of the :doc:`course </examples/course>`.
 
-The module concept is described in :doc:`/explanations/sequence-design`.
+The module concept is described in :doc:`/explanations/sequence-modules`.
 """
 
 # sphinx_gallery_start_ignore

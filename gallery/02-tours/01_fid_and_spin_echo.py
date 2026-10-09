@@ -17,7 +17,7 @@ dephasing sets the shortest echo time.
 **Prerequisites:** lesson 1 of the :doc:`course </examples/course>`.
 
 The representation these objects belong to is described in
-:doc:`/explanations/pulseq-representation`.
+:doc:`/explanations/pulseq-file`.
 """
 
 # sphinx_gallery_start_ignore
@@ -212,7 +212,7 @@ print(
 # block-duration raster with :func:`~pypulseqpp.round_to_raster`; a duration off
 # the raster is rounded up when the block is added, which moves the echo by up
 # to one raster period. The rasters are described in
-# :doc:`/explanations/timing-and-rasters`.
+# :doc:`/explanations/pulseq-file`.
 SAMPLES = 512
 
 dwell, acquisition = pp.calc_adc_timing(

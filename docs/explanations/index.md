@@ -1,40 +1,28 @@
 # Explanations
 
-Conceptual background for the interfaces documented in {doc}`../api/index` and
-applied in the {doc}`examples <../examples/index>`. These pages state the
-vocabulary, the models and the conventions the rest of the documentation
-assumes.
+What pypulseqpp does and how, one topic per page. Each page opens with a
+summary, lists what pypulseqpp does with the code and tests behind each item,
+and shows the mechanism in one figure; the full rules and formulas are in the
+{doc}`internals <../developer-guide/internals/index>` of the developer guide.
 
 | Explanation | What it covers |
 | --- | --- |
-| {doc}`pulseq-representation` | What a block holds, what each kind of event carries, how an extension is chained onto one, and the repetition of a sequence. |
-| {doc}`shapes-and-storage` | How events and shapes are stored, deduplicated and signed, and what changes between format revisions. |
-| {doc}`timing-and-rasters` | The rasters an event time is addressed on, how a block duration follows from them, and what the timing check establishes. |
-| {doc}`sequence-design` | Sequence modules, sequence functions, and the sampling support and ordering that feed them. |
-| {doc}`constraint-checks` | The checks, the system each is evaluated against, the frames, report units and evaluation intervals they share. |
-| {doc}`gradient-constraints` | Gradient amplitude, slew rate within a block, and continuity across block boundaries. |
-| {doc}`pns` | Peripheral nerve stimulation models and the response the check compares with a threshold. |
-| {doc}`mechanical-resonance` | The windowed gradient spectrum and the forbidden bands it is compared with. |
-| {doc}`sar` | Window-averaged local and global SAR from virtual observation points. |
-
-## Checks and their limits
-
-The checks in {mod}`pypulseqpp.safety` evaluate a finished sequence against
-stated limits and models. They are **design-time estimates**. They do not
-replace the scanner's own gate before download, nor its hardware monitor during
-the scan, and they do not establish patient safety.
+| {doc}`pulseq-file` | What a `.seq` file holds, how it is stored, deduplicated and signed, and the rasters its times lie on. |
+| {doc}`cpp-core` | The PyPulseq-compatible facade over a native core: what runs in C++ and what is left to PyPulseq. |
+| {doc}`rf-and-gradient-design` | SLR, adiabatic, Bloch-Siegert and pTx pulses, the Bloch simulator, and gradients from a k-space path. |
+| {doc}`sequence-modules` | Sequence modules, sequence functions and the protocol they declare. |
+| {doc}`sampling-and-ordering` | Undersampling masks, view ordering, golden angles and RF spoiling schedules. |
+| {doc}`sequence-analysis` | Waveforms, k-space, repetition detection, RF power and field-of-view transforms. |
+| {doc}`safety-checks` | Gradient, PNS, mechanical-resonance, sound-pressure and SAR checks. |
 
 ```{toctree}
 :hidden:
 
-pulseq-representation
-shapes-and-storage
-timing-and-rasters
-sequence-design
-constraint-checks
-gradient-constraints
-pns
-mechanical-resonance
-sar
+pulseq-file
+cpp-core
+rf-and-gradient-design
+sequence-modules
+sampling-and-ordering
+sequence-analysis
 safety-checks
 ```

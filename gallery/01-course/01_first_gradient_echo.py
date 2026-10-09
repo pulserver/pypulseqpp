@@ -345,9 +345,8 @@ print("\n".join(path.read_text().splitlines()[:8]))
 
 # %%
 # Any Pulseq interpreter plays this file. What it holds (blocks, events and
-# shared libraries of shapes) is explained in
-# :doc:`/explanations/pulseq-representation`, and the rasters in
-# :doc:`/explanations/timing-and-rasters`.
+# shared libraries of shapes), and the rasters its times lie on, are explained
+# in :doc:`/explanations/pulseq-file`.
 #
 # As a spec
 # ---------

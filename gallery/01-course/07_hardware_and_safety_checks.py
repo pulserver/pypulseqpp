@@ -275,7 +275,7 @@ summary(
 # sphinx_gallery_end_ignore
 
 # %%
-# How each model works is explained in :doc:`/explanations/constraint-checks`.
+# How each model works is explained in :doc:`/explanations/safety-checks`.
 #
 # As a spec
 # ---------

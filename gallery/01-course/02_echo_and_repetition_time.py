@@ -326,7 +326,7 @@ print(f"TE {1e3 * fixed_te:.2f} ms, timing ok: {ok}")
 
 # %%
 # The rasters and the echo-time arithmetic are explained in
-# :doc:`/explanations/timing-and-rasters`.
+# :doc:`/explanations/pulseq-file`.
 #
 # As a spec
 # ---------

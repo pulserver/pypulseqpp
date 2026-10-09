@@ -122,7 +122,7 @@ lesson 7 of the {doc}`Course <../examples/course>`.
   you supply; on a scanner, VOP ratios are the input the vendor's routine needs
   for pTx.
 - **Resampling onto its own rasters.** pypulseqpp checks timing on the rasters
-  the sequence declares ({doc}`timing-and-rasters`).
+  the sequence declares ({doc}`pulseq-file`).
 
 ## How it works
 

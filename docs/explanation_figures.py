@@ -155,29 +155,40 @@ def rotation_against_per_axis_limit():
     for axis, (name, vector) in zip(planes, vectors.items(), strict=True):
         magnitude = float(np.hypot(*vector))
         axis.add_patch(
-            plt.Circle(
-                (0, 0), limit, facecolor="C2", alpha=0.10, lw=0, zorder=0
-            )
+            plt.Circle((0, 0), limit, facecolor="C2", alpha=0.10, lw=0, zorder=0)
         )
         axis.add_patch(
             plt.Rectangle(
-                (-limit, -limit), 2 * limit, 2 * limit,
-                facecolor="none", edgecolor="C7", lw=1.0, ls="--", zorder=1,
+                (-limit, -limit),
+                2 * limit,
+                2 * limit,
+                facecolor="none",
+                edgecolor="C7",
+                lw=1.0,
+                ls="--",
+                zorder=1,
             )
         )
         circle = np.linspace(0.0, 2 * np.pi, 361)
         axis.plot(
-            magnitude * np.cos(circle), magnitude * np.sin(circle),
-            color="0.55", lw=0.8, ls=":", zorder=1,
+            magnitude * np.cos(circle),
+            magnitude * np.sin(circle),
+            color="0.55",
+            lw=0.8,
+            ls=":",
+            zorder=1,
         )
         for angle in turn:
             radians = np.deg2rad(angle)
-            rotated = np.array(
-                [
-                    [np.cos(radians), -np.sin(radians)],
-                    [np.sin(radians), np.cos(radians)],
-                ]
-            ) @ vector
+            rotated = (
+                np.array(
+                    [
+                        [np.cos(radians), -np.sin(radians)],
+                        [np.sin(radians), np.cos(radians)],
+                    ]
+                )
+                @ vector
+            )
             outside = np.max(np.abs(rotated)) > limit
             axis.annotate(
                 "",
@@ -200,10 +211,23 @@ def rotation_against_per_axis_limit():
     planes[0].set_ylabel("$G_y$ (mT/m)")
 
     handles = [
-        plt.Line2D([], [], color="C7", lw=1.0, ls="--",
-                   label=f"per-axis limit, {limit:.0f} mT/m"),
-        plt.Rectangle((0, 0), 1, 1, facecolor="C2", alpha=0.20, lw=0,
-                      label="inside the limit at every orientation"),
+        plt.Line2D(
+            [],
+            [],
+            color="C7",
+            lw=1.0,
+            ls="--",
+            label=f"per-axis limit, {limit:.0f} mT/m",
+        ),
+        plt.Rectangle(
+            (0, 0),
+            1,
+            1,
+            facecolor="C2",
+            alpha=0.20,
+            lw=0,
+            label="inside the limit at every orientation",
+        ),
         plt.Line2D([], [], color="0.5", lw=1.1, label="within the per-axis limit"),
         plt.Line2D([], [], color="C7", lw=1.1, label="over the per-axis limit"),
     ]
@@ -230,9 +254,7 @@ def continuity_seam():
     allowed = system.max_slew * raster
     scale = 1e3 / system.gamma
     figure, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 2.7), sharey=True)
-    for axis, fraction, verdict in zip(
-        axes, (0.8, 4.0), ("pass", "fail"), strict=True
-    ):
+    for axis, fraction, verdict in zip(axes, (0.8, 4.0), ("pass", "fail"), strict=True):
         endpoint = fraction * allowed
         before = np.linspace(0.0, endpoint, 8)
         boundary = before.size * raster
@@ -270,6 +292,7 @@ def continuity_seam():
     axes[0].set_ylabel(r"$G_x$ (mT/m)")
     figure.tight_layout()
     return figure
+
 
 def strength_duration():
     """The slew rate at threshold against the duration it is held for.
@@ -327,7 +350,9 @@ def strength_duration():
         axis.loglog(ramps * 1e3, 1e-3 * threshold / ramps, marker="o", ms=3, label=name)
     asymptote = 20.0 / 0.333  # the chronaxie model's rheobase over its alpha
     axis.axhline(asymptote, color="0.55", ls="--", lw=0.9)
-    axis.text(0.045, 1.08 * asymptote, "rheobase / alpha", color="0.55", fontsize="x-small")
+    axis.text(
+        0.045, 1.08 * asymptote, "rheobase / alpha", color="0.55", fontsize="x-small"
+    )
     axis.axvline(0.36, color="0.55", ls=":", lw=0.9)
     axis.text(0.38, 300.0, "chronaxie", color="0.55", fontsize="x-small", rotation=90)
     axis.set_xlabel("ramp duration (ms)")
@@ -464,7 +489,11 @@ def safety_checks_on_one_sequence():
         grad.plot(times * 1e3, amplitudes, lw=0.9, label=name)
     for sign in (1, -1):
         grad.axhline(
-            sign * limit, color="C7", ls="--", lw=1.0, label="limit" if sign > 0 else None
+            sign * limit,
+            color="C7",
+            ls="--",
+            lw=1.0,
+            label="limit" if sign > 0 else None,
         )
     grad.set_ylabel("mT/m")
     grad.set_title("gradient amplitude against max_grad")
@@ -543,73 +572,136 @@ def block_table_and_libraries():
             )
         )
         axis.text(
-            x + width / 2, y + height - 3.5, title, ha="center", va="center",
-            fontsize="small", color=colour,
+            x + width / 2,
+            y + height - 3.5,
+            title,
+            ha="center",
+            va="center",
+            fontsize="small",
+            color=colour,
         )
         axis.text(
-            x + width / 2, y + height - 8.5, f"{count} rows", ha="center",
-            va="center", fontsize="x-small", color=colour,
+            x + width / 2,
+            y + height - 8.5,
+            f"{count} rows",
+            ha="center",
+            va="center",
+            fontsize="x-small",
+            color=colour,
         )
         axis.text(
-            x + width / 2, y + height - 12.0, note, ha="center", va="top",
-            fontsize="x-small", color=MUTED, linespacing=1.3,
+            x + width / 2,
+            y + height - 12.0,
+            note,
+            ha="center",
+            va="top",
+            fontsize="x-small",
+            color=MUTED,
+            linespacing=1.3,
         )
 
     cell, line_height, left, top = 8.0, 6.0, 22.0, 96.0
     axis.text(
-        left, top + 1.5, f"[BLOCKS] — {len(rows('BLOCKS'))} rows, the played order",
-        fontsize="small", color=SERIES[0], va="bottom",
+        left,
+        top + 1.5,
+        f"[BLOCKS] — {len(rows('BLOCKS'))} rows, the played order",
+        fontsize="small",
+        color=SERIES[0],
+        va="bottom",
     )
     for index, name in enumerate(columns):
         axis.text(
-            left + (index + 0.5) * cell, top - 1.4, name,
-            ha="center", va="center", fontsize="x-small", color=MUTED, family="monospace",
+            left + (index + 0.5) * cell,
+            top - 1.4,
+            name,
+            ha="center",
+            va="center",
+            fontsize="x-small",
+            color=MUTED,
+            family="monospace",
         )
     for line, cells in enumerate(table):
         y = top - 3.5 - (line + 1) * line_height
         if line % 2 == 0:
             axis.add_patch(
                 plt.Rectangle(
-                    (left, y), len(columns) * cell, line_height,
-                    facecolor=FAINT, edgecolor="none",
+                    (left, y),
+                    len(columns) * cell,
+                    line_height,
+                    facecolor=FAINT,
+                    edgecolor="none",
                 )
             )
         for index, value in enumerate(cells):
             axis.text(
-                left + (index + 0.5) * cell, y + line_height / 2, value,
-                ha="center", va="center", fontsize="x-small", color=MUTED,
+                left + (index + 0.5) * cell,
+                y + line_height / 2,
+                value,
+                ha="center",
+                va="center",
+                fontsize="x-small",
+                color=MUTED,
                 family="monospace",
             )
 
     libraries = (
-        (SERIES[1], "[RF]", len(rows("RF")),
-         "amplitude, shape ids,\ndelay, offsets, centre, use"),
-        (SERIES[2], "[TRAP], [GRADIENTS]",
-         len(rows("TRAP")) + len(rows("GRADIENTS")),
-         "amplitude with rise, flat\nand fall, or a shape id"),
-        (SERIES[3], "[ADC]", len(rows("ADC")),
-         "samples, dwell, delay,\nfrequency and phase offsets"),
-        (SERIES[4], "[EXTENSIONS]", len(rows("EXTENSIONS")),
-         "one linked list per block:\nlabels, rotations, triggers"),
+        (
+            SERIES[1],
+            "[RF]",
+            len(rows("RF")),
+            "amplitude, shape ids,\ndelay, offsets, centre, use",
+        ),
+        (
+            SERIES[2],
+            "[TRAP], [GRADIENTS]",
+            len(rows("TRAP")) + len(rows("GRADIENTS")),
+            "amplitude with rise, flat\nand fall, or a shape id",
+        ),
+        (
+            SERIES[3],
+            "[ADC]",
+            len(rows("ADC")),
+            "samples, dwell, delay,\nfrequency and phase offsets",
+        ),
+        (
+            SERIES[4],
+            "[EXTENSIONS]",
+            len(rows("EXTENSIONS")),
+            "one linked list per block:\nlabels, rotations, triggers",
+        ),
     )
     width, gap = 23.0, 2.6
     for index, (colour, title, count, note) in enumerate(libraries):
         x = index * (width + gap)
         panel(x, 26.0, width, 22.0, colour, title, count, note)
         axis.annotate(
-            "", xy=(x + width / 2, 48.5), xytext=(x + width / 2, 67.0),
+            "",
+            xy=(x + width / 2, 48.5),
+            xytext=(x + width / 2, 67.0),
             arrowprops={"arrowstyle": "-|>", "color": MUTED, "lw": 1.0},
         )
 
-    panel(14.0, 0.0, 72.0, 21.0, SERIES[5], "[SHAPES]", shapes,
-          "run-length encoded on the derivative, so a\nthousand-sample "
-          "linear ramp is three numbers")
+    panel(
+        14.0,
+        0.0,
+        72.0,
+        21.0,
+        SERIES[5],
+        "[SHAPES]",
+        shapes,
+        "run-length encoded on the derivative, so a\nthousand-sample "
+        "linear ramp is three numbers",
+    )
     for index in (0, 1):
         x = index * (width + gap) + width / 2
         axis.annotate(
-            "", xy=(x + 9.0, 21.5), xytext=(x, 25.5),
+            "",
+            xy=(x + 9.0, 21.5),
+            xytext=(x, 25.5),
             arrowprops={
-                "arrowstyle": "-|>", "color": MUTED, "lw": 1.0,
+                "arrowstyle": "-|>",
+                "color": MUTED,
+                "lw": 1.0,
                 "connectionstyle": "arc3,rad=0.15",
             },
         )
@@ -640,20 +732,32 @@ def gre_repetition_blocks():
     t_adc = t_adc[t_adc <= span]
 
     figure, axes = plt.subplots(
-        6, 1, figsize=(PAGE_WIDTH, 4.0), sharex=True,
+        6,
+        1,
+        figsize=(PAGE_WIDTH, 4.0),
+        sharex=True,
         gridspec_kw={"height_ratios": [0.5, 1.2, 1, 1, 1, 0.5]},
     )
     strip = axes[0]
     for index, (left, right) in enumerate(zip(edges[:-1], edges[1:], strict=True), 1):
         strip.add_patch(
             plt.Rectangle(
-                (left * 1e3, 0.15), (right - left) * 1e3, 0.7,
-                facecolor=FAINT, edgecolor=MUTED, lw=0.8,
+                (left * 1e3, 0.15),
+                (right - left) * 1e3,
+                0.7,
+                facecolor=FAINT,
+                edgecolor=MUTED,
+                lw=0.8,
             )
         )
         strip.text(
-            0.5 * (left + right) * 1e3, 0.5, str(index),
-            ha="center", va="center", fontsize="x-small", color=MUTED,
+            0.5 * (left + right) * 1e3,
+            0.5,
+            str(index),
+            ha="center",
+            va="center",
+            fontsize="x-small",
+            color=MUTED,
         )
     strip.set_ylim(0, 1)
     strip.set_ylabel("block", rotation=0, ha="right", va="center")
@@ -708,9 +812,7 @@ def rotation_against_materialised_shapes():
     from pypulseqpp import sequences
 
     plt = _pyplot()
-    system = pp.Opts(
-        max_grad=40.0, grad_unit="mT/m", max_slew=150.0, slew_unit="T/m/s"
-    )
+    system = pp.Opts(max_grad=40.0, grad_unit="mT/m", max_slew=150.0, slew_unit="T/m/s")
     rf = pp.make_block_pulse(np.deg2rad(10.0), duration=0.2e-3, system=system)
     readout = sequences.SpiralReadout2D(
         system, rf, fov=220e-3, matrix=64, design_interleaves=16
@@ -754,7 +856,9 @@ def rotation_against_materialised_shapes():
         axis.set_xlabel("interleaves")
         axis.set_xticks(counts)
         axis.margins(y=0.15)
-    figure.legend(*axes[0].get_legend_handles_labels(), loc="outside upper center", ncols=2)
+    figure.legend(
+        *axes[0].get_legend_handles_labels(), loc="outside upper center", ncols=2
+    )
     return figure
 
 
@@ -789,8 +893,13 @@ def bandwidth_against_sample_count():
     axis.plot(counts, ceiling * 1e-3, "o", ms=3.5, color=SERIES[0])
     axis.axhline(requested * 1e-3, lw=1.0, ls="--", color=SERIES[1])
     axis.text(
-        counts[-1], requested * 1e-3 + 14.0, "requested",
-        ha="right", va="bottom", fontsize="x-small", color=SERIES[1],
+        counts[-1],
+        requested * 1e-3 + 14.0,
+        "requested",
+        ha="right",
+        va="bottom",
+        fontsize="x-small",
+        color=SERIES[1],
     )
     axis.set_xlabel("ADC samples")
     axis.set_ylabel("highest receiver\nbandwidth (kHz)")
@@ -801,6 +910,400 @@ def bandwidth_against_sample_count():
 
 
 #: Each figure's file name, without the extension, and the function that draws it.
+def modules_in_one_train():
+    """One inversion and the start of its radial train, shaded by the module that built each block.
+
+    The sequence function adds ``inversion.blocks``, a delay placed from the
+    modules' ``duration`` and ``center``, and then ``readout.blocks`` once per
+    spoke; the loop owns the order and the delay, the modules own the blocks.
+    """
+    import pypulseqpp as pp
+    from pypulseqpp import sequences
+
+    import warnings
+
+    warnings.filterwarnings("ignore", message="Specified RF delay")
+    plt = _pyplot()
+    system = pp.Opts(
+        max_grad=32.0,
+        grad_unit="mT/m",
+        max_slew=130.0,
+        slew_unit="T/m/s",
+        rf_dead_time=100e-6,
+        rf_ringdown_time=20e-6,
+        adc_dead_time=10e-6,
+    )
+    inversion = sequences.InversionPreparation(system, voxel_size_m=5e-3)
+    excitation = sequences.SpatialSelectiveExcitation(
+        system, 8.0, 80e-3, duration_s=1e-3, is_slab=True
+    )
+    readout = sequences.RadialStackReadout(
+        system,
+        excitation.rf,
+        excitation.gz,
+        fov=220e-3,
+        matrix=128,
+        fov_z=80e-3,
+        matrix_z=16,
+        readout_bandwidth_hz=100e3,
+        spoiling_cycles=4.0,
+    )
+    ti = 60e-3  # shortened so the train is visible beside the inversion
+    wait = pp.round_to_raster(
+        ti - (inversion.duration - inversion.center) - excitation.center,
+        system.block_duration_raster,
+    )
+    n_spokes = 3
+    seq = pp.Sequence(system)
+    owner = []  # (module, first block, last block)
+    for block in inversion.blocks:
+        seq.add_block(*block)
+    owner.append(("InversionPreparation", 1, len(inversion.blocks)))
+    seq.add_block(pp.make_delay(wait))
+    owner.append(("delay", len(inversion.blocks) + 1, len(inversion.blocks) + 1))
+    first = len(inversion.blocks) + 2
+    for n in range(n_spokes):
+        for block in readout.blocks:
+            seq.add_block(*block, pp.make_rotation(n * 2.0))
+        owner.append(("RadialStackReadout", first, first + len(readout.blocks) - 1))
+        first += len(readout.blocks)
+    # The readout opens with the excitation, whose blocks the readout lays out.
+    edges = np.concatenate(
+        [[0.0], np.cumsum([seq.block_durations[i] for i in range(1, first)])]
+    )
+    span = edges[-1]
+    channels = seq.waveforms_and_times(append_RF=True)[0]
+
+    colours = {"InversionPreparation": SERIES[0], "RadialStackReadout": SERIES[2]}
+    figure, axes = plt.subplots(
+        5,
+        1,
+        figsize=(PAGE_WIDTH, 3.8),
+        sharex=True,
+        gridspec_kw={"height_ratios": [1.2, 1, 1, 1, 0.5]},
+    )
+    rows = (
+        ("RF", channels[3], SERIES[1]),
+        ("$G_x$", channels[0], MUTED),
+        ("$G_y$", channels[1], MUTED),
+        ("$G_z$", channels[2], MUTED),
+    )
+    for axis, (name, channel, colour) in zip(axes[:4], rows, strict=True):
+        wave = np.asarray(channel)
+        amp = np.abs(wave[1]) if name == "RF" else wave[1].real
+        if name == "RF":
+            # Each module's pulse to its own peak: the inversion is far stronger.
+            t = wave[0].real
+            amp = amp.astype(float).copy()
+            for module, lo, hi in owner:
+                inside = (t >= edges[lo - 1]) & (t <= edges[hi])
+                if module != "delay" and inside.any():
+                    amp[inside] /= amp[inside].max() or 1.0
+            height = 1.0
+        else:
+            height = np.abs(amp).max() if wave.shape[1] else 1.0
+        if wave.shape[1]:
+            axis.plot(wave[0].real * 1e3, amp / height, lw=1.1, color=colour)
+        axis.set_ylabel(name, rotation=0, ha="right", va="center")
+        axis.set_yticks([])
+        axis.set_ylim(-1.25, 1.25)
+    adc = axes[4]
+    t_adc = seq.adc_times()[0]
+    adc.plot(t_adc * 1e3, np.zeros_like(t_adc), "|", ms=7, color=SERIES[1])
+    adc.set_ylabel("ADC", rotation=0, ha="right", va="center")
+    adc.set_yticks([])
+    adc.set_ylim(-1, 1)
+    adc.set_xlabel("time from the start of the train (ms)")
+
+    for module, lo, hi in owner:
+        left, right = edges[lo - 1] * 1e3, edges[hi] * 1e3
+        colour = colours.get(module)
+        for axis in axes:
+            if colour:
+                axis.axvspan(left, right, color=colour, alpha=0.14, lw=0)
+            axis.axvline(left, color=FAINT, lw=0.6)
+            axis.axvline(right, color=FAINT, lw=0.6)
+    for module, colour in colours.items():
+        axes[0].fill_between([], [], color=colour, alpha=0.3, label=module)
+    gap = 0.5 * (edges[len(inversion.blocks)] + edges[len(inversion.blocks) + 1]) * 1e3
+    axes[0].text(
+        gap,
+        0.0,
+        "delay placed from\nduration and center",
+        ha="center",
+        va="center",
+        fontsize="small",
+        color=MUTED,
+    )
+    axes[0].set_ylabel("RF", rotation=0, ha="right", va="center")
+    axes[0].legend(loc="lower left", bbox_to_anchor=(0, 1.02), ncol=2, frameon=False)
+    for axis in axes:
+        axis.spines[["top", "right", "left"]].set_visible(False)
+    axes[4].set_xlim(-0.5, span * 1e3 + 0.5)
+    figure.tight_layout()
+    return figure
+
+
+if __name__ == "__main__":
+    fig = modules_in_one_train()
+    for bg, name in (("white", "w"), ("#121212", "d")):
+        fig.savefig(f"/tmp/fig_sm_{name}.png", dpi=110, facecolor=bg, transparent=False)
+
+
+def sampling_support_order_and_angles():
+    """A support, the echo at which each view is played, and golden-angle spokes.
+
+    Left: a Poisson-disc support with its calibration block, each view coloured
+    by the echo of the adaptive radial order that plays it, the centre at echo 4
+    of 16. Middle and right: the first 21 spokes of the golden angle and of the
+    tiny golden angle of index 7, coloured by acquisition index.
+    """
+    import numpy as np
+
+    import pypulseqpp as pp
+
+    from matplotlib.colors import LinearSegmentedColormap
+
+    plt = _pyplot()
+    # Both ends of the ramp are series colours, which read on either background.
+    ramp = LinearSegmentedColormap.from_list("order", [SERIES[0], SERIES[1]])
+    n, etl, centre_echo = 64, 16, 4
+    mask = pp.make_poisson_disc_mask((n, n), 6.0, calib=(8, 8), seed=1)
+    views = np.argwhere(mask)
+    trains = pp.make_radial_adaptive_order(
+        views - (n // 2, n // 2), etl, center_echo=centre_echo, pad=True
+    )
+    echo = np.zeros(len(views), dtype=int)
+    for train in trains:
+        for e, row in enumerate(train):
+            if row is not None:
+                echo[row] = e
+
+    figure, axes = plt.subplots(1, 3, figsize=(PAGE_WIDTH, 3.0), layout="constrained")
+    scatter = axes[0].scatter(
+        views[:, 1], views[:, 0], c=echo, cmap=ramp, s=4, marker="s"
+    )
+    axes[0].set_aspect("equal")
+    axes[0].set_xlabel("kz index")
+    axes[0].set_ylabel("ky index")
+    axes[0].set_title("support by echo")
+    figure.colorbar(scatter, ax=axes[0], label="echo", shrink=0.8)
+
+    for axis, angles, title in (
+        (axes[1], pp.calc_golden_angles(21), "golden angle"),
+        (axes[2], pp.calc_tiny_golden_angles(21, index=7), "tiny golden, index 7"),
+    ):
+        colours = ramp(np.linspace(0, 1, len(angles)))
+        for angle, colour in zip(angles, colours):
+            axis.plot(
+                [-np.cos(angle), np.cos(angle)],
+                [-np.sin(angle), np.sin(angle)],
+                color=colour,
+                lw=1.0,
+            )
+        axis.set_aspect("equal")
+        axis.set_xticks([])
+        axis.set_yticks([])
+        axis.set_title(title)
+    figure.colorbar(
+        plt.cm.ScalarMappable(cmap=ramp),
+        ax=axes[2],
+        label="spoke order",
+        shrink=0.8,
+        ticks=[0, 1],
+    ).ax.set_yticklabels(["first", "last"])
+    return figure
+
+
+def designed_pulse_and_gradient():
+    """Two SLR excitations through ``sim_bloch``, and a spiral path timed by ``traj_to_grad``.
+
+    The envelopes of a linear-phase and a minimum-phase design of one
+    time-bandwidth product, the transverse magnetisation each leaves across
+    frequency, and the gradient magnitude the solver assigns to a spiral
+    against ``max_grad``.
+    """
+    import pypulseqpp as pp
+
+    plt = _pyplot()
+    system = pp.Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    figure, (env, prof, grad) = plt.subplots(
+        3, 1, figsize=(PAGE_WIDTH, 7.2), layout="constrained"
+    )
+    duration = 3e-3
+    offsets = np.linspace(-6e3, 6e3, 601)
+    for label, kind, color in (
+        ("filter_type='ls'", "ls", "C0"),
+        ("filter_type='min'", "min", "C1"),
+    ):
+        rf = pp.make_slr_pulse(
+            np.pi / 2,
+            duration=duration,
+            time_bw_product=4.0,
+            pulse_type="ex",
+            filter_type=kind,
+            system=system,
+        )
+        rf = rf[0] if isinstance(rf, tuple) else rf
+        b1 = np.asarray(rf.signal)
+        dt = duration / b1.size
+        t = (np.arange(b1.size) + 0.5) * dt
+        env.plot(t * 1e3, abs(b1), color=color, lw=1.0, label=label)
+        m = pp.sim_bloch(b1, offsets[:, None], dt)
+        prof.plot(offsets * 1e-3, np.hypot(m[:, 0], m[:, 1]), color=color, lw=1.0)
+    env.set_xlabel("time (ms)")
+    env.set_ylabel("$|B_1|$ (Hz)")
+    env.set_title("SLR excitation envelope")
+    env.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+    prof.set_xlabel("off-resonance (kHz)")
+    prof.set_ylabel("$|M_{xy}|$")
+    prof.set_title("profile from sim_bloch, no relaxation")
+
+    theta = np.linspace(0, 8 * np.pi, 2000)
+    radius = np.linspace(0, 250.0, 2000)
+    k = np.stack([radius * np.cos(theta), radius * np.sin(theta)])
+    limited = pp.Opts(max_grad=22, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    g, _ = pp.traj_to_grad(k, system=limited)
+    scale = 1e3 / system.gamma
+    t = np.arange(g.shape[1]) * system.grad_raster_time
+    grad.plot(
+        t * 1e3, np.linalg.norm(g, axis=0) * scale, color="C2", lw=1.0, label="$|G|$"
+    )
+    grad.axhline(
+        limited.max_grad * scale, color="C7", ls="--", lw=1.0, label="max_grad"
+    )
+    grad.set_xlabel("time (ms)")
+    grad.set_ylabel("mT/m")
+    grad.set_title("spiral path timed by traj_to_grad")
+    grad.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+    return figure
+
+
+def kspace_reset_and_unbroken():
+    """k_x of two spin-echo shots: the unbroken gradient integral and the excitation-aware trajectory.
+
+    The unbroken integral is the reference of the RF and ADC shift phases;
+    excitation resets the trajectory and a refocusing pulse inverts it, which
+    places the echo.
+    """
+    import pypulseqpp as pp
+    from pypulseqpp.plot._style import SERIES
+
+    plt = _pyplot()
+    system = pp.Opts()
+    seq = pp.Sequence(system)
+    readout = pp.make_trapezoid("x", flat_area=2000, flat_time=3.2e-3, system=system)
+    adc = pp.make_adc(64, duration=3.2e-3, delay=readout.rise_time, system=system)
+    for _ in range(2):
+        seq.add_block(
+            pp.make_block_pulse(
+                np.pi / 2, duration=1e-3, use="excitation", system=system
+            )
+        )
+        seq.add_block(
+            pp.make_trapezoid("x", area=readout.area / 2, duration=2e-3, system=system)
+        )
+        seq.add_block(
+            pp.make_block_pulse(np.pi, duration=1e-3, use="refocusing", system=system)
+        )
+        seq.add_block(readout, adc)
+        seq.add_block(pp.make_delay(2e-3))
+    k_adc, _, t_exc, t_ref, t_adc = seq.calculate_kspace()
+    ((times, amplitude),) = _played_waveforms(seq, "x")
+    grid = np.linspace(0, times[-1], 4000)
+    g = np.interp(grid, times, amplitude * system.gamma * 1e-3)
+    big_k = np.concatenate([[0], np.cumsum(0.5 * (g[1:] + g[:-1]) * np.diff(grid))])
+    at = lambda t: np.interp(t, grid, big_k)  # noqa: E731
+    reset = np.empty_like(grid)
+    for i, t in enumerate(grid):
+        before = t_exc[t_exc <= t]
+        e = before.max() if before.size else t_exc[0]
+        r = t_ref[(t_ref <= t) & (t_ref > e)]
+        reset[i] = (
+            at(t) - at(e) if not r.size else -(at(r[0]) - at(e)) + at(t) - at(r[0])
+        )
+
+    figure, (grad, kx) = plt.subplots(
+        2,
+        1,
+        figsize=(PAGE_WIDTH, 5.0),
+        sharex=True,
+        layout="constrained",
+        height_ratios=(1, 2),
+    )
+    grad.plot(times * 1e3, amplitude, color=SERIES[0], lw=0.9, label="$G_x$")
+    grad.set_ylabel("mT/m")
+    kx.plot(grid * 1e3, big_k, color="C7", ls="--", lw=1.0, label="unbroken integral")
+    kx.plot(grid * 1e3, reset, color=SERIES[0], lw=1.0, label="reset and inverted")
+    kx.plot(t_adc * 1e3, k_adc[0], ".", color=SERIES[1], ms=2.5, label="ADC samples")
+    for label, ts, style in (("excitation", t_exc, ":"), ("refocusing", t_ref, "-.")):
+        for n, t in enumerate(ts):
+            for ax in (grad, kx):
+                ax.axvline(
+                    t * 1e3,
+                    color="C7",
+                    ls=style,
+                    lw=0.8,
+                    label=label if n == 0 and ax is kx else None,
+                )
+    kx.set_xlabel("time (ms)")
+    kx.set_ylabel("$k_x$ (1/m)")
+    kx.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+    grad.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+    return figure
+
+
+if __name__ == "__main__":
+    fig = kspace_reset_and_unbroken()
+    for name, bg in (("light", "white"), ("dark", "#121212")):
+        fig.savefig(
+            f"/tmp/claude-0/-home-user/02270eae-9e71-5ef7-9016-93e6bf6d9eca/scratchpad/ks_{name}.png",
+            facecolor=bg,
+            dpi=90,
+        )
+
+
+def _loop_time(module, count):
+    """Seconds to add `count` trapezoid blocks and one delay-free repetition."""
+    import time
+
+    system = module.Opts()
+    gx = module.make_trapezoid("x", area=1000.0, duration=1e-3, system=system)
+    sequence = module.Sequence(system)
+    started = time.perf_counter()
+    for _ in range(count):
+        sequence.add_block(gx)
+    return time.perf_counter() - started
+
+
+def block_loop_time():
+    """Time of an add_block loop against block count, pypulseqpp and PyPulseq."""
+    import numpy as np
+
+    import pypulseqpp
+
+    plt = _pyplot()
+    counts = np.array([250, 500, 1000, 2000])
+    candidates = [("pypulseqpp", pypulseqpp, "C0")]
+    try:
+        import pypulseq
+
+        candidates.append(("PyPulseq", pypulseq, "C1"))
+    except ImportError:
+        pass
+    figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 3.0))
+    for label, module, colour in candidates:
+        times = [min(_loop_time(module, int(n)) for _ in range(2)) for n in counts]
+        axis.plot(counts, times, "o-", color=colour, lw=1.5, label=label)
+    axis.set_xlabel("blocks added")
+    axis.set_ylabel("loop time (s)")
+    axis.set_xscale("log")
+    axis.set_yscale("log")
+    axis.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False)
+    figure.tight_layout()
+    return figure
+
+
 FIGURES = {
     "axis_peaks_against_vector": axis_peaks_against_vector,
     "rotation_against_per_axis_limit": rotation_against_per_axis_limit,
@@ -813,6 +1316,11 @@ FIGURES = {
     "gre_repetition_blocks": gre_repetition_blocks,
     "rotation_against_materialised_shapes": rotation_against_materialised_shapes,
     "bandwidth_against_sample_count": bandwidth_against_sample_count,
+    "modules_in_one_train": modules_in_one_train,
+    "sampling_support_order_and_angles": sampling_support_order_and_angles,
+    "designed_pulse_and_gradient": designed_pulse_and_gradient,
+    "kspace_reset_and_unbroken": kspace_reset_and_unbroken,
+    "block_loop_time": block_loop_time,
 }
 
 

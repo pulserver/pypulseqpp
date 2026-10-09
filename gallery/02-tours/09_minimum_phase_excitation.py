@@ -19,7 +19,7 @@ Lesson 10 writes a custom module, a T2 preparation, by subclassing
 :class:`~pypulseqpp.sequences.RfModule`; this Tour uses the same interface.
 
 The module concept, and the events a module publishes, are described in
-:doc:`/explanations/sequence-design`.
+:doc:`/explanations/sequence-modules`.
 """
 
 # sphinx_gallery_start_ignore

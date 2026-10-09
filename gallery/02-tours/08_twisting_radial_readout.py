@@ -25,7 +25,7 @@ rotate the solved interleaf once per shot in a scan loop.
 **Prerequisites:** lessons 5 and 10 of the :doc:`course </examples/course>`.
 
 The module interface, and the events a module publishes, are described in
-:doc:`/explanations/sequence-design`.
+:doc:`/explanations/sequence-modules`.
 """
 
 # %%

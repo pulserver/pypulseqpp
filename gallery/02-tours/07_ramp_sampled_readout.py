@@ -14,7 +14,7 @@ spacing along the line from the k-space analysis.
 **Prerequisites:** lessons 9 and 10 of the :doc:`course </examples/course>`.
 
 The module interface, and the events a module publishes, are described in
-:doc:`/explanations/sequence-design`.
+:doc:`/explanations/sequence-modules`.
 """
 
 # sphinx_gallery_start_ignore
