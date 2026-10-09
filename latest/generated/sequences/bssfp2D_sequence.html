@@ -562,8 +562,10 @@ rewind (2), so the whole slice is one repetition of the scan. Slices play
 one after another, since a steady state does not survive interleaving,
 and a slice longer than <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code> is refused.</p>
 <p>The phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
-<code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled for one heartbeat, the
-interpreter’s ECG log binning it into cardiac phases; under
+<code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled as many times as a full
+segment fits in a heartbeat, the same number for every segment, so each
+cycle samples every line; the interpreter’s ECG log bins them into cardiac
+phases. Under
 <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating every heartbeat opens with a trigger event on
 <code class="docutils literal notranslate"><span class="pre">TRIGGER_CHANNEL</span></code>, then plays the segment once per cardiac phase;
 the first heartbeat’s trigger precedes the half flip, so the whole train

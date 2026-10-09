@@ -456,7 +456,9 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FatSaturation"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FAT_T1_S"</span><span class="p">,</span> <span class="s2">"FatSaturation"</span><span class="p">,</span> <span class="s2">"fat_null_flip_deg"</span><span class="p">]</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -468,6 +470,58 @@
 <span class="c1">#: Where the main fat resonance sits relative to water. Negative: fat precesses</span>
 <span class="c1">#: more slowly, so it is downfield of water in frequency.</span>
 <span class="n">FAT_SHIFT_PPM</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.45</span>
+
+<span class="c1">#: T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J</span>
+<span class="c1">#: Roentgenol 183:343, 2004).</span>
+<span class="n">FAT_T1_S</span> <span class="o">=</span> <span class="mf">0.37</span>
+
+
+<div class="viewcode-block" id="fat_null_flip_deg">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.fat_null_flip_deg.html#pypulseqpp.sequences.fat_null_flip_deg">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fat_null_flip_deg</span><span class="p">(</span>
+    <span class="n">delay_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">period_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">t1_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FAT_T1_S</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the flip angle that leaves fat's longitudinal magnetization at zero ``delay_s`` after the pulse, played once every ``period_s``.</span>
+
+<span class="sd">    In the steady state of one pulse every ``period_s``, fat nulled at the</span>
+<span class="sd">    excitation ``delay_s`` after the pulse recovers from zero for</span>
+<span class="sd">    ``period_s - delay_s`` before the next; the flip that brings it back to</span>
+<span class="sd">    zero by the excitation has ``cos(a) = (1 - exp(delay/T1)) / (1 -</span>
+<span class="sd">    exp(-(period - delay)/T1))``, a little over 90 degrees.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    delay_s : float</span>
+<span class="sd">        Time from the saturation pulse's centre to the excitation's (s).</span>
+<span class="sd">    period_s : float</span>
+<span class="sd">        Time between two saturation pulses (s).</span>
+<span class="sd">    t1_s : float, default=FAT_T1_S</span>
+<span class="sd">        T1 of fat (s).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a time is not positive, the delay is not shorter than the period,</span>
+<span class="sd">        or the fat recovers so fast that no flip leaves it at zero.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp.sequences import fat_null_flip_deg</span>
+<span class="sd">    &gt;&gt;&gt; round(fat_null_flip_deg(5e-3, 50e-3), 1)</span>
+<span class="sd">    96.8</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">delay_s</span><span class="p">,</span> <span class="n">period_s</span><span class="p">,</span> <span class="n">t1_s</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">delay_s</span> <span class="o">&gt;=</span> <span class="n">period_s</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"times must be positive and the delay shorter than the period"</span><span class="p">)</span>
+    <span class="n">cosine</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">delay_s</span> <span class="o">/</span> <span class="n">t1_s</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span>
+        <span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">period_s</span> <span class="o">-</span> <span class="n">delay_s</span><span class="p">)</span> <span class="o">/</span> <span class="n">t1_s</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">cosine</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"fat recovers too fast between the pulses, </span><span class="si">{</span><span class="n">period_s</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms apart, "</span>
+            <span class="sa">f</span><span class="s2">"for any flip to leave it at zero </span><span class="si">{</span><span class="n">delay_s</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms after one"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="n">cosine</span><span class="p">))</span></div>
+
 
 
 <div class="viewcode-block" id="FatSaturation">

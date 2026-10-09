@@ -247,6 +247,8 @@ from.
    spatial_saturations
    steady_state_dummies
    STEADY_STATE_T1_S
+   fat_null_flip_deg
+   FAT_T1_S
 
 .. currentmodule:: pypulseqpp
 
