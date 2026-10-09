@@ -364,7 +364,6 @@ def strength_duration():
 
 def pns_response():
     """Checker-backed PNS response of a short-echo-spacing EPI shot."""
-    import pypulseqpp as pp
     from pypulseqpp import safety, sequences
 
     plt = _pyplot()
@@ -910,6 +909,24 @@ def bandwidth_against_sample_count():
 
 
 #: Each figure's file name, without the extension, and the function that draws it.
+def _each_module_to_its_peak(t, amp, owner, edges):
+    """Scale each module's RF to its own peak: the inversion is far stronger."""
+    amp = amp.astype(float).copy()
+    for module, lo, hi in owner:
+        inside = (t >= edges[lo - 1]) & (t <= edges[hi])
+        if module != "delay" and inside.any():
+            amp[inside] /= amp[inside].max() or 1.0
+    return amp
+
+
+def _shade_module(axes, left, right, colour):
+    for axis in axes:
+        if colour:
+            axis.axvspan(left, right, color=colour, alpha=0.14, lw=0)
+        axis.axvline(left, color=FAINT, lw=0.6)
+        axis.axvline(right, color=FAINT, lw=0.6)
+
+
 def modules_in_one_train():
     """One inversion and the start of its radial train, shaded by the module that built each block.
 
@@ -917,10 +934,10 @@ def modules_in_one_train():
     modules' ``duration`` and ``center``, and then ``readout.blocks`` once per
     spoke; the loop owns the order and the delay, the modules own the blocks.
     """
+    import warnings
+
     import pypulseqpp as pp
     from pypulseqpp import sequences
-
-    import warnings
 
     warnings.filterwarnings("ignore", message="Specified RF delay")
     plt = _pyplot()
@@ -992,13 +1009,7 @@ def modules_in_one_train():
         wave = np.asarray(channel)
         amp = np.abs(wave[1]) if name == "RF" else wave[1].real
         if name == "RF":
-            # Each module's pulse to its own peak: the inversion is far stronger.
-            t = wave[0].real
-            amp = amp.astype(float).copy()
-            for module, lo, hi in owner:
-                inside = (t >= edges[lo - 1]) & (t <= edges[hi])
-                if module != "delay" and inside.any():
-                    amp[inside] /= amp[inside].max() or 1.0
+            amp = _each_module_to_its_peak(wave[0].real, amp, owner, edges)
             height = 1.0
         else:
             height = np.abs(amp).max() if wave.shape[1] else 1.0
@@ -1016,13 +1027,7 @@ def modules_in_one_train():
     adc.set_xlabel("time from the start of the train (ms)")
 
     for module, lo, hi in owner:
-        left, right = edges[lo - 1] * 1e3, edges[hi] * 1e3
-        colour = colours.get(module)
-        for axis in axes:
-            if colour:
-                axis.axvspan(left, right, color=colour, alpha=0.14, lw=0)
-            axis.axvline(left, color=FAINT, lw=0.6)
-            axis.axvline(right, color=FAINT, lw=0.6)
+        _shade_module(axes, edges[lo - 1] * 1e3, edges[hi] * 1e3, colours.get(module))
     for module, colour in colours.items():
         axes[0].fill_between([], [], color=colour, alpha=0.3, label=module)
     gap = 0.5 * (edges[len(inversion.blocks)] + edges[len(inversion.blocks) + 1]) * 1e3
@@ -1042,12 +1047,6 @@ def modules_in_one_train():
     axes[4].set_xlim(-0.5, span * 1e3 + 0.5)
     figure.tight_layout()
     return figure
-
-
-if __name__ == "__main__":
-    fig = modules_in_one_train()
-    for bg, name in (("white", "w"), ("#121212", "d")):
-        fig.savefig(f"/tmp/fig_sm_{name}.png", dpi=110, facecolor=bg, transparent=False)
 
 
 def sampling_support_order_and_angles():
@@ -1094,7 +1093,7 @@ def sampling_support_order_and_angles():
         (axes[2], pp.calc_tiny_golden_angles(21, index=7), "tiny golden, index 7"),
     ):
         colours = ramp(np.linspace(0, 1, len(angles)))
-        for angle, colour in zip(angles, colours):
+        for angle, colour in zip(angles, colours, strict=True):
             axis.plot(
                 [-np.cos(angle), np.cos(angle)],
                 [-np.sin(angle), np.sin(angle)],
@@ -1251,16 +1250,6 @@ def kspace_reset_and_unbroken():
     kx.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
     grad.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
     return figure
-
-
-if __name__ == "__main__":
-    fig = kspace_reset_and_unbroken()
-    for name, bg in (("light", "white"), ("dark", "#121212")):
-        fig.savefig(
-            f"/tmp/claude-0/-home-user/02270eae-9e71-5ef7-9016-93e6bf6d9eca/scratchpad/ks_{name}.png",
-            facecolor=bg,
-            dpi=90,
-        )
 
 
 def _loop_time(module, count):
