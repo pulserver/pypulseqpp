@@ -420,6 +420,78 @@ def gradient_spectra():
     return figure
 
 
+def safety_checks_on_one_sequence():
+    """Three checks on one echo-planar shot, each a played quantity against its limit.
+
+    The gradient amplitude against ``max_grad``, the nerve response against its
+    threshold, and the windowed spectrum against a forbidden band placed on the
+    train's fundamental, all read from the same played waveforms.
+    """
+    from pypulseqpp import safety, sequences
+
+    plt = _pyplot()
+    seq = sequences.epi2D_sequence(
+        n_x=48,
+        n_y=48,
+        n_slices=1,
+        n_dummy=0,
+        tr=None,
+        fat_saturation=False,
+        readout_bandwidth_hz=500e3,
+    )[-1]
+    scale = 1e3 / seq.system.gamma
+    limit = seq.system.max_grad * scale
+    _, pns = safety.check_pns(
+        seq,
+        safety.ChronaxieModel(chronaxie=334e-6, rheobase=23.4, alpha=0.333),
+        trace=True,
+    )
+    width = 20e-3
+    spectrum = safety.mech_resonance_spectrum(seq, window_width=width)
+    readout = abs(spectrum.amplitude[0])
+    fundamental = float(spectrum.frequency[np.argmax(readout)])
+    band = safety.ForbiddenBand(
+        axis=None, f_min=fundamental - 150.0, f_max=fundamental + 150.0, tolerance=5.0
+    )
+    mech_ok, _ = safety.check_mech_resonance(seq, [band], window_width=width)
+
+    figure, (grad, nerve, spec) = plt.subplots(
+        3, 1, figsize=(PAGE_WIDTH, 7.6), layout="constrained"
+    )
+    for (times, amplitudes), name in zip(
+        _played_waveforms(seq, "xy"), ("$G_x$", "$G_y$"), strict=True
+    ):
+        grad.plot(times * 1e3, amplitudes, lw=0.9, label=name)
+    for sign in (1, -1):
+        grad.axhline(
+            sign * limit, color="C7", ls="--", lw=1.0, label="limit" if sign > 0 else None
+        )
+    grad.set_ylabel("mT/m")
+    grad.set_title("gradient amplitude against max_grad")
+    grad.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+
+    nerve.plot(pns.time * 1e3, pns.response, color=SERIES[0], lw=1.0, label="$R(t)$")
+    nerve.axhline(1.0, color="C7", ls="--", lw=1.0, label="threshold")
+    nerve.set_xlim(grad.get_xlim())
+    nerve.set_xlabel("time (ms)")
+    nerve.set_ylabel("fraction")
+    nerve.set_title(f"nerve response against threshold: peak {pns.peak.value:.2f}")
+    nerve.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+
+    spec.plot(spectrum.frequency, readout, color=SERIES[0], lw=1.0, label="$G_x$")
+    spec.axvspan(band.f_min, band.f_max, color="C7", alpha=0.2, lw=0, label="band")
+    spec.hlines(
+        band.tolerance, band.f_min, band.f_max, color="C7", ls="--", label="tolerance"
+    )
+    spec.set_xlim(0, 3 * fundamental)
+    spec.set_xlabel("frequency (Hz)")
+    spec.set_ylabel("mT/m")
+    verdict = "passes" if mech_ok else "violated"
+    spec.set_title(f"{width * 1e3:.0f} ms window spectrum against a band: {verdict}")
+    spec.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+    return figure
+
+
 # ---------------------------------------------------------------------------
 #  Pulseq representation, shapes and storage, timing and rasters
 # ---------------------------------------------------------------------------
@@ -736,6 +808,7 @@ FIGURES = {
     "strength_duration": strength_duration,
     "pns_response": pns_response,
     "gradient_spectra": gradient_spectra,
+    "safety_checks_on_one_sequence": safety_checks_on_one_sequence,
     "block_table_and_libraries": block_table_and_libraries,
     "gre_repetition_blocks": gre_repetition_blocks,
     "rotation_against_materialised_shapes": rotation_against_materialised_shapes,

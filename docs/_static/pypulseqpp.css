@@ -53,10 +53,18 @@ div.highlight-text .copybtn {
   hyphens: auto;
 }
 
-/* A capability's code and test, under its statement. */
-.bd-article .capabilities li > p + p {
-  margin-top: -0.6em;
+/* A capability's code and test, in a toggle under its statement. */
+.bd-article .capabilities details {
+  margin: -0.6em 0 0.6em;
   font-size: 0.9em;
-  text-align: left;
   color: var(--pst-color-text-muted);
+}
+.bd-article .capabilities details p {
+  text-align: left;
+}
+.bd-article .capabilities summary {
+  cursor: pointer;
+}
+.bd-article .capabilities li > p {
+  text-align: left;
 }
