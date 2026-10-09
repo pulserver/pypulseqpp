@@ -62,8 +62,10 @@ def bssfp2d(
     and a slice longer than ``MAX_SLICE_DURATION`` is refused.
 
     The phase-encode lines are played ``views_per_segment`` at a time. Under
-    ``retrospective`` gating each segment is cycled for one heartbeat, the
-    interpreter's ECG log binning it into cardiac phases; under
+    ``retrospective`` gating each segment is cycled as many times as a full
+    segment fits in a heartbeat, the same number for every segment, so each
+    cycle samples every line; the interpreter's ECG log bins them into cardiac
+    phases. Under
     ``prospective`` gating every heartbeat opens with a trigger event on
     ``TRIGGER_CHANNEL``, then plays the segment once per cardiac phase;
     the first heartbeat's trigger precedes the half flip, so the whole train
@@ -213,11 +215,11 @@ def bssfp2d(
         ]
     )
     train = [(None, 0, 0)] * n_dummy
+    cycles = max(1, round(rr / (views_per_segment * ro.tr)))
     for s, segment in enumerate(segments):
         if gating == "none":
             train += [(line, 0, 0) for line in segment]
         elif gating == "retrospective":
-            cycles = max(1, round(rr / (len(segment) * ro.tr)))
             train += [(line, s, c) for c in range(cycles) for line in segment]
         else:
             acquired = n_phases * len(segment) * ro.tr + trigger_delay
