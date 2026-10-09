@@ -151,6 +151,14 @@ def test_a_retrospective_heartbeat_cycles_its_segment():
     assert not any(getattr(block, "trig", None) for block in blocks(seq))
 
 
+def test_a_retrospective_cycle_reads_every_line_when_the_last_segment_is_short():
+    seq = built_2d(gating="retrospective", **{**CINE, "views_per_segment": 6})
+    lin, phs = labels(seq, "LIN", "PHS")
+
+    for cycle in set(phs):
+        assert sorted(lin[phs == cycle]) == list(range(16))
+
+
 def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
     seq = built_2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
