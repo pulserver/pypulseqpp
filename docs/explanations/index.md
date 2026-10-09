@@ -36,4 +36,5 @@ gradient-constraints
 pns
 mechanical-resonance
 sar
+safety-checks
 ```
