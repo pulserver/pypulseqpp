@@ -79,7 +79,7 @@ orientation can change the estimate.
 
 * {func}`~pypulseqpp.safety.check_pns` — checker and diagnostic trace.
 * {doc}`gradient-constraints` — hardware slew-rate limit.
-* {doc}`../examples/checks` — constraint-checking workflow.
+* {doc}`/generated/gallery/01-course/07_hardware_and_safety_checks` — constraint-checking workflow.
 
 ## References
 

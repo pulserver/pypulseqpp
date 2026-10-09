@@ -133,7 +133,10 @@ another.
 
 ## 2. Register
 
-Write dry, declarative technical prose.
+Write dry, declarative technical prose in the API reference, the explanations
+and the developer guide. The README, the Course and the Tours talk to the
+reader as "you" and give the mental model before the code; the rules below
+other than the one on tutorial voice apply to them too.
 
 **No personification.** A shot does not walk, a gradient does not ask for
 anything, a limit does not judge, a window is not still there, an encode does
@@ -151,8 +154,8 @@ trapezoidal gradient event", not "the workhorse gradient builder".
 
 **No metaphor for mechanism.** Describe the mechanism.
 
-**No conversational or tutorial voice.** No second person, no "simply", "just",
-"note that", "under the hood", "powerful", "handy", "seamless". No rhetorical
+**No conversational or tutorial voice** outside the README, the Course and the
+Tours. Nowhere "simply", "just", "note that", "under the hood", "powerful", "handy", "seamless". No rhetorical
 questions, no scene-setting.
 
 **No history.** Describe the code as it is. No "used to", "previously", "this

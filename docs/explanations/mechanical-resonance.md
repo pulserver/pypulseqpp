@@ -118,7 +118,7 @@ of the supplied table.
   {func}`~pypulseqpp.safety.mech_resonance_spectrum`,
   {func}`~pypulseqpp.safety.read_forbidden_bands` and
   {class}`~pypulseqpp.safety.ForbiddenBand` — the calls.
-* {doc}`../examples/checks` — running the check over a
+* {doc}`/generated/gallery/01-course/07_hardware_and_safety_checks` — running the check over a
   sequence and reading its report.
 
 ## References

@@ -147,14 +147,8 @@ intersphinx_mapping = {
 #: directory per landing page under ``docs/examples``; sphinx-gallery nests one
 #: level only, so the hierarchy a reader navigates is built by those pages.
 GALLERY_SECTIONS = [
-    "../gallery/01-pulseq-basics",
-    "../gallery/02-spoiling",
-    "../gallery/03-gre-to-epi",
-    "../gallery/04-non-cartesian",
-    "../gallery/05-sequence-modules",
-    "../gallery/06-checks",
-    "../gallery/07-custom-modules",
-    "../gallery/08-tours",
+    "../gallery/01-course",
+    "../gallery/02-tours",
     "../gallery/10-gradient-echo",
     "../gallery/11-spin-echo",
     "../gallery/13-fast-spin-echo",

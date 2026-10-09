@@ -12,18 +12,9 @@ not necessary for that core competence.
 
 ## Course
 
-Ten lessons read in order: each starts from what the previous one finished with
-and adds one construct.
-
-| Section | Lessons | Covers |
-| --- | --- | --- |
-| {doc}`/examples/pulseq-basics` | 1–3 | Events, blocks and timing, from a free induction decay to a slice-selective gradient echo. |
-| {doc}`/examples/spoiling` | 4 | Gradient and RF spoiling of the residual transverse magnetisation. |
-| {doc}`/examples/gre-to-epi` | 5 | A train of echoes with phase-encode blips: single-shot echo planar imaging. |
-| {doc}`/examples/non-cartesian` | 6 | Radial spokes in place of phase encodes, and golden-angle ordering. |
-| {doc}`/examples/sequence-modules` | 7–8 | The excitation and readout modules, and the sequence function that plays them. |
-| {doc}`/examples/checks` | 9 | The constraint checks applied to a finished sequence. |
-| {doc}`/examples/custom-modules` | 10 | A new module written against the base-class contract. |
+| Section | Covers |
+| --- | --- |
+| {doc}`/examples/course` | Ten lessons read in order, from a 2D Cartesian gradient echo to a 3D radial MPRAGE built from sequence modules. |
 
 ## Tours
 
@@ -32,7 +23,7 @@ assumes.
 
 | Section | Covers |
 | --- | --- |
-| {doc}`/examples/tours` | Multi-echo and segmented echo planar readouts, a spiral readout, and two custom readout modules. |
+| {doc}`/examples/tours` | The FID and the spin echo, slice-selective excitation, echo planar and multi-echo readouts, spirals, and custom readout and excitation modules. |
 
 ## Sequence catalogue
 
@@ -43,13 +34,7 @@ assumes.
 ```{toctree}
 :hidden:
 
-/examples/pulseq-basics
-/examples/spoiling
-/examples/gre-to-epi
-/examples/non-cartesian
-/examples/sequence-modules
-/examples/checks
-/examples/custom-modules
+/examples/course
 /examples/tours
 /examples/built-in-sequences/index
 ```

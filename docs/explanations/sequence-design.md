@@ -273,6 +273,6 @@ from the echo index, `IMA` from membership of the calibration list, and `SEG`,
 * {doc}`../api/sampling` — the sampling routines, their inputs and returns.
 * {doc}`../user-guide/from-pypulseq` — a PyPulseq script as a sequence
   function.
-* {doc}`/generated/gallery/05-sequence-modules/03_sequence_function` — a
+* {doc}`/generated/gallery/01-course/09_sequence_modules` — a
   sequence function assembled from modules.
 * {doc}`../sequences` — shipped complete sequences.

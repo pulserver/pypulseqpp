@@ -137,5 +137,5 @@ properties and are separate calls.
 
 * {doc}`pulseq-representation` — what a block contains.
 * {doc}`../api/timing` — the quantization and ADC timing helpers.
-* {doc}`../examples/checks` — running the checks over a finished
+* {doc}`/generated/gallery/01-course/07_hardware_and_safety_checks` — running the checks over a finished
   sequence.
