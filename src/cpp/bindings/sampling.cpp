@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -380,6 +381,161 @@ namespace
         throw std::invalid_argument(message.str());
     }
 
+    /** Views of a support on the bounding grid of their integer coordinates. */
+    struct ViewGrid
+    {
+        std::vector<std::int64_t> y;
+        std::vector<std::int64_t> z;
+        std::size_t ny;
+        std::size_t nz;
+        std::vector<std::int64_t> index;
+    };
+
+    ViewGrid make_view_grid(const std::vector<std::int64_t>& ys, const std::vector<std::int64_t>& zs)
+    {
+        const auto y0 = *std::min_element(ys.begin(), ys.end());
+        const auto z0 = *std::min_element(zs.begin(), zs.end());
+        ViewGrid views{ys, zs, 0, 0, {}};
+        for (std::size_t i = 0; i < ys.size(); ++i)
+        {
+            views.y[i] -= y0;
+            views.z[i] -= z0;
+        }
+        views.ny = static_cast<std::size_t>(*std::max_element(views.y.begin(), views.y.end()) + 1);
+        views.nz = static_cast<std::size_t>(*std::max_element(views.z.begin(), views.z.end()) + 1);
+        views.index.assign(checked_product(views.ny, views.nz), -1);
+        for (std::size_t i = 0; i < ys.size(); ++i)
+        {
+            auto& cell = views.index[static_cast<std::size_t>(views.y[i]) * views.nz +
+                static_cast<std::size_t>(views.z[i])];
+            if (cell >= 0)
+            {
+                throw std::invalid_argument("coords must not repeat a view");
+            }
+            cell = static_cast<std::int64_t>(i);
+        }
+        return views;
+    }
+
+    /**
+     * Spacing of one of `frames` frames at each view: a disc packing at the
+     * support's local density divided among the frames. The density window
+     * doubles until it holds enough views to measure it.
+     */
+    std::vector<double> frame_spacing(const ViewGrid& views, std::int64_t frames)
+    {
+        const auto ny = views.ny;
+        const auto nz = views.nz;
+        std::vector<std::int64_t> table((ny + 1) * (nz + 1), 0);
+        for (std::size_t y = 0; y < ny; ++y)
+        {
+            for (std::size_t z = 0; z < nz; ++z)
+            {
+                table[(y + 1) * (nz + 1) + z + 1] = (views.index[y * nz + z] >= 0) +
+                    table[y * (nz + 1) + z + 1] + table[(y + 1) * (nz + 1) + z] -
+                    table[y * (nz + 1) + z];
+            }
+        }
+        const auto clamp = [](std::int64_t value, std::size_t size)
+        { return static_cast<std::size_t>(std::clamp<std::int64_t>(value, 0, static_cast<std::int64_t>(size))); };
+
+        constexpr double pi = 3.14159265358979323846;
+        constexpr double packing = 1.6;
+        constexpr double enough = 16.0;
+        const auto widest = static_cast<std::int64_t>(std::max(ny, nz));
+        std::vector<double> spacing(views.y.size());
+        for (std::size_t i = 0; i < spacing.size(); ++i)
+        {
+            double count = 0.0;
+            double area = 1.0;
+            for (std::int64_t w = 3; w <= 2 * widest; w *= 2)
+            {
+                const auto a = clamp(views.y[i] - w, ny);
+                const auto b = clamp(views.z[i] - w, nz);
+                const auto c = clamp(views.y[i] + w + 1, ny);
+                const auto d = clamp(views.z[i] + w + 1, nz);
+                count = static_cast<double>(table[c * (nz + 1) + d] - table[a * (nz + 1) + d] -
+                    table[c * (nz + 1) + b] + table[a * (nz + 1) + b]);
+                area = static_cast<double>((c - a) * (d - b));
+                if (count >= enough)
+                {
+                    break;
+                }
+            }
+            spacing[i] = packing * std::sqrt(static_cast<double>(frames) * area / (pi * count));
+        }
+        return spacing;
+    }
+
+    /** Placed views, bucketed so that a neighbourhood visits placed views only. */
+    struct Placed
+    {
+        static constexpr std::size_t bucket = 8;
+        std::size_t nbz;
+        std::vector<std::vector<std::size_t>> views;
+
+        Placed(std::size_t ny, std::size_t nz)
+            : nbz((nz + bucket - 1) / bucket), views(((ny + bucket - 1) / bucket) * nbz)
+        {
+        }
+
+        std::vector<std::size_t>& at(std::int64_t y, std::int64_t z)
+        {
+            return views[static_cast<std::size_t>(y) / bucket * nbz + static_cast<std::size_t>(z) / bucket];
+        }
+    };
+
+    /**
+     * Mark in `banned` every frame a placed view's (ky, kz, frame) ellipse
+     * excludes for view `i`, at the distances scaled by `scale`.
+     */
+    void ban_neighbours(
+        std::size_t i,
+        const ViewGrid& views,
+        const std::vector<double>& spacing,
+        const std::vector<std::int32_t>& frame,
+        Placed& placed,
+        double temporal_width,
+        double scale,
+        std::vector<std::uint8_t>& banned)
+    {
+        const auto frames = static_cast<std::int64_t>(banned.size());
+        const auto reach = static_cast<std::int64_t>(std::ceil(scale * spacing[i]));
+        const auto y = views.y[i];
+        const auto z = views.z[i];
+        const auto last_y = static_cast<std::int64_t>(views.ny) - 1;
+        const auto last_z = static_cast<std::int64_t>(views.nz) - 1;
+        const auto step = static_cast<std::int64_t>(Placed::bucket);
+        for (auto by = std::max<std::int64_t>(y - reach, 0) / step * step;
+             by <= std::min(y + reach, last_y);
+             by += step)
+        {
+            for (auto bz = std::max<std::int64_t>(z - reach, 0) / step * step;
+                 bz <= std::min(z + reach, last_z);
+                 bz += step)
+            {
+                for (const auto j : placed.at(by, bz))
+                {
+                    const auto dy = static_cast<double>(views.y[j] - y);
+                    const auto dz = static_cast<double>(views.z[j] - z);
+                    const double distance = scale * 0.5 * (spacing[i] + spacing[j]);
+                    const double r2 = (dy * dy + dz * dz) / (distance * distance);
+                    if (r2 >= 1.0)
+                    {
+                        continue;
+                    }
+                    const auto g = frame[j];
+                    const double half = scale * temporal_width * std::sqrt(1.0 - r2);
+                    const auto lo = std::max<std::int64_t>(static_cast<std::int64_t>(std::ceil(g - half)), 0);
+                    const auto hi =
+                        std::min<std::int64_t>(static_cast<std::int64_t>(std::floor(g + half)), frames - 1);
+                    std::fill(banned.begin() + lo, banned.begin() + std::max(hi + 1, lo), 1);
+                    banned[static_cast<std::size_t>(g)] = 1;
+                }
+            }
+        }
+    }
+
     /**
      * Frame of each view of a complementary k-t Poisson-disc split.
      *
@@ -397,89 +553,16 @@ namespace
         double temporal_width,
         std::uint64_t seed)
     {
-        const std::size_t n = ys.size();
+        const auto views = make_view_grid(ys, zs);
         const auto frames = static_cast<std::int64_t>(capacity.size());
-        const auto [y_min, y_max] = std::minmax_element(ys.begin(), ys.end());
-        const auto [z_min, z_max] = std::minmax_element(zs.begin(), zs.end());
-        const std::int64_t y0 = *y_min;
-        const std::int64_t z0 = *z_min;
-        const auto ny = static_cast<std::size_t>(*y_max - y0 + 1);
-        const auto nz = static_cast<std::size_t>(*z_max - z0 + 1);
-        const auto cells = checked_product(ny, nz);
-
-        // Grid of view indices, and its summed-area table for local density.
-        std::vector<std::int64_t> grid(cells, -1);
-        for (std::size_t i = 0; i < n; ++i)
-        {
-            auto& cell = grid[static_cast<std::size_t>(ys[i] - y0) * nz +
-                static_cast<std::size_t>(zs[i] - z0)];
-            if (cell >= 0)
-            {
-                throw std::invalid_argument("coords must not repeat a view");
-            }
-            cell = static_cast<std::int64_t>(i);
-        }
-        std::vector<std::int64_t> table((ny + 1) * (nz + 1), 0);
-        for (std::size_t y = 0; y < ny; ++y)
-        {
-            for (std::size_t z = 0; z < nz; ++z)
-            {
-                table[(y + 1) * (nz + 1) + z + 1] = (grid[y * nz + z] >= 0) +
-                    table[y * (nz + 1) + z + 1] + table[(y + 1) * (nz + 1) + z] -
-                    table[y * (nz + 1) + z];
-            }
-        }
-        auto count_in = [&](std::int64_t y, std::int64_t z, std::int64_t w)
-        {
-            const auto a = static_cast<std::size_t>(std::max<std::int64_t>(y - w, 0));
-            const auto b = static_cast<std::size_t>(std::max<std::int64_t>(z - w, 0));
-            const auto c = static_cast<std::size_t>(
-                std::min<std::int64_t>(y + w + 1, static_cast<std::int64_t>(ny)));
-            const auto d = static_cast<std::size_t>(
-                std::min<std::int64_t>(z + w + 1, static_cast<std::int64_t>(nz)));
-            const auto views = table[c * (nz + 1) + d] - table[a * (nz + 1) + d] -
-                table[c * (nz + 1) + b] + table[a * (nz + 1) + b];
-            return std::pair<double, double>(
-                static_cast<double>(views), static_cast<double>((c - a) * (d - b)));
-        };
-
-        // Spacing of one frame: a disc packing at the support's local density
-        // divided among the frames. The window grows until it holds enough
-        // views to measure the density.
-        constexpr double pi = 3.14159265358979323846;
-        constexpr double packing = 1.6;
-        std::vector<double> spacing(n);
-        const auto widest = static_cast<std::int64_t>(std::max(ny, nz));
-        for (std::size_t i = 0; i < n; ++i)
-        {
-            const auto y = ys[i] - y0;
-            const auto z = zs[i] - z0;
-            std::pair<double, double> measured{1.0, 1.0};
-            for (std::int64_t w = 3; w <= widest; w *= 2)
-            {
-                measured = count_in(y, z, w);
-                if (measured.first >= 16.0)
-                {
-                    break;
-                }
-            }
-            const double density = measured.first / measured.second;
-            spacing[i] = packing * std::sqrt(static_cast<double>(frames) / (pi * density));
-        }
-
-        std::vector<std::int32_t> frame(n, -1);
-        std::vector<std::int64_t> filled(static_cast<std::size_t>(frames), 0);
-        std::vector<std::uint8_t> banned(static_cast<std::size_t>(frames));
-        std::vector<std::int32_t> free;
-        std::vector<std::size_t> pending(n);
-        for (std::size_t i = 0; i < n; ++i)
-        {
-            pending[i] = i;
-        }
-        // Placed views, bucketed so that a neighbourhood visits placed views only.
-        constexpr std::size_t bucket = 8;
-        const std::size_t nbz = (nz + bucket - 1) / bucket;
-        std::vector<std::vector<std::size_t>> placed(((ny + bucket - 1) / bucket) * nbz);
+        const auto spacing = frame_spacing(views, frames);
+        std::vector<std::int32_t> frame(ys.size(), -1);
+        std::vector<std::int64_t> filled(capacity.size(), 0);
+        std::vector<std::uint8_t> banned(capacity.size());
+        std::vector<std::int32_t> open;
+        Placed placed(views.ny, views.nz);
+        std::vector<std::size_t> pending(ys.size());
+        std::iota(pending.begin(), pending.end(), std::size_t{0});
         Pcg32 rng(seed);
         constexpr double relax = 0.9;
         double scale = 1.0;
@@ -492,67 +575,28 @@ namespace
             std::vector<std::size_t> left;
             for (const auto i : pending)
             {
-                for (std::int64_t f = 0; f < frames; ++f)
+                for (std::size_t f = 0; f < banned.size(); ++f)
                 {
-                    banned[static_cast<std::size_t>(f)] =
-                        filled[static_cast<std::size_t>(f)] >= capacity[static_cast<std::size_t>(f)];
+                    banned[f] = filled[f] >= capacity[f];
                 }
-                const auto y = ys[i] - y0;
-                const auto z = zs[i] - z0;
-                const auto reach = static_cast<std::int64_t>(std::ceil(scale * spacing[i]));
-                const auto by0 = static_cast<std::size_t>(std::max<std::int64_t>(y - reach, 0)) / bucket;
-                const auto by1 = static_cast<std::size_t>(
-                    std::min<std::int64_t>(y + reach, static_cast<std::int64_t>(ny) - 1)) / bucket;
-                const auto bz0 = static_cast<std::size_t>(std::max<std::int64_t>(z - reach, 0)) / bucket;
-                const auto bz1 = static_cast<std::size_t>(
-                    std::min<std::int64_t>(z + reach, static_cast<std::int64_t>(nz) - 1)) / bucket;
-                for (auto by = by0; by <= by1; ++by)
-                {
-                    for (auto bz = bz0; bz <= bz1; ++bz)
-                    {
-                        for (const auto j : placed[by * nbz + bz])
-                        {
-                            const auto dy = static_cast<double>(ys[j] - ys[i]);
-                            const auto dz = static_cast<double>(zs[j] - zs[i]);
-                            const double distance = scale * 0.5 * (spacing[i] + spacing[j]);
-                            const double r2 = (dy * dy + dz * dz) / (distance * distance);
-                            if (r2 >= 1.0)
-                            {
-                                continue;
-                            }
-                            const auto g = frame[j];
-                            const double half = scale * temporal_width * std::sqrt(1.0 - r2);
-                            const auto lo = std::max<std::int64_t>(
-                                static_cast<std::int64_t>(std::ceil(g - half)), 0);
-                            const auto hi = std::min<std::int64_t>(
-                                static_cast<std::int64_t>(std::floor(g + half)), frames - 1);
-                            for (auto f = lo; f <= hi; ++f)
-                            {
-                                banned[static_cast<std::size_t>(f)] = 1;
-                            }
-                            banned[static_cast<std::size_t>(g)] = 1;
-                        }
-                    }
-                }
-                free.clear();
+                ban_neighbours(i, views, spacing, frame, placed, temporal_width, scale, banned);
+                open.clear();
                 for (std::int32_t f = 0; f < frames; ++f)
                 {
                     if (!banned[static_cast<std::size_t>(f)])
                     {
-                        free.push_back(f);
+                        open.push_back(f);
                     }
                 }
-                if (free.empty())
+                if (open.empty())
                 {
                     left.push_back(i);
                     continue;
                 }
-                const auto chosen = free[rng.bounded(static_cast<std::uint32_t>(free.size()))];
+                const auto chosen = open[rng.bounded(static_cast<std::uint32_t>(open.size()))];
                 frame[i] = chosen;
                 ++filled[static_cast<std::size_t>(chosen)];
-                placed[static_cast<std::size_t>(ys[i] - y0) / bucket * nbz +
-                    static_cast<std::size_t>(zs[i] - z0) / bucket]
-                    .push_back(i);
+                placed.at(views.y[i], views.z[i]).push_back(i);
             }
             pending = std::move(left);
             // Below a tenth of a view the ellipse excludes nothing but the
