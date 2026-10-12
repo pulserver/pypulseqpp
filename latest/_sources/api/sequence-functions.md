@@ -7,7 +7,7 @@ write what it returns, time it, and build the excitation a volumetric
 prescription chooses. The sequences themselves are listed in
 {doc}`../sequences`; the structure of a sequence function, its protocol and its
 prescan chain are described in
-{doc}`../explanations/sequence-design`.
+{doc}`../explanations/sequence-modules`.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp.sequences
