@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=9f6344ba"></script>
+    <script src="../../_static/documentation_options.js?v=0a6d3248"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.39';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.40';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.39" />
+  <meta name="docsearch:version" content="v0.0.40" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -470,6 +470,11 @@
 
 <span class="c1">#: The support schemes :func:`make_cartesian_plane_sampling` draws from.</span>
 <span class="n">_PLANE_SCHEMES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"lattice"</span><span class="p">,</span> <span class="s2">"poisson"</span><span class="p">)</span>
+<span class="c1"># Density of a Poisson-disc draw at its tightest spacing, and its density times</span>
+<span class="c1"># the area of its exclusion ellipse in views, fitted to make_poisson_disc_mask.</span>
+<span class="n">_DENSITY_CAP</span> <span class="o">=</span> <span class="mf">0.74</span>
+<span class="n">_DENSITY_SCALE</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="n">_BINS</span> <span class="o">=</span> <span class="mi">1024</span>
 
 
 <div class="viewcode-block" id="make_cartesian_axis_sampling">
@@ -593,6 +598,7 @@
     <span class="n">elliptical_acs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"lattice"</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">"""Select the acquired ``(line, partition)`` views of a Cartesian ky-kz plane.</span>
 
@@ -612,7 +618,11 @@
 <span class="sd">    seeded into the draw as a fully sampled block; an elliptical one</span>
 <span class="sd">    (``elliptical_acs=True``) is not, so the corners of its bounding</span>
 <span class="sd">    rectangle follow the draw and only the ellipse is acquired in full.</span>
-<span class="sd">    ``caipi_shift`` is ignored.</span>
+<span class="sd">    ``caipi_shift`` is ignored. A draw holds the number of views of its</span>
+<span class="sd">    expected density (:func:`calc_cartesian_plane_sampling_probability`),</span>
+<span class="sd">    rounded to the nearest view: views beyond it are dropped at random and</span>
+<span class="sd">    missing ones are added as for ``train_length``, so</span>
+<span class="sd">    :func:`count_cartesian_plane_sampling` counts them without a draw.</span>
 
 <span class="sd">    For either scheme, partial Fourier and the ``elliptical`` crop are</span>
 <span class="sd">    applied to the views outside the calibration region, and the calibration</span>
@@ -647,6 +657,14 @@
 <span class="sd">        variable-density Poisson-disc draw.</span>
 <span class="sd">    seed : int, default=0</span>
 <span class="sd">        Random seed of the Poisson-disc draw. ``sampling='poisson'`` only.</span>
+<span class="sd">    train_length : int, default=1</span>
+<span class="sd">        Number of views per echo train. The unsampled views nearest the</span>
+<span class="sd">        centre, by distance normalised to the grid and within partial</span>
+<span class="sd">        Fourier, are added to ``imaging`` until the number of views is a</span>
+<span class="sd">        multiple of it, so that every train is full. They lie inside the</span>
+<span class="sd">        ``elliptical`` crop while any view there is unsampled. When fewer</span>
+<span class="sd">        views than that remain unsampled, all of them are added and the last</span>
+<span class="sd">        train stays short.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -727,7 +745,8 @@
             <span class="n">elliptical_acs</span><span class="p">,</span>
             <span class="n">sampling</span><span class="p">,</span>
             <span class="n">seed</span><span class="p">,</span>
-        <span class="p">)</span>
+            <span class="n">train_length</span><span class="o">=</span><span class="n">train_length</span><span class="p">,</span>
+        <span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="p">)</span></div>
 
 
@@ -742,8 +761,15 @@
     <span class="n">elliptical_acs</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">sampling</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">expected</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists."""</span>
+<span class="w">    </span><span class="sd">"""Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists.</span>
+
+<span class="sd">    With ``expected``, a Poisson-disc support is its expected density rather</span>
+<span class="sd">    than a draw, and the imaging mask is a probability. The third value is the</span>
+<span class="sd">    number of views listed, known without a draw.</span>
+<span class="sd">    """</span>
     <span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="p">(</span><span class="n">r_y</span><span class="p">,</span> <span class="n">r_z</span><span class="p">)</span> <span class="o">=</span> <span class="n">shape</span><span class="p">,</span> <span class="n">acceleration</span>
     <span class="k">if</span> <span class="n">r_y</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">r_z</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -753,6 +779,8 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"n_acs must be nonnegative on each axis, got </span><span class="si">{</span><span class="n">n_acs</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">sampling</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_PLANE_SCHEMES</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sampling must be one of </span><span class="si">{</span><span class="n">_PLANE_SCHEMES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">sampling</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">train_length</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"train_length must be at least 1, got </span><span class="si">{</span><span class="n">train_length</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">first_y</span> <span class="o">=</span> <span class="n">n_y</span> <span class="o">-</span> <span class="nb">round</span><span class="p">(</span><span class="n">_checked_partial_fourier</span><span class="p">(</span><span class="n">partial_fourier</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">n_y</span><span class="p">)</span>
     <span class="n">first_z</span> <span class="o">=</span> <span class="n">n_z</span> <span class="o">-</span> <span class="nb">round</span><span class="p">(</span><span class="n">_checked_partial_fourier</span><span class="p">(</span><span class="n">partial_fourier</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">n_z</span><span class="p">)</span>
     <span class="n">n_acs_y</span><span class="p">,</span> <span class="n">n_acs_z</span> <span class="o">=</span> <span class="n">n_acs</span> <span class="k">if</span> <span class="n">r_y</span> <span class="o">*</span> <span class="n">r_z</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -772,32 +800,63 @@
     <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">elliptical_acs</span> <span class="ow">and</span> <span class="n">calibrating</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
         <span class="n">calibrating</span> <span class="o">&amp;=</span> <span class="n">inside</span><span class="p">(</span><span class="n">n_acs_y</span><span class="p">,</span> <span class="n">n_acs_z</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">sampling</span> <span class="o">==</span> <span class="s2">"poisson"</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">sampling</span> <span class="o">==</span> <span class="s2">"poisson"</span> <span class="ow">and</span> <span class="n">r_y</span> <span class="o">*</span> <span class="n">r_z</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># A rectangular ACS region is seeded into the draw as its fully sampled</span>
         <span class="c1"># block. An elliptical one is not: the draw then covers the corners of</span>
         <span class="c1"># the rectangle like the rest of the plane, and only the ellipse is</span>
         <span class="c1"># added in full. The ellipse cut below is applied to the imaging views</span>
         <span class="c1"># of both schemes; ``crop_corner`` only makes the acceleration search</span>
         <span class="c1"># count the same region.</span>
+        <span class="n">calib</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">elliptical_acs</span> <span class="k">else</span> <span class="p">(</span><span class="n">n_acs_y</span><span class="p">,</span> <span class="n">n_acs_z</span><span class="p">)</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="n">_poisson_disc_density</span><span class="p">((</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">r_y</span> <span class="o">*</span> <span class="n">r_z</span><span class="p">),</span> <span class="n">calib</span><span class="p">,</span> <span class="n">elliptical</span><span class="p">)</span>
         <span class="n">support</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">make_poisson_disc_mask</span><span class="p">(</span>
+            <span class="n">density</span>
+            <span class="k">if</span> <span class="n">expected</span>
+            <span class="k">else</span> <span class="n">make_poisson_disc_mask</span><span class="p">(</span>
                 <span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span>
                 <span class="nb">float</span><span class="p">(</span><span class="n">r_y</span> <span class="o">*</span> <span class="n">r_z</span><span class="p">),</span>
-                <span class="n">calib</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">elliptical_acs</span> <span class="k">else</span> <span class="p">(</span><span class="n">n_acs_y</span><span class="p">,</span> <span class="n">n_acs_z</span><span class="p">),</span>
+                <span class="n">calib</span><span class="o">=</span><span class="n">calib</span><span class="p">,</span>
                 <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
                 <span class="n">crop_corner</span><span class="o">=</span><span class="n">elliptical</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">r_y</span> <span class="o">*</span> <span class="n">r_z</span> <span class="o">&gt;</span> <span class="mi">1</span>
-            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sampling</span> <span class="o">==</span> <span class="s2">"poisson"</span><span class="p">:</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="n">support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">support</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">%</span> <span class="n">r_y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">z</span> <span class="o">-</span> <span class="n">caipi_shift</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">//</span> <span class="n">r_y</span><span class="p">))</span> <span class="o">%</span> <span class="n">r_z</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">imaging</span> <span class="o">=</span> <span class="n">support</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">calibrating</span>
-    <span class="n">imaging</span><span class="p">[:</span><span class="n">first_y</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">imaging</span><span class="p">[:,</span> <span class="p">:</span><span class="n">first_z</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="n">elliptical</span><span class="p">:</span>
-        <span class="n">imaging</span> <span class="o">&amp;=</span> <span class="n">inside</span><span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="n">support</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">%</span> <span class="n">r_y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">((</span><span class="n">z</span> <span class="o">-</span> <span class="n">caipi_shift</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">//</span> <span class="n">r_y</span><span class="p">))</span> <span class="o">%</span> <span class="n">r_z</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">crop</span><span class="p">(</span><span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">*</span> <span class="o">~</span><span class="n">calibrating</span>
+        <span class="n">mask</span><span class="p">[:</span><span class="n">first_y</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">mask</span><span class="p">[:,</span> <span class="p">:</span><span class="n">first_z</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">mask</span> <span class="o">*</span> <span class="n">inside</span><span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span> <span class="k">if</span> <span class="n">elliptical</span> <span class="k">else</span> <span class="n">mask</span>
+
+    <span class="c1"># The views a draw ends with: its expected number, filled to whole trains</span>
+    <span class="c1"># with the views of the partial-Fourier region left, as many as there are.</span>
+    <span class="n">n_calibration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">calibrating</span><span class="p">))</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">region</span><span class="p">[:</span><span class="n">first_y</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">region</span><span class="p">[:,</span> <span class="p">:</span><span class="n">first_z</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">available</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">region</span> <span class="o">|</span> <span class="n">calibrating</span><span class="p">))</span>
+    <span class="n">views</span> <span class="o">=</span> <span class="n">n_calibration</span> <span class="o">+</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">crop</span><span class="p">(</span><span class="n">density</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="n">views</span> <span class="o">//</span> <span class="n">train_length</span><span class="p">)</span> <span class="o">*</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">available</span><span class="p">)</span>
+    <span class="n">imaging</span> <span class="o">=</span> <span class="n">crop</span><span class="p">(</span><span class="n">support</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">expected</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span><span class="p">,</span> <span class="n">target</span>
+    <span class="n">excess</span> <span class="o">=</span> <span class="n">n_calibration</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">imaging</span><span class="p">))</span> <span class="o">-</span> <span class="n">target</span>
+    <span class="k">if</span> <span class="n">excess</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># A draw holding more views than expected drops some at random.</span>
+        <span class="n">lines</span><span class="p">,</span> <span class="n">partitions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">imaging</span><span class="p">)</span>
+        <span class="n">drop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">lines</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">excess</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">imaging</span><span class="p">[</span><span class="n">lines</span><span class="p">[</span><span class="n">drop</span><span class="p">],</span> <span class="n">partitions</span><span class="p">[</span><span class="n">drop</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">excess</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># The unsampled views nearest the centre fill the rest.</span>
+        <span class="n">free</span> <span class="o">=</span> <span class="n">region</span> <span class="o">&amp;</span> <span class="o">~</span><span class="p">(</span><span class="n">calibrating</span> <span class="o">|</span> <span class="n">imaging</span><span class="p">)</span>
+        <span class="n">lines</span><span class="p">,</span> <span class="n">partitions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">free</span><span class="p">)</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="p">((</span><span class="n">lines</span> <span class="o">-</span> <span class="n">n_y</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_y</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">partitions</span> <span class="o">-</span> <span class="n">n_z</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_z</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">partitions</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">radius</span><span class="p">))[:</span><span class="o">-</span><span class="n">excess</span><span class="p">]</span>
+        <span class="n">imaging</span><span class="p">[</span><span class="n">lines</span><span class="p">[</span><span class="n">nearest</span><span class="p">],</span> <span class="n">partitions</span><span class="p">[</span><span class="n">nearest</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span><span class="p">,</span> <span class="n">target</span>
 
 
 <div class="viewcode-block" id="count_cartesian_plane_sampling">
@@ -813,6 +872,7 @@
     <span class="n">elliptical_acs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"lattice"</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Count the views :func:`make_cartesian_plane_sampling` returns, without listing them.</span>
 
@@ -831,7 +891,7 @@
 <span class="sd">    &gt;&gt;&gt; pp.count_cartesian_plane_sampling((4, 4), acceleration=(2, 2), n_acs=(2, 2))</span>
 <span class="sd">    (4, 3)</span>
 <span class="sd">    """</span>
-    <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span> <span class="o">=</span> <span class="n">_plane_masks</span><span class="p">(</span>
+    <span class="n">calibrating</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">views</span> <span class="o">=</span> <span class="n">_plane_masks</span><span class="p">(</span>
         <span class="n">shape</span><span class="p">,</span>
         <span class="n">acceleration</span><span class="p">,</span>
         <span class="n">n_acs</span><span class="p">,</span>
@@ -841,9 +901,114 @@
         <span class="n">elliptical_acs</span><span class="p">,</span>
         <span class="n">sampling</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">,</span>
+        <span class="n">expected</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">train_length</span><span class="o">=</span><span class="n">train_length</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">calibrating</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">imaging</span><span class="p">))</span></div>
+    <span class="n">n_calibration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">calibrating</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">n_calibration</span><span class="p">,</span> <span class="n">views</span> <span class="o">-</span> <span class="n">n_calibration</span></div>
 
+
+
+<div class="viewcode-block" id="calc_cartesian_plane_sampling_probability">
+<a class="viewcode-back" href="../../generated/pypulseqpp.calc_cartesian_plane_sampling_probability.html#pypulseqpp.calc_cartesian_plane_sampling_probability">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calc_cartesian_plane_sampling_probability</span><span class="p">(</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">acceleration</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">n_acs</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">caipi_shift</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">partial_fourier</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">elliptical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">elliptical_acs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">sampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"lattice"</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the probability that :func:`make_cartesian_plane_sampling` acquires each view.</span>
+
+<span class="sd">    The arguments are those of :func:`make_cartesian_plane_sampling`. A</span>
+<span class="sd">    lattice is deterministic, so its probabilities are 0 or 1. A Poisson-disc</span>
+<span class="sd">    draw is replaced by its expected density, at a fraction of the cost of a</span>
+<span class="sd">    draw: the density of views at minimum distances ``r_y`` and ``r_z``, in</span>
+<span class="sd">    views, is approximated as ``min(0.74, 0.8 / (r_y r_z))``, constants</span>
+<span class="sd">    fitted to draws of :func:`make_poisson_disc_mask`, with the slope of the</span>
+<span class="sd">    distances set by bisection so that the expected count reaches the</span>
+<span class="sd">    acceleration. The fullest partition of the density holds the lines of the</span>
+<span class="sd">    fullest partition of a mean over draws to within a few per cent; a single</span>
+<span class="sd">    draw departs from it by its own fluctuation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    calibration : numpy.ndarray</span>
+<span class="sd">        Probability, 0 or 1, that each view ``(y, z)`` is a calibration view.</span>
+<span class="sd">    imaging : numpy.ndarray</span>
+<span class="sd">        Probability that each view is one of the other acquired views.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; calibration, imaging = pp.calc_cartesian_plane_sampling_probability(</span>
+<span class="sd">    ...     (4, 4), acceleration=(2, 2), n_acs=(2, 2)</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; int(calibration.sum()), int(imaging.sum())</span>
+<span class="sd">    (4, 3)</span>
+<span class="sd">    """</span>
+    <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_plane_masks</span><span class="p">(</span>
+        <span class="n">shape</span><span class="p">,</span>
+        <span class="n">acceleration</span><span class="p">,</span>
+        <span class="n">n_acs</span><span class="p">,</span>
+        <span class="n">caipi_shift</span><span class="p">,</span>
+        <span class="n">partial_fourier</span><span class="p">,</span>
+        <span class="n">elliptical</span><span class="p">,</span>
+        <span class="n">elliptical_acs</span><span class="p">,</span>
+        <span class="n">sampling</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">,</span>
+        <span class="n">expected</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">calibrating</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span> <span class="n">imaging</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_poisson_disc_density</span><span class="p">(</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">accel</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">calib</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">crop_corner</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the expected density of :func:`make_poisson_disc_mask` on the same arguments."""</span>
+    <span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="p">(</span><span class="n">c_y</span><span class="p">,</span> <span class="n">c_z</span><span class="p">)</span> <span class="o">=</span> <span class="n">shape</span><span class="p">,</span> <span class="n">calib</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="c1"># Normalised distance outside the calibration block, as the draw takes it.</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">c</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span> <span class="o">/</span> <span class="n">d</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">d</span>
+
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">distance</span><span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">c_y</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">distance</span><span class="p">(</span><span class="n">n_z</span><span class="p">,</span> <span class="n">c_z</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">block</span><span class="p">[</span>
+        <span class="n">n_y</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">c_y</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">n_y</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">c_y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">n_z</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">c_z</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">n_z</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">c_z</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">counted</span> <span class="o">=</span> <span class="o">~</span><span class="n">block</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">radius</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">crop_corner</span> <span class="k">else</span> <span class="o">~</span><span class="n">block</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span><span class="p">[</span><span class="n">counted</span><span class="p">]</span>
+    <span class="n">longest</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
+    <span class="c1"># The bisection sums over a histogram of the radii rather than every view.</span>
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">radius</span> <span class="o">*</span> <span class="n">_BINS</span><span class="p">,</span> <span class="n">_BINS</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
+    <span class="n">centres</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">bins</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="n">_BINS</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">density</span><span class="p">(</span><span class="n">slope</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">spacing</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">radius</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">spacing</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_y</span> <span class="o">/</span> <span class="n">longest</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
+            <span class="n">spacing</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_z</span> <span class="o">/</span> <span class="n">longest</span><span class="p">),</span> <span class="mf">1.0</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">_DENSITY_CAP</span><span class="p">,</span> <span class="n">_DENSITY_SCALE</span> <span class="o">/</span> <span class="n">area</span><span class="p">)</span>
+
+    <span class="n">target</span> <span class="o">=</span> <span class="n">n_y</span> <span class="o">*</span> <span class="n">n_z</span> <span class="o">/</span> <span class="n">accel</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">longest</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">):</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="n">high</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">bins</span> <span class="o">@</span> <span class="n">density</span><span class="p">(</span><span class="n">slope</span><span class="p">,</span> <span class="n">centres</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">slope</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">slope</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="n">counted</span><span class="p">]</span> <span class="o">=</span> <span class="n">density</span><span class="p">(</span><span class="n">slope</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_views</span><span class="p">(</span><span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
