@@ -115,6 +115,11 @@ def test_an_out_of_range_argument_is_refused(kwargs, match):
         pp.make_cartesian_axis_sampling(64, **kwargs)
 
 
+def test_a_train_length_below_one_is_refused():
+    with pytest.raises(ValueError, match="train_length"):
+        pp.make_cartesian_plane_sampling((16, 16), train_length=0)
+
+
 @pytest.mark.parametrize("sampling", ["lattice", "poisson"])
 def test_the_plane_count_is_the_number_of_views_the_plane_sampling_lists(sampling):
     arguments = {
