@@ -20,6 +20,7 @@ ORDERINGS = [
     pp.make_radial_order,
     pp.make_radial_adaptive_order,
     pp.make_shuffling_order,
+    pp.make_complementary_order,
 ]
 
 #: A 6 x 5 ky-kz grid centred on (0, 0), with its corners removed.

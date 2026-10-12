@@ -12,6 +12,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 #include "sampling.h"
@@ -379,6 +380,188 @@ namespace
         throw std::invalid_argument(message.str());
     }
 
+    /**
+     * Frame of each view of a complementary k-t Poisson-disc split.
+     *
+     * A view is placed in a frame only if no view already there, nor in a
+     * frame within the temporal width of it, lies inside an ellipse in
+     * (ky, kz, frame) whose k-space radius is the spacing one frame of the
+     * support has locally. Unplaced views are retried with the distances
+     * shrunk by a constant factor (Levine et al., MRM 2017, doi:10.1002/mrm.26254),
+     * so every view is placed, and no frame holds more than `capacity[f]`.
+     */
+    std::vector<std::int32_t> complementary_frames(
+        const std::vector<std::int64_t>& ys,
+        const std::vector<std::int64_t>& zs,
+        const std::vector<std::int64_t>& capacity,
+        double temporal_width,
+        std::uint64_t seed)
+    {
+        const std::size_t n = ys.size();
+        const auto frames = static_cast<std::int64_t>(capacity.size());
+        const auto [y_min, y_max] = std::minmax_element(ys.begin(), ys.end());
+        const auto [z_min, z_max] = std::minmax_element(zs.begin(), zs.end());
+        const std::int64_t y0 = *y_min;
+        const std::int64_t z0 = *z_min;
+        const auto ny = static_cast<std::size_t>(*y_max - y0 + 1);
+        const auto nz = static_cast<std::size_t>(*z_max - z0 + 1);
+        const auto cells = checked_product(ny, nz);
+
+        // Grid of view indices, and its summed-area table for local density.
+        std::vector<std::int64_t> grid(cells, -1);
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            auto& cell = grid[static_cast<std::size_t>(ys[i] - y0) * nz +
+                static_cast<std::size_t>(zs[i] - z0)];
+            if (cell >= 0)
+            {
+                throw std::invalid_argument("coords must not repeat a view");
+            }
+            cell = static_cast<std::int64_t>(i);
+        }
+        std::vector<std::int64_t> table((ny + 1) * (nz + 1), 0);
+        for (std::size_t y = 0; y < ny; ++y)
+        {
+            for (std::size_t z = 0; z < nz; ++z)
+            {
+                table[(y + 1) * (nz + 1) + z + 1] = (grid[y * nz + z] >= 0) +
+                    table[y * (nz + 1) + z + 1] + table[(y + 1) * (nz + 1) + z] -
+                    table[y * (nz + 1) + z];
+            }
+        }
+        auto count_in = [&](std::int64_t y, std::int64_t z, std::int64_t w)
+        {
+            const auto a = static_cast<std::size_t>(std::max<std::int64_t>(y - w, 0));
+            const auto b = static_cast<std::size_t>(std::max<std::int64_t>(z - w, 0));
+            const auto c = static_cast<std::size_t>(
+                std::min<std::int64_t>(y + w + 1, static_cast<std::int64_t>(ny)));
+            const auto d = static_cast<std::size_t>(
+                std::min<std::int64_t>(z + w + 1, static_cast<std::int64_t>(nz)));
+            const auto views = table[c * (nz + 1) + d] - table[a * (nz + 1) + d] -
+                table[c * (nz + 1) + b] + table[a * (nz + 1) + b];
+            return std::pair<double, double>(
+                static_cast<double>(views), static_cast<double>((c - a) * (d - b)));
+        };
+
+        // Spacing of one frame: a disc packing at the support's local density
+        // divided among the frames. The window grows until it holds enough
+        // views to measure the density.
+        constexpr double pi = 3.14159265358979323846;
+        constexpr double packing = 1.6;
+        std::vector<double> spacing(n);
+        const auto widest = static_cast<std::int64_t>(std::max(ny, nz));
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            const auto y = ys[i] - y0;
+            const auto z = zs[i] - z0;
+            std::pair<double, double> measured{1.0, 1.0};
+            for (std::int64_t w = 3; w <= widest; w *= 2)
+            {
+                measured = count_in(y, z, w);
+                if (measured.first >= 16.0)
+                {
+                    break;
+                }
+            }
+            const double density = measured.first / measured.second;
+            spacing[i] = packing * std::sqrt(static_cast<double>(frames) / (pi * density));
+        }
+
+        std::vector<std::int32_t> frame(n, -1);
+        std::vector<std::int64_t> filled(static_cast<std::size_t>(frames), 0);
+        std::vector<std::uint8_t> banned(static_cast<std::size_t>(frames));
+        std::vector<std::int32_t> free;
+        std::vector<std::size_t> pending(n);
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            pending[i] = i;
+        }
+        // Placed views, bucketed so that a neighbourhood visits placed views only.
+        constexpr std::size_t bucket = 8;
+        const std::size_t nbz = (nz + bucket - 1) / bucket;
+        std::vector<std::vector<std::size_t>> placed(((ny + bucket - 1) / bucket) * nbz);
+        Pcg32 rng(seed);
+        constexpr double relax = 0.9;
+        double scale = 1.0;
+        while (!pending.empty())
+        {
+            for (std::size_t k = pending.size(); k > 1; --k)
+            {
+                std::swap(pending[k - 1], pending[rng.bounded(static_cast<std::uint32_t>(k))]);
+            }
+            std::vector<std::size_t> left;
+            for (const auto i : pending)
+            {
+                for (std::int64_t f = 0; f < frames; ++f)
+                {
+                    banned[static_cast<std::size_t>(f)] =
+                        filled[static_cast<std::size_t>(f)] >= capacity[static_cast<std::size_t>(f)];
+                }
+                const auto y = ys[i] - y0;
+                const auto z = zs[i] - z0;
+                const auto reach = static_cast<std::int64_t>(std::ceil(scale * spacing[i]));
+                const auto by0 = static_cast<std::size_t>(std::max<std::int64_t>(y - reach, 0)) / bucket;
+                const auto by1 = static_cast<std::size_t>(
+                    std::min<std::int64_t>(y + reach, static_cast<std::int64_t>(ny) - 1)) / bucket;
+                const auto bz0 = static_cast<std::size_t>(std::max<std::int64_t>(z - reach, 0)) / bucket;
+                const auto bz1 = static_cast<std::size_t>(
+                    std::min<std::int64_t>(z + reach, static_cast<std::int64_t>(nz) - 1)) / bucket;
+                for (auto by = by0; by <= by1; ++by)
+                {
+                    for (auto bz = bz0; bz <= bz1; ++bz)
+                    {
+                        for (const auto j : placed[by * nbz + bz])
+                        {
+                            const auto dy = static_cast<double>(ys[j] - ys[i]);
+                            const auto dz = static_cast<double>(zs[j] - zs[i]);
+                            const double distance = scale * 0.5 * (spacing[i] + spacing[j]);
+                            const double r2 = (dy * dy + dz * dz) / (distance * distance);
+                            if (r2 >= 1.0)
+                            {
+                                continue;
+                            }
+                            const auto g = frame[j];
+                            const double half = scale * temporal_width * std::sqrt(1.0 - r2);
+                            const auto lo = std::max<std::int64_t>(
+                                static_cast<std::int64_t>(std::ceil(g - half)), 0);
+                            const auto hi = std::min<std::int64_t>(
+                                static_cast<std::int64_t>(std::floor(g + half)), frames - 1);
+                            for (auto f = lo; f <= hi; ++f)
+                            {
+                                banned[static_cast<std::size_t>(f)] = 1;
+                            }
+                            banned[static_cast<std::size_t>(g)] = 1;
+                        }
+                    }
+                }
+                free.clear();
+                for (std::int32_t f = 0; f < frames; ++f)
+                {
+                    if (!banned[static_cast<std::size_t>(f)])
+                    {
+                        free.push_back(f);
+                    }
+                }
+                if (free.empty())
+                {
+                    left.push_back(i);
+                    continue;
+                }
+                const auto chosen = free[rng.bounded(static_cast<std::uint32_t>(free.size()))];
+                frame[i] = chosen;
+                ++filled[static_cast<std::size_t>(chosen)];
+                placed[static_cast<std::size_t>(ys[i] - y0) / bucket * nbz +
+                    static_cast<std::size_t>(zs[i] - z0) / bucket]
+                    .push_back(i);
+            }
+            pending = std::move(left);
+            // Below a tenth of a view the ellipse excludes nothing but the
+            // view itself, so the last pass fills the frames by capacity alone.
+            scale = scale * relax < 0.1 ? 0.0 : scale * relax;
+        }
+        return frame;
+    }
+
 } // namespace
 
 void pypulseqpp_bind_sampling(py::module_& module)
@@ -424,4 +607,44 @@ void pypulseqpp_bind_sampling(py::module_& module)
         py::arg("max_attempts") = 30,
         py::arg("tolerance") = 0.1,
         py::arg("crop_corner") = true);
+
+    module.def(
+        "complementary_frames",
+        [](const std::vector<std::int64_t>& ys,
+           const std::vector<std::int64_t>& zs,
+           const std::vector<std::int64_t>& capacity,
+           double temporal_width,
+           std::uint64_t seed)
+        {
+            if (ys.size() != zs.size() || ys.empty() || capacity.empty())
+            {
+                throw std::invalid_argument("ys and zs must be equal, non-empty lists");
+            }
+            std::int64_t total = 0;
+            for (const auto c : capacity)
+            {
+                total += c;
+            }
+            if (total < static_cast<std::int64_t>(ys.size()))
+            {
+                throw std::invalid_argument("the frame capacities hold fewer views than given");
+            }
+            if (!std::isfinite(temporal_width) || temporal_width < 0.0)
+            {
+                throw std::invalid_argument("temporal_width must be finite and non-negative");
+            }
+            std::vector<std::int32_t> frames;
+            {
+                py::gil_scoped_release release;
+                frames = complementary_frames(ys, zs, capacity, temporal_width, seed);
+            }
+            py::array_t<std::int32_t> result(static_cast<py::ssize_t>(frames.size()));
+            std::copy(frames.begin(), frames.end(), result.mutable_data());
+            return result;
+        },
+        py::arg("ys"),
+        py::arg("zs"),
+        py::arg("capacity"),
+        py::arg("temporal_width"),
+        py::arg("seed"));
 }

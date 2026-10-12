@@ -301,6 +301,7 @@ _SAMPLING = {
     ),
     "_ordering": (
         "make_centric_order",
+        "make_complementary_order",
         "make_linear_order",
         "make_radial_adaptive_order",
         "make_radial_order",

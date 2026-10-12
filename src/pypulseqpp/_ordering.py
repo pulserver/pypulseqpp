@@ -10,13 +10,15 @@ References
 ----------
 Linear, radial and adaptive radial echo-train reordering follow schemes A-C of
 Buonincontri et al., ISMRM abstract 566-05-007, Fig. 2. Shuffled echo trains
-follow Tamir et al., Magn Reson Med 2017;77:180-195.
+follow Tamir et al., Magn Reson Med 2017;77:180-195. Complementary echo
+assignment follows Levine et al., Magn Reson Med 2017;77:1774-1785.
 """
 
 from __future__ import annotations
 
 __all__ = [
     "make_centric_order",
+    "make_complementary_order",
     "make_linear_order",
     "make_radial_adaptive_order",
     "make_radial_order",
@@ -724,3 +726,121 @@ def make_shuffling_order(
         train = base_order[s * train_length : (s + 1) * train_length]
         shots.append(rng.permutation(train).tolist())
     return _finish_trains(shots, train_length, pad)
+
+
+def make_complementary_order(
+    coords,
+    train_length: int,
+    *,
+    seed: int = 0,
+    temporal_width: float | None = None,
+    pad: bool = False,
+) -> list[list[int | None]]:
+    """Echo-train ordering of Cartesian views with complementary Poisson-disc echoes.
+
+    Each echo index is a frame of a time-resolved reconstruction. Every view is
+    assigned to one echo so that each echo's views form a variable-density
+    Poisson-disc pattern of their own, and echoes within ``temporal_width`` of
+    each other complement one another: no two views closer than one echo's
+    local spacing share an echo or neighbouring echoes. This is the
+    complementary Poisson-disc split of Levine et al. [1]_ applied to a
+    fixed support: the union of the echoes is ``coords``, so the
+    static sampling is unchanged, and the aliasing of each echo and of a
+    temporal subspace is pushed away from the point-spread function's main
+    lobe, where random echo positions (:func:`make_shuffling_order`) leave it.
+
+    Every echo holds ``ceil(N / train_length)`` views, one per shot, except
+    that the last echoes hold one fewer when ``N`` is not a multiple of
+    ``train_length``. Within each echo, views are dealt to shots in raster
+    order (``kz``, then ``ky``), so a shot spans a band of k-space.
+
+    Parameters
+    ----------
+    coords : array_like
+        Centred integer coordinates of the selected views: an ``(N, 2)`` array
+        of ``(ky, kz)`` or an ``(N,)`` array of ``ky``. Encoded view indices
+        ``(y, z)`` on an ``(n_y, n_z)`` grid convert as
+        ``views - (n_y // 2, n_z // 2)``. Views must not repeat.
+    train_length : int
+        Echo-train length, at least 1: the number of frames.
+    seed : int, default=0
+        Seed of the random draw. Equal seeds give equal orders.
+    temporal_width : float or None, default=None
+        Half-width, in echoes, of the exclusion between neighbouring echoes.
+        ``0`` makes every echo a Poisson-disc pattern on its own with no
+        coupling between echoes. ``None`` is ``train_length / 8``.
+    pad : bool, default=False
+        Pad every train to ``train_length`` with ``None``, so that the
+        position in a train is the echo index. With ``False`` the ``None``
+        entries are removed.
+
+    Returns
+    -------
+    trains : list of list of int
+        ``trains[s][e]`` is the row index into ``coords`` of the view acquired
+        at echo ``e`` of shot ``s``; every row appears exactly once. With
+        ``pad=True``, ``None`` marks an echo that acquires no view. Empty
+        ``coords`` give ``[]``.
+
+    Raises
+    ------
+    TypeError
+        If ``coords`` is a boolean mask or not numeric.
+    ValueError
+        If ``coords`` is not integral, repeats a view or has the wrong shape,
+        ``train_length`` is not a positive integer, or ``temporal_width`` is
+        negative.
+
+    See Also
+    --------
+    make_shuffling_order : random echo positions within raster-contiguous
+        trains.
+    make_cartesian_plane_sampling : the Poisson-disc support itself
+        (``sampling='poisson'``).
+
+    References
+    ----------
+    .. [1] Levine E, Daniel B, Vasanawala S, Hargreaves B, Saranathan M. 3D
+       Cartesian MRI with compressed sensing and variable view sharing using
+       complementary Poisson-disc sampling. *Magnetic Resonance in Medicine*.
+       2017;77(5):1774-1785. https://doi.org/10.1002/mrm.26254
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pypulseqpp as pp
+    >>> mask = pp.make_poisson_disc_mask((32, 32), 4.0, calib=(8, 8), seed=0)
+    >>> views = np.argwhere(mask) - (16, 16)
+    >>> trains = pp.make_complementary_order(views, 8, seed=0, pad=True)
+    >>> len(trains) == -(-len(views) // 8), {len(train) for train in trains}
+    (True, {8})
+    >>> sorted(i for train in trains for i in train if i is not None) == list(range(len(views)))
+    True
+    """
+    train_length = _checked_train(train_length)
+    pts = _centred(coords)
+    n = len(pts)
+    if n == 0:
+        return []
+    grid = np.rint(pts)
+    if not np.array_equal(grid, pts):
+        raise ValueError("coords must be integer view offsets")
+    width = train_length / 8 if temporal_width is None else float(temporal_width)
+    if not np.isfinite(width) or width < 0:
+        raise ValueError(f"temporal_width must be non-negative, got {temporal_width!r}")
+    from pypulseqpp._ext import sampling
+
+    n_shots = -(-n // train_length)
+    capacity = [n_shots] * train_length
+    for echo in range(train_length * n_shots - n):
+        capacity[train_length - 1 - echo] -= 1
+    ky, kz = grid.astype(np.int64).T
+    frames = np.asarray(
+        sampling.complementary_frames(ky.tolist(), kz.tolist(), capacity, width, seed)
+    )
+    trains: list[list[int | None]] = [[None] * train_length for _ in range(n_shots)]
+    raster = np.lexsort((ky, kz))
+    for echo in range(train_length):
+        for shot, index in enumerate(raster[frames[raster] == echo]):
+            trains[shot][echo] = int(index)
+    return _finish_trains(trains, train_length, pad)

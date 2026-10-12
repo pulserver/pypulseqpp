@@ -58,6 +58,7 @@ example by the Poisson-disc support of
 | {obj}`~pypulseqpp.make_radial_order` | Centred coordinates, train length | Indices as `[shot][echo]` | One angular wedge per shot, centre-out within it. |
 | {obj}`~pypulseqpp.make_radial_adaptive_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Distance bands folded about `center_echo`. |
 | {obj}`~pypulseqpp.make_shuffling_order` | Centred coordinates, train length, seed | Indices as `[shot][echo]` | Random echo positions within raster-contiguous trains (T2 Shuffling). |
+| {obj}`~pypulseqpp.make_complementary_order` | Centred integer coordinates, train length, seed | Indices as `[shot][echo]` | Echo positions forming a complementary Poisson-disc pattern per echo (Levine et al.). |
 
 ## EPI shot offsets
 
