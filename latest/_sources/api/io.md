@@ -30,3 +30,17 @@ columns are in the file's units.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.io.SequenceLibraries` | — | Block table; RF, gradient, ADC, shape and extension tables; `layout` | A sequence's libraries without decoding its blocks. |
 | {obj}`~pypulseqpp.io.Shape` | Sample count, stored values | `Shape`; `decompressed` returns the samples | One row of the shape library. |
+
+## Diffusion tables
+
+A diffusion table gives one b-value and one direction per volume. A sequence
+reads the table from its file and records where the file is, not the table, so
+that a reader of the sequence, such as a reconstruction proxy, reads the same
+table from the same file. Directions are along the sequence's gradient
+channels, which turn with the prescription.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.io.read_diffusion_table` | Path; `b_value` and `directions` for a block direction table | b-values (s/mm²) and unit directions, one per volume | Read an `x y z b` table, an FSL pair or a block direction table. |
+| {obj}`~pypulseqpp.io.set_diffusion_table` | `Sequence`, then as `read_diffusion_table` | The table | Read a table and record its path and arguments in `[DEFINITIONS]`. |
+| {obj}`~pypulseqpp.io.get_diffusion_table` | `Sequence` | The table, or `None` | Read the table a sequence's definitions name. |

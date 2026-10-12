@@ -442,11 +442,20 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp.io</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Reading a Pulseq file into a sequence that carries its system, writing one out, and its tables."""</span>
+<span></span><span class="sd">"""Reading a Pulseq file into a sequence that carries its system, writing one out, its tables, and diffusion tables."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SequenceLibraries"</span><span class="p">,</span> <span class="s2">"Shape"</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">,</span> <span class="s2">"read_chain"</span><span class="p">,</span> <span class="s2">"write"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"SequenceLibraries"</span><span class="p">,</span>
+    <span class="s2">"Shape"</span><span class="p">,</span>
+    <span class="s2">"get_diffusion_table"</span><span class="p">,</span>
+    <span class="s2">"read"</span><span class="p">,</span>
+    <span class="s2">"read_chain"</span><span class="p">,</span>
+    <span class="s2">"read_diffusion_table"</span><span class="p">,</span>
+    <span class="s2">"set_diffusion_table"</span><span class="p">,</span>
+    <span class="s2">"write"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pathlib</span>
@@ -455,6 +464,11 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span> <span class="k">as</span> <span class="n">_safety</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp._diffusion</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_diffusion_table</span><span class="p">,</span>
+    <span class="n">read_diffusion_table</span><span class="p">,</span>
+    <span class="n">set_diffusion_table</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp._libraries</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceLibraries</span><span class="p">,</span> <span class="n">Shape</span>
 
 <span class="c1">#: Definitions a file may state its design limits in, and the ``Opts``</span>

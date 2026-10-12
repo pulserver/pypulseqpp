@@ -76,6 +76,9 @@ from.
    write
    SequenceLibraries
    Shape
+   read_diffusion_table
+   set_diffusion_table
+   get_diffusion_table
 
 .. currentmodule:: pypulseqpp.sequences
 

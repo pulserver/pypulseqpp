@@ -466,7 +466,9 @@
 <span class="sd">    A pair of identical diffusion lobes surrounds one refocusing pulse. The</span>
 <span class="sd">    pair is designed on one axis at ``b_value``; scale it for lower b-values</span>
 <span class="sd">    (:meth:`scale_for`) and rotate it per direction. The closing spoiler is</span>
-<span class="sd">    separate from the pair.</span>
+<span class="sd">    separate from the pair. The lobes turn with the prescription, so a</span>
+<span class="sd">    direction is in its logical frame, as</span>
+<span class="sd">    :func:`~pypulseqpp.io.read_diffusion_table` returns it.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
