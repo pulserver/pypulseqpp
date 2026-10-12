@@ -1,4 +1,4 @@
-# Pulseq file internals
+# Pulseq file format internals
 
 What a `.seq` file holds, how pypulseqpp stores, deduplicates and writes it,
 and how event times are quantized. The concepts are in
@@ -240,7 +240,7 @@ unit.
 `[SIGNATURE]` closes the file with an MD5 digest of everything above it, so a
 reader can establish that the file is the one that was written.
 
-## Information outside the format
+## Out-of-format information
 
 The format states the playout order and nothing above it. Nothing in the file
 identifies which run of blocks is a repetition, which events belong to one

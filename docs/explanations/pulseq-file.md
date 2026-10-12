@@ -1,4 +1,4 @@
-# The Pulseq file
+# Pulseq file format
 
 ```{admonition} TL;DR
 :class: tldr
@@ -15,7 +15,7 @@ that the file you write is the one MATLAB Pulseq would write, and a file you
 read is the one you can analyse. Every event time also has to fall on a raster
 the scanner can address, which the timing check verifies.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -120,7 +120,7 @@ the scanner can address, which the timing check verifies.
 
 :::
 
-## What PyPulseq and MATLAB Pulseq do
+## Division of responsibility
 
 - **MATLAB Pulseq defines the format.** `pypulseq-matlab-like`, a transcription
   of it, is the authority for the file; the written bytes are held to it, with
@@ -130,7 +130,7 @@ the scanner can address, which the timing check verifies.
 - **Neither records repetitions, shots or limits beyond the rasters.** The file
   is a playout order and nothing above it.
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/block_table_and_libraries.png
 The block table of a written eight-line gradient-echo file, the libraries its
@@ -139,7 +139,7 @@ library holds one row per distinct event, however many blocks play it, so the
 tables below the block table are far shorter than it is.
 ```
 
-### Blocks, not loops
+### Block timing
 
 Two rules fix the timing: the events of a block start together, each after its
 own delay, and blocks follow one another with no gap. A block lasts at least as
@@ -148,7 +148,7 @@ echo time or a repetition time is written. Amplitudes are in Hz and Hz/m, so
 the file does not depend on the nucleus; `gamma` of {class}`~pypulseqpp.Opts`
 enters only where a physical amplitude is needed.
 
-### Structure derived, not stored
+### Derived structure
 
 A phase encode changes an instance and not its definition, so the lines of a
 Cartesian scan are one repetition. That is what {meth}`~pypulseqpp.Sequence.repetition`
@@ -157,7 +157,7 @@ split lets one interleaf serve every shot of a radial or spiral scan: the shape
 library stays the size of one repetition, and an analysis of played gradients
 applies each block's rotation first.
 
-### Times on a grid
+### Raster timing
 
 Every time is a multiple of one of four rasters: RF, gradient, ADC and block
 duration. The ADC window has to end on the gradient raster and its dwell on the
@@ -168,7 +168,7 @@ The rules, formats and formulas are in
 {doc}`../developer-guide/internals/pulseq-file`; the stored layout of the
 libraries in the C++ core is in {doc}`cpp-core`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/01-course/01_first_gradient_echo`: the first sequence, written and read back.
 - {doc}`../generated/gallery/01-course/02_echo_and_repetition_time`: echo and repetition times as block durations.

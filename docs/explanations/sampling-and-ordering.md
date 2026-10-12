@@ -14,7 +14,7 @@ needs is a function of the package, called once before the loop, and the loop
 reads its result. The shipped sequences are written that way, as in
 {doc}`lesson 5 of the Course <../generated/gallery/01-course/05_radial_sampling>`.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -70,7 +70,7 @@ reads its result. The shipped sequences are written that way, as in
 
 :::
 
-## What the sequence function does
+## Division of responsibility
 
 - **Turns the arrays into a sequence.** It scales each phase-encoding gradient
   from a view, rotates a readout by an angle, offsets the RF and ADC phase by a
@@ -80,7 +80,7 @@ reads its result. The shipped sequences are written that way, as in
 - **Chooses what is played first.** Calibration views, prescans and the origin
   of each EPI shot are the loop's decisions.
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/sampling_support_order_and_angles.png
 A Poisson-disc support with its calibration block, each view coloured by the
@@ -89,7 +89,7 @@ echo at which the adaptive radial order plays it with the centre at echo 4 of
 acquisition order.
 ```
 
-### Support and order are separate
+### Support and ordering
 
 The support is the set of views acquired; the order is the repetition, shot and
 echo at which each is played. Poisson-disc sampling changes the first and
@@ -104,7 +104,7 @@ asymmetric support the centroid of the views is not the centre, and an ordering
 that used it would play the wrong view at the target echo. You pass views as
 offsets from the centre.
 
-### Golden angles
+### Golden-angle increments
 
 A fixed increment of $\pi/\phi$ keeps any window of consecutive spokes close to
 uniformly spread, so a retrospective choice of window still covers the circle.
@@ -112,7 +112,7 @@ Tiny golden angles shrink the increment to $\pi/(\phi + N - 1)$ for index
 $N$, which reduces the angular step between consecutive spokes.
 RAGA draws the angles from a finite equidistant set, so they repeat exactly.
 
-### Spoiling and cycling
+### RF spoiling and phase cycling
 
 Quadratic RF spoiling steps the phase by an increment that itself grows by
 117 degrees per repetition, and the schedule applies to the excitation and the
@@ -121,7 +121,7 @@ ADC alike. A phase cycle such as $(0, \pi)$ alternates for balanced SSFP.
 The definitions, frames and index conventions are in
 {doc}`../developer-guide/internals/sampling-and-ordering`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/01-course/05_radial_sampling`: golden-angle spokes in a radial gradient echo.
 - {doc}`../generated/gallery/01-course/03_spoiling`: RF spoiling and the spoiler gradients.

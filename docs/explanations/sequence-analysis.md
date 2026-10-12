@@ -14,7 +14,7 @@ is, how much RF it carries. These are computed from the sequence you built, as
 in lessons 2 and 5 of the {doc}`Course <../examples/course>`, and they follow
 the rotations and the prescription the sequence holds.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -112,7 +112,7 @@ the rotations and the prescription the sequence holds.
 
 :::
 
-## What Pulserver does
+## Division of responsibility
 
 - **Segments the repetition into its intermediate representation.** It reads
   {meth}`~pypulseqpp.Sequence.repetition` and requires it to start at block 1.
@@ -122,7 +122,7 @@ the rotations and the prescription the sequence holds.
 - **Fills the readout table.** It reads
   {meth}`~pypulseqpp.Sequence.adc_echoes` for each readout's start and path.
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/kspace_reset_and_unbroken.png
 Two spin-echo shots with an unbalanced readout. The unbroken gradient integral
@@ -131,7 +131,7 @@ each excitation, is inverted by the refocusing pulse, and crosses zero in the
 middle of the readout, where the ADC samples (dots) are placed.
 ```
 
-### Two integrals of one gradient
+### Gradient integrals
 
 The unbroken integral is the reference of the RF and ADC shift phases: a
 translation moves a pulse or a readout by the area the gradients have swept
@@ -140,14 +140,14 @@ the position of the magnetisation in k-space, which an excitation resets and a
 refocusing pulse inverts. {class}`~pypulseqpp.TransformFOV` carries both
 across consecutive ranges as `swept_k` and `block_k_origin`.
 
-### Frames of a transform
+### Field-of-view transform frames
 
 A translation is in metres along the channel axes, or along the logical axes
 with `through_rotation`. A prescription rotation is composed after the
 rotation each block already holds. The phase of an RF shape is stored in
 cycles, ADC modulation and phase offsets in radians.
 
-### The repetition
+### Repetition detection
 
 A repetition is the shortest period of the block definitions from block 1
 that every later block repeats, so a phase-encode step or a spoke angle does
@@ -157,7 +157,7 @@ repetition, and a block played once makes the whole sequence one.
 The units, the search and the translation algorithm are in
 {doc}`../developer-guide/internals/sequence-analysis`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/01-course/02_echo_and_repetition_time`: the echo time measured from the k-space trajectory, and the repetition drawn.
 - {doc}`../generated/gallery/01-course/05_radial_sampling`: the trajectory of a radial acquisition.

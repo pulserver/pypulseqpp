@@ -1,4 +1,4 @@
-# The C++ core
+# C++ core
 
 ```{admonition} TL;DR
 :class: tldr
@@ -14,7 +14,7 @@ moves the storage and the heavy loops into a C++ core, so the script you wrote
 for PyPulseq runs unchanged. The mental model: Python hands events across once
 per block, and everything after that happens in compiled code.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -91,7 +91,7 @@ per block, and everything after that happens in compiled code.
 
 :::
 
-## What PyPulseq does
+## Division of responsibility
 
 - **Event design that is not reimplemented.** Upstream's own code answers where
   pypulseqpp has no replacement of its own; the interoperability wrapper
@@ -104,7 +104,7 @@ per block, and everything after that happens in compiled code.
 - **Shape codecs** (`compress_shape`, `decompress_shape`) are imported from
   `pypulseq`.
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/block_loop_time.png
 Time of a loop adding one trapezoid block per iteration, as the number of
@@ -112,7 +112,7 @@ blocks grows, in pypulseqpp and in PyPulseq when it is installed. Measured
 when the page is built; the absolute times depend on the machine.
 ```
 
-### One crossing per block
+### Block insertion
 
 `Sequence.add_block` converts the events once, registers them and appends the
 row to the block table in a single native call. The loop over blocks is yours;
@@ -120,7 +120,7 @@ every loop over the blocks of a finished sequence, such as timing, waveforms or
 checks, is native. Substantial native work releases the GIL, so other Python
 threads run meanwhile.
 
-### Snapshots and revisions
+### Snapshots and revision counting
 
 The block table is read back without copying: an array shares the table's
 buffer, and the core copies the buffer before a later write while an array is
@@ -128,7 +128,7 @@ out. The core also counts its edits. Derived analyses, such as the repetition,
 record the count they were computed at, so a cached result is checked by one
 comparison rather than by a per-block update.
 
-### Events across the boundary
+### Event interoperability
 
 A compiled event is not a PyPulseq namespace and fails PyPulseq's type checks
 and `deepcopy`. The wrapper converts arguments to namespaces and results back,
@@ -137,7 +137,7 @@ which is what lets the upstream namespace be used without forking it.
 The rules, and how insertion cost is measured, are in
 {doc}`../developer-guide/internals/cpp-core`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/01-course/01_first_gradient_echo`: a PyPulseq-style
   script on the compiled `Sequence`.

@@ -15,7 +15,7 @@ the event it returns against off-resonance or B1, and place it in a block, as
 in the excitation of the {doc}`Tour on slice selection
 <../generated/gallery/02-tours/02_slice_selective_excitation>`.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -92,7 +92,7 @@ in the excitation of the {doc}`Tour on slice selection
 
 :::
 
-## What PyPulseq does
+## Division of responsibility
 
 - **The basic factories, kept with their signatures.**
   {func}`~pypulseqpp.make_sinc_pulse`, {func}`~pypulseqpp.make_gauss_pulse`,
@@ -104,7 +104,7 @@ in the excitation of the {doc}`Tour on slice selection
 - **Its time-optimal solver is not used.** With `time_optimal=False`,
   `traj_to_grad` differentiates the path as upstream does.
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/designed_pulse_and_gradient.png
 A linear-phase and a minimum-phase SLR excitation of one time-bandwidth
@@ -113,7 +113,7 @@ off-resonance, and the gradient magnitude `traj_to_grad` assigns to a spiral
 against `max_grad`.
 ```
 
-### Designs end in a played event
+### Selection gradients and effective centre
 
 A designer returns an RF event, and with `return_gz` the selection gradient
 and its rephaser, on the system's rasters. The rephaser refocuses from the
@@ -121,14 +121,14 @@ effective centre the event records, which a minimum-phase pulse places at its
 end, so `center_pos` sets both the rephaser area and the instant an echo time
 is measured from.
 
-### A pTx pulse is one event
+### Dynamic pTx layout
 
 The channels of a dynamic pTx pulse lie one after another in a single RF
 event, so a file and an interpreter that know nothing of pTx still read one
 pulse of one channel's duration. The channel count is read back from the
 samples, not stored.
 
-### The path fixes the geometry, the solver the timing
+### Time-optimal gradient design
 
 A k-space path carries no timing. `traj_to_grad` resamples it and assigns the
 time at which each point is reached, so the vector gradient and slew
@@ -138,7 +138,7 @@ spiral ramps at the slew limit and then holds `max_grad`.
 The full rules, units and the pTx layout are in
 {doc}`../developer-guide/internals/rf-and-gradient-design`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/02-tours/02_slice_selective_excitation`: a
   designed slice profile against the simulated one.

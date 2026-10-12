@@ -196,7 +196,7 @@ local and 3.2 W/kg global (IEC 60601-2-33 normal mode, head). The report gives
 each window's blocks, duration, local SAR, VOP index, global SAR and body
 model. No regulatory averaging interval is applied.
 
-### Ratios against a reference
+### Reference-pulse ratios
 
 With `reference`, the reference is played under the same model, drive and
 default shim. With $\mathrm{SAR}^{\mathrm{ref}}_{G_b}$ its global SAR in body

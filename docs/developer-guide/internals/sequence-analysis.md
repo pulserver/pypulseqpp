@@ -145,7 +145,7 @@ range does not integrate the blocks before it.
 trajectories on the channel axes from `block_k_origin`, without updating it and
 without applying rotation extensions.
 
-## Figures
+## Plotting
 
 {func}`~pypulseqpp.plot.plot` needs the optional SeqEyes viewer
 (`pip install 'pypulseqpp[plot]'`) and is also `Sequence.plot`.

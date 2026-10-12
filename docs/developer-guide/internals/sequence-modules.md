@@ -58,7 +58,7 @@ meaning is published.
   module attribute warns, and the event stays reachable as `events.<name>`; the
   module's own attribute wins.
 
-### Reading a module
+### Module interface
 
 `blocks` returns a copy of the block tuples in play order, holding the
 original event objects. Mutating those objects changes the published
@@ -155,7 +155,7 @@ acquisition while each file keeps one period for
 {func}`~pypulseqpp.sequences.duration` is the sum of the durations of the
 sequences in the chain.
 
-### Checking a prescription
+### Prescription checks
 
 Calling a sequence function designs every block, and the number of blocks grows
 with the matrix. A prescription the design cannot meet, such as an echo time

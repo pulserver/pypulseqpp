@@ -15,7 +15,7 @@ file format: what they produce is an ordinary `.seq` file. Which views are
 acquired, and in what order, is the subject of
 {doc}`sampling-and-ordering`.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -113,7 +113,7 @@ acquired, and in what order, is the subject of
 
 :::
 
-## What Pulserver does
+## Division of responsibility
 
 - **Builds its protocol editor from the same record.** It calls
   {func}`~pypulseqpp.sequences.parameters` on the function and shows each
@@ -122,7 +122,7 @@ acquired, and in what order, is the subject of
   function is designed under the `Opts` the scanner sends; segmentation and
   execution are Pulserver's.
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/modules_in_one_train.png
 One inversion and the start of its radial train, built from lesson 9's
@@ -131,7 +131,7 @@ per spoke, the readout's blocks opening with the excitation; each module's RF
 is drawn to its own peak.
 ```
 
-### Timing through `center`
+### Module timing reference
 
 `center` is the module's timing reference in seconds from its start, usually
 an RF pulse centre or an echo. For an inversion module followed by an
@@ -146,7 +146,7 @@ $$
 so the timing composes through pulse centres and does not depend on where the
 blocks begin or end.
 
-### Templates and the loop
+### Event templates
 
 A published event is a template: the loop sets an RF phase offset or scales
 a phase-encode gradient on it, and adds the blocks. Blocks already added to a
@@ -154,7 +154,7 @@ sequence are not changed. A readout built with `te=None` takes its shortest
 realizable echo time, and the module reports the bandwidths and times it
 achieved after rounding them to the rasters.
 
-### One scan, several files
+### Sequence chains
 
 Each file of a chain keeps one period for
 {meth}`~pypulseqpp.Sequence.repetition` and the analyses built on it, while
@@ -164,7 +164,7 @@ Each file of a chain keeps one period for
 The rules, the naming of chain files and the parsing of the protocol are in
 {doc}`../developer-guide/internals/sequence-modules`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/01-course/08_sequence_functions`: the radial
   MPRAGE as a function, its protocol and its command line.

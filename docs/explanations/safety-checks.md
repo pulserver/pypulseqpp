@@ -14,7 +14,7 @@ find out before the scanner does by running {mod}`pypulseqpp.safety` on the
 sequence your function returns, with the scanner's limits and models, as in
 lesson 7 of the {doc}`Course <../examples/course>`.
 
-## What pypulseqpp does
+## Capabilities
 
 :::{container} capabilities
 
@@ -112,7 +112,7 @@ lesson 7 of the {doc}`Course <../examples/course>`.
 
 :::
 
-## What the scanner does
+## Division of responsibility
 
 - **Its own checks before the scan, and hardware monitoring during it.**
   Pulserver runs the checks on this page on every design, with the limits the
@@ -124,7 +124,7 @@ lesson 7 of the {doc}`Course <../examples/course>`.
 - **Resampling onto its own rasters.** pypulseqpp checks timing on the rasters
   the sequence declares ({doc}`pulseq-file`).
 
-## How it works
+## Method
 
 ```{figure} ../generated/figures/safety_checks_on_one_sequence.png
 Three checks on one echo-planar shot, each a played quantity against its
@@ -133,14 +133,14 @@ its threshold, and a 20 ms window's spectrum against a forbidden band placed
 on the train's fundamental.
 ```
 
-### Axis peaks and rotation
+### Per-axis limits and rotation
 
 `max_grad` and `max_slew` are per-axis limits. The axes peak at different
 times, so the vector peak is below the root-sum-square of the axis peaks; but
 a rotation keeps the vector and moves it between axes. A design with two axes
 at `max_grad` at once exceeds it at some oblique prescriptions.
 
-### Nerve response and spectra
+### Nerve response and gradient spectra
 
 A short ramp needs a larger slew rate to stimulate, $S(\tau) =
 S_{\mathrm{rh}}(1 + c/\tau)$, and the response depends on the slew history, so
@@ -148,7 +148,7 @@ the whole sequence is evaluated from rest. A readout train alternating at echo
 spacing $\Delta t$ concentrates its gradient spectrum at $1/(2\,\Delta t)$: for
 EPI, the echo spacing is what a forbidden band constrains.
 
-### SAR against a reference
+### Reference-pulse SAR ratios
 
 The drive per Hz of $B_1$ is a calibration you rarely have. A pulse the
 scanner knows, held at the global limit, fixes it: SAR as a ratio to that
@@ -157,7 +157,7 @@ pulse, played under the same VOPs, is independent of the calibration.
 The full rules, units and formulas are in
 {doc}`../developer-guide/internals/safety-checks`.
 
-## See it run
+## Examples
 
 - {doc}`../generated/gallery/01-course/07_hardware_and_safety_checks`: every
   check on the radial MPRAGE, with its PNS trace and gradient spectrum.
