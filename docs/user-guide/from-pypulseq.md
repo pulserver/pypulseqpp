@@ -12,7 +12,7 @@ The event factories (`make_sinc_pulse`, `make_trapezoid`, `make_adc`,
 `write`, `read`) keep PyPulseq's signatures and units. The API reference lists
 what is implemented.
 
-## The script as a sequence function
+## Sequence functions
 
 A sequence function is the script with the system and the parameters as
 arguments. The first parameter is `system`, the keyword parameters after it are

@@ -39,3 +39,32 @@ img.colab-badge {
     display: none;
   }
 }
+
+/* A text block is a spec to paste into an agent: its copy button is shown
+   without hovering, which a touch screen cannot do. */
+div.highlight-text .copybtn {
+  opacity: 1;
+}
+
+/* Body text is justified, on every page and in the gallery's text cells. */
+.bd-article p,
+.bd-article li {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* A capability's code and test, in a toggle under its statement. */
+.bd-article .capabilities details {
+  margin: -0.6em 0 0.6em;
+  font-size: 0.9em;
+  color: var(--pst-color-text-muted);
+}
+.bd-article .capabilities details p {
+  text-align: left;
+}
+.bd-article .capabilities summary {
+  cursor: pointer;
+}
+.bd-article .capabilities li > p {
+  text-align: left;
+}

@@ -261,10 +261,10 @@ either; it states the rules most often broken.
 | `docs/sequences.md` | Catalogue of the shipped sequences, grouped by family, with a reference page each | Which sequences exist, and what does one of them look like? |
 
 Do not transfer the prose style or level of exposition of one type into
-another. The gallery groups `01-pulseq-basics` to `07-custom-modules` are the
-Course, a sequential Pulseq course: each lesson has a concise introduction and
-explicit learning objectives, and may refer to the previous and next lesson.
-`08-tours` holds the Tours, which stand alone: each opens with its objective
+another. The gallery group `01-course` is the Course, a sequential Pulseq
+course from a 2D gradient echo to a radial MPRAGE built from sequence modules:
+each lesson has a concise introduction and explicit learning objectives, and
+may refer to the previous and next lesson. `02-tours` holds the Tours, which stand alone: each opens with its objective
 and the Course lessons it assumes, and has no previous/next links. The groups
 `10-gradient-echo` to `16-zte` are the sequence catalogue's executed pages,
 reference material rather than Course or Tours. The Course is the shortest
@@ -373,7 +373,9 @@ navigation tree.
   establish that a sequence is safe to run on a scanner or on a subject.
   Never write "safe", "validated", "compliant" or "approved" of a sequence
   that passed one. Preserve the existing disclaimers verbatim.
-- Write dry, declarative technical prose. Do not personify sequences,
+- Write dry, declarative technical prose; the README, the Course and the
+  Tours instead talk to the reader as "you", mental model first. Do not
+  personify sequences,
   parameters, constraints, waveforms or files, and do not use a figurative
   verb where the technical relationship can be stated directly. Headings name
   the concept.

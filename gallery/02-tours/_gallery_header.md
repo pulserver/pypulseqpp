@@ -1,0 +1,1 @@
+Standalone applications and specialised workflows that build on the Course: the FID and the spin echo, slice-selective excitation, echo planar, multi-echo and spiral readouts, and custom readout and excitation modules.

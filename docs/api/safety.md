@@ -3,7 +3,7 @@
 Checks of a complete sequence against the gradient hardware limits, the
 forbidden gradient bands of a gradient coil, a peripheral-nerve-stimulation
 model, a gradient coil's acoustic transfer function and a VOP SAR model. They are estimates, not a complete scanner or
-patient-safety assessment. {doc}`../explanations/constraint-checks` covers what each
+patient-safety assessment. {doc}`../explanations/safety-checks` covers what each
 one computes and the criterion it applies.
 
 ```{eval-rst}

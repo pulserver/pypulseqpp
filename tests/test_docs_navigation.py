@@ -62,7 +62,7 @@ def _gallery_directories(landing: str) -> set[str]:
 
 @pytest.mark.parametrize(
     ("heading", "pattern"),
-    [("Course", r"0[1-7]-"), ("Tours", r"08-")],
+    [("Course", r"01-"), ("Tours", r"02-")],
 )
 def test_the_examples_landing_tables_cover_the_course_and_the_tours(heading, pattern):
     expected = {name for name in _gallery_sections() if re.match(pattern, name)}
