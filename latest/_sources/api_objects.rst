@@ -226,6 +226,7 @@ from.
    make_radial_order
    make_radial_adaptive_order
    make_shuffling_order
+   make_complementary_order
    make_epi_shot_offsets
    calc_uniform_angles
    calc_golden_angles

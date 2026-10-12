@@ -57,7 +57,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in raster order, and the echo position of each view within its train is random, which determines when each view is acquired. Together, the variable-density support and the random echo positions give each echo time a subset of views spread over the sampled extent without a regular pattern, the sampling condition of echo-resolved subspace reconstruction [TAM17]_; no reconstruction is performed here.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering determines when each view is acquired: as in T2 Shuffling [TAM17]_, every echo time samples views over the whole sampled extent, and the echo of each view is drawn as a complementary Poisson-disc split of the support [LEV17]_, so the views of each echo are themselves a variable-density Poisson-disc pattern and neighbouring echoes do not repeat each other&#x27;s neighbourhoods. This is the sampling condition of echo-resolved subspace reconstruction [TAM17]_, with the aliasing of each echo kept away from the point-spread function&#x27;s main lobe; no reconstruction is performed here.">
 
 .. only:: html
 

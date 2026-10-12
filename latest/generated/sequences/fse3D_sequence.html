@@ -546,10 +546,12 @@
 <p>Only views inside the inscribed ky-kz ellipse are sampled. <code class="docutils literal notranslate"><span class="pre">radial</span></code> deals
 them by adaptive radial reordering (<code class="xref py py-func docutils literal notranslate"><span class="pre">deal_trains()</span></code>), so the centre of
 k-space is acquired at the TE echo; <code class="docutils literal notranslate"><span class="pre">shuffling</span></code> selects a
-variable-density Poisson-disc support and assigns it to random echo
-positions with <a class="reference internal" href="../pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_shuffling_order()</span></code></a> (T2 Shuffling,
-Tamir et al., Magn Reson Med 2017;77:180-195), for an echo-resolved
-reconstruction. Every acquisition carries its line and partition as <code class="docutils literal notranslate"><span class="pre">LIN</span></code>
+variable-density Poisson-disc support and assigns its views to echoes
+with <a class="reference internal" href="../pypulseqpp.make_complementary_order.html#pypulseqpp.make_complementary_order" title="pypulseqpp.make_complementary_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_complementary_order()</span></code></a>, so that each echo is a
+Poisson-disc pattern of its own and neighbouring echoes complement each
+other (T2 Shuffling, Tamir et al., Magn Reson Med 2017;77:180-195, with
+complementary Poisson-disc sampling, Levine et al., Magn Reson Med
+2017;77:1774-1785), for an echo-resolved reconstruction. Every acquisition carries its line and partition as <code class="docutils literal notranslate"><span class="pre">LIN</span></code>
 and <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, and, shuffled, its echo, the contrast an echo-resolved
 reconstruction resolves, as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>; calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>;
 under wave-CAIPI the calibration region is first acquired wave-free in
@@ -614,7 +616,7 @@ encode, acquired ahead of the rest when undersampled.</p></li>
 <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle rather than the rectangle.</p></li>
 <li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'}</em><em>, </em><em>default='radial'</em>) – <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: adaptive radial reordering of CAIPIRINHA lattice
 support. <code class="docutils literal notranslate"><span class="pre">'shuffling'</span></code>: variable-density Poisson-disc support
-in randomly shuffled echo order (T2 Shuffling).</p></li>
+with complementary Poisson-disc echoes (T2 Shuffling).</p></li>
 <li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or trains designed with blochsim,
 which the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra installs.</p></li>
 <li><p><strong>tr_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetition time (s) at the periphery of k-space. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
@@ -668,7 +670,7 @@ the shortest TR holds up to <code class="docutils literal notranslate"><span cla
 </div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Refocusing angles below 180 degrees add stimulated-echo pathways to the echo signal [HEN88]_, and variable refocusing angles modulate the T2-dependent signal evolution along the train [BUS08a]_. Radial view ordering maps this evolution onto the (k_y, k_z) plane and therefore determines the modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for T2- and proton-density-weighted structural imaging."><img alt="" src="../../_images/sphx_glr_fse3D_sequence_thumb.png" />
 <p><a class="reference internal" href="../gallery/13-fast-spin-echo/fse3D_sequence.html"><span class="doc">Conventional 3D fast spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">Conventional 3D fast spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in raster order, and the echo position of each view within its train is random, which determines when each view is acquired. Together, the variable-density support and the random echo positions give each echo time a subset of views spread over the sampled extent without a regular pattern, the sampling condition of echo-resolved subspace reconstruction [TAM17]_; no reconstruction is performed here."><img alt="" src="../../_images/sphx_glr_fse3D_shuffling_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering determines when each view is acquired: as in T2 Shuffling [TAM17]_, every echo time samples views over the whole sampled extent, and the echo of each view is drawn as a complementary Poisson-disc split of the support [LEV17]_, so the views of each echo are themselves a variable-density Poisson-disc pattern and neighbouring echoes do not repeat each other&#x27;s neighbourhoods. This is the sampling condition of echo-resolved subspace reconstruction [TAM17]_, with the aliasing of each echo kept away from the point-spread function&#x27;s main lobe; no reconstruction is performed here."><img alt="" src="../../_images/sphx_glr_fse3D_shuffling_thumb.png" />
 <p><a class="reference internal" href="../gallery/13-fast-spin-echo/fse3D_shuffling.html"><span class="doc">Shuffled echo-resolved 3D FSE</span></a></p>
   <div class="sphx-glr-thumbnail-title">Shuffled echo-resolved 3D FSE</div>
 </div></div></section>
