@@ -112,3 +112,25 @@ def test_a_shuffled_draw_covers_the_calibration_region_and_thins_the_rest():
 def test_an_out_of_range_argument_is_refused(kwargs, match):
     with pytest.raises(ValueError, match=match):
         pp.make_cartesian_axis_sampling(64, **kwargs)
+
+
+@pytest.mark.parametrize("sampling", ["lattice", "poisson"])
+def test_the_plane_count_is_the_number_of_views_the_plane_sampling_lists(sampling):
+    arguments = {
+        "shape": (48, 40),
+        "acceleration": (2, 2),
+        "n_acs": (12, 10),
+        "caipi_shift": 1 if sampling == "lattice" else 0,
+        "partial_fourier": (0.75, 1.0),
+        "elliptical": True,
+        "elliptical_acs": True,
+        "sampling": sampling,
+        "seed": 3,
+    }
+
+    calibration, imaging = pp.make_cartesian_plane_sampling(**arguments)
+
+    assert pp.count_cartesian_plane_sampling(**arguments) == (
+        len(calibration),
+        len(imaging),
+    )

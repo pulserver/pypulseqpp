@@ -282,7 +282,9 @@ def blochsim():
 
 
 @pytest.mark.parametrize("te", [None, 20e-3, 40e-3])
-def test_an_optimized_train_passes_the_prescribed_angle_at_te(blochsim, te):
+def test_an_optimized_train_peaks_at_the_prescribed_angle_and_passes_it_at_te(
+    blochsim, te
+):
     seq = built(te=te, flip_modulation="optimized", refocusing_angle_deg=120.0)
     lin, par, eco = places(seq)
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
@@ -290,7 +292,7 @@ def test_an_optimized_train_passes_the_prescribed_angle_at_te(blochsim, te):
 
     assert flips[eco[centre]] == pytest.approx(120.0)
     assert flips.min() >= min(fse3d.DESIGN_MIN_DEG, 60.0) - 1e-9
-    assert flips.max() <= 180.0 + 1e-9
+    assert flips.max() == pytest.approx(120.0)
     assert not np.allclose(flips, 120.0)
     assert seq.definitions["RefocusingFlipAngles"] == pytest.approx(flips)
 
@@ -303,6 +305,7 @@ def test_optimized_individual_trains_are_silent_past_their_length(blochsim):
 
     assert np.all(flips[~played] == 0.0)
     assert np.all(flips[played] > 0.0)
+    assert flips.max() <= 120.0 + 1e-9
     assert seq.check_timing()[0]
 
 
