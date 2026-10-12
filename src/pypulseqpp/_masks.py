@@ -26,6 +26,11 @@ import numpy as np
 
 #: The support schemes :func:`make_cartesian_plane_sampling` draws from.
 _PLANE_SCHEMES = ("lattice", "poisson")
+# Density of a Poisson-disc draw at its tightest spacing, and its density times
+# the area of its exclusion ellipse in views, fitted to make_poisson_disc_mask.
+_DENSITY_CAP = 0.74
+_DENSITY_SCALE = 0.8
+_BINS = 1024
 
 
 def make_cartesian_axis_sampling(
@@ -292,8 +297,13 @@ def _plane_masks(
     elliptical_acs: bool,
     sampling: str,
     seed: int,
+    expected: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists."""
+    """Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists.
+
+    With ``expected``, a Poisson-disc support is its expected density rather
+    than a draw, and the imaging mask is a probability.
+    """
     (n_y, n_z), (r_y, r_z) = shape, acceleration
     if r_y < 1 or r_z < 1:
         raise ValueError(
@@ -329,24 +339,28 @@ def _plane_masks(
         # added in full. The ellipse cut below is applied to the imaging views
         # of both schemes; ``crop_corner`` only makes the acceleration search
         # count the same region.
-        support = (
-            make_poisson_disc_mask(
+        calib = (0, 0) if elliptical_acs else (n_acs_y, n_acs_z)
+        if r_y * r_z == 1:
+            support = np.ones((n_y, n_z), dtype=bool)
+        elif expected:
+            support = _poisson_disc_density(
+                (n_y, n_z), float(r_y * r_z), calib, elliptical
+            )
+        else:
+            support = make_poisson_disc_mask(
                 (n_y, n_z),
                 float(r_y * r_z),
-                calib=(0, 0) if elliptical_acs else (n_acs_y, n_acs_z),
+                calib=calib,
                 seed=seed,
                 crop_corner=elliptical,
             )
-            if r_y * r_z > 1
-            else np.ones((n_y, n_z), dtype=bool)
-        )
     else:
         support = (y % r_y == 0) & ((z - caipi_shift * (y // r_y)) % r_z == 0)
-    imaging = support & ~calibrating
+    imaging = support * ~calibrating
     imaging[:first_y] = False
     imaging[:, :first_z] = False
     if elliptical:
-        imaging &= inside(n_y, n_z)
+        imaging = imaging * inside(n_y, n_z)
     return calibrating, imaging
 
 
@@ -391,6 +405,105 @@ def count_cartesian_plane_sampling(
         seed,
     )
     return int(np.count_nonzero(calibrating)), int(np.count_nonzero(imaging))
+
+
+def calc_cartesian_plane_sampling_probability(
+    shape: tuple[int, int],
+    acceleration: tuple[int, int] = (1, 1),
+    n_acs: tuple[int, int] = (0, 0),
+    *,
+    caipi_shift: int = 0,
+    partial_fourier: tuple[float, float] = (1.0, 1.0),
+    elliptical: bool = False,
+    elliptical_acs: bool = False,
+    sampling: str = "lattice",
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the probability that :func:`make_cartesian_plane_sampling` acquires each view.
+
+    The arguments are those of :func:`make_cartesian_plane_sampling`. A
+    lattice is deterministic, so its probabilities are 0 or 1. A Poisson-disc
+    draw is replaced by its expected density, at a fraction of the cost of a
+    draw: the density of views at minimum distances ``r_y`` and ``r_z``, in
+    views, is approximated as ``min(0.74, 0.8 / (r_y r_z))``, constants
+    fitted to draws of :func:`make_poisson_disc_mask`, with the slope of the
+    distances set by bisection so that the expected count reaches the
+    acceleration. The fullest partition of the density holds the lines of the
+    fullest partition of a mean over draws to within a few per cent; a single
+    draw departs from it by its own fluctuation.
+
+    Returns
+    -------
+    calibration : numpy.ndarray
+        Probability, 0 or 1, that each view ``(y, z)`` is a calibration view.
+    imaging : numpy.ndarray
+        Probability that each view is one of the other acquired views.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> calibration, imaging = pp.calc_cartesian_plane_sampling_probability(
+    ...     (4, 4), acceleration=(2, 2), n_acs=(2, 2)
+    ... )
+    >>> int(calibration.sum()), int(imaging.sum())
+    (4, 3)
+    """
+    calibrating, imaging = _plane_masks(
+        shape,
+        acceleration,
+        n_acs,
+        caipi_shift,
+        partial_fourier,
+        elliptical,
+        elliptical_acs,
+        sampling,
+        0,
+        expected=True,
+    )
+    return calibrating.astype(float), imaging.astype(float)
+
+
+def _poisson_disc_density(
+    shape: tuple[int, int], accel: float, calib: tuple[int, int], crop_corner: bool
+) -> np.ndarray:
+    """Return the expected density of :func:`make_poisson_disc_mask` on the same arguments."""
+    (n_y, n_z), (c_y, c_z) = shape, calib
+
+    def distance(n: int, c: int) -> np.ndarray:
+        # Normalised distance outside the calibration block, as the draw takes it.
+        d = np.maximum(np.abs(np.arange(n) - n / 2) - c / 2, 0.0)
+        return d / d.max() if d.max() > 0 else d
+
+    radius = np.hypot(distance(n_y, c_y)[:, None], distance(n_z, c_z)[None, :])
+    block = np.zeros(shape, dtype=bool)
+    block[
+        n_y // 2 - c_y // 2 : n_y // 2 + (c_y + 1) // 2,
+        n_z // 2 - c_z // 2 : n_z // 2 + (c_z + 1) // 2,
+    ] = True
+    counted = ~block & (radius < 1) if crop_corner else ~block
+    radius = radius[counted]
+    longest = max(n_y, n_z)
+    # The bisection sums over a histogram of the radii rather than every view.
+    bins = np.bincount(np.minimum(radius * _BINS, _BINS * 1.5).astype(int))
+    centres = (np.arange(bins.size) + 0.5) / _BINS
+
+    def density(slope: float, radius: np.ndarray) -> np.ndarray:
+        spacing = 1.0 + slope * radius
+        area = np.maximum(spacing * (n_y / longest), 1.0) * np.maximum(
+            spacing * (n_z / longest), 1.0
+        )
+        return np.minimum(_DENSITY_CAP, _DENSITY_SCALE / area)
+
+    target = n_y * n_z / accel - np.count_nonzero(block)
+    low, high = 0.0, float(longest)
+    for _ in range(40):
+        slope = (low + high) / 2
+        if bins @ density(slope, centres) > target:
+            low = slope
+        else:
+            high = slope
+    result = block.astype(float)
+    result[counted] = density(slope, radius)
+    return result
 
 
 def _views(mask: np.ndarray) -> list[tuple[int, int]]:

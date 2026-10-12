@@ -8,6 +8,7 @@ that estimates coil sensitivities needs it whatever the undersampling.
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import pypulseqpp as pp
@@ -134,3 +135,54 @@ def test_the_plane_count_is_the_number_of_views_the_plane_sampling_lists(samplin
         len(calibration),
         len(imaging),
     )
+
+
+def test_the_probability_of_a_lattice_view_is_whether_the_plane_sampling_lists_it():
+    arguments = {
+        "shape": (48, 40),
+        "acceleration": (2, 2),
+        "n_acs": (12, 10),
+        "caipi_shift": 1,
+        "partial_fourier": (0.75, 1.0),
+        "elliptical": True,
+        "elliptical_acs": True,
+    }
+
+    listed = pp.make_cartesian_plane_sampling(**arguments)
+    probabilities = pp.calc_cartesian_plane_sampling_probability(**arguments)
+
+    for views, probability in zip(listed, probabilities, strict=True):
+        mask = np.zeros(arguments["shape"])
+        mask[tuple(np.transpose(views))] = 1.0
+        assert np.array_equal(probability, mask)
+
+
+@pytest.mark.parametrize(
+    ("shape", "acceleration", "n_acs"),
+    [((128, 64), (2, 1), (24, 24)), ((96, 96), (2, 2), (0, 0))],
+)
+def test_the_poisson_disc_probability_counts_the_views_and_the_fullest_partition_of_a_mean_draw(
+    shape, acceleration, n_acs
+):
+    arguments = {
+        "acceleration": acceleration,
+        "n_acs": n_acs,
+        "elliptical": True,
+        "sampling": "poisson",
+    }
+    draws = []
+    for seed in range(8):
+        calibration, imaging = pp.make_cartesian_plane_sampling(
+            shape, **arguments, seed=seed
+        )
+        mask = np.zeros(shape)
+        mask[tuple(np.transpose(calibration + imaging))] = 1.0
+        draws.append(mask)
+    mean = np.mean(draws, axis=0)
+
+    expected = sum(pp.calc_cartesian_plane_sampling_probability(shape, **arguments))
+
+    assert expected.sum() == pytest.approx(mean.sum(), rel=0.03)
+    # Over five partitions, which averages a draw's fluctuation out.
+    smoothed = np.convolve(mean.sum(axis=0), np.ones(5) / 5, mode="same")
+    assert expected.sum(axis=0).max() == pytest.approx(smoothed.max(), rel=0.04)
