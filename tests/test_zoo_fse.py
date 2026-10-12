@@ -98,7 +98,9 @@ def refocusing_flips(seq):
     return 180.0 * np.reshape(played, (-1, ETL)) / full
 
 
-def sampling(ry=1, rz=1, n_acs_y=24, n_acs_z=16, ordering="radial", **_):
+def sampling(
+    ry=1, rz=1, n_acs_y=24, n_acs_z=16, ordering="radial", etl_periphery=None, **_
+):
     """The calibration and imaging views the prescription samples, from the helper the sequence calls."""
     return pp.make_cartesian_plane_sampling(
         (N_Y, N_Z),
@@ -107,6 +109,7 @@ def sampling(ry=1, rz=1, n_acs_y=24, n_acs_z=16, ordering="radial", **_):
         elliptical=True,
         sampling="poisson" if ordering == "shuffling" else "lattice",
         seed=fse3d.SHUFFLE_SEED,
+        train_length=ETL if etl_periphery is None else 1,
     )
 
 
@@ -206,6 +209,15 @@ def test_every_view_is_read_once_at_its_place_in_its_train(prescription):
         assert places == sorted(set(places))
 
 
+@pytest.mark.parametrize(
+    "prescription",
+    [{}, {"ordering": "shuffling", "ry": 2, "rz": 2, "n_acs_y": 4, "n_acs_z": 2}],
+    ids=["radial", "shuffling"],
+)
+def test_every_identical_train_acquires_one_view_per_echo(prescription):
+    assert {len(train) for train in trains(built(**prescription))} == {ETL}
+
+
 def test_a_radial_train_leaves_the_echo_counter_alone_as_one_image_fills_it():
     (eco,) = labels(built(), "ECO")
 
@@ -221,10 +233,13 @@ def test_a_shuffled_train_counts_its_echoes_as_the_contrasts_it_resolves():
     assert len(set(eco)) > 1
 
 
-def test_only_views_inside_the_inscribed_ellipse_are_read():
+def test_views_outside_the_inscribed_ellipse_only_fill_the_last_train():
     lin, par = labels(built(), "LIN", "PAR")
+    outside = radius(lin, par) > 0.5
+    inside = radius(*np.indices((N_Y, N_Z))) <= 0.5
 
-    assert np.all(radius(lin, par) <= 0.5)
+    assert np.count_nonzero(~outside) == np.count_nonzero(inside)
+    assert np.count_nonzero(outside) == -np.count_nonzero(inside) % ETL
     assert len(lin) < N_Y * N_Z
 
 

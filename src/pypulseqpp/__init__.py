@@ -292,6 +292,7 @@ _SAMPLING = {
     ),
     "_epi": ("make_epi_shot_offsets",),
     "_masks": (
+        "calc_cartesian_plane_sampling_probability",
         "count_cartesian_plane_sampling",
         "make_caipirinha_mask",
         "make_cartesian_axis_sampling",

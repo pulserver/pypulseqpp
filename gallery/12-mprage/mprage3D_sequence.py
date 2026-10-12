@@ -76,8 +76,8 @@ def order_figure(seq, n_y, n_z):
 #
 # Each cycle comprises inversion, crusher, inversion delay, spoiled
 # gradient-echo train and recovery interval. ``ti=None`` and ``tr=None`` take the
-# shortest inversion time and recovery supported by the modules. Four lines per
-# partition provide a compact timing diagram. Clinical matrices typically
+# shortest inversion time and recovery supported by the modules. Trains of four
+# views provide a compact timing diagram. Clinical matrices typically
 # require inversion times of several hundred milliseconds and much
 # longer readout trains.
 
@@ -97,20 +97,21 @@ compact.paper_plot()
 # Sampling order
 # --------------
 #
-# At a protocol matrix, each inversion cycle acquires the sampled lines of one
-# partition:
-# the inversion cycle is constant along each row of the map, and the index
-# within the train runs outward from the centre of the line axis. The centre of
-# k-space is therefore the first view in a train. ``TI`` is measured from the
-# inversion-pulse centre to that view's excitation-pulse centre; the central
-# ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
-# acquired later in the recovery.
+# At a protocol matrix, every inversion cycle acquires a train of
+# ``ceil(n_y / ry)`` views. The radial ordering deals the trains as angular
+# wedges of the ky-kz plane, each read centre-out: the index within the train
+# grows with the distance from the centre, and one train starts at the centre
+# of k-space. ``TI`` is measured from the inversion-pulse centre to that view's
+# excitation-pulse centre; the central ADC sample occurs one echo time later,
+# at ``TI + TE``. Peripheral views are acquired later in the recovery. The
+# sampled views are filled to a whole number of trains with the unsampled
+# views nearest the centre, so every train has the same length.
 
 protocol = mprage3D_sequence(n_x=192, n_y=128, n_z=24, ti=0.9, tr=2.3, n_dummy=0)
 print(
     f"{protocol.duration()[0]:.1f} s, "
     f"{int(_places(protocol, 'inversion').max()) + 1} "
-    "readouts in the longest train, "
+    "readouts per train, "
     f"central ADC at {(protocol.get_definition('TI')[0] + protocol.get_definition('TE')[0]) * 1e3:.1f} ms"
 )
 
@@ -124,10 +125,10 @@ order_figure(protocol, 128, 24)
 #
 # ``ry`` and ``rz`` subsample the line and partition axes. ``caipi_shift``
 # offsets the sampled partitions between adjacent lines to control the alias
-# distribution. Fewer lines per partition reduce both train duration and the
-# range of inversion-recovery weighting. Scan duration equals the number of
-# inversion cycles multiplied by TR; the fully sampled calibration region still
-# requires every partition.
+# distribution. ``ry`` shortens every train, which reduces both its duration and
+# the range of inversion-recovery weighting; ``rz`` reduces the number of
+# trains. Scan duration equals the number of inversion cycles multiplied by TR;
+# the fully sampled calibration region adds views at every undersampling.
 
 accelerated = mprage3D_sequence(
     n_x=192, n_y=128, n_z=24, ry=2, rz=2, caipi_shift=1, ti=0.9, tr=2.3, n_dummy=0

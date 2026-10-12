@@ -81,35 +81,35 @@
   "plane-(2, 2)-0-(0.75, 0.8)-False-lattice": "cbe3facfb2213b6d",
   "plane-(2, 2)-0-(0.75, 0.8)-False-poisson": "4b91f39e937ac97b",
   "plane-(2, 2)-0-(0.75, 0.8)-True-lattice": "2fd743cbf85997d6",
-  "plane-(2, 2)-0-(0.75, 0.8)-True-poisson": "fd381dcf806b0e58",
+  "plane-(2, 2)-0-(0.75, 0.8)-True-poisson": "658c7a04570cce35",
   "plane-(2, 2)-0-(1.0, 1.0)-False-lattice": "bb90337b4a11aa73",
-  "plane-(2, 2)-0-(1.0, 1.0)-False-poisson": "7c4dd5a3a9ea16ca",
+  "plane-(2, 2)-0-(1.0, 1.0)-False-poisson": "98de197c96fa67c8",
   "plane-(2, 2)-0-(1.0, 1.0)-True-lattice": "a55fc2d698d36ce2",
-  "plane-(2, 2)-0-(1.0, 1.0)-True-poisson": "cf5167b588064480",
+  "plane-(2, 2)-0-(1.0, 1.0)-True-poisson": "956d8120a3b78bd6",
   "plane-(2, 2)-1-(0.75, 0.8)-False-lattice": "31ebc449ca3e11a2",
   "plane-(2, 2)-1-(0.75, 0.8)-False-poisson": "4b91f39e937ac97b",
   "plane-(2, 2)-1-(0.75, 0.8)-True-lattice": "e4310d0d9e555bae",
-  "plane-(2, 2)-1-(0.75, 0.8)-True-poisson": "fd381dcf806b0e58",
+  "plane-(2, 2)-1-(0.75, 0.8)-True-poisson": "658c7a04570cce35",
   "plane-(2, 2)-1-(1.0, 1.0)-False-lattice": "a09039bd5a0939ac",
-  "plane-(2, 2)-1-(1.0, 1.0)-False-poisson": "7c4dd5a3a9ea16ca",
+  "plane-(2, 2)-1-(1.0, 1.0)-False-poisson": "98de197c96fa67c8",
   "plane-(2, 2)-1-(1.0, 1.0)-True-lattice": "a1f5c683c38f4e9f",
-  "plane-(2, 2)-1-(1.0, 1.0)-True-poisson": "cf5167b588064480",
+  "plane-(2, 2)-1-(1.0, 1.0)-True-poisson": "956d8120a3b78bd6",
   "plane-(3, 2)-0-(0.75, 0.8)-False-lattice": "fdca3f2b66865a84",
-  "plane-(3, 2)-0-(0.75, 0.8)-False-poisson": "e19c46101e7f2606",
+  "plane-(3, 2)-0-(0.75, 0.8)-False-poisson": "e4bc37946d14b78c",
   "plane-(3, 2)-0-(0.75, 0.8)-True-lattice": "875cdea2491bd548",
-  "plane-(3, 2)-0-(0.75, 0.8)-True-poisson": "318750e1fd854cb0",
+  "plane-(3, 2)-0-(0.75, 0.8)-True-poisson": "944e86c4e7d04e83",
   "plane-(3, 2)-0-(1.0, 1.0)-False-lattice": "c86be1a7c9850bc8",
-  "plane-(3, 2)-0-(1.0, 1.0)-False-poisson": "7299d18a47dfb4e0",
+  "plane-(3, 2)-0-(1.0, 1.0)-False-poisson": "61498379372d57a7",
   "plane-(3, 2)-0-(1.0, 1.0)-True-lattice": "c3794eec3b07e17b",
-  "plane-(3, 2)-0-(1.0, 1.0)-True-poisson": "b206ba761e7407d7",
+  "plane-(3, 2)-0-(1.0, 1.0)-True-poisson": "a1f53b8bc4871929",
   "plane-(3, 2)-1-(0.75, 0.8)-False-lattice": "104953a0135f4908",
-  "plane-(3, 2)-1-(0.75, 0.8)-False-poisson": "e19c46101e7f2606",
+  "plane-(3, 2)-1-(0.75, 0.8)-False-poisson": "e4bc37946d14b78c",
   "plane-(3, 2)-1-(0.75, 0.8)-True-lattice": "362fb2a9fa877a4d",
-  "plane-(3, 2)-1-(0.75, 0.8)-True-poisson": "318750e1fd854cb0",
+  "plane-(3, 2)-1-(0.75, 0.8)-True-poisson": "944e86c4e7d04e83",
   "plane-(3, 2)-1-(1.0, 1.0)-False-lattice": "c022bec99b4d9a27",
-  "plane-(3, 2)-1-(1.0, 1.0)-False-poisson": "7299d18a47dfb4e0",
+  "plane-(3, 2)-1-(1.0, 1.0)-False-poisson": "61498379372d57a7",
   "plane-(3, 2)-1-(1.0, 1.0)-True-lattice": "f74cc0afad59b811",
-  "plane-(3, 2)-1-(1.0, 1.0)-True-poisson": "b206ba761e7407d7",
+  "plane-(3, 2)-1-(1.0, 1.0)-True-poisson": "a1f53b8bc4871929",
   "traversal-center_out-0": "4f53cda18c2baa0c",
   "traversal-center_out-1": "d0bca111f8628137",
   "traversal-center_out-6": "7b8c53716404a1a9",
@@ -157,15 +157,15 @@
   "label:PAR": "040495fa9fcabb38"
  },
  "fse3D-radial": {
-  "label:IMA": "a1a791e577c156f8",
-  "label:LIN": "c9306b4d56e45b11",
-  "label:PAR": "c47c340c899228de"
+  "label:IMA": "63bd7f377d109994",
+  "label:LIN": "1324aaf1c0052717",
+  "label:PAR": "454202c8ad123f98"
  },
  "fse3D-shuffling": {
-  "label:ECO": "a8a6e25c8aabe90b",
-  "label:IMA": "cd399c2e1419f26f",
-  "label:LIN": "ba8be5eeea6ef5e3",
-  "label:PAR": "c9fbe18d59a666c5"
+  "label:ECO": "990d6fa9261195d5",
+  "label:IMA": "9fa3ee063229f5ab",
+  "label:LIN": "368434e21148ce16",
+  "label:PAR": "7065d18d3abd9785"
  },
  "gre2D": {
   "label:IMA": "90b44c0fdcab6576",
@@ -238,23 +238,23 @@
   "label:PAR": "26d85bce843e0ea6"
  },
  "mprage3D-caipi": {
-  "label:IMA": "7b4d6e605bb73e0a",
-  "label:LIN": "385d04b6efb678ee",
-  "label:ONCE": "75031b52cdaa5329",
-  "label:PAR": "941adc3df1850e62"
+  "label:IMA": "3f8515b4825de58c",
+  "label:LIN": "4b3eba6c185da5b0",
+  "label:ONCE": "3aee9865bc33686f",
+  "label:PAR": "3bc1b67affbbdbea"
  },
  "mprage3D-radial": {
-  "label:IMA": "9395f0c2d19beb20",
-  "label:LIN": "d78f7f10fd9de6b7",
-  "label:ONCE": "9395f0c2d19beb20",
-  "label:PAR": "eda5eff8962a50d4"
+  "label:IMA": "26b36a37f554a2a3",
+  "label:LIN": "e663c52eb40a52e2",
+  "label:ONCE": "26b36a37f554a2a3",
+  "label:PAR": "929b3315ea6736ce"
  },
  "mprage3D-shuffling": {
-  "label:ECO": "52ddd0db9d62e6e5",
-  "label:IMA": "b7c83705169e2ee8",
-  "label:LIN": "42223ce1c7f75784",
-  "label:ONCE": "0be4e3c1207c32c0",
-  "label:PAR": "3f6b2ae98ebdeb51"
+  "label:ECO": "990d6fa9261195d5",
+  "label:IMA": "e50825a4dcc396b2",
+  "label:LIN": "5ba14f2709e462cd",
+  "label:ONCE": "3aee9865bc33686f",
+  "label:PAR": "c8e5acbbfa04ced3"
  },
  "mprage_stack_of_spirals3D": {
   "label:IMA": "1e93268a1e1c81f3",
