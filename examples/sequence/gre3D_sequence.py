@@ -60,8 +60,8 @@ def gre3d(
     """RF-spoiled 3D Cartesian gradient echo.
 
     One line per repetition, phase-encoded along y and z over a CAIPIRINHA
-    lattice that always contains the centre of k-space, optionally cropped to an
-    ellipse. Under undersampling the fully sampled calibration region, a
+    lattice that always contains the centre of k-space, optionally cropped to
+    an ellipse. Under undersampling the fully sampled calibration region, a
     rectangle or an ellipse, leads, marked ``IMA``; under wave-CAIPI it is
     first acquired wave-free and marked ``REF``. Lines are played in order,
     each line's partitions one after another.
@@ -72,23 +72,18 @@ def gre3d(
         System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
         ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
     fov_x : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the readout (m).
     fov_y : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the phase encode (m).
     fov_z : float, default=0.128
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the partition encode (m). The slab excited is
+        ``fov_z`` thick.
     n_x : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the readout.
     n_y : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the phase encode.
     n_z : int, default=64
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the partition encode.
     flip_angle_deg : float, default=12.0
         Excitation flip angle (degrees).
     te : float | None, default=None
@@ -104,11 +99,12 @@ def gre3d(
         CAIPIRINHA shift: partitions by which the lattice is displaced per
         acquired line, in ``[0, rz)``.
     partial_fourier_x : float, default=1.0
-        Fraction of the echo acquired, in ``[0.75, 1]``.
+        Fraction of the echo acquired, in ``[0.75, 1]``. Truncates the samples
+        before the echo, which shortens the minimum TE.
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions before the first view.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
@@ -117,13 +113,11 @@ def gre3d(
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, acquired ahead of the rest when
-        undersampled.
+        Extent of the fully sampled calibration region along the phase encode,
+        acquired ahead of the rest when undersampled.
     n_acs_z : int, default=16
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, acquired ahead of the rest when
-        undersampled.
+        Extent of the fully sampled calibration region along the partition
+        encode, acquired ahead of the rest when undersampled.
     elliptical_sampling : bool, default=True
         Acquire only the views inside the ellipse inscribed in the
         ``n_y x n_z`` grid; off, the whole grid. The calibration region is

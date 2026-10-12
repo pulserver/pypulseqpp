@@ -76,7 +76,7 @@ def gre_radial2d(
     ry : int, default=1
         Angular undersampling: one spoke in every ``ry`` of the Nyquist set
         is played.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions, at the first spoke's angle, before each
         packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).

@@ -110,7 +110,7 @@ def gre2d(
     partial_fourier_y : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
         Truncates the lines before the centre.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions before the first line of each packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0

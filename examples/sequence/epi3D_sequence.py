@@ -55,11 +55,11 @@ def train_lines(
 ) -> tuple[int, int]:
     """Return the first line of shot 0 and the lines per shot.
 
-    Shot ``s`` reads lines ``start + (s + i * n_shots) * ry``. The lattice keeps
-    every line ``i`` with ``(i - n // 2) % ry == 0``, so the centre line is
-    always read. The shots end on the lattice's last line and cover the lines
-    from ``n - round(partial_fourier * n)`` up; when the shots cannot share
-    them evenly, the extra lines extend below that, or are dropped where
+    Shot ``s`` reads lines ``start + (s + i * n_shots) * ry``. The lattice
+    keeps every line ``i`` with ``(i - n // 2) % ry == 0``, so the centre line
+    is always read. The shots end on the lattice's last line and cover the
+    lines from ``n - round(partial_fourier * n)`` up; when the shots cannot
+    share them evenly, the extra lines extend below that, or are dropped where
     there is no room.
 
     Parameters
@@ -101,8 +101,8 @@ def train_lines(
 def shell_bases(n: int, rz: int, partial_fourier: float) -> list[int]:
     """Return the first partition of every shell, the centre one first.
 
-    Shells of ``rz`` partitions end on the last partition and cover those
-    from ``n - round(partial_fourier * n)`` up; a shell that would start below
+    Shells of ``rz`` partitions end on the last partition and cover those from
+    ``n - round(partial_fourier * n)`` up; a shell that would start below
     partition zero is dropped. They are played centre-out.
 
     Parameters
@@ -202,11 +202,10 @@ def epi3d(
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,
     ``SEG`` (the shot) and ``REP``.
 
-    Two prescans are linked ahead of the imaging: the
-    ``calibration``, when undersampled, a Cartesian gradient echo over the
-    central ``n_acs_y x n_acs_z`` rectangle (``REF``); and the ``reference``,
-    one volume with the phase encode reversed (``SET = 1``), for distortion
-    correction.
+    Two prescans are linked ahead of the imaging: the ``calibration``, when
+    undersampled, a Cartesian gradient echo over the central ``n_acs_y x
+    n_acs_z`` rectangle (``REF``); and the ``reference``, one volume with the
+    phase encode reversed (``SET = 1``), for distortion correction.
 
     Parameters
     ----------
@@ -214,23 +213,18 @@ def epi3d(
         System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
         ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
     fov_x : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the readout (m).
     fov_y : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the phase encode (m).
     fov_z : float, default=0.096
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the partition encode (m). The slab excited is
+        ``fov_z`` thick.
     n_x : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the readout.
     n_y : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the phase encode.
     n_z : int, default=32
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the partition encode.
     flip_angle_deg : float, default=20.0
         Excitation flip angle (degrees).
     te : float | None, default=None
@@ -251,7 +245,7 @@ def epi3d(
         ``[0.5, 1]``. Truncates the lines and the shells before the centre.
     n_shots : int, default=1
         Interleaved shots each shell's lines are split into.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
@@ -262,10 +256,10 @@ def epi3d(
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
         Extent of the gradient-echo calibration rectangle along the phase
-        and the partition encode.
+        encode.
     n_acs_z : int, default=16
-        Extent of the gradient-echo calibration rectangle along the phase
-        and the partition encode.
+        Extent of the gradient-echo calibration rectangle along the partition
+        encode.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
         excitation of every volume, dummy volumes included.

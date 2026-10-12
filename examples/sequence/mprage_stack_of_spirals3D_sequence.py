@@ -104,13 +104,12 @@ def mprage_stack_of_spirals3d(
     interleaf of one partition, and a recovery that makes every
     inversion-to-inversion interval the TR. Partitions are played in order.
     ``n_shots`` interleaves, spread evenly over a full turn, sample the centre
-    of each plane at Nyquist, and every ``ry``-th of them is played in a
-    golden order (:func:`golden_order`), so a train binned in time still
-    covers the full turn; one solved interleaf serves every repetition, turned
-    by a rotation extension. Acquisitions carry the interleaf as ``LIN`` and the
-    partition as ``PAR``; under
-    partition undersampling the central ``n_acs_z`` partitions are acquired
-    too, marked ``IMA``.
+    of each plane at Nyquist, and every ``ry``-th of them is played in a golden
+    order (:func:`golden_order`), so a train binned in time still covers the
+    full turn; one solved interleaf serves every repetition, turned by a
+    rotation extension. Acquisitions carry the interleaf as ``LIN`` and the
+    partition as ``PAR``; under partition undersampling the central ``n_acs_z``
+    partitions are acquired too, marked ``IMA``.
 
     Parameters
     ----------

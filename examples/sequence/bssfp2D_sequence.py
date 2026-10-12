@@ -65,15 +65,13 @@ def bssfp2d(
     ``retrospective`` gating each segment is cycled as many times as a full
     segment fits in a heartbeat, the same number for every segment, so each
     cycle samples every line; the interpreter's ECG log bins them into cardiac
-    phases. Under
-    ``prospective`` gating every heartbeat opens with a trigger event on
-    ``TRIGGER_CHANNEL``, then plays the segment once per cardiac phase;
-    the first heartbeat's trigger precedes the half flip, so the whole train
-    is timed from the R wave, and a slice held in one heartbeat is a triggered
-    single shot.
-    Acquisitions carry ``LIN``, ``SLC``, the segment as ``SEG`` and the cardiac
-    phase, or the cycle within the heartbeat, as ``PHS``; calibration lines
-    are marked ``IMA``.
+    phases. Under ``prospective`` gating every heartbeat opens with a trigger
+    event on ``TRIGGER_CHANNEL``, then plays the segment once per cardiac
+    phase; the first heartbeat's trigger precedes the half flip, so the whole
+    train is timed from the R wave, and a slice held in one heartbeat is a
+    triggered single shot. Acquisitions carry ``LIN``, ``SLC``, the segment as
+    ``SEG`` and the cardiac phase, or the cycle within the heartbeat, as
+    ``PHS``; calibration lines are marked ``IMA``.
 
     Parameters
     ----------

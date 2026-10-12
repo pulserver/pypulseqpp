@@ -99,10 +99,11 @@ def se2d(
         Phase-encode undersampling: one line in every ``ry`` is acquired,
         the centre line among them.
     partial_fourier_x : float, default=1.0
-        Fraction of the echo acquired, in ``[0.75, 1]``.
+        Fraction of the echo acquired, in ``[0.75, 1]``. Truncates the samples
+        before the echo.
     partial_fourier_y : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions before the first line of each packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0

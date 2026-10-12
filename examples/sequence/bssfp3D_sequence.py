@@ -53,13 +53,13 @@ def bssfp3d(
     ellipse are sampled, lines in order and each line's partitions back and
     forth. Phase cycle ``k`` of ``n_phase_cycles`` steps the RF and receiver
     phase by ``pi + 2 pi k / n_phase_cycles`` per repetition, which shifts the
-    off-resonance bands; two cycles is CISS. Each cycle is a file of its own,
-    a repeating unit from its first excitation, and a ``catalyst`` file ahead
-    of it plays the half flip half a repetition before that excitation, at the
-    phase the repetition before the first would have had. The files are
-    chained in that order, so the scanner plays them as one
-    table. Acquisitions carry their line, partition and cycle as ``LIN``,
-    ``PAR`` and ``SET``, and calibration views are marked ``IMA``.
+    off-resonance bands; two cycles is CISS. Each cycle is a file of its own, a
+    repeating unit from its first excitation, and a ``catalyst`` file ahead of
+    it plays the half flip half a repetition before that excitation, at the
+    phase the repetition before the first would have had. The files are chained
+    in that order, so the scanner plays them as one table. Acquisitions carry
+    their line, partition and cycle as ``LIN``, ``PAR`` and ``SET``, and
+    calibration views are marked ``IMA``.
 
     Parameters
     ----------
@@ -67,23 +67,18 @@ def bssfp3d(
         System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
         ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
     fov_x : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). A slab excited is ``fov_z`` thick.
+        Field of view along the readout (m).
     fov_y : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). A slab excited is ``fov_z`` thick.
+        Field of view along the phase encode (m).
     fov_z : float, default=0.128
-        Field of view along the readout, the phase encode and the
-        partition encode (m). A slab excited is ``fov_z`` thick.
+        Field of view along the partition encode (m). The slab excited is
+        ``fov_z`` thick.
     n_x : int, default=256
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the readout.
     n_y : int, default=256
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the phase encode.
     n_z : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the partition encode.
     flip_angle_deg : float, default=45.0
         Excitation flip angle (degrees).
     tr : float | None, default=None
@@ -106,11 +101,11 @@ def bssfp3d(
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, when undersampled.
+        Extent of the fully sampled calibration region along the phase encode,
+        acquired ahead of the rest when undersampled.
     n_acs_z : int, default=16
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, when undersampled.
+        Extent of the fully sampled calibration region along the partition
+        encode, acquired ahead of the rest when undersampled.
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
