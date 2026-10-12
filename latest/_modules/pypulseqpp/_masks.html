@@ -715,6 +715,35 @@
 <span class="sd">           [1, 1, 1, 0],</span>
 <span class="sd">           [0, 0, 0, 0]])</span>
 <span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="n">_views</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">_plane_masks</span><span class="p">(</span>
+            <span class="n">shape</span><span class="p">,</span>
+            <span class="n">acceleration</span><span class="p">,</span>
+            <span class="n">n_acs</span><span class="p">,</span>
+            <span class="n">caipi_shift</span><span class="p">,</span>
+            <span class="n">partial_fourier</span><span class="p">,</span>
+            <span class="n">elliptical</span><span class="p">,</span>
+            <span class="n">elliptical_acs</span><span class="p">,</span>
+            <span class="n">sampling</span><span class="p">,</span>
+            <span class="n">seed</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plane_masks</span><span class="p">(</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">acceleration</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">n_acs</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">caipi_shift</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">partial_fourier</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">elliptical</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">elliptical_acs</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">sampling</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists."""</span>
     <span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="p">(</span><span class="n">r_y</span><span class="p">,</span> <span class="n">r_z</span><span class="p">)</span> <span class="o">=</span> <span class="n">shape</span><span class="p">,</span> <span class="n">acceleration</span>
     <span class="k">if</span> <span class="n">r_y</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">r_z</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -768,7 +797,52 @@
     <span class="n">imaging</span><span class="p">[:,</span> <span class="p">:</span><span class="n">first_z</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="n">elliptical</span><span class="p">:</span>
         <span class="n">imaging</span> <span class="o">&amp;=</span> <span class="n">inside</span><span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">n_z</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_views</span><span class="p">(</span><span class="n">calibrating</span><span class="p">),</span> <span class="n">_views</span><span class="p">(</span><span class="n">imaging</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span>
+
+
+<div class="viewcode-block" id="count_cartesian_plane_sampling">
+<a class="viewcode-back" href="../../generated/pypulseqpp.count_cartesian_plane_sampling.html#pypulseqpp.count_cartesian_plane_sampling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">count_cartesian_plane_sampling</span><span class="p">(</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">acceleration</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">n_acs</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">caipi_shift</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">partial_fourier</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">elliptical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">elliptical_acs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">sampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"lattice"</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Count the views :func:`make_cartesian_plane_sampling` returns, without listing them.</span>
+
+<span class="sd">    The arguments are those of :func:`make_cartesian_plane_sampling`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    n_calibration : int</span>
+<span class="sd">        Number of calibration views.</span>
+<span class="sd">    n_imaging : int</span>
+<span class="sd">        Number of the other acquired views.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; pp.count_cartesian_plane_sampling((4, 4), acceleration=(2, 2), n_acs=(2, 2))</span>
+<span class="sd">    (4, 3)</span>
+<span class="sd">    """</span>
+    <span class="n">calibrating</span><span class="p">,</span> <span class="n">imaging</span> <span class="o">=</span> <span class="n">_plane_masks</span><span class="p">(</span>
+        <span class="n">shape</span><span class="p">,</span>
+        <span class="n">acceleration</span><span class="p">,</span>
+        <span class="n">n_acs</span><span class="p">,</span>
+        <span class="n">caipi_shift</span><span class="p">,</span>
+        <span class="n">partial_fourier</span><span class="p">,</span>
+        <span class="n">elliptical</span><span class="p">,</span>
+        <span class="n">elliptical_acs</span><span class="p">,</span>
+        <span class="n">sampling</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">calibrating</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">imaging</span><span class="p">))</span></div>
 
 
 

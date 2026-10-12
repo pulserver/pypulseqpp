@@ -532,8 +532,8 @@ to download the full example code.</p>
 </a>
 <p>Individually parameterized 3D FSE assigns different echo-train lengths and
 repetition times to the shots that acquire central and peripheral k-space
-<a class="reference internal" href="#buo25" id="id1"><span>[BUO25]</span></a>. From the central to the peripheral shots, TR and the minimum and
-maximum angles of the refocusing schedule <a class="reference internal" href="#bus08b" id="id2"><span>[BUS08b]</span></a> follow a cubic
+<a class="reference internal" href="#buo25" id="id1"><span>[BUO25]</span></a>. From the central to the peripheral shots, TR and the minimum
+angle of the refocusing schedule <a class="reference internal" href="#bus08b" id="id2"><span>[BUS08b]</span></a> follow a cubic
 smooth-step transition between their two limits; the echo-train length
 follows the same transition, rounded to integer values. The views are
 assigned by an adaptive radial order. Longer trains and a different TR at the
@@ -562,14 +562,20 @@ is set by the parameters of the central shots.</p>
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/fse3D_sequence.html#pypulseqpp.sequences.fse3D_sequence" title="pypulseqpp.sequences.fse3D_sequence"><span class="n">sequences</span><span class="o">.</span><span class="n">fse3D_sequence</span></a><span class="p">(</span><span class="o">*</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">P</span></a><span class="p">)</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">n_shots</span></a> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s2">&quot;</span><span class="s2">NumShots</span><span class="s2">&quot;</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:877: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  first = float(value.reshape(-1)[0])
+</pre></div>
+</div>
 <section id="train-parameters">
 <h2>Train parameters<a class="headerlink" href="#train-parameters" title="Link to this heading">#</a></h2>
-<p>TR and the schedule’s minimum and maximum angles follow a cubic smooth-step
+<p>TR and the schedule’s minimum angle follow a cubic smooth-step
 transition, <span class="math notranslate nohighlight">\(3u^2 - 2u^3\)</span> with <span class="math notranslate nohighlight">\(u\)</span> from 0 at the first (central)
 shot to 1 at the last (peripheral) shot <a class="reference internal" href="#buo25" id="id3"><span>[BUO25]</span></a>; the echo-train length
-follows the same transition rounded to integers. Every schedule passes
-through the prescribed 120 degrees at the effective-TE echo. The schedules
-of representative shots are plotted up to each shot’s own train length:
+follows the same transition rounded to integers. Every schedule peaks at
+the prescribed 120 degrees, which it reaches again at the effective-TE
+echo. The schedules of representative shots are plotted up to each shot’s
+own train length:
 the central shots reach lower minimum angles, and the peripheral shots have
 shallower minima and longer trains.</p>
 <p>The schedules are read from the pulses the sequence plays. The flip angle of
@@ -612,7 +618,7 @@ view ordering in 3D fast spin echo. <em>Magnetic Resonance in Medicine</em>.
 2008;60(3):640-649. <a class="reference external" href="https://doi.org/10.1002/mrm.21680">https://doi.org/10.1002/mrm.21680</a></p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 3.272 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 10.030 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-13-fast-spin-echo-fse3d-adaptive-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/50031c545fc46340717ee28e605854a8/fse3D_adaptive.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">fse3D_adaptive.ipynb</span></code></a></p>

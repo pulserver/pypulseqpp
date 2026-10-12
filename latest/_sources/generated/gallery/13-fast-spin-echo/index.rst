@@ -23,7 +23,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to the shots that acquire central and peripheral k-space [BUO25]_. From the central to the peripheral shots, TR and the minimum and maximum angles of the refocusing schedule [BUS08b]_ follow a cubic smooth-step transition between their two limits; the echo-train length follows the same transition, rounded to integer values. The views are assigned by an adaptive radial order. Longer trains and a different TR at the periphery can reduce scan time, while the contrast at the centre of k-space is set by the parameters of the central shots.">
+    <div class="sphx-glr-thumbcontainer" tooltip="Individually parameterized 3D FSE assigns different echo-train lengths and repetition times to the shots that acquire central and peripheral k-space [BUO25]_. From the central to the peripheral shots, TR and the minimum angle of the refocusing schedule [BUS08b]_ follow a cubic smooth-step transition between their two limits; the echo-train length follows the same transition, rounded to integer values. The views are assigned by an adaptive radial order. Longer trains and a different TR at the periphery can reduce scan time, while the contrast at the centre of k-space is set by the parameters of the central shots.">
 
 .. only:: html
 
