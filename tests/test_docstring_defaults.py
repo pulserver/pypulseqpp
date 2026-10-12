@@ -1,9 +1,11 @@
 """Consistency checks for defaults in NumPy-style callable docstrings."""
 
 import ast
+import importlib
 import re
 from pathlib import Path
 
+import numpy
 import pytest
 
 ROOT = Path(__file__).parents[1]
@@ -11,7 +13,9 @@ SOURCES = [
     *ROOT.joinpath("src/pypulseqpp").rglob("*.py"),
     *ROOT.joinpath("examples/sequence").glob("*.py"),
 ]
-HEADER = re.compile(r"^([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)\s*:\s*(.+)$")
+HEADER = re.compile(
+    r"^(\*{0,2}[A-Za-z_]\w*(?:\s*,\s*\*{0,2}[A-Za-z_]\w*)*)\s*:\s*(.+)$"
+)
 DEFAULT = re.compile(r"(?:^|,\s*)default\s*=\s*(.+)$")
 
 
@@ -40,18 +44,60 @@ def _callables(path):
 
 
 def _documented_parameters(doc):
+    """Parameter headers of the Parameters and Other Parameters sections.
+
+    ``ast.get_docstring(clean=True)`` dedents a header to column 0 and leaves
+    its description indented, so a section ends at the next section title, a
+    line followed by its dashes underline.
+    """
     lines = doc.splitlines()
-    heading = "Parameters" if "Parameters" in lines else "Other Parameters"
-    start = lines.index(heading) + 2
     out = {}
-    for line in lines[start:]:
-        if line and not line.startswith(" "):
-            break
-        match = HEADER.match(line.strip())
+    inside = False
+    for i, line in enumerate(lines):
+        underlined = i + 1 < len(lines) and re.fullmatch(r"-{3,}", lines[i + 1])
+        if underlined:
+            inside = line in {"Parameters", "Other Parameters"}
+            continue
+        if not inside or not line or line.startswith(" ") or re.fullmatch(r"-+", line):
+            continue
+        match = HEADER.match(line)
         if match:
             for name in map(str.strip, match.group(1).split(",")):
-                out[name] = match.group(2)
+                out[name.lstrip("*")] = match.group(2)
     return out
+
+
+def _module_namespace(path):
+    """The namespace of the module at ``path``, where a default's names resolve."""
+    if path.is_relative_to(ROOT / "examples/sequence"):
+        name = f"pypulseqpp.sequences.sequence.{path.stem}"
+    else:
+        parts = path.relative_to(ROOT / "src").with_suffix("").parts
+        name = ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
+    return {"numpy": numpy, "np": numpy, **vars(importlib.import_module(name))}
+
+
+def _value(expression, namespace):
+    """A literal, or a dotted name resolved in the module's namespace."""
+    try:
+        return ast.literal_eval(expression)
+    except (ValueError, SyntaxError):
+        head, *rest = expression.split(".")
+        value = namespace[head]
+        for attribute in rest:
+            value = getattr(value, attribute)
+        return value
+
+
+def _same_value(stated, expected, path):
+    """Whether two default expressions are equal, a named constant to its value."""
+    if stated == expected:
+        return True
+    namespace = _module_namespace(path)
+    try:
+        return bool(_value(stated, namespace) == _value(expected, namespace))
+    except (KeyError, AttributeError):
+        return False
 
 
 def _signature_defaults(node):
@@ -93,7 +139,9 @@ def test_documented_defaults_match_python_signatures(path, owner, function, doc)
         expected = defaults[name]
         if expected is None and stated is not None:
             errors.append(f"{name} is required but documents default={stated}")
-        elif expected is not None and stated != expected:
+        elif expected is not None and (
+            stated is None or not _same_value(stated, expected, path)
+        ):
             errors.append(
                 f"{name} documents {stated!r}; signature default is {expected!r}"
             )
