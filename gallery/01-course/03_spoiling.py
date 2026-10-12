@@ -40,8 +40,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# The events so far
-# -----------------
+# Events
+# ------
 #
 # The scanner, the protocol, the readout and the phase encoding of the
 # previous lessons:
@@ -81,8 +81,8 @@ gy_pre = pp.make_trapezoid("y", area=MATRIX / 2 * delta_k, duration=1e-3, system
 phase_steps = np.arange(-MATRIX // 2, MATRIX // 2) / (MATRIX / 2)
 
 # %%
-# The spoiler
-# -----------
+# Gradient spoiling
+# -----------------
 #
 # A spoiler is a gradient played after the readout. It winds the phase of the
 # transverse magnetization across each voxel, so that what is left integrates
@@ -101,8 +101,8 @@ print(f"spoiler {1e3 * pp.calc_duration(spoiler):.2f} ms")
 # The spoiler takes time out of the TR delay. The repetition is now the pulse,
 # the encoding, the readout, the spoiler and the delay.
 #
-# The phase of the pulse
-# ----------------------
+# RF phase
+# --------
 #
 # The second tool is the phase of the RF pulse. Every RF and ADC event has a
 # ``phase_offset``, in radians, which you can change from one repetition to
@@ -255,8 +255,8 @@ def ideally_spoiled(flip_angle_deg, t1=1000e-3):
 # sphinx_gallery_end_ignore
 
 # %%
-# The spoiler alone
-# -----------------
+# Gradient spoiling without RF spoiling
+# -------------------------------------
 #
 # First without the phase cycle, at your 12 degrees and at 30 degrees, for
 # spoilers from nothing to 8 cycles across the voxel:
@@ -296,8 +296,8 @@ plt.show()
 # leftover a pulse refocuses has been wound and unwound by the same amount, and
 # comes back coherent. That is what the phase cycle breaks.
 #
-# The phase increment
-# -------------------
+# Phase increment
+# ---------------
 #
 # Now keep the 4-cycle spoiler and sweep the phase increment from 0 to 180
 # degrees, at three flip angles. The signal is divided by the ideally spoiled
@@ -347,8 +347,8 @@ for flip, ratio in against_increment.items():
 # within a few percent of the ideal at all three flip angles, which is why it
 # is the common choice; its good neighbourhood is narrow.
 #
-# Both tools together
-# -------------------
+# Combined spoiling
+# -----------------
 #
 # Last, the steady state against the flip angle, with the spoiler alone and
 # with the spoiler and the 117 degree cycle:
@@ -385,8 +385,8 @@ plt.show()
 # Ernst angle. A few percent remain, which depend on T2 and the flip angle:
 # keep that in mind if you fit T1 from this signal with the ideal model.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

@@ -29,8 +29,8 @@ The module interface, and the events a module publishes, are described in
 """
 
 # %%
-# The k-space path
-# ----------------
+# k-space path
+# ------------
 #
 # The interleaf is a polyline in k-space: its samples set the geometry and
 # nothing else. :class:`~pypulseqpp.sequences.Arbitrary` passes it to the
@@ -61,8 +61,8 @@ def twirl_path(fov: float, matrix: int, interleaves: int, samples: int = 2048):
 
 
 # %%
-# The interleaf
-# -------------
+# Interleaf
+# ---------
 #
 # ``Arbitrary`` stretches the readout to hold the samples it is given, so the
 # sample count has to match the interleaf rather than the matrix. The
@@ -91,8 +91,8 @@ def twirl_interleaf(
 
 
 # %%
-# The readout module
-# ------------------
+# Readout module
+# --------------
 #
 # :class:`~pypulseqpp.sequences.NonCartesianReadout` plays any two-channel
 # interleaf: it places the prewinder, the acquisition and the rewinder against
@@ -178,8 +178,8 @@ print(
 )
 
 # %%
-# One repetition
-# --------------
+# Repetition
+# ----------
 
 excitation = sequences.SpatialSelectiveExcitation(
     system, flip_angle_deg=15.0, thickness_m=5e-3, duration_s=3e-3
@@ -247,8 +247,8 @@ pp.plot.plot_kspace(scan, plane="xy")
 #    https://doi.org/10.1002/mrm.1910280209
 
 # %%
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

@@ -37,8 +37,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# The events so far
-# -----------------
+# Events
+# ------
 #
 # Your spoiled gradient echo from lesson 3, with a smaller matrix so the
 # figures stay readable:
@@ -88,8 +88,8 @@ spoiler = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 phase_steps = np.arange(-MATRIX // 2, MATRIX // 2) / (MATRIX / 2)
 
 # %%
-# More than one slice
-# -------------------
+# Multi-slice acquisition
+# -----------------------
 #
 # During the pulse, the slice-selection gradient makes the resonance frequency
 # a function of z: a spin at position :math:`z` resonates
@@ -143,8 +143,8 @@ for line, slc in [(0, 0), (0, 1), (0, 2), (1, 0)]:
     print(f"LIN={line} SLC={slc}:", [(e.label, e.type, e.value) for e in events])
 
 # %%
-# The labelled loop
-# -----------------
+# Labelled scan loop
+# ------------------
 #
 # The loop now runs over lines, and inside each line over slices. Each slot
 # shifts the pulse to its slice, cycles the RF phase as in lesson 3, and puts
@@ -196,8 +196,8 @@ for name, value in seq.definitions.items():
     print(f"{name}: {value}")
 
 # %%
-# What the reconstruction sees
-# ----------------------------
+# Acquisition metadata
+# --------------------
 #
 # :meth:`~pypulseqpp.Sequence.evaluate_labels` replays the label events in
 # block order and, with ``evolution="adc"``, records every counter's value at
@@ -233,8 +233,8 @@ pp.plot.plot_kspace(seq, plane="xy", color_by="order", show_trajectory=False)
 # pulserver turns these counters into the encoding counters of each MRD
 # acquisition, which is how its reconstruction receives your labels.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

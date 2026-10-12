@@ -1,7 +1,7 @@
 r"""
-===========================
-1. Your first gradient echo
-===========================
+=================
+1. Gradient echo
+=================
 
 This course takes you from a 2D Cartesian gradient echo to a 3D radial
 MPRAGE, one step per lesson. This lesson starts with the gradient echo.
@@ -36,8 +36,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# One repetition of a gradient echo
-# ---------------------------------
+# Repetition structure
+# --------------------
 #
 # Each repetition (each TR) of the sequence consists of three steps:
 #
@@ -112,8 +112,8 @@ plt.show()
 # sphinx_gallery_end_ignore
 
 # %%
-# Your scanner
-# ------------
+# System limits
+# -------------
 #
 # Before you design anything, you tell pypulseqpp what your scanner can do.
 # This is the ``system`` object, a :class:`~pypulseqpp.Opts`: the gradient
@@ -152,8 +152,8 @@ print(f"block raster    {1e6 * system.block_duration_raster:g} us")
 # yourself, such as a delay, a dwell time or an echo time, have to be placed
 # on the raster explicitly.
 #
-# Your protocol
-# -------------
+# Protocol
+# --------
 #
 # A field of view of 220 mm, a 128 by 128 matrix, a 5 mm slice, a 12 degree
 # flip angle and a TR of 20 ms. The field of view and the matrix fix k-space:
@@ -168,8 +168,8 @@ TR = 20e-3
 delta_k = 1 / FOV
 
 # %%
-# The excitation
-# --------------
+# Excitation
+# ----------
 #
 # :func:`~pypulseqpp.make_sinc_pulse` designs a slice-selective sinc pulse.
 # You give it the flip angle, the duration, the slice thickness and the
@@ -195,8 +195,8 @@ rf, gz, gz_reph = pp.make_sinc_pulse(
 )
 
 # %%
-# The readout
-# -----------
+# Readout
+# -------
 #
 # The readout gradient has to sweep one whole line, :math:`N\,\Delta k`, while
 # the ADC samples it at constant amplitude, so you ask for the area of its
@@ -275,8 +275,8 @@ phase_steps = np.arange(-MATRIX // 2, MATRIX // 2) / (MATRIX / 2)
 # existing events change. The scan then reuses the same few waveforms, and the file stores each
 # of them once.
 #
-# The loop
-# --------
+# Scan loop
+# ---------
 #
 # One repetition is four blocks. A block holds at most one event per channel
 # (RF, ADC and each gradient axis), all of them start together, and the block
@@ -308,8 +308,8 @@ ok, errors = seq.check_timing()
 print(f"timing ok: {ok}, {seq.num_blocks} blocks, scan time {seq.duration()[0]:.2f} s")
 
 # %%
-# The sequence diagram
-# --------------------
+# Sequence diagram
+# ----------------
 #
 # :meth:`~pypulseqpp.Sequence.paper_plot` draws one repetition, one row per
 # channel. The solid trace is the repetition you pick (here the first); the
@@ -318,8 +318,8 @@ print(f"timing ok: {ok}, {seq.num_blocks} blocks, scan time {seq.duration()[0]:.
 seq.paper_plot(tr=1)
 
 # %%
-# The k-space trajectory
-# ----------------------
+# k-space trajectory
+# ------------------
 #
 # :func:`pypulseqpp.plot.plot_kspace` integrates the gradients from each
 # excitation and marks where the ADC samples. Each repetition jumps to its
@@ -328,8 +328,8 @@ seq.paper_plot(tr=1)
 pp.plot.plot_kspace(seq, plane="xy")
 
 # %%
-# The ``.seq`` file
-# -----------------
+# Pulseq file
+# -----------
 #
 # Last, you write the file the scanner plays. The definitions you set go in
 # its header, next to the blocks; a reconstruction reads them to know what was
@@ -348,8 +348,8 @@ print("\n".join(path.read_text().splitlines()[:8]))
 # shared libraries of shapes), and the rasters its times lie on, are explained
 # in :doc:`/explanations/pulseq-file`.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

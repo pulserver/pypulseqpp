@@ -28,8 +28,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# A train of readouts
-# -------------------
+# Readout train
+# -------------
 #
 # A readout gradient traverses one k-space line from one end to the other. A
 # second gradient of the opposite polarity traverses it back, so a train of
@@ -144,8 +144,8 @@ figure.legend(ncols=3, loc="outside upper left")
 # gradient and the acquisition does to such a train.
 
 # %%
-# One excitation, every line
-# --------------------------
+# Single-shot acquisition
+# -----------------------
 #
 # A phase-encode blip between the echoes advances the acquisition by one line,
 # and the train runs the length of the matrix. The prewinder on the
@@ -178,8 +178,8 @@ print(
 seq.paper_plot()
 
 # %%
-# The trajectory
-# --------------
+# k-space trajectory
+# ------------------
 #
 # One shot, coloured by the rank of each echo in the train: the acquisition
 # starts at one corner of k-space and works across it, reversing direction at
@@ -188,8 +188,8 @@ seq.paper_plot()
 pp.plot.plot_kspace(seq, color_by="echo", plane="xy")
 
 # %%
-# Decay across the train
-# ----------------------
+# Signal decay along the train
+# ----------------------------
 #
 # The last line is acquired tens of milliseconds after the first, and the
 # transverse signal has decayed over that interval. Along the phase-encode
@@ -272,7 +272,7 @@ figure.legend(
 # parallel imaging.
 
 # %%
-# Gradient delay and the odd echoes
+# Gradient delay and odd-echo shift
 # ---------------------------------
 #
 # A delay between the gradient waveform and the acquisition displaces every
@@ -327,8 +327,8 @@ figure.legend(loc="outside upper left")
 # shows. Measuring the delay and correcting for it are reconstruction steps,
 # outside the scope of this package.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

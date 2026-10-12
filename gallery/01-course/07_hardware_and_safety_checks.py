@@ -51,8 +51,8 @@ def summary(rows):
 # sphinx_gallery_end_ignore
 
 # %%
-# Your MPRAGE
-# -----------
+# Test sequence
+# -------------
 #
 # pypulseqpp ships a complete version of the MPRAGE you built in lesson 6,
 # :doc:`mprage_stack_of_stars3D </generated/gallery/12-mprage/mprage_stack_of_stars3D_sequence>`.
@@ -253,8 +253,8 @@ print(
 )
 
 # %%
-# Everything together
-# -------------------
+# Check summary
+# -------------
 
 # sphinx_gallery_start_ignore
 summary(
@@ -277,8 +277,8 @@ summary(
 # %%
 # How each model works is explained in :doc:`/explanations/safety-checks`.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

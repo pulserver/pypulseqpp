@@ -34,8 +34,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# The events of lesson 1
-# ----------------------
+# Events
+# ------
 #
 # You start from the same scanner, protocol and events as in lesson 1.
 import numpy as np
@@ -82,7 +82,7 @@ gy_pre = pp.make_trapezoid("y", area=MATRIX / 2 * delta_k, duration=1e-3, system
 phase_steps = np.arange(-MATRIX // 2, MATRIX // 2) / (MATRIX / 2)
 
 # %%
-# Where TE is measured
+# Echo time definition
 # --------------------
 #
 # The echo time runs from the centre of the excitation pulse to the centre of
@@ -149,8 +149,8 @@ except ValueError as error:
     print(error)
 
 # %%
-# The echo at TE
-# --------------
+# Echo position
+# -------------
 #
 # Now the loop gets a fifth block, the TE delay, between the encoding and the
 # readout. A delay block with zero duration is not allowed, so you only add it
@@ -217,8 +217,8 @@ plt.show()
 # sphinx_gallery_end_ignore
 
 # %%
-# A shorter echo: the asymmetric readout
-# --------------------------------------
+# Asymmetric readout
+# ------------------
 #
 # Your shortest TE is set by what comes before the echo: the second half of
 # the pulse, the encoding, and the first half of the readout. That last part is
@@ -328,8 +328,8 @@ print(f"TE {1e3 * fixed_te:.2f} ms, timing ok: {ok}")
 # The rasters and the echo-time arithmetic are explained in
 # :doc:`/explanations/pulseq-file`.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

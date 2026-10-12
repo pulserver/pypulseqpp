@@ -29,8 +29,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# Blips between the echoes
-# ------------------------
+# Phase-encoding blips
+# --------------------
 #
 # Within a shot, consecutive echoes are separated by as many k-space lines as
 # there are shots, so that the shots interleave and together cover every line.
@@ -98,8 +98,8 @@ print(
 )
 
 # %%
-# One shot
-# --------
+# Shot structure
+# --------------
 #
 # A shot is the excitation, the prewinders, and then one block per echo. The
 # blip is played in the same block as the readout gradient it follows, on the
@@ -154,7 +154,7 @@ print(
 seq.paper_plot(tr=1)
 
 # %%
-# The raster the shots build
+# Interleaved k-space raster
 # --------------------------
 #
 # Each excitation contributes every fourth line, and the four together cover
@@ -278,8 +278,8 @@ figure.legend(
 # reduces is a property of the trajectory, not of the reconstruction, so an
 # image acquired in one shot is distorted whatever is done to it afterwards.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

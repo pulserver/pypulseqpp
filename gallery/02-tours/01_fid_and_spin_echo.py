@@ -109,8 +109,8 @@ print(f"timing {ok}, {seq.num_blocks} blocks, {seq.duration()[0]:.2f} s")
 seq.paper_plot()
 
 # %%
-# The flip angle
-# --------------
+# Flip angle
+# ----------
 #
 # :func:`~pypulseqpp.sim_rf` runs a Bloch simulation of each pulse as it is
 # stored in the sequence. On resonance, a block pulse rotates the magnetization
@@ -201,8 +201,8 @@ print(
 )
 
 # %%
-# Timing the echo
-# ---------------
+# Echo timing
+# -----------
 #
 # The echo time is measured between pulse centres, not block edges. A block
 # longer than the events in it is a delay, and the two delays below absorb
@@ -307,8 +307,8 @@ print(
 seq.paper_plot()
 
 # %%
-# Shortest echo time
-# ------------------
+# Minimum echo time
+# -----------------
 #
 # Both delays shrink as the echo time is shortened, and the first of them to
 # reach zero sets the shortest echo time. The crusher pair is the term in that
@@ -382,8 +382,8 @@ plt.show()
 # slew-limited and in proportion to it once the amplitude limit is reached, so
 # the last doublings add the most to the echo time.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

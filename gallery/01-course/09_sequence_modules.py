@@ -36,8 +36,8 @@ warnings.filterwarnings("ignore", message="Specified RF delay")
 # sphinx_gallery_end_ignore
 
 # %%
-# The three modules
-# -----------------
+# Modules
+# -------
 #
 # Each module takes the scanner first, then what it needs to know: the
 # inversion its crusher's voxel, the excitation its flip angle and slab, and
@@ -77,8 +77,8 @@ readout = sequences.RadialStackReadout(
 )
 
 # %%
-# What a module gives you
-# -----------------------
+# Module interface
+# ----------------
 #
 # A module publishes its events as attributes, and lays them out in
 # ``blocks``, the blocks you add to your sequence in order. ``duration`` is
@@ -112,8 +112,8 @@ readout.paper_plot()
 # each partition with :func:`~pypulseqpp.scale_grad`, as you scaled the phase
 # encoding in lesson 1.
 #
-# One readout, many angles
-# ------------------------
+# Rotation extension
+# ------------------
 #
 # In lesson 6 you rotated the readout gradient with
 # :func:`~pypulseqpp.rotate`, which makes a new pair of x and y gradients for
@@ -122,8 +122,8 @@ readout.paper_plot()
 # block's gradients as it plays them. The readout stays one waveform in the
 # file, whatever the number of spokes.
 #
-# Your sequence function
-# ----------------------
+# Sequence function
+# -----------------
 #
 # The function from lesson 8, with the modules in place of the design. The
 # inversion time is placed from the modules' ``center``: from the inversion's
@@ -253,8 +253,8 @@ start = inversion.duration + pp.round_to_raster(
 seq.paper_plot(time_range=(start, start + 3 * readout.duration))
 
 # %%
-# The shipped MPRAGE
-# ------------------
+# Shipped MPRAGE
+# --------------
 #
 # The shipped
 # :doc:`mprage_stack_of_stars3D </generated/gallery/12-mprage/mprage_stack_of_stars3D_sequence>`
@@ -270,8 +270,8 @@ seq.paper_plot(time_range=(start, start + 3 * readout.duration))
 #
 #    print(inspect.getsource(sequences.mprage_stack_of_stars3D_sequence))
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

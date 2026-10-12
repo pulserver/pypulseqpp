@@ -125,8 +125,8 @@ system = pp.Opts(
 )
 
 # %%
-# Simulating an excitation
-# ------------------------
+# Excitation simulation
+# ---------------------
 #
 # The excitation module designs the pulse, its selection gradient and the
 # rephaser that unwinds the second half of the selection. Its ``sim_rf``
@@ -251,8 +251,8 @@ profile_figure(
 # repetition spends on the excitation.
 
 # %%
-# Designs admitted by the gradient amplitude limit
-# ------------------------------------------------
+# Gradient amplitude limit
+# ------------------------
 #
 # The two sweeps are two lines through one plane, and the amplitude limit cuts
 # it along :math:`T = \mathrm{TBW} / (\gamma\, \Delta z\, G_\mathrm{max})`. A
@@ -440,8 +440,8 @@ plt.show()
 # :doc:`/generated/gallery/02-tours/04_multi_echo` and
 # :doc:`/generated/gallery/02-tours/03_epi`.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

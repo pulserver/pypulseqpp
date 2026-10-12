@@ -44,8 +44,8 @@ warnings.filterwarnings("ignore", message="Specified RF delay")
 # sphinx_gallery_end_ignore
 
 # %%
-# The preparation
-# ---------------
+# T2 preparation
+# --------------
 #
 # The simplest robust T2 preparation is four hard pulses:
 #
@@ -60,8 +60,8 @@ warnings.filterwarnings("ignore", message="Specified RF delay")
 # of the last. The magnetization comes back along z scaled by
 # :math:`e^{-\mathrm{TE}/T_2}`, and the next excitation reads that.
 #
-# The module
-# ----------
+# Module class
+# ------------
 #
 # A module subclasses :class:`~pypulseqpp.sequences.SequenceModule`, or
 # :class:`~pypulseqpp.sequences.RfModule` when it plays RF, and implements
@@ -168,8 +168,8 @@ print(
 preparation.paper_plot()
 
 # %%
-# Swapping the preparation
-# ------------------------
+# Interchangeable preparations
+# ----------------------------
 #
 # Your sequence function of lesson 9 played the inversion as
 # ``for block in inversion.blocks``, and placed the first excitation from
@@ -418,8 +418,8 @@ plt.show()
 # The :doc:`/sequences` catalogue is a set of sequence functions written as in
 # lessons 8 and 9, and the Tours treat individual topics in more depth.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

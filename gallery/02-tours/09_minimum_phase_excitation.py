@@ -63,8 +63,8 @@ def design_figure(designs, thickness_m):
 # sphinx_gallery_end_ignore
 
 # %%
-# The excitation module
-# ---------------------
+# Excitation module
+# -----------------
 #
 # The module follows the structure you wrote in lesson 10: ``init_module``
 # builds ``self.seq`` and sets ``self.center``, and the events bound to its
@@ -263,8 +263,8 @@ for block in readouts["minimum phase"].blocks:
 seq.paper_plot(tr=1)
 
 # %%
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

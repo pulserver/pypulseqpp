@@ -149,8 +149,8 @@ MATRIX = 128
 MAX_GRAD_MT_M = 40.0
 
 # %%
-# Designing one arm
-# -----------------
+# Arm design
+# ----------
 #
 # The readout module designs the arm from the prescription and the system
 # limits it is given, and stores the resulting gradient waveform as
@@ -229,8 +229,8 @@ def limiting_ceiling(measured, tolerance=0.02):
 
 
 # %%
-# The design space
-# ----------------
+# Design space
+# ------------
 #
 # The slew limit is swept over the range a body gradient system covers, and the
 # sampling rate over a range whose receiver cap runs from well below the
@@ -272,8 +272,8 @@ duration_figure(grid)
 # whose amplitude has already stopped growing.
 
 # %%
-# The waveform in each regime
-# ---------------------------
+# Waveform regimes
+# ----------------
 #
 # One design from each regime, with the ceilings drawn on the axes they bound.
 
@@ -338,8 +338,8 @@ interleaf_figure(interleaves)
 # so the interleaf count is the remaining way to shorten it once the slew rate
 # no longer does.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

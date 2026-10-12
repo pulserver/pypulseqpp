@@ -41,8 +41,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# The events so far
-# -----------------
+# Events
+# ------
 #
 # The scanner, the slice and the spoiler of the previous lessons. The readout
 # is shorter, at a 10 µs dwell, so the TR shrinks to a few milliseconds.
@@ -92,8 +92,8 @@ gx_spoil = pp.make_trapezoid("x", area=2 * MATRIX * delta_k, system=system)
 # The prewinder and the spoiler have no duration this time: the factory makes
 # each one as short as the scanner allows.
 #
-# A spoke is a rotated line
-# -------------------------
+# Radial spokes
+# -------------
 #
 # A spoke is the Cartesian line with no phase encoding, rotated about z by its
 # angle :math:`\varphi`. :func:`~pypulseqpp.rotate` does the rotation: it
@@ -122,8 +122,8 @@ print(f"timing ok: {ok}, TR {1e3 * seq.duration()[0] / 64:.2f} ms")
 pp.plot.plot_kspace(seq, plane="xy", color_by="shot", show_trajectory=False)
 
 # %%
-# How many spokes
-# ---------------
+# Number of spokes
+# ----------------
 #
 # Along a spoke, the samples are :math:`\Delta k = 1/\mathrm{FOV}` apart, as
 # on a Cartesian line. Between two neighbouring spokes the distance grows from
@@ -143,8 +143,8 @@ SPOKES = int(np.ceil(np.pi / 2 * MATRIX))
 print(f"spokes for a {MATRIX} matrix: {SPOKES}")
 
 # %%
-# The golden angle
-# ----------------
+# Golden angle
+# ------------
 #
 # With even spacing, you have to acquire all :math:`P` spokes before the
 # coverage is even: stop halfway and half of the plane is missing. Advance
@@ -274,8 +274,8 @@ print(f"closest samples to the centre: {sorted(np.argsort(radius)[:2].tolist())}
 # from the TR is saved 202 times, and in a 3D radial scan tens of thousands of
 # times. A shorter TR also means a shorter echo train in the next lesson.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

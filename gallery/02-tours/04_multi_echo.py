@@ -29,8 +29,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# A train of readouts
-# -------------------
+# Readout train
+# -------------
 #
 # A readout gradient traverses one k-space line from one end to the other. A
 # second gradient of the opposite polarity traverses it back, so a train of
@@ -117,8 +117,8 @@ print(
 )
 
 # %%
-# One repetition
-# --------------
+# Repetition
+# ----------
 #
 # The train replaces the single readout block. The gradients of the train are
 # played back to back, so the echo spacing is the duration of one readout
@@ -267,8 +267,8 @@ figure.legend(loc="outside right upper")
 # sweep halves the signal-to-noise ratio of each echo, in exchange for the
 # number of echoes and a shorter shortest echo time.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #

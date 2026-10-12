@@ -26,8 +26,8 @@ modules.
 """
 
 # %%
-# The function
-# ------------
+# Sequence function
+# -----------------
 #
 # The scanner comes first, as ``system``; everything after it is the
 # protocol, as keyword parameters with defaults. The docstring's
@@ -220,8 +220,8 @@ def radial_mprage(
 
 
 # %%
-# Calling it
-# ----------
+# Function call
+# -------------
 #
 # The scanner is a separate argument because the same protocol runs on
 # different scanners, and the same scanner runs many protocols:
@@ -249,8 +249,8 @@ except ValueError as error:
     print(error)
 
 # %%
-# The protocol
-# ------------
+# Protocol
+# --------
 #
 # :func:`~pypulseqpp.sequences.parameters` reads the protocol of a sequence
 # function: the type and default of each parameter from the signature, its
@@ -263,8 +263,8 @@ for name, parameter in sequences.parameters(radial_mprage).items():
     )
 
 # %%
-# The command line
-# ----------------
+# Command-line interface
+# ----------------------
 #
 # :func:`pypulseqpp.cli.run` builds a command line from the same signature:
 # one option per protocol parameter, with the docstring as its help, and
@@ -286,8 +286,8 @@ with contextlib.suppress(SystemExit):
     cli.run(radial_mprage, ["--help"])
 
 # %%
-# Writing the files
-# -----------------
+# File output
+# -----------
 #
 # :func:`~pypulseqpp.sequences.write` writes what the function returns, and
 # returns the paths it wrote. A function may also return a list of
@@ -302,8 +302,8 @@ written = sequences.write(folder / "radial_mprage.seq", seq)
 print([Path(path).name for path in written])
 
 # %%
-# The shipped sequences
-# ---------------------
+# Shipped sequences
+# -----------------
 #
 # Every sequence in :doc:`/sequences` is a function of this kind, in its own
 # module of ``pypulseqpp.sequences``, and the module itself is callable as the
@@ -318,8 +318,8 @@ print(f"{len(protocol)} parameters:", ", ".join(protocol))
 # editor from the same record, and calls the function with what the user
 # prescribed.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

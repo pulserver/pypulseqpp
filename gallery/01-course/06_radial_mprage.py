@@ -43,8 +43,8 @@ PAGE_WIDTH = 7.8  # inches, the width of the documentation column
 # sphinx_gallery_end_ignore
 
 # %%
-# One inversion
-# -------------
+# Inversion-recovery train
+# ------------------------
 #
 # Each inversion is one period of the scan, and it plays, in order:
 #
@@ -87,8 +87,8 @@ delta_k = 1 / FOV
 delta_kz = 1 / SLAB
 
 # %%
-# The inversion
-# -------------
+# Inversion pulse
+# ---------------
 #
 # An adiabatic pulse inverts the magnetization uniformly even where the
 # transmit field is weak or strong, which a 180 degree sinc would not.
@@ -107,8 +107,8 @@ rf_inv = pp.make_adiabatic_pulse(
 gz_crush = pp.make_crusher(4.0, PARTITION_THICKNESS, channel="z", system=system)[0]
 
 # %%
-# The readout train
-# -----------------
+# Readout train
+# -------------
 #
 # The excitation now selects the whole slab, and the readout is the merged
 # radial readout of lesson 5.
@@ -154,8 +154,8 @@ g_spoil, _, _ = pp.make_extended_trapezoid_area(
 )
 
 # %%
-# Stacking the stars
-# ------------------
+# Stack of stars
+# --------------
 #
 # Each partition :math:`p` sits at :math:`k_z = (p - P/2)\,\Delta k_z`. The
 # partition encoding plays on z while the prewinder plays on x and y, in the
@@ -178,8 +178,8 @@ gz_rewind = [
 ]
 
 # %%
-# The inversion time
-# ------------------
+# Inversion time
+# --------------
 #
 # TI runs from the centre of the inversion pulse to the centre of the first
 # excitation. What lies between them is the rest of the inversion block, the
@@ -208,8 +208,8 @@ print(
 )
 
 # %%
-# The loop
-# --------
+# Scan loop
+# ---------
 #
 # One inversion per partition. The spokes keep advancing by the golden angle
 # across the whole scan, not only within a train, so every partition gets its
@@ -256,8 +256,8 @@ start = pp.calc_duration(rf_inv) + pp.calc_duration(gz_crush) + ti_wait
 seq.paper_plot(time_range=(start, start + 3 * spoke_tr))
 
 # %%
-# The signal along the train
-# --------------------------
+# Signal evolution
+# ----------------
 #
 # The simulation below follows the longitudinal
 # magnetization of three tissues through the scan: inverted, recovering for
@@ -337,8 +337,8 @@ print("LIN of the first train:", counters["LIN"][:6], "...")
 # :doc:`mprage_stack_of_stars3D </generated/gallery/12-mprage/mprage_stack_of_stars3D_sequence>`
 # in miniature. In lesson 9 you rebuild it from modules.
 #
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this lesson built, stated the way you would ask an agent for it:
 #

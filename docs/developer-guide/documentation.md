@@ -121,7 +121,7 @@ Gallery examples show complete, representative scientific uses of the library.
 
 The example galleries of MRpro, MRI-NUFFT, and DeepInv are useful models: executable scientific workflows accompanied by concise methodological explanation.
 
-#### What belongs in the gallery
+#### Gallery scope
 
 A gallery example should exist because executing the workflow and examining its output demonstrates something scientifically or computationally useful. If replacing it with a short code snippet in the API reference or an explanatory page would lose essentially nothing, it probably does not belong in the gallery.
 
@@ -334,7 +334,7 @@ Derive an ordering or traversal figure from what the implementation records: its
 
 A figure of what a check computed uses the check's own computation. Where the public interface does not return enough to draw it, extend that interface — an optional trace, a diagnostic function — rather than recomputing the algorithm in the example. Two implementations of one calculation disagree eventually, and the documentation is where it will not be noticed.
 
-#### One subject, one example
+#### Example scope
 
 Where the sampling, the ordering or the mode structure of an object is part of understanding the object, it belongs in that object's own example. Splitting it into a second example leaves the first too thin to be useful and the second detached from what it explains.
 

@@ -47,8 +47,8 @@ def sampling_figure(k_read, spacing, nyquist):
 # sphinx_gallery_end_ignore
 
 # %%
-# Sampling through the ramps
-# --------------------------
+# Ramp sampling
+# -------------
 #
 # A readout lobe of area :math:`N/\mathrm{FOV}` resolves an :math:`N`-point
 # matrix over the field of view. A flat-top design samples only the plateau,
@@ -61,8 +61,8 @@ def sampling_figure(k_read, spacing, nyquist):
 # in time are unequal steps in k, so the sample positions are denser on the
 # ramps and the data need regridding before a Fourier transform.
 #
-# The readout module
-# ------------------
+# Readout module
+# --------------
 #
 # This is the same kind of class you wrote in lesson 10. ``init_module``
 # assigns ``self.seq``, adds the blocks of the layout to it and sets
@@ -228,8 +228,8 @@ for name, lobe in (("ramp-sampled", ramp_sampled), ("flat top only", flat_topped
     )
 
 # %%
-# One repetition
-# --------------
+# Repetition
+# ----------
 #
 # The module follows a slice-selective excitation, from which it takes the
 # pulse, the selection gradient and the rephaser. The printout lists the
@@ -307,8 +307,8 @@ print(
 seq.paper_plot(tr=1)
 
 # %%
-# As a spec
-# ---------
+# Specification
+# -------------
 #
 # What this Tour built, stated the way you would ask an agent for it:
 #
