@@ -400,7 +400,7 @@ $$
 \min_x D(Ax, y) + \lambda R(x),
 $$
 
-before explaining how the library represents \(A\), \(D\), and \(R\).
+before explaining how the library represents $A$, $D$, and $R$.
 
 #### Accessibility and terminology
 

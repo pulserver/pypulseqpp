@@ -53,6 +53,12 @@ div.highlight-text .copybtn {
   hyphens: auto;
 }
 
+/* Table cells are too narrow to justify. */
+.bd-article td p,
+.bd-article th p {
+  text-align: left;
+}
+
 /* A capability's code and test, in a toggle under its statement. */
 .bd-article .capabilities details {
   margin: -0.6em 0 0.6em;
