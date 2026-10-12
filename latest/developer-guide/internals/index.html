@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Pulseq file format internals" href="pulseq-file.html" />
-    <link rel="prev" title="Code of conduct" href="../code-of-conduct.html" />
+    <link rel="prev" title="Terminology and conventions" href="../terminology.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -201,15 +201,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pre-commit.html">Pre-commit hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="pulseq-file.html">Pulseq file format internals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cpp-core.html">C++ core internals</a></li>
@@ -513,36 +509,34 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="internals">
 <h1>Internals<a class="headerlink" href="#internals" title="Link to this heading">#</a></h1>
-<p>The rules and derivations behind the explanation pages: what each computation
-evaluates, in which frame and units, and over which interval. Each page is
-linked from the explanation it supports.</p>
+<p>Rules, derivations, frames and units behind the explanation pages.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Page</p></th>
-<th class="head"><p>Scope</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="pulseq-file.html"><span class="doc">Pulseq file format internals</span></a></p></td>
-<td><p>Sections, libraries, deduplication, signatures, revisions, binary form and rasters.</p></td>
+<td><p>Sections, libraries, deduplication, signatures, revisions, binary form and rasters</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="cpp-core.html"><span class="doc">C++ core internals</span></a></p></td>
-<td><p>Native hot paths, snapshot ownership, revision counter and facade contracts.</p></td>
+<td><p>Native hot paths, snapshot ownership, revision counter and facade contracts</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="rf-and-gradient-design.html"><span class="doc">RF and gradient design internals</span></a></p></td>
-<td><p>Pulse designers, pTx layout, Bloch simulation and the gradient solver.</p></td>
+<td><p>Pulse designers, pTx layout, Bloch simulation and the gradient solver</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="sequence-modules.html"><span class="doc">Sequence module and function internals</span></a></p></td>
-<td><p>Module structure, event publication, protocol parsing, labels and chains.</p></td>
+<td><p>Module structure, event publication, protocol parsing, labels and chains</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="sampling-and-ordering.html"><span class="doc">Sampling and ordering internals</span></a></p></td>
-<td><p>Supports, orderings, EPI offsets, angle increments and RF schedules.</p></td>
+<td><p>Supports, orderings, EPI offsets, angle increments and RF schedules</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="sequence-analysis.html"><span class="doc">Sequence-analysis computations</span></a></p></td>
-<td><p>Waveform reconstruction, k-space integrals, repetition and FOV transforms.</p></td>
+<td><p>Waveform reconstruction, k-space integrals, repetition and FOV transforms</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="safety-checks.html"><span class="doc">Safety-check computations</span></a></p></td>
-<td><p>Gradient, PNS, mechanical-resonance, sound-pressure and SAR computations.</p></td>
+<td><p>Gradient, PNS, mechanical-resonance, sound-pressure and SAR computations</p></td>
 </tr>
 </tbody>
 </table>
@@ -563,12 +557,12 @@ linked from the explanation it supports.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../code-of-conduct.html"
+       href="../terminology.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Code of conduct</p>
+        <p class="prev-next-title">Terminology and conventions</p>
       </div>
     </a>
     <a class="right-next"

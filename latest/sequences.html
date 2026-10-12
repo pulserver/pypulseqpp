@@ -201,15 +201,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/pre-commit.html">Pre-commit hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="developer-guide/internals/cpp-core.html">C++ core internals</a></li>
@@ -529,13 +525,9 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="sequence-catalogue">
 <h1>Sequence catalogue<a class="headerlink" href="#sequence-catalogue" title="Link to this heading">#</a></h1>
-<p>Complete sequences shipped with the package, grouped by sequence family. Each
-is a sequence function in its own module of <code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code>, with a
-reference page giving the prescription it accepts; <a class="reference internal" href="user-guide/index.html"><span class="doc">User guide</span></a>
-shows how to run one from Python or the command line. Within a family, the
-variants differ in dimensionality and sampling. Each sequence is designed and drawn at a representative prescription
-under <a class="reference internal" href="examples/built-in-sequences/index.html"><span class="doc">Built-in sequences</span></a>; the contract the modules
-implement is in <a class="reference internal" href="api/sequence-functions.html"><span class="doc">Sequence functions</span></a>.</p>
+<p>Shipped sequences by family, each a sequence function with a reference page.
+Executed designs are under <a class="reference internal" href="examples/built-in-sequences/index.html"><span class="doc">Built-in sequences</span></a>; the module
+contract is in <a class="reference internal" href="api/sequence-functions.html"><span class="doc">Sequence functions</span></a>.</p>
 <section id="gradient-echo">
 <h2>Gradient echo<a class="headerlink" href="#gradient-echo" title="Link to this heading">#</a></h2>
 <p>One excitation per repetition with no refocusing pulse, spoiled between

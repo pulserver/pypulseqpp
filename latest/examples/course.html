@@ -201,15 +201,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
@@ -519,39 +515,39 @@ protocol, rebuild it from sequence modules and write a module of your own.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Lesson</p></th>
-<th class="head"><p>What you learn</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/01-course/01_first_gradient_echo.html"><span class="doc">1. Your first gradient echo</span></a></p></td>
-<td><p>Events, blocks and rasters; designing every event before the loop; the <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file.</p></td>
+<td><p>Events, blocks, rasters and the <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/gallery/01-course/02_echo_and_repetition_time.html"><span class="doc">2. Echo and repetition time</span></a></p></td>
-<td><p>Setting TE and TR with delays, measuring them, and asymmetric readouts.</p></td>
+<td><p>TE and TR set with delays; asymmetric readouts</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/01-course/03_spoiling.html"><span class="doc">3. Spoiling</span></a></p></td>
-<td><p>Gradient and RF spoiling, and the steady state each one leaves.</p></td>
+<td><p>Gradient and RF spoiling and the resulting steady state</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/gallery/01-course/04_labels_and_metadata.html"><span class="doc">4. Labels and metadata</span></a></p></td>
-<td><p>Several slices, labels on every readout, and the definitions a reconstruction reads.</p></td>
+<td><p>Multislice loops, labels and file definitions for reconstruction</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/01-course/05_radial_sampling.html"><span class="doc">5. Radial sampling and gradient surgery</span></a></p></td>
-<td><p>Radial spokes, the golden angle, and merging gradients to shorten the TR.</p></td>
+<td><p>Radial spokes, golden-angle ordering and merged gradients</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/gallery/01-course/06_radial_mprage.html"><span class="doc">6. Radial MPRAGE</span></a></p></td>
-<td><p>An inversion-prepared 3D stack of stars, and the contrast along its train.</p></td>
+<td><p>Inversion-prepared 3D stack of stars and contrast along the train</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/01-course/07_hardware_and_safety_checks.html"><span class="doc">7. Hardware and safety checks</span></a></p></td>
-<td><p>Gradient, slew-rate, nerve stimulation, mechanical resonance and SAR checks.</p></td>
+<td><p>Gradient, slew-rate, PNS, mechanical-resonance and SAR checks</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/gallery/01-course/08_sequence_functions.html"><span class="doc">8. Sequence functions</span></a></p></td>
-<td><p>A sequence as a function of the scanner and the protocol, on the command line.</p></td>
+<td><p>Sequence functions, protocol parameters and the command line</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/gallery/01-course/09_sequence_modules.html"><span class="doc">9. Sequence modules</span></a></p></td>
-<td><p>The same MPRAGE built from the shipped sequence modules.</p></td>
+<td><p>MPRAGE rebuilt from the shipped sequence modules</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/gallery/01-course/10_custom_sequence_module.html"><span class="doc">10. Custom sequence module</span></a></p></td>
-<td><p>A T2 preparation written as a module and swapped in for the inversion.</p></td>
+<td><p>Custom T2-preparation module</p></td>
 </tr>
 </tbody>
 </table>

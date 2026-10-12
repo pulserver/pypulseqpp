@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Editable installation &#8212; pypulseqpp documentation</title>
+    <title>Installation &#8212; pypulseqpp documentation</title>
   
   
   
@@ -65,8 +65,8 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/latest/developer-guide/installation.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Development workflow" href="workflow.html" />
-    <link rel="prev" title="Development prerequisites" href="prerequisites.html" />
+    <link rel="next" title="Workflow" href="workflow.html" />
+    <link rel="prev" title="Developer guide" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -201,15 +201,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflow.html">Development workflow</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pre-commit.html">Pre-commit hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="internals/pulseq-file.html">Pulseq file format internals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="internals/cpp-core.html">C++ core internals</a></li>
@@ -486,7 +482,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -497,11 +495,22 @@
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Editable installation</h1>
+    <h1>Installation</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#editable-installation">Editable installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-commit-hooks">Pre-commit hooks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-build">Documentation build</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -511,8 +520,19 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="editable-installation">
-<h1>Editable installation<a class="headerlink" href="#editable-installation" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
+<p>Development requires Git, Python 3.10–3.14, a C++17 compiler and CMake. Clone
+all submodules; <code class="docutils literal notranslate"><span class="pre">external/MRArbGrad</span></code> is part of the native build and the
+SeqEyes source is pinned separately under <code class="docutils literal notranslate"><span class="pre">viewer/</span></code>.</p>
+<p>The reference file-format tests use the test-only dependency in
+<code class="docutils literal notranslate"><span class="pre">tests/requirements.txt</span></code>. Tests requiring an unavailable reference fixture skip
+rather than changing the runtime dependency set.</p>
+</section>
+<section id="editable-installation">
+<h2>Editable installation<a class="headerlink" href="#editable-installation" title="Link to this heading">#</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
 python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
@@ -525,6 +545,29 @@ also require the <code class="docutils literal notranslate"><span class="pre">ex
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[dev,examples]'</span><span class="w"> </span>-r<span class="w"> </span>tests/requirements.txt
 </pre></div>
 </div>
+</section>
+<section id="pre-commit-hooks">
+<h2>Pre-commit hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</pre></div>
+</div>
+<p>The format-and-lint hook runs <code class="docutils literal notranslate"><span class="pre">scripts/format_and_lint.sh</span></code>, the script the
+Style workflow runs with <code class="docutils literal notranslate"><span class="pre">--check</span></code>, so a commit that passes locally passes the
+style check in CI. The hooks skip the submodules under <code class="docutils literal notranslate"><span class="pre">external/</span></code> and
+<code class="docutils literal notranslate"><span class="pre">viewer/seqeyes/</span></code>.</p>
+<p>A deliberate one-off bypass uses <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--no-verify</span></code>; one hook can be
+skipped with <code class="docutils literal notranslate"><span class="pre">SKIP=&lt;hook-id&gt;</span> <span class="pre">git</span> <span class="pre">commit</span></code>. A bypass does not bypass CI and must
+not be used to conceal a failing check.</p>
+</section>
+<section id="documentation-build">
+<h2>Documentation build<a class="headerlink" href="#documentation-build" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>scripts/build_docs.sh
+</pre></div>
+</div>
+<p>The build executes every gallery script and treats warnings as errors.
+<code class="docutils literal notranslate"><span class="pre">bash</span> <span class="pre">scripts/build_docs_pdf.sh</span></code> renders the same build as one PDF.</p>
+</section>
 </section>
 
 
@@ -539,12 +582,12 @@ also require the <code class="docutils literal notranslate"><span class="pre">ex
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="prerequisites.html"
+       href="index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Development prerequisites</p>
+        <p class="prev-next-title">Developer guide</p>
       </div>
     </a>
     <a class="right-next"
@@ -552,7 +595,7 @@ also require the <code class="docutils literal notranslate"><span class="pre">ex
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Development workflow</p>
+        <p class="prev-next-title">Workflow</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -562,6 +605,26 @@ also require the <code class="docutils literal notranslate"><span class="pre">ex
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#editable-installation">Editable installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-commit-hooks">Pre-commit hooks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-build">Documentation build</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

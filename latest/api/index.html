@@ -201,15 +201,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
@@ -535,21 +531,21 @@ Concepts are in <a class="reference internal" href="../explanations/index.html">
 <thead>
 <tr class="row-odd"><th class="head"><p>Page</p></th>
 <th class="head"><p>Module</p></th>
-<th class="head"><p>What it documents</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="sequence.html"><span class="doc">Sequence and system limits</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>The sequence container, the system limits a sequence is designed under, and the transforms applied to a finished one.</p></td>
+<td><p>Sequence container, system limits and transforms of a finished sequence</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="io.html"><span class="doc">Reading and writing files</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.io</span></code></p></td>
-<td><p>Reading a file into a sequence that carries the system it describes, and writing one out in either form.</p></td>
+<td><p>Reading and writing <code class="docutils literal notranslate"><span class="pre">.seq</span></code> files, text and binary</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="events.html"><span class="doc">Events and blocks</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>ADC, delay, trigger, label, rotation and RF-shim events, the operations that act on a block, and the conversions an upstream PyPulseq function is called through.</p></td>
+<td><p>ADC, delay, trigger, label, rotation and RF-shim events; block operations; PyPulseq interoperability</p></td>
 </tr>
 </tbody>
 </table>
@@ -561,25 +557,25 @@ Concepts are in <a class="reference internal" href="../explanations/index.html">
 <thead>
 <tr class="row-odd"><th class="head"><p>Page</p></th>
 <th class="head"><p>Module</p></th>
-<th class="head"><p>What it documents</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="gradients.html"><span class="doc">Gradient design</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>Gradient events on one channel axis, from trapezoids and phase encodes to arbitrary and wave-encoding waveforms, the operations that scale, split and combine them, and the audio of the waveforms a sequence plays.</p></td>
+<td><p>Trapezoid, arbitrary and wave-encoding gradients; scaling, splitting and combining; gradient audio</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="rf.html"><span class="doc">RF pulse design</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>RF events, from the basic factories to SLR, slice-encoding, B1-selective, multidimensional and parallel-transmit designs, and the analysis and Bloch simulation of what they produce.</p></td>
+<td><p>RF pulses from basic to SLR, B1-selective, multidimensional and pTx designs; RF analysis and Bloch simulation</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="trajectories.html"><span class="doc">Trajectory design</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>Radial, spiral and rosette k-space trajectories, and the gradient waveforms that trace them.</p></td>
+<td><p>Radial, spiral and rosette trajectories and their gradient waveforms</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="timing.html"><span class="doc">Timing and rasterization</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>ADC dwell times and acquisition durations solved against both the ADC and the gradient raster, and the quantization of a time to a raster.</p></td>
+<td><p>ADC dwell times and durations on the ADC and gradient rasters; raster rounding</p></td>
 </tr>
 </tbody>
 </table>
@@ -591,25 +587,25 @@ Concepts are in <a class="reference internal" href="../explanations/index.html">
 <thead>
 <tr class="row-odd"><th class="head"><p>Page</p></th>
 <th class="head"><p>Module</p></th>
-<th class="head"><p>What it documents</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="sampling.html"><span class="doc">Sampling and scan-loop schedules</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp</span></code></p></td>
-<td><p>Cartesian sampling support, the ordering of a selected set into loop, shot and echo positions, EPI shot offsets, non-Cartesian orientations, and per-repetition RF schedules.</p></td>
+<td><p>Cartesian masks, view ordering, EPI shot offsets, non-Cartesian orientations and RF schedules</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="modules.html"><span class="doc">Sequence modules</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code></p></td>
-<td><p>The excitation, preparation and readout modules, and the non-Cartesian interleaves a readout plays.</p></td>
+<td><p>Excitation, preparation and readout modules; non-Cartesian interleaves</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="sequence-functions.html"><span class="doc">Sequence functions</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code></p></td>
-<td><p>The functions that read the protocol of a sequence function, label its blocks, write the sequences it returns and time them, and the excitation choice of a volumetric prescription.</p></td>
+<td><p>Protocol parsing, labels, writing and timing of sequence functions</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../sequences.html"><span class="doc">Sequence catalogue</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.sequences</span></code></p></td>
-<td><p>Every complete sequence the package ships, grouped by family, each with its own reference page.</p></td>
+<td><p>Every shipped sequence, by family, with its reference page</p></td>
 </tr>
 </tbody>
 </table>
@@ -621,21 +617,21 @@ Concepts are in <a class="reference internal" href="../explanations/index.html">
 <thead>
 <tr class="row-odd"><th class="head"><p>Page</p></th>
 <th class="head"><p>Module</p></th>
-<th class="head"><p>What it documents</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="safety.html"><span class="doc">Gradient, PNS, acoustic and SAR checks</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code></p></td>
-<td><p>The gradient amplitude, slew-rate, continuity, mechanical-resonance, nerve-stimulation and SAR checks, and the readings they return beside a verdict.</p></td>
+<td><p>Gradient, slew-rate, continuity, mechanical-resonance, PNS and SAR checks</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="plotting.html"><span class="doc">Plotting</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.plot</span></code></p></td>
-<td><p>The SeqEyes view, the publication diagram, and the k-space and RF-profile figures.</p></td>
+<td><p>SeqEyes view, publication diagram, k-space and RF-profile figures</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="cli.html"><span class="doc">Command-line helpers</span></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">pypulseqpp.cli</span></code></p></td>
-<td><p>Running a sequence function or a sequence script from the shell, and writing the files it produces.</p></td>
+<td><p>Running sequence functions and scripts from the shell</p></td>
 </tr>
 </tbody>
 </table>

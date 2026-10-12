@@ -201,15 +201,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
@@ -520,30 +516,30 @@ reference page in the <a class="reference internal" href="../../sequences.html">
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Family</p></th>
-<th class="head"><p>Acquisition</p></th>
+<th class="head"><p>Contents</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="gradient-echo.html"><span class="doc">Gradient echoes</span></a></p></td>
-<td><p>One excitation, no refocusing pulse, spoiled between repetitions.</p></td>
+<td><p>Excitation and readout, spoiled between repetitions</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="spin-echo.html"><span class="doc">Spin echoes</span></a></p></td>
-<td><p>One excitation and one refocusing pulse, acquired at the refocused echo.</p></td>
+<td><p>Excitation and one refocusing pulse; readout at the spin echo</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="fast-spin-echo.html"><span class="doc">Fast spin echo</span></a></p></td>
-<td><p>One excitation and a CPMG train, one view per echo.</p></td>
+<td><p>Excitation and a CPMG refocusing train, one view per echo</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mprage.html"><span class="doc">MPRAGE</span></a></p></td>
-<td><p>An inversion, an inversion time, and a spoiled gradient-echo train over one partition.</p></td>
+<td><p>Inversion, inversion time and a spoiled gradient-echo train per partition</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="bssfp.html"><span class="doc">Balanced SSFP</span></a></p></td>
-<td><p>One excitation with every gradient axis balanced across the repetition.</p></td>
+<td><p>Excitation with all gradient axes balanced in each TR</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="epi.html"><span class="doc">Echo-planar imaging</span></a></p></td>
-<td><p>One excitation and a train of readout lobes of alternating polarity.</p></td>
+<td><p>Excitation and a train of readout lobes of alternating polarity</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="zte.html"><span class="doc">Zero echo time</span></a></p></td>
-<td><p>A hard pulse transmitted with the readout gradient already at amplitude.</p></td>
+<td><p>Hard pulse played with the readout gradient already on</p></td>
 </tr>
 </tbody>
 </table>
