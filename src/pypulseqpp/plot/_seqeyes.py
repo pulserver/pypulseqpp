@@ -105,7 +105,8 @@ def blocks_for(
     seq : Sequence
         The sequence the range is read against.
     time_range : sequence of float, default=None
-        Two times in seconds. A block is included if any of it falls inside.
+        Start and end times (s). A block is included if any of it falls
+        inside.
     block_range : sequence of int, default=None
         The first and last block, 1-based and inclusive.
     tr_range : sequence of int, default=None
@@ -208,7 +209,7 @@ class Viewer:
         Parameters
         ----------
         timeout : float, default=None
-            Seconds to wait. None waits for as long as the window is open.
+            Seconds to wait; ``None`` waits until the window is closed.
 
         Returns
         -------
@@ -329,12 +330,16 @@ def plot(
     seq : pypulseqpp.Sequence
         The sequence to open.
     time_range, block_range, tr_range : sequence, default=None
-        The part of the sequence to write out, as
-        :meth:`pypulseqpp.Sequence.plot` documents them; at most one.
+        The part of the sequence to show; at most one. A time range is two
+        times (s), a block range the first and last block and a repetition
+        range the first and last repetition, both 1-based and inclusive. The
+        whole sequence when none is given.
     plot_now : bool, default=True
-        Start the viewer. False writes the file and returns without one.
+        Block until the window is closed. The viewer is started either way.
     save : bool, default=False
-        Keep the file the viewer read rather than removing it on close.
+        Also write the viewer's sequence and trajectory images,
+        ``seq_plot_seq.png`` and ``seq_plot_traj.png``, to the working
+        directory.
     **options
         Accepted for scripts written against upstream PyPulseq's signature,
         and not honoured; an option this does not know is refused.
@@ -342,7 +347,7 @@ def plot(
     Returns
     -------
     Viewer
-        The viewer process, whose ``wait`` blocks until the window closes.
+        Handle to the viewer window; its ``wait`` blocks until it closes.
 
     Raises
     ------
@@ -352,6 +357,9 @@ def plot(
         If more than one range is given.
     ModuleNotFoundError
         If the optional viewer is not installed.
+    RuntimeError
+        If ``save`` is set and SeqEyes cannot write the images, or the
+        window closes with an error under ``plot_now``.
 
     Warns
     -----

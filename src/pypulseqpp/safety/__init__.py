@@ -69,16 +69,23 @@ def check_max_grad(seq, system=None) -> tuple[bool, SimpleNamespace]:
     seq : Sequence
         Sequence to check.
     system : pypulseqpp.Opts, default=None
-        System limits; defaults to seq.system.
+        Source of ``max_grad`` (Hz/m); ``seq.system`` when ``None``.
 
     Returns
     -------
     is_ok : bool
         True when the largest per-axis amplitude does not exceed ``max_grad``.
+        Always True when ``max_grad`` is not positive.
     report : SimpleNamespace
         ``limit``; the ``per_axis`` and ``vector`` peaks; and ``axes``, the
         peak of each of x, y and z on its own. Each peak carries ``value`` in
-        Hz/m, the 1-based ``block`` containing it, and its ``axis``.
+        Hz/m, the 1-based ``block`` containing it, and its ``axis``
+        (``'x'``, ``'y'`` or ``'z'``).
+
+    Raises
+    ------
+    ValueError
+        If neither ``system`` nor ``seq.system`` is available.
 
     Notes
     -----
@@ -109,15 +116,23 @@ def check_max_slew(seq, system=None) -> tuple[bool, SimpleNamespace]:
     seq : Sequence
         Sequence to check.
     system : pypulseqpp.Opts, default=None
-        System limits; the sequence's own by default.
+        Source of ``max_slew`` (Hz/m/s) and ``grad_raster_time`` (s);
+        ``seq.system`` when ``None``.
 
     Returns
     -------
     is_ok : bool
         True when the largest per-axis slew rate does not exceed ``max_slew``.
+        Always True when ``max_slew`` is not positive.
     report : SimpleNamespace
         ``limit``; the ``per_axis`` and ``vector`` slew-rate peaks in Hz/m/s;
-        and ``axes``, the peak of each of x, y and z on its own.
+        and ``axes``, the peak of each of x, y and z on its own. Peaks carry
+        the same fields as in :func:`check_max_grad`.
+
+    Raises
+    ------
+    ValueError
+        If neither ``system`` nor ``seq.system`` is available.
 
     Notes
     -----
@@ -150,8 +165,8 @@ def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
     seq : Sequence
         The sequence to check.
     system : pypulseqpp.Opts, default=None
-        System limits supplying the slew limit a discontinuity is compared
-        with; the sequence's own by default.
+        Source of ``max_slew`` (Hz/m/s), which a discontinuity is compared
+        with, and ``grad_raster_time`` (s); ``seq.system`` when ``None``.
 
     Returns
     -------
@@ -162,6 +177,11 @@ def check_grad_continuity(seq, system=None) -> tuple[bool, SimpleNamespace]:
         ``limit``; the ``discontinuities`` found, each naming the ``block``,
         the ``axis``, the amplitudes ``before`` and ``after`` the boundary and
         the ``slew`` rate the step implies; and ``ends_at_zero``.
+
+    Raises
+    ------
+    ValueError
+        If neither ``system`` nor ``seq.system`` is available.
 
     Notes
     -----

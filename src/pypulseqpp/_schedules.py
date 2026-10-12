@@ -35,7 +35,7 @@ def make_rf_spoiling_schedule(
     length : int
         Number of repetitions.
     increment : float, default=np.deg2rad(117.0)
-        Quadratic phase increment (rad); 117 degrees by default.
+        Quadratic phase increment (rad).
     initial_phase : float, default=0.0
         Phase of the first repetition (rad).
     initial_increment : float, default=0.0
@@ -85,7 +85,7 @@ def make_phase_cycling_schedule(
     length : int
         Number of repetitions to fill.
     phases : sequence of float, default=(0.0, np.pi)
-        The cycle to repeat (rad); ``(0, pi)`` by default.
+        Phases of one cycle (rad), repeated to ``length`` entries.
 
     Returns
     -------
@@ -138,11 +138,12 @@ def make_traps_schedule(
     Parameters
     ----------
     length : int
-        Echo train length (>= 1).
+        Echo train length, at least 1.
     target_flip_angle : float
         Asymptotic refocusing flip angle (rad), positive.
     variable : bool, default=True
-        Sweep down to the target (default) instead of holding it constant.
+        If ``True``, the first angle exceeds the target and the train decays
+        to it; if ``False``, every angle equals the target.
 
     Returns
     -------
@@ -153,8 +154,8 @@ def make_traps_schedule(
     Raises
     ------
     ValueError
-        If ``length`` is negative, or a flip angle is outside the range a
-        refocusing train can use.
+        If ``length`` is below 1, or ``target_flip_angle`` is not a positive
+        finite angle.
 
     Examples
     --------

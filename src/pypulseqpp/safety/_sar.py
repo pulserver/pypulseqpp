@@ -16,13 +16,22 @@ from .. import _ext as _cxx
 class VopModel(NamedTuple):
     """Virtual observation points, and optional global SAR matrices.
 
-    ``vops`` is ``(N, Nc, Nc)``, complex Hermitian, in W/kg per unit channel
-    drive squared: SAR is ``v^H Q v`` for the channel drive phasors ``v`` at
-    peak amplitude. ``global_matrix`` is ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with
-    one matrix per body model as a population's file carries; the global SAR of
-    a window is the largest over the models. ``metadata`` is what the file says
-    about itself, such as the coil, the drive unit, the channel order and the
-    ``safety_factor`` every local SAR is multiplied by.
+    SAR is ``v^H Q v`` for the channel drive phasors ``v`` at peak amplitude
+    and a matrix ``Q``; the global SAR of a window is the largest over the
+    body models.
+
+    Attributes
+    ----------
+    vops : numpy.ndarray
+        Complex Hermitian matrices, shape ``(N, Nc, Nc)``, in W/kg per unit
+        channel drive squared.
+    global_matrix : numpy.ndarray or None
+        Global SAR matrix, shape ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with one
+        matrix per body model, in the same unit.
+    metadata : dict or None
+        What the file records about itself, such as the coil, the drive unit,
+        the channel order and the ``safety_factor`` every local SAR is
+        multiplied by.
     """
 
     vops: np.ndarray
@@ -113,8 +122,8 @@ def read_vops(path: str | os.PathLike) -> VopModel:
 
     Parameters
     ----------
-    path : str | os.PathLike
-        The ``.mat`` or ``.npz`` file to read.
+    path : str or os.PathLike
+        ``.mat`` or ``.npz`` file to read.
 
     Returns
     -------
@@ -345,15 +354,17 @@ def check_sar(
         :func:`read_vops` and :func:`example_vops`. With one global matrix per
         body model, a window's global SAR is the largest over the models.
     drive_per_hz : float or array_like
-        Channel drive per Hz of RF amplitude, in the VOPs' drive unit: one
-        value, or one per channel.
+        Channel drive per Hz of RF amplitude, in the VOPs' drive unit; a
+        scalar or one value per channel.
     local_limit : float, default=10.0
-        W/kg; IEC 60601-2-33 normal-mode head limits by default.
+        Local SAR limit (W/kg); the default is the IEC 60601-2-33 normal-mode
+        head limit.
     global_limit : float, default=3.2
-        W/kg; IEC 60601-2-33 normal-mode head limits by default.
+        Global SAR limit (W/kg); the default is the IEC 60601-2-33 normal-mode
+        head limit.
     default_shim : array_like, default=None
-        Channel weights of a single-channel pulse played without an RF shim;
-        all ones by default.
+        Complex channel weights applied to a single-channel pulse in a block
+        without an RF shim; ones when ``None``.
     reference : Sequence or report, default=None
         What to compare with, in the same model and calibration: a sequence,
         such as a CP-mode FID, evaluated here with the same drive and default
@@ -361,8 +372,8 @@ def check_sar(
         SAR gives the reference's global SAR in each body model and its
         duration. The model needs its global matrices.
     safety_factor : float, default=None
-        Factor, at least 1, every local SAR is multiplied by; the model's
-        ``metadata["safety_factor"]`` when None, and 1 when it has none.
+        Factor, at least 1, every local SAR is multiplied by; when ``None``,
+        the model's ``metadata["safety_factor"]``, else 1.
 
     Returns
     -------

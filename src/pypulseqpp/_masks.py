@@ -537,8 +537,9 @@ def make_poisson_disc_mask(
     Raises
     ------
     ValueError
-        If the acceleration is not greater than one, or the draw cannot reach
-        it within the shape given.
+        If the acceleration is not greater than one, a shape entry is not
+        positive, a calibration extent exceeds the shape, or the draw cannot
+        reach the acceleration within ``tol``.
 
     See Also
     --------

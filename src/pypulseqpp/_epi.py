@@ -92,8 +92,10 @@ def make_epi_shot_offsets(
     Raises
     ------
     ValueError
-        If a count is out of range, ``scheme`` is unknown, or ``extent`` is
-        given for a scheme other than ``'zigzag'`` or omitted for it.
+        If ``etl``, ``acceleration``, ``segments`` or (for ``'caipi'``)
+        ``partition_acceleration`` is below 1, ``extent`` is negative,
+        ``scheme`` is unknown, or ``extent`` is given for a scheme other than
+        ``'zigzag'`` or omitted for it.
 
     See Also
     --------
@@ -182,8 +184,8 @@ def _zigzag(etl: int, step: int, extent: int) -> np.ndarray:
 
     The outward pass visits ``0, step, 2 * step, ...`` as far as ``extent``
     allows; the return pass visits the same lattice offset by ``step // 2``, so
-    consecutive passes interleave and every blip stays within one ``step``. The two passes together are the cycle, repeated until the
-    train runs out.
+    consecutive passes interleave and every blip stays within one ``step``.
+    The two passes together are the cycle, repeated until the train runs out.
     """
     if extent < 0:
         raise ValueError("extent must be nonnegative")

@@ -53,9 +53,9 @@ def calc_golden_angles(n: int, *, full_circle: bool = False) -> np.ndarray:
     n : int
         Number of angles.
     full_circle : bool, default=False
-        ``False`` (the default) is the ``pi``-periodic radial/blade golden
-        angle ``pi / phi``; ``True`` is the full-turn spiral golden angle
-        ``2 * pi / phi**2``. Default is False.
+        ``False`` selects the ``pi``-periodic radial/blade increment
+        ``pi / phi``; ``True`` selects the full-turn spiral increment
+        ``2 * pi / phi**2``.
 
     Returns
     -------
@@ -110,7 +110,8 @@ def calc_raga_angles(
     Raises
     ------
     ValueError
-        If ``n`` is below one, or the approximation index is out of range.
+        If ``n`` is negative, ``tiny_index`` is below 1 or
+        ``approximation_order`` is below 2.
 
     Examples
     --------
@@ -154,7 +155,7 @@ def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
     n : int
         Number of angles.
     index : int, default=2
-        Tiny-golden index ``N >= 1`` (default 2).
+        Tiny-golden index, at least 1.
 
     Returns
     -------
@@ -195,8 +196,8 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     n : int
         Number of angles.
     span : float, default=2.0 * np.pi
-        Angular range the spokes are spread across, in radians. ``pi`` for
-        diametric spokes, ``2 * pi`` (the default) for full-turn arms.
+        Angular range (rad) the angles are spread across: ``pi`` for
+        diametric spokes, ``2 * pi`` for full-turn arms.
 
     Returns
     -------
@@ -206,7 +207,7 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     Raises
     ------
     ValueError
-        If ``n`` is below one, or ``span`` is not positive.
+        If ``n`` is negative.
 
     Examples
     --------
@@ -242,7 +243,7 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     n_views : int
         Spokes in the base shell, at least three.
     n_shots : int, default=1
-        Rotated replays of that shell.
+        Number of rotated replays of the base shell, at least one.
     scheme : {'spiral', 'meridian'}, default='spiral'
         ``'spiral'`` winds pole to pole across equal-area rings, so the shell
         alone is already near-uniform. ``'meridian'`` is a half great circle in
@@ -254,13 +255,15 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     directions : numpy.ndarray
         Unit spoke directions of the base shell, shape ``(n_views, 3)``.
     rotations : numpy.ndarray
-        Rotation matrices, shape ``(n_shots, 3, 3)``, each turning the whole
-        shell to where that shot samples.
+        Rotation matrices, shape ``(n_shots, 3, 3)``: rotations about the z
+        axis by ``2*pi*k/n_shots``, ``k = 0..n_shots-1``. Each maps the whole
+        base shell to the directions that shot samples.
 
     Raises
     ------
     ValueError
-        If a count is out of range or ``scheme`` is unknown.
+        If ``n_views`` is below 3, ``n_shots`` is below 1 or ``scheme`` is
+        unknown.
 
     Examples
     --------

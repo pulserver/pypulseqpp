@@ -39,9 +39,14 @@ _WEIGHTING_TOLERANCE_DB = 1.0
 class AcousticResponse(NamedTuple):
     """A gradient coil's acoustic transfer function, per physical axis.
 
-    ``transfer`` is ``(3, bins)`` complex, the sound pressure in Pa per mT/m of
-    gradient on x, y and z, at the frequencies ``k * frequency_step`` Hz for
-    ``k = 0 .. bins - 1``.
+    Attributes
+    ----------
+    transfer : numpy.ndarray
+        Complex, shape ``(3, bins)``: sound pressure (Pa) per mT/m of gradient
+        on x, y and z, at the frequencies ``k * frequency_step`` for
+        ``k = 0 .. bins - 1``.
+    frequency_step : float
+        Bin spacing (Hz).
     """
 
     transfer: np.ndarray
@@ -60,8 +65,8 @@ def read_acoustic_response(
 
     Parameters
     ----------
-    path : str | os.PathLike
-        The HDF5 file to read.
+    path : str or os.PathLike
+        HDF5 file to read.
     sampling_interval : float
         Sampling interval (s) the bins refer to; bin ``k`` lies at
         ``k / (N * sampling_interval)`` Hz.
@@ -138,12 +143,12 @@ def a_weighting(frequency) -> np.ndarray:
     Parameters
     ----------
     frequency : array_like
-        Frequencies in Hz.
+        Frequencies (Hz).
 
     Returns
     -------
-    NDArray[np.float64]
-        The amplitude gain, the shape of ``frequency``.
+    numpy.ndarray
+        Amplitude gain, the shape of ``frequency``.
 
     Examples
     --------
@@ -210,14 +215,15 @@ def check_spl(
         The gradient coil's acoustic transfer function, on the physical axes;
         see :func:`read_acoustic_response`.
     rotation : array_like, default=None
-        3x3 prescription rotation from logical to physical axes, applied after
-        each block's own rotation; identity (axial) by default.
+        3x3 prescription rotation from logical to physical axes, composed
+        after each block's own rotation; identity (axial) when ``None``.
     peak_limit : float, default=140.0
-        Largest peak level allowed, in dB.
+        Largest peak level allowed (dB re 20 uPa).
     average_limit : float, default=99.0
-        Largest A-weighted average level allowed, in dB(A).
+        Largest A-weighted average level allowed (dB(A) re 20 uPa).
     system : pypulseqpp.Opts, default=None
-        Source of the gyromagnetic ratio; the sequence's own by default.
+        Source of the gyromagnetic ratio (Hz/T); ``seq.system`` when
+        ``None``, then the default :class:`~pypulseqpp.Opts`.
 
     Returns
     -------
@@ -240,8 +246,7 @@ def check_spl(
     -----
     The repetition is sampled at the centres of ``n`` equal intervals, ``n``
     the smallest transform length with only small prime factors that reaches
-    the highest frequency ``response`` tabulates. Its
-    harmonics ``k / duration`` are weighted by ``response``, linearly
+    the highest frequency ``response`` tabulates. Its harmonics ``k / duration`` are weighted by ``response``, linearly
     interpolated between bins and zero above them, and summed over the axes;
     the averages are taken over the harmonics (Parseval), the A-weighted one
     with :func:`a_weighting`. Levels are referred to 20 uPa.

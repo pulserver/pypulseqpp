@@ -41,7 +41,7 @@ def plot(seq, *args, **kwargs):
     Returns
     -------
     Viewer
-        The viewer process, which closes when it is garbage collected.
+        Handle to the viewer window.
     """
     return seq.plot(*args, **kwargs)
 
@@ -58,7 +58,10 @@ def paper_plot(seq, *args, **kwargs):
 
     Returns
     -------
-    matplotlib.axes.Axes
-        The axes the diagram was drawn on.
+    types.SimpleNamespace
+        ``diagram``, the :class:`mrsd.Diagram`; ``tr``, the 1-based repetition
+        drawn solid; and ``underlays``, the 1-based repetitions drawn
+        underneath. ``tr`` is ``None`` and ``underlays`` empty when
+        ``time_range`` is given.
     """
     return seq.paper_plot(*args, **kwargs)

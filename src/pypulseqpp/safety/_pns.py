@@ -16,15 +16,20 @@ from ._physical import _gamma, _prescription
 class ChronaxieModel(NamedTuple):
     """Rheobase-chronaxie nerve model.
 
-    ``chronaxie`` is in s and ``rheobase`` in T/m/s. The response is
-    normalised by ``rheobase / alpha``: a rectangular slew S held for tau
-    reaches ``S alpha tau / (rheobase (chronaxie + tau))``.
+    The response is normalised by ``rheobase / alpha``: a rectangular slew S
+    held for tau reaches ``S alpha tau / (rheobase (chronaxie + tau))``. The
+    chronaxie, and with it the shape of the response kernel, is shared by the
+    axes; ``rheobase`` and ``alpha`` scale the response and are one value for
+    every axis or one per physical axis.
 
-    ``rheobase`` and ``alpha`` are one value for every axis, or one per
-    physical axis. The chronaxie, and with it the shape of the response
-    kernel, is shared by the axes; per-axis values scale the response of each
-    axis to a given slew, so a gradient coil whose axes stimulate differently
-    is not evaluated on every axis as its most stimulating one.
+    Attributes
+    ----------
+    chronaxie : float
+        Chronaxie (s).
+    rheobase : float or tuple of float
+        Rheobase (T/m/s), one value or one per physical axis.
+    alpha : float or tuple of float
+        Dimensionless response scale, one value or one per physical axis.
     """
 
     chronaxie: float
@@ -38,21 +43,21 @@ _SAFE_FIELDS = ("a1", "a2", "a3", "tau1", "tau2", "tau3", "stim_limit", "g_scale
 def read_safe_model(path: str | os.PathLike) -> SimpleNamespace:
     """Read a SAFE nerve model from a Siemens ``.asc`` hardware description.
 
-    Reading is upstream PyPulseq's ``readasc`` and ``asc_to_hw``; the result
+    Reading is upstream PyPulseq's ``readasc`` and ``asc_to_hw``. The result
     is shaped like ``pypulseq.utils.safe_pns_prediction.safe_example_hw()``:
     ``x``, ``y`` and ``z``, each with ``a1``-``a3``, ``tau1``-``tau3`` (ms),
     ``stim_limit`` (T/m/s) and ``g_scale``.
 
     Parameters
     ----------
-    path : str | os.PathLike
-        The ``.asc`` file to read.
+    path : str or os.PathLike
+        Siemens ``.asc`` hardware description.
 
     Returns
     -------
     types.SimpleNamespace
-        The model, shaped as described above, for
-        :func:`~pypulseqpp.safety.check_pns` to take as its ``model``.
+        The SAFE model, accepted as ``model`` by
+        :func:`~pypulseqpp.safety.check_pns`.
     """
     from pypulseq.utils.siemens.asc_to_hw import asc_to_hw
     from pypulseq.utils.siemens.readasc import readasc
@@ -148,14 +153,15 @@ def check_pns(
         description shaped like upstream's ``safe_example_hw()``; or a ``.asc``
         file for :func:`read_safe_model`.
     rotation : array_like, default=None
-        3x3 prescription rotation from logical to physical axes, applied after
-        each block's own rotation; identity (axial) by default.
+        3x3 prescription rotation from logical to physical axes, composed
+        after each block's own rotation; identity (axial) when ``None``.
     system : pypulseqpp.Opts, default=None
-        Source of the gyromagnetic ratio; the sequence's own by default.
+        Source of the gyromagnetic ratio (Hz/T); ``seq.system`` when
+        ``None``, then the default :class:`~pypulseqpp.Opts`.
     trace : bool, default=False
         Also return the response over time, which a diagnostic plot draws.
-        The trace is one value per gradient raster interval over the whole
-        sequence, so it costs four arrays of ``samples`` each.
+        The trace has one value per gradient raster interval over the whole
+        sequence.
 
     Returns
     -------
@@ -170,6 +176,15 @@ def check_pns(
         1-based ``block`` that plays it. Under ``trace``, ``time`` (s),
         ``response`` -- the root-sum-square, as a fraction of threshold -- and
         each axis's own ``response``, all of length ``samples``.
+
+    Raises
+    ------
+    TypeError
+        If ``model`` is none of the accepted forms.
+    ValueError
+        If a model coefficient is not positive, a SAFE axis lacks a field or
+        its ``a1 + a2 + a3`` is not 1, or ``rotation`` is not a 3x3
+        orthonormal matrix.
 
     Notes
     -----

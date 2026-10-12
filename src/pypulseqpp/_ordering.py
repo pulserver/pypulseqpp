@@ -256,8 +256,7 @@ def make_linear_order(
         ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
         centre, which is the origin. Encoded view indices ``(y, z)`` on an
         ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
-        Distances and angles are evaluated in the units supplied. Boolean
-        masks are not accepted.
+        Boolean masks are not accepted.
     train_length : int
         Echo-train length, at least 1. The number of shots is
         ``ceil(N / train_length)``.
@@ -642,8 +641,7 @@ def make_shuffling_order(
         ``(ky, kz)`` or an ``(N,)`` array of ``ky``, relative to the k-space
         centre, which is the origin. Encoded view indices ``(y, z)`` on an
         ``(n_y, n_z)`` grid convert as ``views - (n_y // 2, n_z // 2)``.
-        Distances and angles are evaluated in the units supplied. Boolean
-        masks are not accepted.
+        Boolean masks are not accepted.
     train_length : int
         Echo-train length, at least 1. The number of shots is
         ``ceil(N / train_length)``.
@@ -676,7 +674,8 @@ def make_shuffling_order(
 
     See Also
     --------
-    make_linear_order : the same train membership in raster echo order.
+    make_linear_order : raster order dealt echo-major, so a train spans
+        bands rather than contiguous views.
 
     References
     ----------
