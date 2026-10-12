@@ -45,8 +45,8 @@ Timing structure
 
 Each cycle comprises inversion, crusher, inversion delay, spoiled
 gradient-echo train and recovery interval. ``ti=None`` and ``tr=None`` take the
-shortest inversion time and recovery supported by the modules. Four lines per
-partition provide a compact timing diagram. Clinical matrices typically
+shortest inversion time and recovery supported by the modules. Trains of four
+views provide a compact timing diagram. Clinical matrices typically
 require inversion times of several hundred milliseconds and much
 longer readout trains.
 
@@ -72,7 +72,7 @@ longer readout trains.
 
  .. code-block:: none
 
-    80 blocks, 0.16 s, TI 8 ms, TR 41 ms
+    60 blocks, 0.12 s, TI 8 ms, TR 41 ms
 
 
 
@@ -95,21 +95,22 @@ longer readout trains.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 97-108
+.. GENERATED FROM PYTHON SOURCE LINES 97-109
 
 Sampling order
 --------------
 
-At a protocol matrix, each inversion cycle acquires the sampled lines of one
-partition:
-the inversion cycle is constant along each row of the map, and the index
-within the train runs outward from the centre of the line axis. The centre of
-k-space is therefore the first view in a train. ``TI`` is measured from the
-inversion-pulse centre to that view's excitation-pulse centre; the central
-ADC sample occurs one echo time later, at ``TI + TE``. Peripheral lines are
-acquired later in the recovery.
+At a protocol matrix, every inversion cycle acquires a train of
+``ceil(n_y / ry)`` views. The radial ordering deals the trains as angular
+wedges of the ky-kz plane, each read centre-out: the index within the train
+grows with the distance from the centre, and one train starts at the centre
+of k-space. ``TI`` is measured from the inversion-pulse centre to that view's
+excitation-pulse centre; the central ADC sample occurs one echo time later,
+at ``TI + TE``. Peripheral views are acquired later in the recovery. The
+sampled views are filled to a whole number of trains with the unsampled
+views nearest the centre, so every train has the same length.
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-121
+.. GENERATED FROM PYTHON SOURCE LINES 109-122
 
 .. code-block:: Python
 
@@ -118,7 +119,7 @@ acquired later in the recovery.
     print(
         f"{protocol.duration()[0]:.1f} s, "
         f"{int(_places(protocol, 'inversion').max()) + 1} "
-        "readouts in the longest train, "
+        "readouts per train, "
         f"central ADC at {(protocol.get_definition('TI')[0] + protocol.get_definition('TE')[0]) * 1e3:.1f} ms"
     )
 
@@ -136,24 +137,24 @@ acquired later in the recovery.
 
  .. code-block:: none
 
-    55.2 s, 128 readouts in the longest train, central ADC at 904.0 ms
+    43.7 s, 128 readouts per train, central ADC at 904.0 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 122-131
+.. GENERATED FROM PYTHON SOURCE LINES 123-132
 
 Accelerated sampling
 --------------------
 
 ``ry`` and ``rz`` subsample the line and partition axes. ``caipi_shift``
 offsets the sampled partitions between adjacent lines to control the alias
-distribution. Fewer lines per partition reduce both train duration and the
-range of inversion-recovery weighting. Scan duration equals the number of
-inversion cycles multiplied by TR; the fully sampled calibration region still
-requires every partition.
+distribution. ``ry`` shortens every train, which reduces both its duration and
+the range of inversion-recovery weighting; ``rz`` reduces the number of
+trains. Scan duration equals the number of inversion cycles multiplied by TR;
+the fully sampled calibration region adds views at every undersampling.
 
-.. GENERATED FROM PYTHON SOURCE LINES 131-147
+.. GENERATED FROM PYTHON SOURCE LINES 132-148
 
 .. code-block:: Python
 
@@ -177,8 +178,8 @@ requires every partition.
  .. code-block:: none
 
                      views   cycles  per train  scan (s)
-    1 x 1             2391       24       99.6      55.2
-    2 x 2, shift 1     883       24       36.8      55.2
+    1 x 1             2432       19      128.0      43.7
+    2 x 2, shift 1     896       14       64.0      32.2
 
 
 
@@ -186,7 +187,7 @@ requires every partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.950 seconds)
+   **Total running time of the script:** (0 minutes 0.904 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage3D_sequence.py:

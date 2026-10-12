@@ -7,7 +7,7 @@
 :Sampling: Cartesian
 :Readout: One inversion per shot, followed by the phase-encode lines of one partition as a spoiled gradient-echo train
 
-3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.
+3D MPRAGE: one inversion per shot, then a train of spoiled low-flip views.
 
 Each shot applies one inversion and then acquires every sampled in- plane view of a single partition, so the partition encode is constant within a shot and the number of shots equals the number of sampled partitions. The inversion time is measured from the centre of the inversion pulse to the centre of the first excitation of the train, and the repetition time is the interval between successive inversions.
 

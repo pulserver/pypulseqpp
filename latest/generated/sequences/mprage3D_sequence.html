@@ -536,28 +536,28 @@
 <dd class="field-even"><p>One inversion per shot, followed by the phase-encode lines of one partition as a spoiled gradient-echo train</p>
 </dd>
 </dl>
-<p>3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.</p>
+<p>3D MPRAGE: one inversion per shot, then a train of spoiled low-flip views.</p>
 <p>Each shot applies one inversion and then acquires every sampled in- plane view of a single partition, so the partition encode is constant within a shot and the number of shots equals the number of sampled partitions. The inversion time is measured from the centre of the inversion pulse to the centre of the first excitation of the train, and the repetition time is the interval between successive inversions.</p>
 <section id="prescription">
 <h2>Prescription<a class="headerlink" href="#prescription" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.mprage3D_sequence">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">mprage3D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.mprage3D_sequence" title="Link to this definition">#</a></dt>
-<dd><p>3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.</p>
-<p>Each shot is the inversion, a wait that puts the first line’s excitation
-centre at TI, one <a class="reference internal" href="../pypulseqpp.sequences.LineReadout3D.html#pypulseqpp.sequences.LineReadout3D" title="pypulseqpp.sequences.LineReadout3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineReadout3D</span></code></a> repetition per line of one
-partition, and a recovery that makes every inversion-to-inversion interval
-the TR. Partitions are played in order. Only views inside the inscribed
-ky-kz ellipse are sampled, so partitions hold different numbers of lines;
-every shot plays as many repetitions as the fullest partition, and the ones
-it has no line for play without acquiring. <code class="docutils literal notranslate"><span class="pre">ordering</span></code> plays a partition’s
-lines centre-out, so the centre line’s excitation occurs at TI and its ADC
-echo at TI + TE, or shuffled for a time-resolved reconstruction. Each
-acquisition carries its line and its partition as <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, and,
-shuffled, its place in the train, the time a time-resolved reconstruction
-resolves, as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>; calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>, and under
-wave-CAIPI the calibration region is first acquired wave-free in shots of
-its own, marked <code class="docutils literal notranslate"><span class="pre">REF</span></code>.</p>
+<dd><p>3D MPRAGE: one inversion per shot, then a train of spoiled low-flip views.</p>
+<p>Each shot is the inversion, a wait that puts the first view’s excitation
+centre at TI, one <a class="reference internal" href="../pypulseqpp.sequences.LineReadout3D.html#pypulseqpp.sequences.LineReadout3D" title="pypulseqpp.sequences.LineReadout3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineReadout3D</span></code></a> repetition per view of its train,
+and a recovery that makes every inversion-to-inversion interval the TR.
+Every train holds <code class="docutils literal notranslate"><span class="pre">ceil(n_y</span> <span class="pre">/</span> <span class="pre">ry)</span></code> ky-kz views: only views inside the
+inscribed ky-kz ellipse are sampled, and the unsampled views nearest the
+k-space centre are added until the views fill a whole number of trains, so
+every shot acquires the same number of views. <code class="docutils literal notranslate"><span class="pre">ordering</span></code> deals the trains
+as angular wedges of the ky-kz plane, each played centre-out, so that the
+centre view’s excitation occurs at TI and its ADC echo at TI + TE, or as a
+random partition for a time-resolved reconstruction. Each acquisition
+carries its view as <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, and, shuffled, its place in the
+train, the time a time-resolved reconstruction resolves, as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>;
+calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>, and under wave-CAIPI the calibration
+region is first acquired wave-free in trains of its own, marked <code class="docutils literal notranslate"><span class="pre">REF</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -602,12 +602,13 @@ acquired ahead of the rest when undersampled.</p></li>
 encode, acquired ahead of the rest when undersampled.</p></li>
 <li><p><strong>elliptical_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Make the calibration region the ellipse inscribed in the
 <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle rather than the rectangle.</p></li>
-<li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'}</em><em>, </em><em>default='radial'</em>) – Line order within a partition, and the support it is drawn from.
-<code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: CAIPIRINHA lattice support, lines of each partition
-acquired centre-out. <code class="docutils literal notranslate"><span class="pre">'shuffling'</span></code>: variable-density
-Poisson-disc support (<code class="docutils literal notranslate"><span class="pre">sampling='poisson'</span></code> of
-<a class="reference internal" href="../pypulseqpp.make_cartesian_plane_sampling.html#pypulseqpp.make_cartesian_plane_sampling" title="pypulseqpp.make_cartesian_plane_sampling"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling()</span></code></a>), lines of each
-partition acquired in random order.</p></li>
+<li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'}</em><em>, </em><em>default='radial'</em>) – Train order, and the support it is drawn from. <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>:
+CAIPIRINHA lattice support, each train an angular wedge of the ky-kz
+plane acquired centre-out (<a class="reference internal" href="../pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_radial_order()</span></code></a>).
+<code class="docutils literal notranslate"><span class="pre">'shuffling'</span></code>: variable-density Poisson-disc support
+(<code class="docutils literal notranslate"><span class="pre">sampling='poisson'</span></code> of
+<a class="reference internal" href="../pypulseqpp.make_cartesian_plane_sampling.html#pypulseqpp.make_cartesian_plane_sampling" title="pypulseqpp.make_cartesian_plane_sampling"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling()</span></code></a>), views dealt into
+trains in random order.</p></li>
 <li><p><strong>wave</strong> (<em>{'phase'</em><em>, </em><em>'partition'</em><em>, </em><em>'both'}</em><em>, </em><em>default='both'</em>) – Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
 wave-encoding gradients the calibration region is acquired again
 first without them, marked <code class="docutils literal notranslate"><span class="pre">REF</span></code>, and no wave-encoded view is

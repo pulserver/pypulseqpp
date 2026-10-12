@@ -538,8 +538,8 @@ high-resolution 3D T1-weighted structural imaging.</p>
 <h2>Timing structure<a class="headerlink" href="#timing-structure" title="Link to this heading">#</a></h2>
 <p>Each cycle comprises inversion, crusher, inversion delay, spoiled
 gradient-echo train and recovery interval. <code class="docutils literal notranslate"><span class="pre">ti=None</span></code> and <code class="docutils literal notranslate"><span class="pre">tr=None</span></code> take the
-shortest inversion time and recovery supported by the modules. Four lines per
-partition provide a compact timing diagram. Clinical matrices typically
+shortest inversion time and recovery supported by the modules. Trains of four
+views provide a compact timing diagram. Clinical matrices typically
 require inversion times of several hundred milliseconds and much
 longer readout trains.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="nn">.</span><span class="nn">sequences</span><span class="w"> </span><span class="kn">import</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/mprage3D_sequence.html#pypulseqpp.sequences.mprage3D_sequence" title="pypulseqpp.sequences.mprage3D_sequence"><span class="n">mprage3D_sequence</span></a><span class="w">
@@ -551,7 +551,7 @@ longer readout trains.</p>
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">TR </span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">compact</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s1">'</span><span class="s1">TR</span><span class="s1">'</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> ms</span><span class="s2">&quot;</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>80 blocks, 0.16 s, TI 8 ms, TR 41 ms
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>60 blocks, 0.12 s, TI 8 ms, TR 41 ms
 </pre></div>
 </div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">compact</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
@@ -559,23 +559,24 @@ longer readout trains.</p>
 <img src="../../../_images/sphx_glr_mprage3D_sequence_001.png" srcset="../../../_images/sphx_glr_mprage3D_sequence_001.png" alt="mprage3D sequence" class = "sphx-glr-single-img"/></section>
 <section id="sampling-order">
 <h2>Sampling order<a class="headerlink" href="#sampling-order" title="Link to this heading">#</a></h2>
-<p>At a protocol matrix, each inversion cycle acquires the sampled lines of one
-partition:
-the inversion cycle is constant along each row of the map, and the index
-within the train runs outward from the centre of the line axis. The centre of
-k-space is therefore the first view in a train. <code class="docutils literal notranslate"><span class="pre">TI</span></code> is measured from the
-inversion-pulse centre to that view’s excitation-pulse centre; the central
-ADC sample occurs one echo time later, at <code class="docutils literal notranslate"><span class="pre">TI</span> <span class="pre">+</span> <span class="pre">TE</span></code>. Peripheral lines are
-acquired later in the recovery.</p>
+<p>At a protocol matrix, every inversion cycle acquires a train of
+<code class="docutils literal notranslate"><span class="pre">ceil(n_y</span> <span class="pre">/</span> <span class="pre">ry)</span></code> views. The radial ordering deals the trains as angular
+wedges of the ky-kz plane, each read centre-out: the index within the train
+grows with the distance from the centre, and one train starts at the centre
+of k-space. <code class="docutils literal notranslate"><span class="pre">TI</span></code> is measured from the inversion-pulse centre to that view’s
+excitation-pulse centre; the central ADC sample occurs one echo time later,
+at <code class="docutils literal notranslate"><span class="pre">TI</span> <span class="pre">+</span> <span class="pre">TE</span></code>. Peripheral views are acquired later in the recovery. The
+sampled views are filled to a whole number of trains with the unsampled
+views nearest the centre, so every train has the same length.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">protocol</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/mprage3D_sequence.html#pypulseqpp.sequences.mprage3D_sequence" title="pypulseqpp.sequences.mprage3D_sequence"><span class="n">mprage3D_sequence</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">ti</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="mf">2.3</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span><span class="nb">print</span><span class="p">(</span><span class="w">
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><span class="n">protocol</span><span class="o">.</span><span class="n">duration</span></a><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s, </span><span class="s2">&quot;</span><span class="w">
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">_places</span><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">protocol</span></a><span class="p">,</span><span class="w"> </span><span class="s1">'</span><span class="s1">inversion</span><span class="s1">'</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> </span><span class="s2">&quot;</span><span class="w">
-</span>    <span class="s2">&quot;</span><span class="s2">readouts in the longest train, </span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">readouts per train, </span><span class="s2">&quot;</span><span class="w">
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">central ADC at </span><span class="si">{</span><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">protocol</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s1">'</span><span class="s1">TI</span><span class="s1">'</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">protocol</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s1">'</span><span class="s1">TE</span><span class="s1">'</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms</span><span class="s2">&quot;</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_mprage3D_sequence_002.png" srcset="../../../_images/sphx_glr_mprage3D_sequence_002.png" alt="mprage3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>55.2 s, 128 readouts in the longest train, central ADC at 904.0 ms
+<img src="../../../_images/sphx_glr_mprage3D_sequence_002.png" srcset="../../../_images/sphx_glr_mprage3D_sequence_002.png" alt="mprage3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>43.7 s, 128 readouts per train, central ADC at 904.0 ms
 </pre></div>
 </div>
 </section>
@@ -583,20 +584,20 @@ acquired later in the recovery.</p>
 <h2>Accelerated sampling<a class="headerlink" href="#accelerated-sampling" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">ry</span></code> and <code class="docutils literal notranslate"><span class="pre">rz</span></code> subsample the line and partition axes. <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code>
 offsets the sampled partitions between adjacent lines to control the alias
-distribution. Fewer lines per partition reduce both train duration and the
-range of inversion-recovery weighting. Scan duration equals the number of
-inversion cycles multiplied by TR; the fully sampled calibration region still
-requires every partition.</p>
+distribution. <code class="docutils literal notranslate"><span class="pre">ry</span></code> shortens every train, which reduces both its duration and
+the range of inversion-recovery weighting; <code class="docutils literal notranslate"><span class="pre">rz</span></code> reduces the number of
+trains. Scan duration equals the number of inversion cycles multiplied by TR;
+the fully sampled calibration region adds views at every undersampling.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">accelerated</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/mprage3D_sequence.html#pypulseqpp.sequences.mprage3D_sequence" title="pypulseqpp.sequences.mprage3D_sequence"><span class="n">mprage3D_sequence</span></a><span class="p">(</span><span class="w">
 </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">ry</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rz</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">caipi_shift</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ti</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="mf">2.3</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_mprage3D_sequence_003.png" srcset="../../../_images/sphx_glr_mprage3D_sequence_003.png" alt="mprage3D sequence" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>                 views   cycles  per train  scan (s)
-1 x 1             2391       24       99.6      55.2
-2 x 2, shift 1     883       24       36.8      55.2
+1 x 1             2432       19      128.0      43.7
+2 x 2, shift 1     896       14       64.0      32.2
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.950 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.904 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-12-mprage-mprage3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/b534a291e694d24fcd6bc1941a2ba11d/mprage3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">mprage3D_sequence.ipynb</span></code></a></p>

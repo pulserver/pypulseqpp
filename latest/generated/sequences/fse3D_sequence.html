@@ -562,7 +562,9 @@ shot moves from the centre values to the periphery ones along
 <code class="xref py py-func docutils literal notranslate"><span class="pre">shot_parameters()</span></code>, and the view order is radial. Every shot plays the
 longest train; past its own length a shot’s refocusing pulses have zero
 amplitude and nothing is acquired, and its closing delay makes its TR, so
-the scan stays one repeating train.</p>
+the scan stays one repeating train. Trains that are not individually
+parameterized all acquire <code class="docutils literal notranslate"><span class="pre">etl</span></code> views: the unsampled views nearest the
+k-space centre are added until the views fill a whole number of trains.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

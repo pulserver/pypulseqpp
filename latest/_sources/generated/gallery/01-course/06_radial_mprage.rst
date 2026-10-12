@@ -493,7 +493,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.277 seconds)
+   **Total running time of the script:** (0 minutes 1.037 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_06_radial_mprage.py:
