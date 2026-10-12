@@ -1,4 +1,4 @@
-"""3D MPRAGE: inversion-prepared, RF-spoiled Cartesian gradient echo, one partition per inversion."""
+"""3D MPRAGE: inversion-prepared, RF-spoiled Cartesian gradient echo, one train of views per inversion."""
 
 from __future__ import annotations
 
@@ -37,31 +37,28 @@ NAVIGATOR_TR = 100e-3
 NAVIGATOR_COUNT = 5
 
 
-def order_lines(lines: list[int], centre: int, ordering: str, rng) -> list[int]:
-    """Return one partition's lines in play order.
+def radius(view: tuple[int, int], n_y: int, n_z: int) -> float:
+    """Squared distance of a view ``(y, z)`` from the k-space centre, normalised to the grid."""
+    return ((view[0] - n_y // 2) / n_y) ** 2 + ((view[1] - n_z // 2) / n_z) ** 2
 
-    ``radial`` plays them centre-out, the lower of two equally distant lines
-    first; ``shuffling`` in a random order.
 
-    Parameters
-    ----------
-    lines : list of int
-        The lines acquired at this partition.
-    centre : int
-        The line at the centre of k-space.
-    ordering : str
-        ``"radial"`` or ``"shuffling"``.
-    rng : numpy.random.Generator
-        What ``"shuffling"`` draws its order from.
+def trains(
+    views: list[tuple[int, int]], length: int, n_y: int, n_z: int, ordering: str
+) -> list[list[tuple[int, int]]]:
+    """Deal views ``(y, z)`` into trains of ``length``.
 
-    Returns
-    -------
-    list of int
-        ``lines`` in play order.
+    ``radial`` cuts the plane into angular wedges, each read centre-out
+    (:func:`~pypulseqpp.make_radial_order`), so every train opens near the
+    k-space centre; ``shuffling`` deals the views at random.
     """
+    if not views:
+        return []
     if ordering == "shuffling":
-        return [lines[i] for i in rng.permutation(len(lines))]
-    return sorted(lines, key=lambda y: (abs(y - centre), y))
+        rng = np.random.default_rng(SHUFFLE_SEED)
+        shuffled = [views[i] for i in rng.permutation(len(views))]
+        return [shuffled[i : i + length] for i in range(0, len(views), length)]
+    coords = (np.asarray(views, dtype=float) - [n_y // 2, n_z // 2]) / [n_y, n_z]
+    return [[views[i] for i in train] for train in pp.make_radial_order(coords, length)]
 
 
 def mprage3d(
@@ -97,22 +94,22 @@ def mprage3d(
     wave_amplitude: float = 0.0,
     navigator: bool = False,
 ) -> pp.Sequence:
-    """3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.
+    """3D MPRAGE: one inversion per shot, then a train of spoiled low-flip views.
 
-    Each shot is the inversion, a wait that puts the first line's excitation
-    centre at TI, one :class:`LineReadout3D` repetition per line of one
-    partition, and a recovery that makes every inversion-to-inversion interval
-    the TR. Partitions are played in order. Only views inside the inscribed
-    ky-kz ellipse are sampled, so partitions hold different numbers of lines;
-    every shot plays as many repetitions as the fullest partition, and the ones
-    it has no line for play without acquiring. ``ordering`` plays a partition's
-    lines centre-out, so the centre line's excitation occurs at TI and its ADC
-    echo at TI + TE, or shuffled for a time-resolved reconstruction. Each
-    acquisition carries its line and its partition as ``LIN`` and ``PAR``, and,
-    shuffled, its place in the train, the time a time-resolved reconstruction
-    resolves, as ``ECO``; calibration views are marked ``IMA``, and under
-    wave-CAIPI the calibration region is first acquired wave-free in shots of
-    its own, marked ``REF``.
+    Each shot is the inversion, a wait that puts the first view's excitation
+    centre at TI, one :class:`LineReadout3D` repetition per view of its train,
+    and a recovery that makes every inversion-to-inversion interval the TR.
+    Every train holds ``ceil(n_y / ry)`` ky-kz views: only views inside the
+    inscribed ky-kz ellipse are sampled, and the unsampled views nearest the
+    k-space centre are added until the views fill a whole number of trains, so
+    every shot acquires the same number of views. ``ordering`` deals the trains
+    as angular wedges of the ky-kz plane, each played centre-out, so that the
+    centre view's excitation occurs at TI and its ADC echo at TI + TE, or as a
+    random partition for a time-resolved reconstruction. Each acquisition
+    carries its view as ``LIN`` and ``PAR``, and, shuffled, its place in the
+    train, the time a time-resolved reconstruction resolves, as ``ECO``;
+    calibration views are marked ``IMA``, and under wave-CAIPI the calibration
+    region is first acquired wave-free in trains of its own, marked ``REF``.
 
     Parameters
     ----------
@@ -178,12 +175,13 @@ def mprage3d(
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
     ordering : {'radial', 'shuffling'}, default='radial'
-        Line order within a partition, and the support it is drawn from.
-        ``'radial'``: CAIPIRINHA lattice support, lines of each partition
-        acquired centre-out. ``'shuffling'``: variable-density
-        Poisson-disc support (``sampling='poisson'`` of
-        :func:`~pypulseqpp.make_cartesian_plane_sampling`), lines of each
-        partition acquired in random order.
+        Train order, and the support it is drawn from. ``'radial'``:
+        CAIPIRINHA lattice support, each train an angular wedge of the ky-kz
+        plane acquired centre-out (:func:`~pypulseqpp.make_radial_order`).
+        ``'shuffling'``: variable-density Poisson-disc support
+        (``sampling='poisson'`` of
+        :func:`~pypulseqpp.make_cartesian_plane_sampling`), views dealt into
+        trains in random order.
     wave : {'phase', 'partition', 'both'}, default='both'
         Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
         wave-encoding gradients the calibration region is acquired again
@@ -284,7 +282,9 @@ def mprage3d(
     no_waves = [pp.scale_grad(g, 0.0) for g in waves]
     spacing = ro.duration
 
-    # One shot per partition, every shot as long as the fullest partition.
+    # Every shot plays one train of as many views as a line has at this
+    # undersampling, and the views fill a whole number of trains.
+    n_readouts = -(-n_y // ry)
     calibrating, imaging = pp.make_cartesian_plane_sampling(
         (n_y, n_z),
         (ry, rz),
@@ -295,26 +295,21 @@ def mprage3d(
         elliptical_acs=elliptical_acs,
         sampling="poisson" if ordering == "shuffling" else "lattice",
         seed=SHUFFLE_SEED,
+        train_length=n_readouts,
     )
     calibration = set(calibrating)
     views = sorted({*calibrating, *imaging})
-    rng = np.random.default_rng(SHUFFLE_SEED)
-    by_partition: dict[int, list[int]] = {}
-    for y, z in views:
-        by_partition.setdefault(z, []).append(y)
-    shots = [
-        (z, order_lines(lines, n_y // 2, ordering, rng))
-        for z, lines in sorted(by_partition.items())
-    ]
+    shots = trains(views, n_readouts, n_y, n_z, ordering)
     # A wave-encoded view calibrates nothing, so with the wave on the
-    # calibration region is acquired again wave-free, in shots of its own.
+    # calibration region is acquired again wave-free, in shots of its own,
+    # the last filled with the views nearest the centre.
     reference = []
     if waves:
-        for z, lines in shots:
-            region = [y for y in lines if (y, z) in calibration]
-            if region:
-                reference.append((z, order_lines(region, n_y // 2, "radial", rng)))
-    n_readouts = max(len(lines) for _, lines in shots)
+        nearest = sorted(views, key=lambda v: (radius(v, n_y, n_z), v))
+        region = [v for v in nearest if v in calibration]
+        extra = [v for v in nearest if v not in calibration]
+        region += extra[: -len(region) % n_readouts]
+        reference = trains(region, n_readouts, n_y, n_z, "radial")
 
     # From the inversion centre to the first excitation centre: the rest
     # of the inversion module, the TI wait and the pulse's place in its
@@ -355,19 +350,19 @@ def mprage3d(
     seq, labels = pp.Sequence(system), sequences.Labels()
 
     def kernel(
-        partition: int, lines: list[int | None], phases, kind: str = "image"
+        views: list[tuple[int, int] | None], phases, kind: str = "image"
     ) -> None:
-        """Add one inversion-prepared shot over ``lines`` of ``partition``.
+        """Add one inversion-prepared shot over ``views``.
 
         ``phases`` are the RF-spoiling phases (rad) of its repetitions. A
         ``dummy`` shot acquires nothing, a ``reference`` shot plays without
-        the wave, and a repetition past the end of ``lines``, or at ``None``,
+        the wave, and a repetition past the end of ``views``, or at ``None``,
         acquires nothing either.
         """
         wave_events = no_waves if kind == "reference" else waves
         wait_te = getattr(ro, "wait_te", None)
         wait_tr = getattr(ro, "wait_tr", None)
-        lines = list(lines) + [None] * (n_readouts - len(lines))
+        views = list(views) + [None] * (n_readouts - len(views))
         if kind == "dummy":
             flags = {"ONCE": 1}
         else:
@@ -378,21 +373,22 @@ def mprage3d(
         seq.add_block(inv.rf_prep, *labels(**flags))
         seq.add_block(inv.gz_spoil)
         seq.add_block(wait_ti)
-        kz = (partition - n_z // 2) / (n_z / 2)
-        for echo, (line, phase) in enumerate(zip(lines, phases, strict=True)):
+        for echo, (view, phase) in enumerate(zip(views, phases, strict=True)):
             # The slab sits at isocentre, so the excitation has no frequency
             # offset and its phase is the spoiling phase alone.
             ro.rf.phase_offset = phase
             ro.adc.phase_offset = phase
-            ky = 0.0 if line is None else (line - n_y // 2) / (n_y / 2)
+            line, partition = (n_y // 2, n_z // 2) if view is None else view
+            ky = (line - n_y // 2) / (n_y / 2)
+            kz = (partition - n_z // 2) / (n_z / 2)
             seq.add_block(ro.rf, *([] if gz is None else [gz]))
             if wait_te is not None:
                 seq.add_block(wait_te)
             seq.add_block(
                 ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), pp.scale_grad(ro.gz_pre, kz)
             )
-            if kind != "dummy" and line is not None:
-                is_calibration = not waves and (line, partition) in calibration
+            if kind != "dummy" and view is not None:
+                is_calibration = not waves and view in calibration
                 counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
                 if ordering == "shuffling":
                     counters["ECO"] = echo
@@ -410,16 +406,16 @@ def mprage3d(
                 seq.add_block(*block)
         seq.add_block(wait_recovery)
 
-    # The dummy shots, the wave-free reference shots, then every partition.
-    blank = (n_z // 2, [None] * n_readouts)
+    # The dummy shots, the wave-free reference shots, then every shot.
+    blank = [None] * n_readouts
     played = [(blank, "dummy")] * n_dummy
     played += [(shot, "reference") for shot in reference]
     played += [(shot, "image") for shot in shots]
     schedule = pp.make_rf_spoiling_schedule(
         len(played) * n_readouts, increment=np.deg2rad(RF_SPOILING_INCREMENT_DEG)
     ).reshape(len(played), n_readouts)
-    for ((partition, lines), kind), phases in zip(played, schedule, strict=True):
-        kernel(partition, lines, phases, kind)
+    for (views, kind), phases in zip(played, schedule, strict=True):
+        kernel(views, phases, kind)
 
     # The volume's offset is applied to the finished sequence with
     # pp.TransformFOV.

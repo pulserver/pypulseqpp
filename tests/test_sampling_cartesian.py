@@ -8,6 +8,7 @@ that estimates coil sensitivities needs it whatever the undersampling.
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import pypulseqpp as pp
@@ -114,6 +115,11 @@ def test_an_out_of_range_argument_is_refused(kwargs, match):
         pp.make_cartesian_axis_sampling(64, **kwargs)
 
 
+def test_a_train_length_below_one_is_refused():
+    with pytest.raises(ValueError, match="train_length"):
+        pp.make_cartesian_plane_sampling((16, 16), train_length=0)
+
+
 @pytest.mark.parametrize("sampling", ["lattice", "poisson"])
 def test_the_plane_count_is_the_number_of_views_the_plane_sampling_lists(sampling):
     arguments = {
@@ -134,3 +140,111 @@ def test_the_plane_count_is_the_number_of_views_the_plane_sampling_lists(samplin
         len(calibration),
         len(imaging),
     )
+
+
+def test_the_probability_of_a_lattice_view_is_whether_the_plane_sampling_lists_it():
+    arguments = {
+        "shape": (48, 40),
+        "acceleration": (2, 2),
+        "n_acs": (12, 10),
+        "caipi_shift": 1,
+        "partial_fourier": (0.75, 1.0),
+        "elliptical": True,
+        "elliptical_acs": True,
+    }
+
+    listed = pp.make_cartesian_plane_sampling(**arguments)
+    probabilities = pp.calc_cartesian_plane_sampling_probability(**arguments)
+
+    for views, probability in zip(listed, probabilities, strict=True):
+        mask = np.zeros(arguments["shape"])
+        mask[tuple(np.transpose(views))] = 1.0
+        assert np.array_equal(probability, mask)
+
+
+@pytest.mark.parametrize(
+    ("shape", "acceleration", "n_acs"),
+    [((128, 64), (2, 1), (24, 24)), ((96, 96), (2, 2), (0, 0))],
+)
+def test_the_poisson_disc_probability_counts_the_views_and_the_fullest_partition_of_a_mean_draw(
+    shape, acceleration, n_acs
+):
+    arguments = {
+        "acceleration": acceleration,
+        "n_acs": n_acs,
+        "elliptical": True,
+        "sampling": "poisson",
+    }
+    draws = []
+    for seed in range(8):
+        calibration, imaging = pp.make_cartesian_plane_sampling(
+            shape, **arguments, seed=seed
+        )
+        mask = np.zeros(shape)
+        mask[tuple(np.transpose(calibration + imaging))] = 1.0
+        draws.append(mask)
+    mean = np.mean(draws, axis=0)
+
+    expected = sum(pp.calc_cartesian_plane_sampling_probability(shape, **arguments))
+
+    assert expected.sum() == pytest.approx(mean.sum(), rel=0.03)
+    # Over five partitions, which averages a draw's fluctuation out.
+    smoothed = np.convolve(mean.sum(axis=0), np.ones(5) / 5, mode="same")
+    assert expected.sum(axis=0).max() == pytest.approx(smoothed.max(), rel=0.04)
+
+
+@pytest.mark.parametrize("length", [1, 7, 16])
+def test_a_train_length_fills_a_lattice_to_whole_trains_with_the_views_nearest_the_centre(
+    length,
+):
+    shape = (48, 32)
+    arguments = {"acceleration": (2, 2), "n_acs": (8, 8), "elliptical": True}
+    plain = {
+        view
+        for views in pp.make_cartesian_plane_sampling(shape, **arguments)
+        for view in views
+    }
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, **arguments, train_length=length
+    )
+    filled = {*calibration, *imaging}
+    added = filled - plain
+
+    def radius(view):
+        return ((view[0] - 24) / 48) ** 2 + ((view[1] - 16) / 32) ** 2
+
+    assert plain <= filled
+    assert len(filled) % length == 0
+    assert len(added) < length
+    if added:
+        missed = {(y, z) for y in range(48) for z in range(32)} - filled
+        assert max(map(radius, added)) <= min(map(radius, missed))
+
+
+@pytest.mark.parametrize("sampling", ["lattice", "poisson"])
+@pytest.mark.parametrize("length", [1, 7, 16])
+@pytest.mark.parametrize("seed", [0, 3])
+def test_the_plane_count_is_the_whole_trains_of_views_any_draw_lists(
+    sampling, length, seed
+):
+    shape = (64, 40)
+    arguments = {
+        "acceleration": (2, 2),
+        "n_acs": (8, 8),
+        "elliptical": True,
+        "sampling": sampling,
+        "train_length": length,
+    }
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, **arguments, seed=seed
+    )
+    counted = pp.count_cartesian_plane_sampling(shape, **arguments)
+    expected = sum(
+        pp.calc_cartesian_plane_sampling_probability(
+            shape, **{k: v for k, v in arguments.items() if k != "train_length"}
+        )
+    ).sum()
+
+    assert (len(calibration), len(imaging)) == counted
+    assert sum(counted) % length == 0
+    assert sum(counted) - length < expected <= sum(counted) + 0.5
