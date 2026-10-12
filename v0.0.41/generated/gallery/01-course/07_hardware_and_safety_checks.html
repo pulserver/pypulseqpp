@@ -1,0 +1,858 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>7. Hardware and safety checks &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=b191b055"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/gallery/01-course/07_hardware_and_safety_checks';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/generated/gallery/01-course/07_hardware_and_safety_checks.html" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="8. Sequence functions" href="08_sequence_functions.html" />
+    <link rel="prev" title="6. Radial MPRAGE" href="06_radial_mprage.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="v0.0.41" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../../../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../../index.html">
+                    Homepage
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../developer-guide/internals/safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../explanations/safety-checks.html">Safety checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../../examples/index.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../../../examples/course.html">Course</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="10_custom_sequence_module.html">10. Custom sequence module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/io.html">Reading and writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/events.html">Events and blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/gradients.html">Gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/rf.html">RF pulse design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/trajectories.html">Trajectory design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/modules.html">Sequence modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/sequence-functions.html">Sequence functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sequences.html">Sequence catalogue</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/generated/gallery/01-course/07_hardware_and_safety_checks.rst" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fgenerated/gallery/01-course/07_hardware_and_safety_checks.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../../_sources/generated/gallery/01-course/07_hardware_and_safety_checks.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>7. Hardware and safety checks</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-sequence">Test sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-amplitude-slew-rate-continuity">Gradient amplitude, slew rate, continuity</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanical-resonance">Mechanical resonance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specific-absorption-rate">Specific absorption rate</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-summary">Check summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specification">Specification</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-generated-gallery-01-course-07-hardware-and-safety-checks-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="hardware-and-safety-checks">
+<span id="sphx-glr-generated-gallery-01-course-07-hardware-and-safety-checks-py"></span><h1>7. Hardware and safety checks<a class="headerlink" href="#hardware-and-safety-checks" title="Link to this heading">#</a></h1>
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.41/_colab/01-course/07_hardware_and_safety_checks.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+</a>
+<p>A sequence that passes <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> is one the scanner can play, block by
+block. Whether it should is a question about the whole scan: does any gradient
+exceed the amplitude or slew-rate limit once it is rotated, does the switching
+stimulate peripheral nerves, does the gradient waveform drive the coil at one
+of its mechanical resonances, how much RF power does the subject absorb.
+pypulseqpp computes each of these from the sequence, and this lesson runs them
+on your MPRAGE.</p>
+<p>A passing check does not establish that a sequence is safe to run on a
+scanner or on a subject. The PNS, mechanical-resonance and SAR models used
+here are synthetic demonstrations. Scanner-specific checks and hardware
+monitoring are separate.</p>
+<p><strong>Learning objectives</strong></p>
+<ul class="simple">
+<li><p>Check gradient amplitude, slew rate and continuity on the played
+(rotated) waveforms.</p></li>
+<li><p>Compute the peripheral nerve stimulation response, and see where it peaks.</p></li>
+<li><p>Compare the gradient spectrum with the coil’s forbidden bands.</p></li>
+<li><p>Estimate SAR with a set of virtual observation points.</p></li>
+</ul>
+<p>Previous: <a class="reference internal" href="06_radial_mprage.html"><span class="doc">6. Radial MPRAGE</span></a>. Next: <a class="reference internal" href="08_sequence_functions.html"><span class="doc">8. Sequence functions</span></a>, where
+your MPRAGE becomes a function of its protocol.</p>
+<section id="test-sequence">
+<h2>Test sequence<a class="headerlink" href="#test-sequence" title="Link to this heading">#</a></h2>
+<p>pypulseqpp ships a complete version of the MPRAGE you built in lesson 6,
+<a class="reference internal" href="../12-mprage/mprage_stack_of_stars3D_sequence.html"><span class="doc">mprage_stack_of_stars3D</span></a>.
+You call it with your scanner and your protocol: 220 mm and 128 in-plane,
+16 partitions over 80 mm, one inversion every 2.5 s. <code class="docutils literal notranslate"><span class="pre">ry=3</span></code> plays every
+third spoke of the 202 a fully sampled plane needs, so 68 per inversion, as
+in lesson 6. How a shipped sequence takes its protocol is the subject of the
+next lesson.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span><span class="w">
+</span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">safety</span><span class="p">,</span> <span class="n">sequences</span><span class="w">
+</span><span class="w">
+</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span></a><span class="p">(</span><span class="w">
+</span>    <span class="n">max_grad</span><span class="o">=</span><span class="mf">32.0</span><span class="p">,</span><span class="w">
+</span>    <span class="n">grad_unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">mT/m</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>    <span class="n">max_slew</span><span class="o">=</span><span class="mf">130.0</span><span class="p">,</span><span class="w">
+</span>    <span class="n">slew_unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">T/m/s</span><span class="s2">&quot;</span><span class="p">,</span><span class="w">
+</span>    <span class="n">rf_dead_time</span><span class="o">=</span><span class="mf">100e-6</span><span class="p">,</span><span class="w">
+</span>    <span class="n">rf_ringdown_time</span><span class="o">=</span><span class="mf">20e-6</span><span class="p">,</span><span class="w">
+</span>    <span class="n">adc_dead_time</span><span class="o">=</span><span class="mf">10e-6</span><span class="p">,</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">protocol</span></a> <span class="o">=</span> <span class="p">{</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">fov</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">220e-3</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">n</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">fov_z</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">80e-3</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">n_z</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">ry</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">tr</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">flip_angle_deg</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mf">8.0</span><span class="p">,</span><span class="w">
+</span>    <span class="s2">&quot;</span><span class="s2">n_dummy</span><span class="s2">&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/mprage_stack_of_stars3D_sequence.html#pypulseqpp.sequences.mprage_stack_of_stars3D_sequence" title="pypulseqpp.sequences.mprage_stack_of_stars3D_sequence"><span class="n">sequences</span><span class="o">.</span><span class="n">mprage_stack_of_stars3D_sequence</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><span class="n">system</span></a><span class="p">,</span> <span class="o">*</span><span class="o">*</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">protocol</span></a><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">errors</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span></a><span class="p">(</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">timing ok: </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">ok</span></a><span class="si">}</span><span class="s2">, scan time </span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><span class="n">seq</span><span class="o">.</span><span class="n">duration</span></a><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing ok: True, scan time 40.0 s
+</pre></div>
+</div>
+</section>
+<section id="gradient-amplitude-slew-rate-continuity">
+<h2>Gradient amplitude, slew rate, continuity<a class="headerlink" href="#gradient-amplitude-slew-rate-continuity" title="Link to this heading">#</a></h2>
+<p>Every spoke is the readout rotated in the plane, so each axis plays a
+different share of it. The checks look at the gradients <em>as played</em>, after
+each block’s rotation, and compare them with <code class="docutils literal notranslate"><span class="pre">system</span></code>. They report the
+largest value on any one axis, which is what the hardware limits apply to,
+and the largest vector value, which is not the norm of the per-axis peaks
+because the axes peak at different times. The continuity check looks for a
+gradient that jumps between two blocks, which the scanner cannot play.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">grad_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">grad</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_grad</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">slew_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">slew</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_max_slew.html#pypulseqpp.safety.check_max_slew" title="pypulseqpp.safety.check_max_slew"><span class="n">safety</span><span class="o">.</span><span class="n">check_max_slew</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">cont_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">cont</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_grad_continuity.html#pypulseqpp.safety.check_grad_continuity" title="pypulseqpp.safety.check_grad_continuity"><span class="n">safety</span><span class="o">.</span><span class="n">check_grad_continuity</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">mT_per_m</span></a> <span class="o">=</span> <span class="mf">1e3</span> <span class="o">/</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">system</span><span class="o">.</span><span class="n">gamma</span></a><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">amplitude: largest </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">grad</span><span class="o">.</span><span class="n">per_axis</span><span class="o">.</span><span class="n">value</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">mT_per_m</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mT/m on </span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="str"><span class="n">grad</span><span class="o">.</span><span class="n">per_axis</span><span class="o">.</span><span class="n">axis</span></a><span class="si">}</span><span class="s2">, vector </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">grad</span><span class="o">.</span><span class="n">vector</span><span class="o">.</span><span class="n">value</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">mT_per_m</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mT/m, </span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">limit </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">grad</span><span class="o">.</span><span class="n">limit</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">mT_per_m</span></a><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> mT/m</span><span class="s2">&quot;</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">slew rate: largest </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">slew</span><span class="o">.</span><span class="n">per_axis</span><span class="o">.</span><span class="n">value</span></a><span class="w"> </span><span class="o">/</span><span class="w"> </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">system</span><span class="o">.</span><span class="n">gamma</span></a><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> T/m/s, </span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">limit </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">slew</span><span class="o">.</span><span class="n">limit</span></a><span class="w"> </span><span class="o">/</span><span class="w"> </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">system</span><span class="o">.</span><span class="n">gamma</span></a><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> T/m/s</span><span class="s2">&quot;</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">continuity: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">cont</span><span class="o">.</span><span class="n">discontinuities</span></a><span class="p">)</span><span class="si">}</span><span class="s2"> jumps</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>amplitude: largest 31.4 mT/m on z, vector 31.4 mT/m, limit 32 mT/m
+slew rate: largest 121 T/m/s, limit 130 T/m/s
+continuity: 0 jumps
+</pre></div>
+</div>
+</section>
+<section id="peripheral-nerve-stimulation">
+<h2>Peripheral nerve stimulation<a class="headerlink" href="#peripheral-nerve-stimulation" title="Link to this heading">#</a></h2>
+<p>A switching gradient induces an electric field in the body, which can
+stimulate peripheral nerves. The nerve model turns the slew rate on each
+axis into a response, as a fraction of the stimulation threshold; the axes
+are combined as a root sum of squares, and the check passes while the
+combined response stays below 1.</p>
+<p>The model here is a <em>chronaxie</em> model with three textbook coefficients. A
+scanner supplies its own model, which you read from its file.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">model</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">safety</span><span class="o">.</span><span class="n">ChronaxieModel</span></a><span class="p">(</span><span class="n">chronaxie</span><span class="o">=</span><span class="mf">334e-6</span><span class="p">,</span> <span class="n">rheobase</span><span class="o">=</span><span class="mf">23.4</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.333</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">pns_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">pns</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><span class="n">safety</span><span class="o">.</span><span class="n">check_pns</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><span class="n">model</span></a><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">peak </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">pns</span><span class="o">.</span><span class="n">peak</span><span class="o">.</span><span class="n">value</span></a><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> of threshold at </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">pns</span><span class="o">.</span><span class="n">peak</span><span class="o">.</span><span class="n">time</span></a><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s, </span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">in block </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">pns</span><span class="o">.</span><span class="n">peak</span><span class="o">.</span><span class="n">block</span></a><span class="si">}</span><span class="s2">&quot;</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peak 0.77 of threshold at 38.732 s, in block 4286
+</pre></div>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">trace=True</span></code> the check also returns the response over time, so you
+can see where the peak comes from. The figure shows the spokes around it.</p>
+<img src="../../../_images/sphx_glr_07_hardware_and_safety_checks_001.png" srcset="../../../_images/sphx_glr_07_hardware_and_safety_checks_001.png" alt="07 hardware and safety checks" class = "sphx-glr-single-img"/><p>The response peaks on the ramps of the merged readout and spoiler, where
+the slew rate is highest. Your MPRAGE stays below the threshold.</p>
+</section>
+<section id="mechanical-resonance">
+<h2>Mechanical resonance<a class="headerlink" href="#mechanical-resonance" title="Link to this heading">#</a></h2>
+<p>A gradient coil is a mechanical structure, and it has resonances: frequency
+bands where a gradient waveform makes it vibrate strongly. Scanners forbid
+those bands, each with a tolerance on the gradient amplitude it may carry.</p>
+<p>In this example the coil has two, 550 to 650 Hz at 6 mT/m and 1100 to 1300 Hz at
+4 mT/m. The check computes the spectrum of the gradients in windows of 50 ms
+along the scan, and counts the windows where a band exceeds its tolerance:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">bands</span></a> <span class="o">=</span> <span class="p">[</span><span class="w">
+</span>    <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><span class="n">safety</span><span class="o">.</span><span class="n">ForbiddenBand</span></a><span class="p">(</span><a class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="matplotlib.axes.Axes"><span class="n">axis</span></a><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">550.0</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">650.0</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">6.0</span><span class="p">)</span><span class="p">,</span><span class="w">
+</span>    <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class reference internal" href="../../pypulseqpp.safety.ForbiddenBand.html#pypulseqpp.safety.ForbiddenBand" title="pypulseqpp.safety.ForbiddenBand"><span class="n">safety</span><span class="o">.</span><span class="n">ForbiddenBand</span></a><span class="p">(</span><a class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="matplotlib.axes.Axes"><span class="n">axis</span></a><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">1100.0</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">1300.0</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span><span class="p">,</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">mech_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">mech</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_mech_resonance.html#pypulseqpp.safety.check_mech_resonance" title="pypulseqpp.safety.check_mech_resonance"><span class="n">safety</span><span class="o">.</span><span class="n">check_mech_resonance</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">bands</span></a><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mf">50e-3</span><span class="p">)</span><span class="w">
+</span><span class="k">for</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">band</span></a> <span class="ow">in</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">mech</span><span class="o">.</span><span class="n">bands</span></a><span class="p">:</span><span class="w">
+</span>    <span class="nb">print</span><span class="p">(</span><span class="w">
+</span>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">band</span><span class="o">.</span><span class="n">peak</span></a><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mT/m at </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">band</span><span class="o">.</span><span class="n">frequency</span></a><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz, </span><span class="s2">&quot;</span><span class="w">
+</span>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">band</span><span class="o">.</span><span class="n">violations</span></a><span class="si">}</span><span class="s2"> windows over the tolerance</span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>2.2 mT/m at 600 Hz, 0 windows over the tolerance
+1.6 mT/m at 1253 Hz, 0 windows over the tolerance
+</pre></div>
+</div>
+<p>The spectrum of the window where the first band peaks:</p>
+<img src="../../../_images/sphx_glr_07_hardware_and_safety_checks_002.png" srcset="../../../_images/sphx_glr_07_hardware_and_safety_checks_002.png" alt="07 hardware and safety checks" class = "sphx-glr-single-img"/><p>Each spoke points in a different direction, so the train does not repeat
+the same waveform on any one axis, and its energy is spread over the
+spectrum rather than concentrated in a few lines. A Cartesian or EPI train
+repeats the same gradients every TR or every echo, and its spectrum is a
+comb at that rate and its harmonics: there, a forbidden band is avoided by
+changing the echo spacing so that no tooth falls in it.</p>
+</section>
+<section id="specific-absorption-rate">
+<h2>Specific absorption rate<a class="headerlink" href="#specific-absorption-rate" title="Link to this heading">#</a></h2>
+<p>The RF pulses deposit power in the subject, measured as the specific
+absorption rate, in W/kg. The check uses <em>virtual observation points</em>
+(VOPs), a compressed model of the local SAR of a coil, and averages the
+power over the sequence’s repeating unit. The inversion pulse dominates it:
+10 ms of adiabatic sweep, against the 8 degree excitations.</p>
+<p><a class="reference internal" href="../../pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a> is a <strong>synthetic</strong> model: it has the
+shape of a real one, and its numbers mean nothing about any coil or any
+subject. A real one is read from a file with
+<a class="reference internal" href="../../pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">demonstration</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><span class="n">safety</span><span class="o">.</span><span class="n">example_vops</span></a><span class="p">(</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="bool"><span class="n">sar_ok</span></a><span class="p">,</span> <a class="sphx-glr-backref-module-types sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="types.SimpleNamespace"><span class="n">sar</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><span class="n">safety</span><span class="o">.</span><span class="n">check_sar</span></a><span class="p">(</span><span class="w">
+</span>    <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="p">,</span><span class="w">
+</span>    <a class="sphx-glr-backref-module-pypulseqpp-safety sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><span class="n">demonstration</span><span class="o">.</span><span class="n">model</span></a><span class="p">,</span><span class="w">
+</span>    <span class="n">drive_per_hz</span><span class="o">=</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-attribute reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64" title="numpy.float64"><span class="n">demonstration</span><span class="o">.</span><span class="n">drive_per_hz</span></a><span class="p">,</span><span class="w">
+</span>    <span class="n">default_shim</span><span class="o">=</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">demonstration</span><span class="o">.</span><span class="n">cp_shim</span></a><span class="p">,</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span><span class="nb">print</span><span class="p">(</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">local </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">sar</span><span class="o">.</span><span class="n">worst_local</span><span class="o">.</span><span class="n">sar</span></a><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> W/kg (limit </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">sar</span><span class="o">.</span><span class="n">local_limit</span></a><span class="si">}</span><span class="s2">), </span><span class="s2">&quot;</span><span class="w">
+</span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">global </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">sar</span><span class="o">.</span><span class="n">worst_global</span><span class="o">.</span><span class="n">sar</span></a><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> W/kg (limit </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">sar</span><span class="o">.</span><span class="n">global_limit</span></a><span class="si">}</span><span class="s2">)</span><span class="s2">&quot;</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>local 0.33 W/kg (limit 10.0), global 0.18 W/kg (limit 3.2)
+</pre></div>
+</div>
+</section>
+<section id="check-summary">
+<h2>Check summary<a class="headerlink" href="#check-summary" title="Link to this heading">#</a></h2>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing                         pass   0 errors
+gradient amplitude             pass   31.4 mT/m
+slew rate                      pass   121 T/m/s
+gradient continuity            pass   0 jumps
+nerve stimulation              pass   0.77 of threshold
+mechanical resonance           pass   0 windows over
+SAR                            pass   0.33 W/kg local
+</pre></div>
+</div>
+<p>How each model works is explained in <a class="reference internal" href="../../../explanations/safety-checks.html"><span class="doc">Safety checks</span></a>.</p>
+</section>
+<section id="specification">
+<h2>Specification<a class="headerlink" href="#specification" title="Link to this heading">#</a></h2>
+<p>What this lesson built, stated the way you would ask an agent for it:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Run pypulseqpp's checks on mprage_stack_of_stars3D_sequence (220 mm,
+128 matrix, 16 partitions over 80 mm, ry=3, TR 2.5 s, 8 degrees) for a
+32 mT/m, 130 T/m/s scanner: check_timing, check_max_grad,
+check_max_slew, check_grad_continuity, check_pns with a chronaxie model
+(334 us, 23.4 T/s, 0.333), check_mech_resonance against 550-650 Hz at
+6 mT/m and 1100-1300 Hz at 4 mT/m in 50 ms windows, and check_sar with
+example_vops. Plot the gradient spectrum against the bands, and print
+every verdict.
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.520 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-course-07-hardware-and-safety-checks-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../../_downloads/050c43341fa8a8083387eb447a82292f/07_hardware_and_safety_checks.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">07_hardware_and_safety_checks.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../../_downloads/d89611ed74e3add95f94ffc8486b1b02/07_hardware_and_safety_checks.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">07_hardware_and_safety_checks.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../../_downloads/0cfe6b80625e4194914bb74b4af42846/07_hardware_and_safety_checks.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">07_hardware_and_safety_checks.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="06_radial_mprage.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">6. Radial MPRAGE</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="08_sequence_functions.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">8. Sequence functions</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-sequence">Test sequence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gradient-amplitude-slew-rate-continuity">Gradient amplitude, slew rate, continuity</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#peripheral-nerve-stimulation">Peripheral nerve stimulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanical-resonance">Mechanical resonance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specific-absorption-rate">Specific absorption rate</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-summary">Check summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#specification">Specification</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

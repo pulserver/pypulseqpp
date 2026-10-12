@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=0a6d3248"></script>
+    <script src="../../_static/documentation_options.js?v=b191b055"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.40';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.40" />
+  <meta name="docsearch:version" content="v0.0.41" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -676,7 +676,7 @@ presents them through <a class="reference internal" href="../../examples/index.h
 </div><div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Refocusing angles below 180 degrees add stimulated-echo pathways to the echo signal [HEN88]_, and variable refocusing angles modulate the T2-dependent signal evolution along the train [BUS08a]_. Radial view ordering maps this evolution onto the (k_y, k_z) plane and therefore determines the modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for T2- and proton-density-weighted structural imaging."><img alt="" src="../../_images/sphx_glr_fse3D_sequence_thumb.png" />
 <p><a class="reference internal" href="13-fast-spin-echo/fse3D_sequence.html"><span class="doc">Conventional 3D fast spin echo</span></a></p>
   <div class="sphx-glr-thumbnail-title">Conventional 3D fast spin echo</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in raster order, and the echo position of each view within its train is random, which determines when each view is acquired. Together, the variable-density support and the random echo positions give each echo time a subset of views spread over the sampled extent without a regular pattern, the sampling condition of echo-resolved subspace reconstruction [TAM17]_; no reconstruction is performed here."><img alt="" src="../../_images/sphx_glr_fse3D_shuffling_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="Shuffled 3D FSE uses the same refocusing-train design as conventional FSE and differs in two separate choices. The support is a variable-density Poisson-disc draw, which determines which views are acquired. The ordering determines when each view is acquired: as in T2 Shuffling [TAM17]_, every echo time samples views over the whole sampled extent, and the echo of each view is drawn as a complementary Poisson-disc split of the support [LEV17]_, so the views of each echo are themselves a variable-density Poisson-disc pattern and neighbouring echoes do not repeat each other&#x27;s neighbourhoods. This is the sampling condition of echo-resolved subspace reconstruction [TAM17]_, with the aliasing of each echo kept away from the point-spread function&#x27;s main lobe; no reconstruction is performed here."><img alt="" src="../../_images/sphx_glr_fse3D_shuffling_thumb.png" />
 <p><a class="reference internal" href="13-fast-spin-echo/fse3D_shuffling.html"><span class="doc">Shuffled echo-resolved 3D FSE</span></a></p>
   <div class="sphx-glr-thumbnail-title">Shuffled echo-resolved 3D FSE</div>
 </div></div></section>

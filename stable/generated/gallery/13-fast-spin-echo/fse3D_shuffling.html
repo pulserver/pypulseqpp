@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=0a6d3248"></script>
+    <script src="../../../_static/documentation_options.js?v=b191b055"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.40';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="Individually optimized 3D fast spin echo" href="fse3D_adaptive.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.40" />
+  <meta name="docsearch:version" content="v0.0.41" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -526,18 +526,19 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="shuffled-echo-resolved-3d-fse">
 <span id="sphx-glr-generated-gallery-13-fast-spin-echo-fse3d-shuffling-py"></span><h1>Shuffled echo-resolved 3D FSE<a class="headerlink" href="#shuffled-echo-resolved-3d-fse" title="Link to this heading">#</a></h1>
-<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.40/_colab/13-fast-spin-echo/fse3D_shuffling.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.41/_colab/13-fast-spin-echo/fse3D_shuffling.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>Shuffled 3D FSE uses the same refocusing-train design as conventional FSE
 and differs in two separate choices. The support is a variable-density
 Poisson-disc draw, which determines which views are acquired. The ordering
-is that of T2 Shuffling <a class="reference internal" href="#tam17" id="id1"><span>[TAM17]</span></a>: each train is a group of contiguous views in
-raster order, and the echo position of each view within its train is random,
-which determines when each view is acquired. Together, the variable-density
-support and the random echo positions give each echo time a subset of views
-spread over the sampled extent without a regular pattern, the sampling
-condition of echo-resolved subspace reconstruction <a class="reference internal" href="#tam17" id="id2"><span>[TAM17]</span></a>; no
-reconstruction is performed here.</p>
+determines when each view is acquired: as in T2 Shuffling <a class="reference internal" href="#tam17" id="id1"><span>[TAM17]</span></a>, every
+echo time samples views over the whole sampled extent, and the echo of each
+view is drawn as a complementary Poisson-disc split of the support <a class="reference internal" href="#lev17" id="id2"><span>[LEV17]</span></a>,
+so the views of each echo are themselves a variable-density Poisson-disc
+pattern and neighbouring echoes do not repeat each other’s neighbourhoods.
+This is the sampling condition of echo-resolved subspace reconstruction
+<a class="reference internal" href="#tam17" id="id3"><span>[TAM17]</span></a>, with the aliasing of each echo kept away from the point-spread
+function’s main lobe; no reconstruction is performed here.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span><span class="w">
 </span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">P</span></a> <span class="o">=</span> <span class="p">{</span><span class="w">
@@ -566,8 +567,10 @@ reconstruction is performed here.</p>
 <p>A fully sampled calibration region is embedded in a variable-density
 Poisson-disc support, selected with
 <code class="docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling(...,</span> <span class="pre">sampling=&quot;poisson&quot;)</span></code>. The echo index of
-each view is then assigned by <a class="reference internal" href="../../pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_shuffling_order()</span></code></a> rather
-than by its distance from the k-space centre.</p>
+each view is then assigned by <a class="reference internal" href="../../pypulseqpp.make_complementary_order.html#pypulseqpp.make_complementary_order" title="pypulseqpp.make_complementary_order"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_complementary_order()</span></code></a>
+rather than by its distance from the k-space centre: the views of each echo
+form a Poisson-disc pattern of their own, and views of neighbouring echoes
+keep a minimum distance from one another.</p>
 <img src="../../../_images/sphx_glr_fse3D_shuffling_001.png" srcset="../../../_images/sphx_glr_fse3D_shuffling_001.png" alt="Sampled views, Echo-time distribution" class = "sphx-glr-single-img"/></section>
 <section id="echo-time-distribution">
 <h2>Echo-time distribution<a class="headerlink" href="#echo-time-distribution" title="Link to this heading">#</a></h2>
@@ -585,11 +588,18 @@ echo time samples views from the centre to the edge of the support.</p>
 <div role="list" class="citation-list">
 <div class="citation" id="tam17" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>TAM17<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>)</span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id3">2</a>)</span>
 <p>Tamir JI, Uecker M, Chen W, Lai P, Alley MT, Vasanawala SS,
 Lustig M. T2 shuffling: sharp, multicontrast, volumetric fast spin-echo
 imaging. <em>Magnetic Resonance in Medicine</em>. 2017;77(1):180-195.
 <a class="reference external" href="https://doi.org/10.1002/mrm.26102">https://doi.org/10.1002/mrm.26102</a></p>
+</div>
+<div class="citation" id="lev17" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">LEV17</a><span class="fn-bracket">]</span></span>
+<p>Levine E, Daniel B, Vasanawala S, Hargreaves B, Saranathan M. 3D
+Cartesian MRI with compressed sensing and variable view sharing using
+complementary Poisson-disc sampling. <em>Magnetic Resonance in Medicine</em>.
+2017;77(5):1774-1785. <a class="reference external" href="https://doi.org/10.1002/mrm.26254">https://doi.org/10.1002/mrm.26254</a></p>
 </div>
 </div>
 <p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.439 seconds)</p>

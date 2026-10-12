@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="_static/documentation_options.js?v=0a6d3248"></script>
+    <script src="_static/documentation_options.js?v=b191b055"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.40';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.40" />
+  <meta name="docsearch:version" content="v0.0.41" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -1029,31 +1029,34 @@ from.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_shuffling_order</span></code></a></p></td>
 <td><p>Echo-train ordering of Cartesian views with random echo positions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_epi_shot_offsets.html#pypulseqpp.make_epi_shot_offsets" title="pypulseqpp.make_epi_shot_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_epi_shot_offsets</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_complementary_order.html#pypulseqpp.make_complementary_order" title="pypulseqpp.make_complementary_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_complementary_order</span></code></a></p></td>
+<td><p>Echo-train ordering of Cartesian views with complementary Poisson-disc echoes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_epi_shot_offsets.html#pypulseqpp.make_epi_shot_offsets" title="pypulseqpp.make_epi_shot_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_epi_shot_offsets</span></code></a></p></td>
 <td><p>Return the phase-encoding offsets of one EPI shot, relative to its first echo.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_uniform_angles.html#pypulseqpp.calc_uniform_angles" title="pypulseqpp.calc_uniform_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_uniform_angles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_uniform_angles.html#pypulseqpp.calc_uniform_angles" title="pypulseqpp.calc_uniform_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_uniform_angles</span></code></a></p></td>
 <td><p>Return equally spaced rotations in the half-open interval [0, span).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_golden_angles.html#pypulseqpp.calc_golden_angles" title="pypulseqpp.calc_golden_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_golden_angles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_golden_angles.html#pypulseqpp.calc_golden_angles" title="pypulseqpp.calc_golden_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_golden_angles</span></code></a></p></td>
 <td><p>Return golden-angle rotations in radians, accumulated modulo 2*pi.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_tiny_golden_angles.html#pypulseqpp.calc_tiny_golden_angles" title="pypulseqpp.calc_tiny_golden_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_tiny_golden_angles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_tiny_golden_angles.html#pypulseqpp.calc_tiny_golden_angles" title="pypulseqpp.calc_tiny_golden_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_tiny_golden_angles</span></code></a></p></td>
 <td><p>Return tiny-golden rotations with increment <code class="docutils literal notranslate"><span class="pre">pi</span> <span class="pre">/</span> <span class="pre">(phi</span> <span class="pre">+</span> <span class="pre">index</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_raga_angles.html#pypulseqpp.calc_raga_angles" title="pypulseqpp.calc_raga_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_raga_angles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_raga_angles.html#pypulseqpp.calc_raga_angles" title="pypulseqpp.calc_raga_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_raga_angles</span></code></a></p></td>
 <td><p>Return rational approximate golden-angle (RAGA) rotations.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_projection_shell.html#pypulseqpp.calc_projection_shell" title="pypulseqpp.calc_projection_shell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_projection_shell</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_projection_shell.html#pypulseqpp.calc_projection_shell" title="pypulseqpp.calc_projection_shell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_projection_shell</span></code></a></p></td>
 <td><p>Return a pole-to-pole base shell and z-axis rotations for each shot.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_rf_spoiling_schedule.html#pypulseqpp.make_rf_spoiling_schedule" title="pypulseqpp.make_rf_spoiling_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rf_spoiling_schedule</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_rf_spoiling_schedule.html#pypulseqpp.make_rf_spoiling_schedule" title="pypulseqpp.make_rf_spoiling_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rf_spoiling_schedule</span></code></a></p></td>
 <td><p>Return quadratic RF-spoiling phases in radians.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_phase_cycling_schedule.html#pypulseqpp.make_phase_cycling_schedule" title="pypulseqpp.make_phase_cycling_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_phase_cycling_schedule</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_phase_cycling_schedule.html#pypulseqpp.make_phase_cycling_schedule" title="pypulseqpp.make_phase_cycling_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_phase_cycling_schedule</span></code></a></p></td>
 <td><p>Repeat a phase cycle, reducing each entry modulo 2*pi.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_traps_schedule.html#pypulseqpp.make_traps_schedule" title="pypulseqpp.make_traps_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_traps_schedule</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_traps_schedule.html#pypulseqpp.make_traps_schedule" title="pypulseqpp.make_traps_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_traps_schedule</span></code></a></p></td>
 <td><p>Return a variable refocusing flip-angle schedule in radians.</p></td>
 </tr>
 </tbody>
