@@ -1,7 +1,7 @@
 r"""
-=================
-1. Gradient echo
-=================
+===========================
+1. Your first gradient echo
+===========================
 
 This course takes you from a 2D Cartesian gradient echo to a 3D radial
 MPRAGE, one step per lesson. This lesson starts with the gradient echo.
