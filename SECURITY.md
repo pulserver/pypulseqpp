@@ -23,3 +23,15 @@ maintained.
 | --- | --- |
 | Default branch and latest release | Yes |
 | Older releases | No |
+
+## Scope
+
+In scope: anything that turns data into execution or memory corruption -- a
+text or binary `.seq` file, a VOP, PNS-model, forbidden-band or acoustic
+response file, or event values and waveforms passed to the native extension,
+which indexes raw buffers.
+
+Out of scope: a sequence script, which is Python that runs in the caller's
+process by design; and resource exhaustion from inputs a caller chose
+themselves. A check that returns a wrong estimate is a
+[bug report](https://github.com/pulserver/pypulseqpp/issues/new/choose).
