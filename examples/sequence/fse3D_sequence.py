@@ -386,10 +386,12 @@ def fse3d(
     Only views inside the inscribed ky-kz ellipse are sampled. ``radial`` deals
     them by adaptive radial reordering (:func:`deal_trains`), so the centre of
     k-space is acquired at the TE echo; ``shuffling`` selects a
-    variable-density Poisson-disc support and assigns it to random echo
-    positions with :func:`~pypulseqpp.make_shuffling_order` (T2 Shuffling,
-    Tamir et al., Magn Reson Med 2017;77:180-195), for an echo-resolved
-    reconstruction. Every acquisition carries its line and partition as ``LIN``
+    variable-density Poisson-disc support and assigns its views to echoes
+    with :func:`~pypulseqpp.make_complementary_order`, so that each echo is a
+    Poisson-disc pattern of its own and neighbouring echoes complement each
+    other (T2 Shuffling, Tamir et al., Magn Reson Med 2017;77:180-195, with
+    complementary Poisson-disc sampling, Levine et al., Magn Reson Med
+    2017;77:1774-1785), for an echo-resolved reconstruction. Every acquisition carries its line and partition as ``LIN``
     and ``PAR``, and, shuffled, its echo, the contrast an echo-resolved
     reconstruction resolves, as ``ECO``; calibration views are marked ``IMA``;
     under wave-CAIPI the calibration region is first acquired wave-free in
@@ -470,7 +472,7 @@ def fse3d(
     ordering : {'radial', 'shuffling'}, default='radial'
         ``'radial'``: adaptive radial reordering of CAIPIRINHA lattice
         support. ``'shuffling'``: variable-density Poisson-disc support
-        in randomly shuffled echo order (T2 Shuffling).
+        with complementary Poisson-disc echoes (T2 Shuffling).
     flip_modulation : {'constant', 'optimized'}, default='constant'
         Constant refocusing angles, or trains designed with blochsim,
         which the ``design`` extra installs.
@@ -654,7 +656,8 @@ def fse3d(
         # Identical trains sit nowhere along a transition.
         place = np.zeros_like(place)
     if ordering == "shuffling":
-        order = pp.make_shuffling_order(coords, etl, seed=SHUFFLE_SEED, pad=True)
+        views = np.asarray(sampled) - [n_y // 2, n_z // 2]
+        order = pp.make_complementary_order(views, etl, seed=SHUFFLE_SEED, pad=True)
         lengths = [etl] * len(order)
         times = [repetition_time] * len(order)
         place = np.zeros(len(order))

@@ -163,9 +163,9 @@
  },
  "fse3D-shuffling": {
   "label:ECO": "990d6fa9261195d5",
-  "label:IMA": "9fa3ee063229f5ab",
-  "label:LIN": "368434e21148ce16",
-  "label:PAR": "7065d18d3abd9785"
+  "label:IMA": "741f833ccc53e80a",
+  "label:LIN": "8775e1650ab7a667",
+  "label:PAR": "c1dd848ec031ce42"
  },
  "gre2D": {
   "label:IMA": "90b44c0fdcab6576",
@@ -251,10 +251,10 @@
  },
  "mprage3D-shuffling": {
   "label:ECO": "990d6fa9261195d5",
-  "label:IMA": "e50825a4dcc396b2",
-  "label:LIN": "5ba14f2709e462cd",
+  "label:IMA": "741f833ccc53e80a",
+  "label:LIN": "8775e1650ab7a667",
   "label:ONCE": "3aee9865bc33686f",
-  "label:PAR": "c8e5acbbfa04ced3"
+  "label:PAR": "c1dd848ec031ce42"
  },
  "mprage_stack_of_spirals3D": {
   "label:IMA": "1e93268a1e1c81f3",
