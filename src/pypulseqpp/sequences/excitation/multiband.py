@@ -47,33 +47,6 @@ class SmsExcitation(RfModule):
     use : str, default='excitation'
         Pulseq RF use tag.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    flip_angle_deg : float
-        On-resonance flip angle (degrees).
-    duration_s : float
-        Pulse duration (s).
-    band_offset_hz : float
-        Sideband offset from the on-resonance band (Hz).
-    n_bands : int, default=3
-        Bands counting the on-resonance one: two for a single sideband, three
-        for a symmetric pair.
-    sideband_power : float, default=1.0
-        Power of each sideband relative to the on-resonance band. Ignored when
-        ``b1rms_ut`` is given.
-    b1rms_ut : float, default=None
-        Target root-mean-square B1 over the repetition (uT), from which the
-        sideband power is solved. Needs ``tr``.
-    tr : float, default=None
-        Repetition time the RMS is taken over (s).
-    time_bw_product : float, default=4.0
-        Time-bandwidth product of the Gaussian envelope.
-    use : str, default='saturation'
-        Pulseq RF use tag.
-
-
     Attributes
     ----------
     rf : RfEvent
@@ -190,6 +163,33 @@ class MultibandExcitation(RfModule):
 
     The sideband weights are given as power relative to the on-resonance band,
     or solved from a target RMS B1 over a repetition time.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    flip_angle_deg : float
+        On-resonance flip angle (degrees).
+    duration_s : float
+        Pulse duration (s).
+    band_offset_hz : float
+        Sideband offset from the on-resonance band (Hz).
+    n_bands : int, default=3
+        Bands counting the on-resonance one: two for a single sideband, three
+        for a symmetric pair.
+    sideband_power : float, default=1.0
+        Power of each sideband relative to the on-resonance band. Ignored when
+        ``b1rms_ut`` is given.
+    b1rms_ut : float, default=None
+        Target root-mean-square B1 over the repetition (uT), from which the
+        sideband power is solved. Needs ``tr``.
+    tr : float, default=None
+        Repetition time the RMS is taken over (s).
+    time_bw_product : float, default=4.0
+        Time-bandwidth product of the Gaussian envelope.
+    use : str, default='saturation'
+        Pulseq RF use tag.
+
 
     Attributes
     ----------

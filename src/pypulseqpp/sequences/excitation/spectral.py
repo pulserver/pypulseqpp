@@ -41,36 +41,6 @@ class FrequencySelectiveExcitation(RfModule):
     passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the spectral profile.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    flip_angle_deg : float
-        Flip angle (degrees).
-    thickness_m : float
-        Slice or slab thickness (m).
-    spectral_bandwidth_hz : float
-        Spectral passband (Hz); with ``spectral_time_bw_product`` it sets the
-        total duration.
-    freq_offset_hz : float, default=0.0
-        Centre of the spectral band (Hz).
-    is_slab : bool, default=False
-        Merge the rephaser into the selection gradient instead of playing it in
-        a second block.
-    rephase : bool, default=True
-        Include the slice rephaser, if the design requires one.
-    spatial_time_bw_product : float, default=4.0
-        Time-bandwidth product of each spatial subpulse.
-    spectral_time_bw_product : float, default=3.0
-        Time-bandwidth product of the spectral envelope.
-    n_subpulses : int, default=10
-        Subpulses in the train.
-    axis : {'z', 'x', 'y'}, default='z'
-        Selection axis.
-    use : str, default='excitation'
-        Pulseq RF use tag.
-
-
     Attributes
     ----------
     rf : RfEvent
@@ -166,6 +136,36 @@ class SpspExcitation(RfModule):
     alternating gradient lobes a slice offset is a phase that follows the
     gradient's area, not a frequency offset: move the slice with
     :meth:`shift`.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    flip_angle_deg : float
+        Flip angle (degrees).
+    thickness_m : float
+        Slice or slab thickness (m).
+    spectral_bandwidth_hz : float
+        Spectral passband (Hz); with ``spectral_time_bw_product`` it sets the
+        total duration.
+    freq_offset_hz : float, default=0.0
+        Centre of the spectral band (Hz).
+    is_slab : bool, default=False
+        Merge the rephaser into the selection gradient instead of playing it in
+        a second block.
+    rephase : bool, default=True
+        Include the slice rephaser, if the design requires one.
+    spatial_time_bw_product : float, default=4.0
+        Time-bandwidth product of each spatial subpulse.
+    spectral_time_bw_product : float, default=3.0
+        Time-bandwidth product of the spectral envelope.
+    n_subpulses : int, default=10
+        Subpulses in the train.
+    axis : {'z', 'x', 'y'}, default='z'
+        Selection axis.
+    use : str, default='excitation'
+        Pulseq RF use tag.
+
 
     Attributes
     ----------

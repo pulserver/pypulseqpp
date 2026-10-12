@@ -130,51 +130,6 @@ class _RadialReadout(_ArmedReadout):
     trigger : TriggerEvent or DigitalOutputEvent, default=None
         Event armed on the block that opens the readout.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    rf : RfEvent
-        Pulse that opens the repetition.
-    gz : GradEvent, default=None
-        Selection gradient played with ``rf``.
-    gz_reph : GradEvent, default=None
-        Rephaser of ``gz``, left-aligned in the first block after the pulse.
-        Only on an axis the shot rotation leaves unchanged.
-    trajectory : NonCartesianGradient
-        Interleaf with its ADC, prewinders and rewinders.
-    fov_z : float, default=None
-        Partition field of view (m). Stacks only.
-    matrix_z : int, default=None
-        Partition count. Stacks only.
-    te : float, default=None
-        Echo time (s), from the RF centre to the point of the path nearest
-        k = 0. ``None`` is as short as possible.
-    tr : float, default=None
-        Repetition time (s). ``None`` is as short as possible.
-    spoiling_cycles : float, default=0.0
-        Cycles of dephasing across ``voxel_size_m`` left at the end of the TR.
-        Zero leaves the path rewound.
-    voxel_size_m : float, default=None
-        Length the spoiling is counted over (m); ``None`` is the resolution of
-        the trajectory.
-    spoiling_axis : {'z', 'x', 'y'}, default='z'
-        Gradient channel of the spoiler.
-    n_echoes : int, default=1
-        Traversals of the path per repetition, joined by rewinders and
-        prewinders, each with its own ``ECO`` label.
-    explicit : bool, default=False
-        Write out one interleaf per entry of ``angles``.
-    angles : array_like, default=None
-        In-plane interleaf rotations (rad). Required with ``explicit`` and
-        rejected without it.
-    labels : sequence of str, default=None
-        Labels set to 0 on the acquisition block, to be changed per shot by the
-        caller.
-    trigger : TriggerEvent or DigitalOutputEvent, default=None
-        Event armed on the block that opens the readout.
-
-
     Attributes
     ----------
     rf : RfEvent
@@ -543,6 +498,51 @@ class NonCartesianReadout(_ArmedReadout):
     blocks. ``trajectory`` is any two-channel :class:`NonCartesianGradient`;
     the spiral and rosette readouts design theirs. The caller sets the
     orientation of each shot.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        Pulse that opens the repetition.
+    gz : GradEvent, default=None
+        Selection gradient played with ``rf``.
+    gz_reph : GradEvent, default=None
+        Rephaser of ``gz``, left-aligned in the first block after the pulse.
+        Only on an axis the shot rotation leaves unchanged.
+    trajectory : NonCartesianGradient
+        Interleaf with its ADC, prewinders and rewinders.
+    fov_z : float, default=None
+        Partition field of view (m). Stacks only.
+    matrix_z : int, default=None
+        Partition count. Stacks only.
+    te : float, default=None
+        Echo time (s), from the RF centre to the point of the path nearest
+        k = 0. ``None`` is as short as possible.
+    tr : float, default=None
+        Repetition time (s). ``None`` is as short as possible.
+    spoiling_cycles : float, default=0.0
+        Cycles of dephasing across ``voxel_size_m`` left at the end of the TR.
+        Zero leaves the path rewound.
+    voxel_size_m : float, default=None
+        Length the spoiling is counted over (m); ``None`` is the resolution of
+        the trajectory.
+    spoiling_axis : {'z', 'x', 'y'}, default='z'
+        Gradient channel of the spoiler.
+    n_echoes : int, default=1
+        Traversals of the path per repetition, joined by rewinders and
+        prewinders, each with its own ``ECO`` label.
+    explicit : bool, default=False
+        Write out one interleaf per entry of ``angles``.
+    angles : array_like, default=None
+        In-plane interleaf rotations (rad). Required with ``explicit`` and
+        rejected without it.
+    labels : sequence of str, default=None
+        Labels set to 0 on the acquisition block, to be changed per shot by the
+        caller.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the block that opens the readout.
+
 
     Attributes
     ----------

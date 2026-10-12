@@ -47,35 +47,6 @@ class SpatialSelectiveExcitation(RfModule):
     passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the slice profile.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    thickness_m : float
-        Slice thickness (m).
-    flip_angle_deg : float, default=180.0
-        Flip angle (degrees).
-    duration_s : float, default=0.003
-        Pulse duration (s).
-    spoiling_cycles : float, default=4.0
-        Cycles of dephasing each crusher produces across ``voxel_size_m``.
-        Zero leaves the bare selection lobe.
-    voxel_size_m : float, default=0.001
-        Length the dephasing is counted over (m).
-    time_bw_product : float, default=4.0
-        Time-bandwidth product.
-    axis : {'z', 'x', 'y'}, default='z'
-        Selection axis; the crushers share it.
-    phase_offset_rad : float, default=np.pi / 2
-        RF phase (rad); the default is the CPMG quarter turn relative to a
-        zero-phase excitation.
-    use : str, default='refocusing'
-        Pulseq RF use tag; the trajectory core negates accumulated k at a
-        refocusing pulse.
-    passband_ripple, stopband_ripple : float, default=0.01
-        Ripple allowed in each band of the slice profile.
-
-
     Attributes
     ----------
     rf : RfEvent
@@ -190,6 +161,35 @@ class SpatialSelectiveRefocusing(RfModule):
     Uses the spin-echo SLR profile. The selection plateau is centred on the
     pulse's recorded centre, its magnitude peak, and extends past the pulse
     until that centre lies on the block raster.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    thickness_m : float
+        Slice thickness (m).
+    flip_angle_deg : float, default=180.0
+        Flip angle (degrees).
+    duration_s : float, default=0.003
+        Pulse duration (s).
+    spoiling_cycles : float, default=4.0
+        Cycles of dephasing each crusher produces across ``voxel_size_m``.
+        Zero leaves the bare selection lobe.
+    voxel_size_m : float, default=0.001
+        Length the dephasing is counted over (m).
+    time_bw_product : float, default=4.0
+        Time-bandwidth product.
+    axis : {'z', 'x', 'y'}, default='z'
+        Selection axis; the crushers share it.
+    phase_offset_rad : float, default=np.pi / 2
+        RF phase (rad); the default is the CPMG quarter turn relative to a
+        zero-phase excitation.
+    use : str, default='refocusing'
+        Pulseq RF use tag; the trajectory core negates accumulated k at a
+        refocusing pulse.
+    passband_ripple, stopband_ripple : float, default=0.01
+        Ripple allowed in each band of the slice profile.
+
 
     Attributes
     ----------

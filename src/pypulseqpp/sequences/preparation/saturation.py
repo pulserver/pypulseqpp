@@ -39,21 +39,6 @@ class OffResonanceSaturation(RfModule):
         Labels set to 0 on the first pulse's block, to be changed per shot by
         the caller.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits the pulse is designed against.
-    flip_angle_deg : float
-        Flip angle (degrees).
-    duration_s : float
-        Pulse duration (s).
-    freq_offset_hz : float
-        Frequency offset (Hz).
-    time_bw_product : float
-        Time-bandwidth product, which with ``duration_s`` sets the saturated
-        band.
-
-
     Attributes
     ----------
     rf_prep : RfEvent
@@ -153,6 +138,21 @@ def saturation_pulse(
     time_bw_product: float,
 ) -> Any:
     """Design a non-selective SLR saturation pulse.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits the pulse is designed against.
+    flip_angle_deg : float
+        Flip angle (degrees).
+    duration_s : float
+        Pulse duration (s).
+    freq_offset_hz : float
+        Frequency offset (Hz).
+    time_bw_product : float
+        Time-bandwidth product, which with ``duration_s`` sets the saturated
+        band.
+
 
     Returns
     -------

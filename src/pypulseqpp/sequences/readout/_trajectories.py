@@ -221,29 +221,6 @@ class NonCartesianGradient:
     kind : str, default=None
         Name of the interleaf family.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    trajectory : array_like
-        K-space path ``(n, 2)`` or ``(n, 3)`` (1/m), with ``n >= 4``. Its
-        samples set the geometry; the solver sets the timing.
-    matrix : int
-        Matrix size. The ADC takes ``round(matrix * oversamp)`` samples,
-        rounded down to a multiple of ``system.adc_samples_divisor``.
-    bandwidth_hz_px : float, default=250000.0
-        Requested ADC sampling rate ``1 / dwell`` (Hz).
-    oversamp : float, default=1.0
-        ADC oversampling, at least 1.
-    axes : sequence of str, default=None
-        Channel of each path component; ``None`` is the first two or three of
-        x, y, z.
-    solver_oversampling : int, default=8
-        Path-resampling factor of the time-optimal solver.
-    derate : bool, default=True
-        Apply :func:`pypulseqpp.apply_system_derates` to ``system`` first.
-
-
     Attributes
     ----------
     trajectory : numpy.ndarray
@@ -494,6 +471,29 @@ class Arbitrary(NonCartesianGradient):
     gets rewinders. The readout is stretched to last at least its sample count
     over ``bandwidth_hz_px``, and the dwell is the longest on the ADC raster
     that fits the samples in it.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    trajectory : array_like
+        K-space path ``(n, 2)`` or ``(n, 3)`` (1/m), with ``n >= 4``. Its
+        samples set the geometry; the solver sets the timing.
+    matrix : int
+        Matrix size. The ADC takes ``round(matrix * oversamp)`` samples,
+        rounded down to a multiple of ``system.adc_samples_divisor``.
+    bandwidth_hz_px : float, default=250000.0
+        Requested ADC sampling rate ``1 / dwell`` (Hz).
+    oversamp : float, default=1.0
+        ADC oversampling, at least 1.
+    axes : sequence of str, default=None
+        Channel of each path component; ``None`` is the first two or three of
+        x, y, z.
+    solver_oversampling : int, default=8
+        Path-resampling factor of the time-optimal solver.
+    derate : bool, default=True
+        Apply :func:`pypulseqpp.apply_system_derates` to ``system`` first.
+
 
     Raises
     ------

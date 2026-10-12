@@ -57,17 +57,6 @@ class SpatialSaturation(RfModule):
         Labels set to 0 on the pulse block, to be changed per shot by the
         caller.
 
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    bands : iterable of tuple
-        ``(normal, position, thickness)`` per band, as :class:`SpatialSaturation`
-        takes them (m for position and thickness).
-    **kwargs
-        Passed to every :class:`SpatialSaturation`.
-
-
     Attributes
     ----------
     rf_prep : RfEvent
@@ -179,6 +168,17 @@ def spatial_saturations(
     """Return a :class:`SpatialSaturation` for each band of nonzero thickness.
 
     A band of zero thickness is skipped.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    bands : iterable of tuple
+        ``(normal, position, thickness)`` per band, as :class:`SpatialSaturation`
+        takes them (m for position and thickness).
+    **kwargs
+        Passed to every :class:`SpatialSaturation`.
+
 
     Returns
     -------

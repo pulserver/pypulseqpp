@@ -21,7 +21,7 @@ class NonSelectiveExcitation(RfModule):
     system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float, default=10.0
-        Nominal flip angle (degrees).
+        Flip angle (degrees).
     duration_s : float, default=0.001
         Pulse duration (s); spectral width scales inversely with duration.
     use : str, default='excitation'
@@ -31,29 +31,6 @@ class NonSelectiveExcitation(RfModule):
         Transmit frequency (Hz) and phase (rad) offsets of the pulse. A scan
         loop changes ``module.rf.freq_offset`` and ``module.rf.phase_offset``
         per shot instead of rebuilding the module.
-
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    flip_angle_deg : float, default=180.0
-        Nominal flip angle (degrees).
-    duration_s : float, default=0.001
-        Pulse duration (s).
-    spoiling_cycles : float, default=4.0
-        Cycles of dephasing each crusher produces across ``voxel_size_m``.
-        Zero omits the crushers.
-    voxel_size_m : float, default=0.001
-        Length the dephasing is counted over (m).
-    axis : {'z', 'x', 'y'}, default='z'
-        Gradient channel of the crushers.
-    phase_offset_rad : float, default=np.pi / 2
-        RF phase (rad); the default is the CPMG quarter turn relative to a
-        zero-phase excitation.
-    use : str, default='refocusing'
-        What the pulse is for; the trajectory core negates accumulated k at a
-        refocusing pulse, so this is not cosmetic.
-
 
     Attributes
     ----------
@@ -113,6 +90,29 @@ class NonSelectiveExcitation(RfModule):
 
 class NonSelectiveRefocusing(RfModule):
     """Rectangular refocusing pulse between two identical crushers.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    flip_angle_deg : float, default=180.0
+        Flip angle (degrees).
+    duration_s : float, default=0.001
+        Pulse duration (s).
+    spoiling_cycles : float, default=4.0
+        Cycles of dephasing each crusher produces across ``voxel_size_m``.
+        Zero omits the crushers.
+    voxel_size_m : float, default=0.001
+        Length the dephasing is counted over (m).
+    axis : {'z', 'x', 'y'}, default='z'
+        Gradient channel of the crushers.
+    phase_offset_rad : float, default=np.pi / 2
+        RF phase (rad); the default is the CPMG quarter turn relative to a
+        zero-phase excitation.
+    use : str, default='refocusing'
+        What the pulse is for; the trajectory core negates accumulated k at a
+        refocusing pulse, so this is not cosmetic.
+
 
     Attributes
     ----------
