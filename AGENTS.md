@@ -51,10 +51,10 @@ separately from the MIT core.
 
 Do not edit vendored submodule contents as part of core maintenance.
 
-`CLAUDE.md` and `GEMINI.md` point here, and `SKILLS.md` indexes the skills
-under `.claude/skills/`: the procedures for building and testing the package,
-writing documentation, and adding a shipped sequence. This page states the
-rules; a skill states how a recurring task is carried out under them.
+`SKILLS.md` indexes the skills under `.claude/skills/`: the procedures for
+building and testing the package, writing documentation, and adding a shipped
+sequence. This page states the rules; a skill states how a recurring task is
+carried out under them.
 
 ## Build and test
 
