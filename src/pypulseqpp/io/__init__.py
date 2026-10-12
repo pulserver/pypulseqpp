@@ -1,8 +1,17 @@
-"""Reading a Pulseq file into a sequence that carries its system, writing one out, and its tables."""
+"""Reading a Pulseq file into a sequence that carries its system, writing one out, its tables, and diffusion tables."""
 
 from __future__ import annotations
 
-__all__ = ["SequenceLibraries", "Shape", "read", "read_chain", "write"]
+__all__ = [
+    "SequenceLibraries",
+    "Shape",
+    "get_diffusion_table",
+    "read",
+    "read_chain",
+    "read_diffusion_table",
+    "set_diffusion_table",
+    "write",
+]
 
 import os as _os
 import pathlib as _pathlib
@@ -11,6 +20,11 @@ import warnings as _warnings
 
 import pypulseqpp as _pp
 from pypulseqpp import safety as _safety
+from pypulseqpp._diffusion import (
+    get_diffusion_table,
+    read_diffusion_table,
+    set_diffusion_table,
+)
 from pypulseqpp._libraries import SequenceLibraries, Shape
 
 #: Definitions a file may state its design limits in, and the ``Opts``
