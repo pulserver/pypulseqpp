@@ -2672,8 +2672,9 @@ class Sequence:
         rf_plot : {'abs', 'real', 'imag'}, default='abs'
             Which part of the RF waveform to draw.
         tr : int, default=None
-            1-based repetition to draw. By default, the one in which an axis
-            reaches its largest magnitude.
+            1-based repetition to draw solid. By default, the one that
+            acquires the most ADC blocks, ties broken by the largest gradient
+            excursion on the axes that differ between repetitions.
         max_underlays : int, default=16
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
@@ -2693,8 +2694,9 @@ class Sequence:
 
         Notes
         -----
-        Repetitions are those of :meth:`repetition`; a sequence that does not
-        repeat is one repetition, drawn whole.
+        Repetitions are those of :meth:`repetition`, or the range declared by
+        the ``PlotTRsize`` and ``PlotTRstart`` definitions when present; a
+        sequence that does not repeat is one repetition, drawn whole.
 
         Examples
         --------
