@@ -20,7 +20,9 @@ class DiffusionPreparation(RfModule):
     A pair of identical diffusion lobes surrounds one refocusing pulse. The
     pair is designed on one axis at ``b_value``; scale it for lower b-values
     (:meth:`scale_for`) and rotate it per direction. The closing spoiler is
-    separate from the pair.
+    separate from the pair. The lobes turn with the prescription, so a
+    direction is in its logical frame, as
+    :func:`~pypulseqpp.io.read_diffusion_table` returns it.
 
     Parameters
     ----------
