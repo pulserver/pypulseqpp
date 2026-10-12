@@ -64,11 +64,13 @@ def _gallery_directories(landing: str) -> set[str]:
     ("heading", "pattern"),
     [("Course", r"01-"), ("Tours", r"02-")],
 )
-def test_the_examples_landing_tables_cover_the_course_and_the_tours(heading, pattern):
-    expected = {name for name in _gallery_sections() if re.match(pattern, name)}
-    landings = _table(DOCS / "examples" / "index.md", heading)
-    covered = set().union(*(_gallery_directories(page) for page in landings))
-    assert expected and covered == expected
+def test_the_examples_landing_tables_list_every_lesson_and_tour(heading, pattern):
+    (directory,) = [name for name in _gallery_sections() if re.match(pattern, name)]
+    scripts = {
+        f"generated/gallery/{directory}/{path.stem}"
+        for path in (DOCS.parent / "gallery" / directory).glob("*.py")
+    }
+    assert set(_table(DOCS / "examples" / "index.md", heading)) == scripts
 
 
 def test_every_gallery_section_is_reached_from_the_examples_landing_page():

@@ -4,19 +4,6 @@ These pages get pypulseqpp onto your machine and a sequence out of it. If you
 are new to Pulseq, the {doc}`Course <../examples/course>` is the place to start;
 if you already have PyPulseq scripts, {doc}`from-pypulseq` shows what changes.
 
-| Page | Contents |
-| --- | --- |
-| This page | Supported platforms, installation, shipped sequences, issues and security. |
-| {doc}`from-pypulseq` | A PyPulseq script run unchanged, then rewritten as a sequence function. |
-| {doc}`../explanations/index` | The concepts: the Pulseq file, the C++ core, design, modules, sampling, analysis and checks. |
-| {doc}`../examples/index` | The Course, the Tours and a page per shipped sequence. |
-| {doc}`../sequences` | The catalogue of shipped sequences. |
-| {doc}`../api/index` | Exact interfaces, units and defaults. |
-| {doc}`../developer-guide/index` | Development setup and contribution workflow. |
-| {doc}`../misc/index` | Licensing, related projects and contributors. |
-| [Source](https://github.com/pulserver/pypulseqpp) | Repository, issues and discussions. |
-| [PDF manual](https://github.com/pulserver/pypulseqpp/releases/latest/download/pypulseqpp-docs.pdf) | This documentation as one file, from the latest release. |
-
 ```{toctree}
 :hidden:
 
@@ -76,20 +63,16 @@ Every module is also a command-line program, with one option per parameter:
 python -m pypulseqpp.sequences.sequence.gre2D_sequence --help
 ```
 
-## Issue reports
+## Getting help
 
 Report a reproducible defect, a documentation error or a narrowly scoped
 feature request on the [issue tracker](https://github.com/pulserver/pypulseqpp/issues).
 Include the pypulseqpp, PyPulseq and Python versions, your operating system and
 the smallest script that reproduces the problem.
 
-## Discussions
-
 Ask usage questions and propose broad design ideas in
-[GitHub Discussions](https://github.com/pulserver/pypulseqpp/discussions).
-Search the existing topics first.
-
-## Security
+[GitHub Discussions](https://github.com/pulserver/pypulseqpp/discussions),
+after searching the existing topics.
 
 Report a vulnerability through
 [GitHub private vulnerability reporting](https://github.com/pulserver/pypulseqpp/security/advisories/new),
