@@ -92,8 +92,13 @@ def test_neighbouring_echoes_complement_each_other_within_the_temporal_width(vie
     assert adjacent(4.0) > adjacent(0.0)
 
 
-def test_a_complementary_order_refuses_fractional_or_repeated_views(views):
+def test_a_complementary_order_refuses_fractional_or_repeated_views_or_a_negative_width(
+    views,
+):
     with pytest.raises(ValueError, match="integer"):
         pp.make_complementary_order(views + 0.5, ETL)
     with pytest.raises(ValueError, match="repeat"):
         pp.make_complementary_order(np.vstack([views, views[:1]]), ETL)
+    with pytest.raises(ValueError, match="temporal_width"):
+        pp.make_complementary_order(views, ETL, temporal_width=-1.0)
+    assert pp.make_complementary_order(np.zeros((0, 2)), ETL) == []

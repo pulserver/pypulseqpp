@@ -6,13 +6,14 @@ Shuffled echo-resolved 3D FSE
 Shuffled 3D FSE uses the same refocusing-train design as conventional FSE
 and differs in two separate choices. The support is a variable-density
 Poisson-disc draw, which determines which views are acquired. The ordering
-is that of T2 Shuffling [TAM17]_: each train is a group of contiguous views in
-raster order, and the echo position of each view within its train is random,
-which determines when each view is acquired. Together, the variable-density
-support and the random echo positions give each echo time a subset of views
-spread over the sampled extent without a regular pattern, the sampling
-condition of echo-resolved subspace reconstruction [TAM17]_; no
-reconstruction is performed here.
+determines when each view is acquired: as in T2 Shuffling [TAM17]_, every
+echo time samples views over the whole sampled extent, and the echo of each
+view is drawn as a complementary Poisson-disc split of the support [LEV17]_,
+so the views of each echo are themselves a variable-density Poisson-disc
+pattern and neighbouring echoes do not repeat each other's neighbourhoods.
+This is the sampling condition of echo-resolved subspace reconstruction
+[TAM17]_, with the aliasing of each echo kept away from the point-spread
+function's main lobe; no reconstruction is performed here.
 """
 
 # sphinx_gallery_start_ignore
@@ -62,8 +63,10 @@ seq = sequences.fse3D_sequence(**P)
 # A fully sampled calibration region is embedded in a variable-density
 # Poisson-disc support, selected with
 # ``make_cartesian_plane_sampling(..., sampling="poisson")``. The echo index of
-# each view is then assigned by :func:`~pypulseqpp.make_shuffling_order` rather
-# than by its distance from the k-space centre.
+# each view is then assigned by :func:`~pypulseqpp.make_complementary_order`
+# rather than by its distance from the k-space centre: the views of each echo
+# form a Poisson-disc pattern of their own, and views of neighbouring echoes
+# keep a minimum distance from one another.
 
 # sphinx_gallery_start_ignore
 labels = seq.evaluate_labels(evolution="adc")
@@ -118,3 +121,7 @@ fig.tight_layout()
 #    Lustig M. T2 shuffling: sharp, multicontrast, volumetric fast spin-echo
 #    imaging. *Magnetic Resonance in Medicine*. 2017;77(1):180-195.
 #    https://doi.org/10.1002/mrm.26102
+# .. [LEV17] Levine E, Daniel B, Vasanawala S, Hargreaves B, Saranathan M. 3D
+#    Cartesian MRI with compressed sensing and variable view sharing using
+#    complementary Poisson-disc sampling. *Magnetic Resonance in Medicine*.
+#    2017;77(5):1774-1785. https://doi.org/10.1002/mrm.26254

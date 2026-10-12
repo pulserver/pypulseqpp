@@ -49,14 +49,17 @@ def trains(
 
     ``radial`` cuts the plane into angular wedges, each read centre-out
     (:func:`~pypulseqpp.make_radial_order`), so every train opens near the
-    k-space centre; ``shuffling`` deals the views at random.
+    k-space centre; ``shuffling`` assigns the views to train positions with
+    :func:`~pypulseqpp.make_complementary_order`, so that each position is a
+    Poisson-disc pattern of its own and neighbouring positions complement
+    each other.
     """
     if not views:
         return []
     if ordering == "shuffling":
-        rng = np.random.default_rng(SHUFFLE_SEED)
-        shuffled = [views[i] for i in rng.permutation(len(views))]
-        return [shuffled[i : i + length] for i in range(0, len(views), length)]
+        offsets = np.asarray(views) - [n_y // 2, n_z // 2]
+        order = pp.make_complementary_order(offsets, length, seed=SHUFFLE_SEED)
+        return [[views[i] for i in train] for train in order]
     coords = (np.asarray(views, dtype=float) - [n_y // 2, n_z // 2]) / [n_y, n_z]
     return [[views[i] for i in train] for train in pp.make_radial_order(coords, length)]
 
@@ -104,8 +107,9 @@ def mprage3d(
     k-space centre are added until the views fill a whole number of trains, so
     every shot acquires the same number of views. ``ordering`` deals the trains
     as angular wedges of the ky-kz plane, each played centre-out, so that the
-    centre view's excitation occurs at TI and its ADC echo at TI + TE, or as a
-    random partition for a time-resolved reconstruction. Each acquisition
+    centre view's excitation occurs at TI and its ADC echo at TI + TE, or with
+    every train position a complementary Poisson-disc pattern, for a
+    time-resolved reconstruction. Each acquisition
     carries its view as ``LIN`` and ``PAR``, and, shuffled, its place in the
     train, the time a time-resolved reconstruction resolves, as ``ECO``;
     calibration views are marked ``IMA``, and under wave-CAIPI the calibration
@@ -180,8 +184,9 @@ def mprage3d(
         plane acquired centre-out (:func:`~pypulseqpp.make_radial_order`).
         ``'shuffling'``: variable-density Poisson-disc support
         (``sampling='poisson'`` of
-        :func:`~pypulseqpp.make_cartesian_plane_sampling`), views dealt into
-        trains in random order.
+        :func:`~pypulseqpp.make_cartesian_plane_sampling`), views assigned to
+        train positions as complementary Poisson-disc patterns
+        (:func:`~pypulseqpp.make_complementary_order`).
     wave : {'phase', 'partition', 'both'}, default='both'
         Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
         wave-encoding gradients the calibration region is acquired again
