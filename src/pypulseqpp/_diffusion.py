@@ -82,10 +82,10 @@ def read_diffusion_table(
     ----------
     path
         The table file.
-    b_value : float, optional
+    b_value : float, default=None
         Largest b-value (s/mm²), which a block direction table's unit vectors
         reach. Required for that layout and ignored otherwise.
-    directions : int, optional
+    directions : int, default=None
         Count of the block to read from a block direction table; may be
         omitted when the file holds one block.
 
