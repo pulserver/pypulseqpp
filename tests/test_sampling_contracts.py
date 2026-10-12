@@ -120,7 +120,7 @@ def test_plane_lattice_is_the_caipirinha_lattice_through_the_centre():
     assert sorted(imaging) == sorted(map(tuple, np.argwhere(shifted).tolist()))
 
 
-def test_plane_poisson_support_is_the_poisson_disc_draw():
+def test_plane_poisson_support_is_the_poisson_disc_draw_brought_to_its_expected_count():
     shape, seed = (24, 24), 3
     calibration, imaging = pp.make_cartesian_plane_sampling(
         shape, (2, 2), (6, 6), sampling="poisson", seed=seed
@@ -128,10 +128,18 @@ def test_plane_poisson_support_is_the_poisson_disc_draw():
     mask = pp.make_poisson_disc_mask(
         shape, 4.0, calib=(6, 6), seed=seed, crop_corner=False
     )
+    listed = set(calibration + imaging)
+    drawn = set(map(tuple, np.argwhere(mask).tolist()))
+    expected = sum(
+        pp.calc_cartesian_plane_sampling_probability(
+            shape, (2, 2), (6, 6), sampling="poisson"
+        )
+    ).sum()
 
-    assert sorted(calibration + imaging) == sorted(
-        map(tuple, np.argwhere(mask).tolist())
-    )
+    assert len(listed) == round(expected)
+    # Only the views a draw holds beyond or short of that count change.
+    assert listed <= drawn or drawn <= listed
+    assert len(listed ^ drawn) == abs(len(drawn) - len(listed))
 
 
 def test_an_unknown_support_scheme_is_refused():

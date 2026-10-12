@@ -51,6 +51,8 @@ def trains(
     (:func:`~pypulseqpp.make_radial_order`), so every train opens near the
     k-space centre; ``shuffling`` deals the views at random.
     """
+    if not views:
+        return []
     if ordering == "shuffling":
         rng = np.random.default_rng(SHUFFLE_SEED)
         shuffled = [views[i] for i in rng.permutation(len(views))]

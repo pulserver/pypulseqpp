@@ -169,7 +169,11 @@ def make_cartesian_plane_sampling(
     seeded into the draw as a fully sampled block; an elliptical one
     (``elliptical_acs=True``) is not, so the corners of its bounding
     rectangle follow the draw and only the ellipse is acquired in full.
-    ``caipi_shift`` is ignored.
+    ``caipi_shift`` is ignored. A draw holds the number of views of its
+    expected density (:func:`calc_cartesian_plane_sampling_probability`),
+    rounded to the nearest view: views beyond it are dropped at random and
+    missing ones are added as for ``train_length``, so
+    :func:`count_cartesian_plane_sampling` counts them without a draw.
 
     For either scheme, partial Fourier and the ``elliptical`` crop are
     applied to the views outside the calibration region, and the calibration
@@ -293,7 +297,7 @@ def make_cartesian_plane_sampling(
             sampling,
             seed,
             train_length=train_length,
-        )
+        )[:2]
     )
 
 
@@ -313,7 +317,8 @@ def _plane_masks(
     """Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists.
 
     With ``expected``, a Poisson-disc support is its expected density rather
-    than a draw, and the imaging mask is a probability.
+    than a draw, and the imaging mask is a probability. The third value is the
+    number of views listed, known without a draw.
     """
     (n_y, n_z), (r_y, r_z) = shape, acceleration
     if r_y < 1 or r_z < 1:
@@ -345,7 +350,7 @@ def _plane_masks(
     ] = True
     if elliptical_acs and calibrating.any():
         calibrating &= inside(n_acs_y, n_acs_z)
-    if sampling == "poisson":
+    if sampling == "poisson" and r_y * r_z > 1:
         # A rectangular ACS region is seeded into the draw as its fully sampled
         # block. An elliptical one is not: the draw then covers the corners of
         # the rectangle like the rest of the plane, and only the ellipse is
@@ -353,38 +358,55 @@ def _plane_masks(
         # of both schemes; ``crop_corner`` only makes the acceleration search
         # count the same region.
         calib = (0, 0) if elliptical_acs else (n_acs_y, n_acs_z)
-        if r_y * r_z == 1:
-            support = np.ones((n_y, n_z), dtype=bool)
-        elif expected:
-            support = _poisson_disc_density(
-                (n_y, n_z), float(r_y * r_z), calib, elliptical
-            )
-        else:
-            support = make_poisson_disc_mask(
+        density = _poisson_disc_density((n_y, n_z), float(r_y * r_z), calib, elliptical)
+        support = (
+            density
+            if expected
+            else make_poisson_disc_mask(
                 (n_y, n_z),
                 float(r_y * r_z),
                 calib=calib,
                 seed=seed,
                 crop_corner=elliptical,
             )
+        )
+    elif sampling == "poisson":
+        density = support = np.ones((n_y, n_z), dtype=bool)
     else:
-        support = (y % r_y == 0) & ((z - caipi_shift * (y // r_y)) % r_z == 0)
-    imaging = support * ~calibrating
-    imaging[:first_y] = False
-    imaging[:, :first_z] = False
-    if elliptical:
-        imaging = imaging * inside(n_y, n_z)
-    short = -int(np.count_nonzero(calibrating | (imaging > 0))) % train_length
-    if short and not expected:
-        # Fill the last train with the unsampled views nearest the centre.
-        free = ~(calibrating | imaging)
-        free[:first_y] = False
-        free[:, :first_z] = False
+        density = support = (y % r_y == 0) & ((z - caipi_shift * (y // r_y)) % r_z == 0)
+
+    def crop(mask: np.ndarray) -> np.ndarray:
+        mask = mask * ~calibrating
+        mask[:first_y] = False
+        mask[:, :first_z] = False
+        return mask * inside(n_y, n_z) if elliptical else mask
+
+    # The views a draw ends with: its expected number, filled to whole trains
+    # with the views of the partial-Fourier region left, as many as there are.
+    n_calibration = int(np.count_nonzero(calibrating))
+    region = np.ones((n_y, n_z), dtype=bool)
+    region[:first_y] = False
+    region[:, :first_z] = False
+    available = int(np.count_nonzero(region | calibrating))
+    views = n_calibration + round(float(crop(density).sum()))
+    target = min(-(-views // train_length) * train_length, available)
+    imaging = crop(support)
+    if expected:
+        return calibrating, imaging, target
+    excess = n_calibration + int(np.count_nonzero(imaging)) - target
+    if excess > 0:
+        # A draw holding more views than expected drops some at random.
+        lines, partitions = np.nonzero(imaging)
+        drop = np.random.default_rng(seed).choice(lines.size, excess, replace=False)
+        imaging[lines[drop], partitions[drop]] = False
+    elif excess < 0:
+        # The unsampled views nearest the centre fill the rest.
+        free = region & ~(calibrating | imaging)
         lines, partitions = np.nonzero(free)
         radius = ((lines - n_y // 2) / n_y) ** 2 + ((partitions - n_z // 2) / n_z) ** 2
-        nearest = np.lexsort((partitions, lines, radius))[:short]
+        nearest = np.lexsort((partitions, lines, radius))[:-excess]
         imaging[lines[nearest], partitions[nearest]] = True
-    return calibrating, imaging
+    return calibrating, imaging, target
 
 
 def count_cartesian_plane_sampling(
@@ -417,7 +439,7 @@ def count_cartesian_plane_sampling(
     >>> pp.count_cartesian_plane_sampling((4, 4), acceleration=(2, 2), n_acs=(2, 2))
     (4, 3)
     """
-    calibrating, imaging = _plane_masks(
+    calibrating, _, views = _plane_masks(
         shape,
         acceleration,
         n_acs,
@@ -427,9 +449,11 @@ def count_cartesian_plane_sampling(
         elliptical_acs,
         sampling,
         seed,
+        expected=True,
         train_length=train_length,
     )
-    return int(np.count_nonzero(calibrating)), int(np.count_nonzero(imaging))
+    n_calibration = int(np.count_nonzero(calibrating))
+    return n_calibration, views - n_calibration
 
 
 def calc_cartesian_plane_sampling_probability(
@@ -472,7 +496,7 @@ def calc_cartesian_plane_sampling_probability(
     >>> int(calibration.sum()), int(imaging.sum())
     (4, 3)
     """
-    calibrating, imaging = _plane_masks(
+    calibrating, imaging, _ = _plane_masks(
         shape,
         acceleration,
         n_acs,

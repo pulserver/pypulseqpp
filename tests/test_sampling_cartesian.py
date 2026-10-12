@@ -188,19 +188,12 @@ def test_the_poisson_disc_probability_counts_the_views_and_the_fullest_partition
     assert expected.sum(axis=0).max() == pytest.approx(smoothed.max(), rel=0.04)
 
 
-@pytest.mark.parametrize("sampling", ["lattice", "poisson"])
 @pytest.mark.parametrize("length", [1, 7, 16])
-def test_a_train_length_fills_the_views_to_whole_trains_with_the_views_nearest_the_centre(
-    sampling, length
+def test_a_train_length_fills_a_lattice_to_whole_trains_with_the_views_nearest_the_centre(
+    length,
 ):
     shape = (48, 32)
-    arguments = {
-        "acceleration": (2, 2),
-        "n_acs": (8, 8),
-        "elliptical": True,
-        "sampling": sampling,
-        "seed": 3,
-    }
+    arguments = {"acceleration": (2, 2), "n_acs": (8, 8), "elliptical": True}
     plain = {
         view
         for views in pp.make_cartesian_plane_sampling(shape, **arguments)
@@ -221,6 +214,32 @@ def test_a_train_length_fills_the_views_to_whole_trains_with_the_views_nearest_t
     if added:
         missed = {(y, z) for y in range(48) for z in range(32)} - filled
         assert max(map(radius, added)) <= min(map(radius, missed))
-    assert pp.count_cartesian_plane_sampling(
-        shape, **arguments, train_length=length
-    ) == (len(calibration), len(imaging))
+
+
+@pytest.mark.parametrize("sampling", ["lattice", "poisson"])
+@pytest.mark.parametrize("length", [1, 7, 16])
+@pytest.mark.parametrize("seed", [0, 3])
+def test_the_plane_count_is_the_whole_trains_of_views_any_draw_lists(
+    sampling, length, seed
+):
+    shape = (64, 40)
+    arguments = {
+        "acceleration": (2, 2),
+        "n_acs": (8, 8),
+        "elliptical": True,
+        "sampling": sampling,
+        "train_length": length,
+    }
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, **arguments, seed=seed
+    )
+    counted = pp.count_cartesian_plane_sampling(shape, **arguments)
+    expected = sum(
+        pp.calc_cartesian_plane_sampling_probability(
+            shape, **{k: v for k, v in arguments.items() if k != "train_length"}
+        )
+    ).sum()
+
+    assert (len(calibration), len(imaging)) == counted
+    assert sum(counted) % length == 0
+    assert sum(counted) - length < expected <= sum(counted) + 0.5
