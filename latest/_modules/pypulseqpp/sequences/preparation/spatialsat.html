@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -473,50 +473,51 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SpatialSaturation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Slab-selective saturation pulse in the physical frame, followed by a three-axis spoiler.</span>
 
-<span class="sd">    The selection gradient points along ``normal`` and is played on the</span>
+<span class="sd">    The selection gradient points along ``normal`` and is split over the</span>
 <span class="sd">    gradient channels in proportion to its components. The slab is centred</span>
 <span class="sd">    ``position`` from the isocentre along ``normal``. ``NOPOS`` and ``NOROT``</span>
 <span class="sd">    are set on the pulse block and cleared on the spoiler block, so neither a</span>
-<span class="sd">    :class:`~pypulseqpp.TransformFOV` offset nor the interpreter's prescription</span>
-<span class="sd">    rotation moves the band: it stays where it was placed in the physical</span>
-<span class="sd">    frame, whatever the field of view.</span>
+<span class="sd">    :class:`~pypulseqpp.TransformFOV` offset nor the prescription rotation</span>
+<span class="sd">    moves the band, which stays where it is placed in the physical frame.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    normal : array_like of float</span>
-<span class="sd">        Slab normal as ``(x, y, z)`` along the physical gradient axes.</span>
-<span class="sd">        Normalised by the module; not the zero vector.</span>
+<span class="sd">        Slab normal ``(x, y, z)`` along the physical gradient axes; nonzero,</span>
+<span class="sd">        normalised by the module.</span>
 <span class="sd">    position : float</span>
 <span class="sd">        Centre of the slab along ``normal`` from the isocentre (m).</span>
 <span class="sd">    thickness : float</span>
 <span class="sd">        Slab thickness along ``normal`` (m).</span>
 <span class="sd">    flip_angle_deg : float, default=90.0</span>
-<span class="sd">        Saturation flip angle (degrees).</span>
+<span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float, default=0.003</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    time_bw_product : float, default=4.0</span>
-<span class="sd">        Time-bandwidth product. With the duration it fixes the selection</span>
-<span class="sd">        amplitude ``time_bw_product / (duration_s * thickness)`` (Hz/m).</span>
+<span class="sd">        Time-bandwidth product; with the duration and thickness it sets the</span>
+<span class="sd">        selection amplitude ``time_bw_product / (duration_s * thickness)``</span>
+<span class="sd">        (Hz/m).</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
-<span class="sd">        Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.</span>
+<span class="sd">        Cycles of dephasing of each spoiler across ``voxel_size_m``.</span>
 <span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
 <span class="sd">    labels : sequence of str, default=None</span>
-<span class="sd">        Counters set to zero on the pulse block.</span>
+<span class="sd">        Labels set to 0 on the pulse block, to be changed per shot by the</span>
+<span class="sd">        caller.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf_prep : RfEvent</span>
 <span class="sd">        The saturation pulse. Its frequency offset is the selection amplitude</span>
-<span class="sd">        times ``position`` (Hz) and its phase offset references the phase to</span>
+<span class="sd">        times ``position`` (Hz), and its phase offset makes the phase zero at</span>
 <span class="sd">        the pulse centre.</span>
 <span class="sd">    gx_sel, gy_sel, gz_sel : GradEvent</span>
 <span class="sd">        Selection gradient on each channel, ``gz.amplitude * normal`` as</span>
 <span class="sd">        stored (Hz/m); absent for a channel whose component is zero.</span>
 <span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
-<span class="sd">        Closing spoiler on all three axes.</span>
+<span class="sd">        Spoiler gradient of each axis.</span>
 <span class="sd">    prep_labels : list of LabelSetEvent</span>
 <span class="sd">        ``NOPOS`` and ``NOROT`` set, then one per name in ``labels``, on the</span>
 <span class="sd">        pulse block.</span>
@@ -620,10 +621,25 @@
     <span class="n">bands</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SpatialSaturation</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Return the :class:`SpatialSaturation` of each ``(normal, position, thickness)`` band with a thickness.</span>
+<span class="w">    </span><span class="sd">"""Return a :class:`SpatialSaturation` for each band of nonzero thickness.</span>
 
-<span class="sd">    A band of zero thickness is not played, which is how a sequence function</span>
-<span class="sd">    leaves one of its bands off. ``kwargs`` go to every module.</span>
+<span class="sd">    A band of zero thickness is skipped.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    bands : iterable of tuple</span>
+<span class="sd">        ``(normal, position, thickness)`` per band, as :class:`SpatialSaturation`</span>
+<span class="sd">        takes them (m for position and thickness).</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Passed to every :class:`SpatialSaturation`.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of SpatialSaturation</span>
+<span class="sd">        One per band with a thickness, in the order given.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>

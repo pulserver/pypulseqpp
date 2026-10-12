@@ -23,7 +23,7 @@ Tours
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="The simplest signal you can acquire is the free induction decay (FID): a pulse tips the magnetization into the transverse plane and the receiver records what the precessing magnetization emits. This Tour builds that sequence, checks the flip angle of its pulses with a Bloch simulation, and then adds a refocusing pulse and a pair of crusher gradients so that the acquisition is centred on a spin echo at the echo time you prescribe.">
+    <div class="sphx-glr-thumbcontainer" tooltip="The simplest signal you can acquire is the free induction decay (FID): a pulse tips the magnetisation into the transverse plane and the receiver records what the precessing magnetisation emits. This Tour builds that sequence, checks the flip angle of its pulses with a Bloch simulation, and then adds a refocusing pulse and a pair of crusher gradients so that the acquisition is centred on a spin echo at the echo time you prescribe.">
 
 .. only:: html
 

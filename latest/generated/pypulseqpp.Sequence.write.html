@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -524,24 +524,23 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.write">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.write" title="Link to this definition">#</a></dt>
-<dd><p>Write Pulseq text and record its signature metadata.</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">v141_compat=True</span></code>, metadata is recorded on the written source
-(the deduplicated copy when requested).</p>
+<dd><p>Write the sequence as a Pulseq text file, 1.5.1 by default.</p>
+<p><code class="docutils literal notranslate"><span class="pre">signature_type</span></code>, <code class="docutils literal notranslate"><span class="pre">signature_file</span></code> and <code class="docutils literal notranslate"><span class="pre">signature_value</span></code> record
+the signature written.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – Where to write it.</p></li>
-<li><p><strong>create_signature</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Sign the file, so a reader can tell it has not been edited.</p></li>
-<li><p><strong>remove_duplicates</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Collapse identical library rows first. Write a collapsed
-copy, leaving this sequence’s event libraries unchanged.</p></li>
-<li><p><strong>check_timing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Judge the timing first, and warn if anything is wrong.</p></li>
-<li><p><strong>v141_compat</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Write 1.4.1 instead, for an interpreter that predates 1.5.</p></li>
+<li><p><strong>create_signature</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Append an MD5 signature of the file’s contents.</p></li>
+<li><p><strong>remove_duplicates</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Write a copy with identical library rows collapsed; this
+sequence’s libraries are unchanged.</p></li>
+<li><p><strong>check_timing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Run <a class="reference internal" href="pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a> first and warn if it finds anything.</p></li>
+<li><p><strong>v141_compat</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Write Pulseq 1.4.1 as <a class="reference internal" href="pypulseqpp.Sequence.write_v141.html#pypulseqpp.Sequence.write_v141" title="pypulseqpp.Sequence.write_v141"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_v141()</span></code></a> does.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The signature written, or None if the file is unsigned. It is
-the signature of what was written, so with <code class="docutils literal notranslate"><span class="pre">remove_duplicates</span></code>
-it belongs to the collapsed copy rather than to this sequence.</p>
+<dd class="field-even"><p>The signature written, or None if the file is unsigned. With
+<code class="docutils literal notranslate"><span class="pre">remove_duplicates</span></code> it is that of the collapsed copy.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a> | None</p>

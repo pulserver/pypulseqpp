@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -524,31 +524,37 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.make_arbitrary_grad">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_arbitrary_grad</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_events.html#make_arbitrary_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_arbitrary_grad" title="Link to this definition">#</a></dt>
-<dd><p>Create a gradient from amplitudes sampled at raster centres.</p>
-<p>Matches upstream’s fields and errors. A 1-D array of at least two samples
+<dd><p>Construct an arbitrary gradient event from amplitudes sampled at raster centres.</p>
+<p>Fields and errors match upstream’s. A 1-D array of at least two samples
 is built and checked in one compiled call unless PyPulseq tracing is on;
 other inputs take upstream’s path and are converted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>channel</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – One of <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>.</p></li>
-<li><p><strong>waveform</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a>) – Amplitudes at raster centres, Hz/m.</p></li>
+<li><p><strong>channel</strong> (<em>{'x'</em><em>, </em><em>'y'</em><em>, </em><em>'z'}</em>) – Gradient channel.</p></li>
+<li><p><strong>waveform</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>numpy.ndarray</em></a>) – Amplitudes at gradient raster centres (Hz/m); at half-raster spacing
+with <code class="docutils literal notranslate"><span class="pre">oversampling</span></code>.</p></li>
 <li><p><strong>first</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Amplitudes at the waveform’s outer edges (Hz/m); linearly extrapolated
 from the two end samples when omitted.</p></li>
 <li><p><strong>last</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Amplitudes at the waveform’s outer edges (Hz/m); linearly extrapolated
 from the two end samples when omitted.</p></li>
-<li><p><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Seconds before the waveform starts.</p></li>
-<li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits; <code class="docutils literal notranslate"><span class="pre">system</span></code>’s when omitted or zero.</p></li>
-<li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits; <code class="docutils literal notranslate"><span class="pre">system</span></code>’s when omitted or zero.</p></li>
+<li><p><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Delay of the event within its block (s).</p></li>
+<li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Amplitude (Hz/m) and slew-rate (Hz/m/s) limits; <code class="docutils literal notranslate"><span class="pre">system</span></code>’s when
+omitted or zero.</p></li>
+<li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Amplitude (Hz/m) and slew-rate (Hz/m/s) limits; <code class="docutils literal notranslate"><span class="pre">system</span></code>’s when
+omitted or zero.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>default=None</em>) – <code class="docutils literal notranslate"><span class="pre">Opts.default</span></code> when omitted.</p></li>
 <li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – The waveform samples a grid twice as fine; its length must be odd.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>GradEvent</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The compiled arbitrary gradient event.</p>
 </dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – On an invalid channel, an amplitude or slew violation, or an even
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>GradEvent</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – On an invalid channel, an amplitude or slew violation, or an even
     oversampled length.</p>
 </dd>
 </dl>

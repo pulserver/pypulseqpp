@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -529,15 +529,17 @@
 the RF field, the local B1 plays the part of a gradient and the sweep that
 of the RF, so the selection is along B1 rather than along space (Grissom,
 Cao and Does, J Magn Reson 242:189, 2014). No gradient is played.</p>
-<p>Parameters not listed below are as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flip_angle</span></code>, <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code>, the ripples, <code class="docutils literal notranslate"><span class="pre">dwell</span></code>, <code class="docutils literal notranslate"><span class="pre">delay</span></code>,
+<code class="docutils literal notranslate"><span class="pre">system</span></code> and <code class="docutils literal notranslate"><span class="pre">use</span></code> are as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>, except the
+<code class="docutils literal notranslate"><span class="pre">dwell</span></code> default of 0.0, which is the system’s <code class="docutils literal notranslate"><span class="pre">rf_raster_time</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – RF amplitude the pulse plays at, in T: where B1 is nominal.</p></li>
-<li><p><strong>passband_center</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – The band of B1 selected, relative to <code class="docutils literal notranslate"><span class="pre">amplitude</span></code>. The pulse lasts
-about twice <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code> over the width in Hz.</p></li>
-<li><p><strong>passband_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.2</em>) – The band of B1 selected, relative to <code class="docutils literal notranslate"><span class="pre">amplitude</span></code>. The pulse lasts
-about twice <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code> over the width in Hz.</p></li>
+<li><p><strong>amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – RF amplitude the pulse plays at (T): the nominal B1.</p></li>
+<li><p><strong>passband_center</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Centre of the selected B1 band, relative to <code class="docutils literal notranslate"><span class="pre">amplitude</span></code>.</p></li>
+<li><p><strong>passband_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.2</em>) – Width of the selected B1 band, relative to <code class="docutils literal notranslate"><span class="pre">amplitude</span></code>. The pulse
+lasts about <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">*</span> <span class="pre">time_bw_product</span></code> over this width in Hz, that is
+over <code class="docutils literal notranslate"><span class="pre">passband_width</span> <span class="pre">*</span> <span class="pre">amplitude</span> <span class="pre">*</span> <span class="pre">gamma</span></code>.</p></li>
 <li><p><strong>pulse_type</strong> (<em>{'st'</em><em>, </em><em>'ex'</em><em>, </em><em>'se'</em><em>, </em><em>'inv'</em><em>, </em><em>'sat'}</em><em>, </em><em>default='st'</em>) – Only maps the ripples onto the filter, as in <a class="reference internal" href="pypulseqpp.make_slr_pulse.html#pypulseqpp.make_slr_pulse" title="pypulseqpp.make_slr_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_slr_pulse()</span></code></a>;
 the flip is <code class="docutils literal notranslate"><span class="pre">flip_angle</span></code>.</p></li>
 <li><p><strong>split_and_reflect</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Split the sweep and reflect it about the pulse’s centre, which keeps

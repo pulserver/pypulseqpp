@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,26 +526,28 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">T2Preparation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/t2prep.html#T2Preparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.T2Preparation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Adiabatic T2 preparation with tip-down, refocusing and storage pulses.</p>
-<p>Refocusing pulses must occur in pairs to cancel their B1-dependent phase.
-The final half passage is time-reversed and conjugated relative to the
-first; final_tip selects storage on +z or -z.</p>
+<p>The refocusing pulses come in pairs, which cancels their B1-dependent
+phase. The storing half passage is the time-reversed, conjugated tip-down
+half passage.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>echo_time_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Preparation echo time (s), first pulse centre to last.</p></li>
+<li><p><strong>echo_time_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Preparation echo time (s), from the centre of the tip-down pulse to
+that of the storing pulse.</p></li>
 <li><p><strong>final_tip</strong> (<em>{'up'</em><em>, </em><em>'down'}</em><em>, </em><em>default='up'</em>) – Store on <code class="docutils literal notranslate"><span class="pre">+z</span></code> (pure T2 weighting) or <code class="docutils literal notranslate"><span class="pre">-z</span></code>, which starts a T1
 recovery as well – see <a class="reference internal" href="pypulseqpp.sequences.T1T2Preparation.html#pypulseqpp.sequences.T1T2Preparation" title="pypulseqpp.sequences.T1T2Preparation"><code class="xref py py-class docutils literal notranslate"><span class="pre">T1T2Preparation</span></code></a>.</p></li>
-<li><p><strong>n_refocus</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=2</em>) – Adiabatic refocusing pulses, spread evenly through the echo time. Must
-be even; see above.</p></li>
+<li><p><strong>n_refocus</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=2</em>) – Adiabatic refocusing pulses, spaced evenly through the echo time; even
+and at least 2.</p></li>
 <li><p><strong>half_passage_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.004</em>) – Duration of each half passage (s).</p></li>
 <li><p><strong>refocusing_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01024</em>) – Duration of each refocusing pulse (s).</p></li>
-<li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Sweep-rate margin over the adiabatic condition, for every pulse.</p></li>
+<li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Sweep-rate margin over the adiabatic condition, of every pulse.</p></li>
 <li><p><strong>dwell_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1e-05</em>) – RF raster (s).</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing the closing spoiler winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>
-on each axis. Zero omits the spoiler block.</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing of the closing spoiler on each axis across
+<code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero omits the spoiler block.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters set to 0 on the first pulse’s block.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels set to 0 on the first pulse’s block, to be changed per shot by
+the caller.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -554,11 +556,11 @@ on each axis. Zero omits the spoiler block.</p></li>
 <li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The refocusing pulse; every repeat plays this one event.</p></li>
 <li><p><strong>rf_store</strong> (<em>RfEvent</em>) – The reverse half passage that stores what is left.</p></li>
 <li><p><strong>wait_first, wait_inner, wait_last</strong> (<em>DelayEvent</em>) – The gaps before the first refocusing pulse, between refocusing
-pulses, and before <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>. Each is absent when its gap is
-zero, and <code class="docutils literal notranslate"><span class="pre">wait_inner</span></code> when there is one refocusing pulse.</p></li>
-<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – The closing spoiler.</p></li>
+pulses, and before <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>. Each is absent when its gap is zero.</p></li>
+<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Spoiler gradient of each axis; absent when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is zero.</p></li>
 <li><p><strong>prep_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
-<li><p><strong>echo_time</strong> (<em>float</em>) – The preparation echo time achieved on the block raster (s).</p></li>
+<li><p><strong>echo_time</strong> (<em>float</em>) – Achieved preparation echo time (s), after rounding the gaps to the
+block raster.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
@@ -576,7 +578,7 @@ zero, and <code class="docutils literal notranslate"><span class="pre">wait_inne
 </pre></div>
 </div>
 <p>Tip-down, two refocusing pulses and storage. Over the band the
-refocusing pulses cover, the module returns the magnetization to <code class="docutils literal notranslate"><span class="pre">+z</span></code>;
+refocusing pulses cover, the module returns the magnetisation to <code class="docutils literal notranslate"><span class="pre">+z</span></code>;
 what it lost on the way is the T2 weighting:</p>
 <figure class="align-default" id="id1">
 <img alt="../_images/pypulseqpp-sequences-T2Preparation-1_00.svg" class="plot-directive" src="../_images/pypulseqpp-sequences-T2Preparation-1_00.svg" />
@@ -602,7 +604,7 @@ what it lost on the way is the T2 weighting:</p>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.T2Preparation.register.html#pypulseqpp.sequences.T2Preparation.register" title="pypulseqpp.sequences.T2Preparation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.T2Preparation.sim_rf.html#pypulseqpp.sequences.T2Preparation.sim_rf" title="pypulseqpp.sequences.T2Preparation.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -614,10 +616,10 @@ what it lost on the way is the T2 weighting:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.T2Preparation.blocks.html#pypulseqpp.sequences.T2Preparation.blocks" title="pypulseqpp.sequences.T2Preparation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.T2Preparation.duration.html#pypulseqpp.sequences.T2Preparation.duration" title="pypulseqpp.sequences.T2Preparation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.T2Preparation.seq.html#pypulseqpp.sequences.T2Preparation.seq" title="pypulseqpp.sequences.T2Preparation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

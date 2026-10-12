@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -554,7 +554,7 @@
 <span class="sd">    seq : pypulseqpp.Sequence</span>
 <span class="sd">        The sequence to read.</span>
 <span class="sd">    first, last : int</span>
-<span class="sd">        The 1-based block range to follow.</span>
+<span class="sd">        First and last block (1-based, inclusive) to follow.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -604,19 +604,23 @@
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        The sequence to draw.</span>
 <span class="sd">    time_range, block_range, tr_range : sequence, default=None</span>
-<span class="sd">        The part of the sequence to draw, as for :meth:`Sequence.plot`; at</span>
-<span class="sd">        most one. The whole sequence by default.</span>
-<span class="sd">    plane : {"xy", "xz", "yz", ...}, default=None</span>
-<span class="sd">        Two of ``x``, ``y``, ``z`` and ``f`` to project onto, where ``f`` is</span>
-<span class="sd">        the transmit frequency of each sample's slice. By default a trajectory</span>
-<span class="sd">        confined to a plane is drawn in it, and any other in 3D.</span>
+<span class="sd">        The part of the sequence to draw; at most one. A time range is two</span>
+<span class="sd">        times (s), a block range the first and last block and a repetition</span>
+<span class="sd">        range the first and last repetition, both 1-based and inclusive. The</span>
+<span class="sd">        whole sequence when none is given.</span>
+<span class="sd">    plane : str, default=None</span>
+<span class="sd">        Two of ``x``, ``y``, ``z`` and ``f`` (for example ``"xy"``) to project</span>
+<span class="sd">        onto, where ``f`` is the transmit frequency offset (Hz) of each</span>
+<span class="sd">        sample's slice. When ``None``, a trajectory confined to a plane is</span>
+<span class="sd">        drawn in it and any other in 3D.</span>
 <span class="sd">    show_trajectory : bool, default=True</span>
 <span class="sd">        Also draw the trajectory between samples. The axis limits are set</span>
 <span class="sd">        from the sampling locations either way, so a prewinder or spoiler is</span>
 <span class="sd">        clipped rather than setting the scale.</span>
 <span class="sd">    color_by : {"echo", "shot", "order"}, default=None</span>
-<span class="sd">        Colour samples by echo index within the shot, by shot index, or both</span>
-<span class="sd">        side by side. A panel whose index never varies is dropped.</span>
+<span class="sd">        Colour samples by echo index within the shot, by shot index, or by</span>
+<span class="sd">        both in two panels (``"order"``). A panel whose index never varies is</span>
+<span class="sd">        dropped.</span>
 <span class="sd">    plot_now : bool, default=True</span>
 <span class="sd">        Show the figure before returning.</span>
 
@@ -628,8 +632,9 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If more than one range is given, ``color_by`` or ``plane`` is not one</span>
-<span class="sd">        of the values listed, or the range holds no ADC samples.</span>
+<span class="sd">        If more than one range is given, a range is backwards or outside the</span>
+<span class="sd">        sequence, ``color_by`` or ``plane`` is invalid, or the range holds no</span>
+<span class="sd">        ADC samples.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>

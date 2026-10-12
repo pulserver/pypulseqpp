@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -462,7 +462,9 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">rf_reference</span><span class="p">(</span><span class="n">rf</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return the RF pulse centre relative to its block start, in seconds: delay + center.</span>
+<span class="w">    </span><span class="sd">"""Return the RF pulse centre from the start of its block (s).</span>
+
+<span class="sd">    This is ``delay + center``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -472,13 +474,13 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    float</span>
-<span class="sd">        Its centre from the start of the block that plays it, in seconds.</span>
+<span class="sd">        Delay plus centre time of the pulse (s).</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">selective_slr</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">thickness_m</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">design</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Design an SLR pulse with the selection gradient and rephaser that select ``thickness_m``.</span>
+<span class="w">    </span><span class="sd">"""Design an SLR pulse and the gradients that select ``thickness_m``.</span>
 
 <span class="sd">    The thickness a pulse selects is its measured bandwidth,</span>
 <span class="sd">    :func:`pypulseqpp.calc_rf_bandwidth`, over the selection plateau.</span>
@@ -490,9 +492,9 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    flip_angle_deg : float</span>
-<span class="sd">        Nominal flip angle (degrees).</span>
+<span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    thickness_m : float</span>
-<span class="sd">        Thickness to select (m).</span>
+<span class="sd">        Thickness to select, from the pulse's measured bandwidth (m).</span>
 <span class="sd">    **design</span>
 <span class="sd">        The rest of :func:`pypulseqpp.make_slr_pulse`'s arguments, without</span>
 <span class="sd">        ``slice_thickness`` and ``return_gz``.</span>
@@ -520,11 +522,9 @@
 <div class="viewcode-block" id="RfModule">
 <a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RfModule</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Sequence module with off-resonance simulation of an individual RF pulse.</span>
+<span class="w">    </span><span class="sd">"""Sequence module whose RF pulse can be simulated across off-resonance.</span>
 
-<span class="sd">    Every excitation and preparation module the package ships is an</span>
-<span class="sd">    ``RfModule``, so the off-resonance response of its pulse is available from</span>
-<span class="sd">    the module itself.</span>
+<span class="sd">    Base class of the excitation and preparation modules the package ships.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -546,7 +546,8 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        pulse : RfEvent, default=None</span>
-<span class="sd">            Pulse to simulate; defaults to the first RF event in block order.</span>
+<span class="sd">            Pulse to simulate; ``None`` takes the first RF event in block</span>
+<span class="sd">            order.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Forwarded to :func:`pypulseqpp.sim_rf` (``rephase_factor``,</span>
 <span class="sd">            ``df``, ``bandwidth_multiplier``, ``dt``).</span>

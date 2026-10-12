@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -461,8 +461,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">..excitation._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">spoiler_gradients</span>
 
-<span class="c1">#: Where the main fat resonance sits relative to water. Negative: fat precesses</span>
-<span class="c1">#: more slowly, so it is downfield of water in frequency.</span>
+<span class="c1">#: Main fat resonance relative to water (ppm); negative, because fat precesses</span>
+<span class="c1">#: more slowly than water.</span>
 <span class="n">FAT_SHIFT_PPM</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.45</span>
 
 <span class="c1">#: T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J</span>
@@ -475,13 +475,12 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">fat_null_flip_deg</span><span class="p">(</span>
     <span class="n">delay_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">period_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">t1_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FAT_T1_S</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return the flip angle that leaves fat's longitudinal magnetization at zero ``delay_s`` after the pulse, played once every ``period_s``.</span>
+<span class="w">    </span><span class="sd">"""Return the saturation flip angle (degrees) that nulls fat at the excitation.</span>
 
-<span class="sd">    In the steady state of one pulse every ``period_s``, fat nulled at the</span>
-<span class="sd">    excitation ``delay_s`` after the pulse recovers from zero for</span>
-<span class="sd">    ``period_s - delay_s`` before the next; the flip that brings it back to</span>
-<span class="sd">    zero by the excitation has ``cos(a) = (1 - exp(delay/T1)) / (1 -</span>
-<span class="sd">    exp(-(period - delay)/T1))``, a little over 90 degrees.</span>
+<span class="sd">    In the steady state of one saturation pulse every ``period_s``, fat is</span>
+<span class="sd">    zero ``delay_s`` after the pulse when the flip ``a`` satisfies</span>
+<span class="sd">    ``cos(a) = (1 - exp(delay/T1)) / (1 - exp(-(period - delay)/T1))``, a</span>
+<span class="sd">    little over 90 degrees.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -523,27 +522,25 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">FatSaturation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.</span>
 
-<span class="sd">    The pulse plays no gradient, so a field-of-view offset or rotation applied</span>
-<span class="sd">    afterwards leaves it as it is: it saturates fat wherever the prescription</span>
-<span class="sd">    puts the image.</span>
+<span class="sd">    The pulse plays with no gradient, so a field-of-view offset or rotation</span>
+<span class="sd">    applied afterwards does not change it.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    freq_offset_ppm : float, default=FAT_SHIFT_PPM</span>
-<span class="sd">        Fat offset from water (ppm). Carried on the pulse as a ppm offset</span>
-<span class="sd">        rather than as hertz, so the interpreter resolves it against the</span>
-<span class="sd">        field the scan actually runs at.</span>
+<span class="sd">        Fat offset from water (ppm), carried on the pulse as a ppm offset,</span>
+<span class="sd">        which an interpreter resolves against the field of the scan.</span>
 <span class="sd">    flip_angle_deg : float, default=110.0</span>
 <span class="sd">        Saturation flip angle (degrees).</span>
 <span class="sd">    bandwidth_hz : float, default=250.0</span>
-<span class="sd">        Spectral passband (Hz). With ``time_bw_product`` it fixes the pulse</span>
-<span class="sd">        duration, which is ``time_bw_product / bandwidth_hz``.</span>
+<span class="sd">        Spectral passband (Hz); the pulse duration is</span>
+<span class="sd">        ``time_bw_product / bandwidth_hz``.</span>
 <span class="sd">    time_bw_product : float, default=2.0</span>
 <span class="sd">        Time-bandwidth product.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
-<span class="sd">        Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.</span>
+<span class="sd">        Cycles of dephasing of each spoiler across ``voxel_size_m``.</span>
 <span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
 
@@ -552,18 +549,18 @@
 <span class="sd">    rf_prep : RfEvent</span>
 <span class="sd">        The saturation pulse.</span>
 <span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
-<span class="sd">        Closing spoiler on all three axes.</span>
+<span class="sd">        Spoiler gradient of each axis.</span>
 <span class="sd">    freq_offset_ppm : float</span>
 <span class="sd">        The fat offset the pulse carries (ppm).</span>
 <span class="sd">    freq_offset_hz : float</span>
-<span class="sd">        What that comes to at ``system.B0`` (Hz), for reference; the pulse</span>
-<span class="sd">        itself is field-independent.</span>
+<span class="sd">        The offset at ``system.B0`` (Hz); informational, the pulse carries</span>
+<span class="sd">        ``freq_offset_ppm``.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If a bandwidth, time-bandwidth product or voxel size is not positive,</span>
-<span class="sd">        or the spoiler was asked for zero cycles.</span>
+<span class="sd">        or ``spoiling_cycles`` is not positive.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -576,7 +573,7 @@
 <span class="sd">    &gt;&gt;&gt; [event.type for event in fatsat.blocks[0]]</span>
 <span class="sd">    ['rf']</span>
 
-<span class="sd">    The pulse with its spoiler, and the longitudinal magnetization left</span>
+<span class="sd">    The pulse with its spoiler, and the longitudinal magnetisation left</span>
 <span class="sd">    across the spectrum. The band sits at the fat resonance for the field</span>
 <span class="sd">    the module was designed at, and water at zero offset is untouched:</span>
 

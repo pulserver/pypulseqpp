@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -534,11 +534,14 @@ amplitudes.</p>
 <li><p><strong>seq</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a>) – Sequence to read.</p></li>
 <li><p><strong>window</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=0</em>) – Which window, counted from zero. A report names the worst window of
 each band as <code class="docutils literal notranslate"><span class="pre">window</span></code>.</p></li>
-<li><p><strong>window_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.04</em>) – Window length (s). Give the width the report was made with.</p></li>
+<li><p><strong>window_width</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.04</em>) – Window length (s). Use the width of the report the window index
+refers to.</p></li>
 <li><p><strong>stride</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Step between window starts (s); half the width by default.</p></li>
-<li><p><strong>frequency_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=3</em>) – Transform length as a multiple of the window’s sample count.</p></li>
-<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio; the sequence’s own by default.</p></li>
+<li><p><strong>frequency_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=3</em>) – Zero-padded transform length, in window lengths.</p></li>
+<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes, composed
+after each block’s own rotation; identity (axial) when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio (Hz/T); <code class="docutils literal notranslate"><span class="pre">seq.system</span></code> when
+<code class="docutils literal notranslate"><span class="pre">None</span></code>, then the default <a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -550,8 +553,9 @@ for x, y and z; <code class="docutils literal notranslate"><span class="pre">axe
 <dd class="field-odd"><p>SimpleNamespace</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a width, stride or oversampling is out of range, or the sequence
-    has no window of that index.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">window_width</span></code> or <code class="docutils literal notranslate"><span class="pre">stride</span></code> is not positive,
+    <code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> is below 1, <code class="docutils literal notranslate"><span class="pre">window</span></code> is negative, or the
+    sequence has no window of that index.</p>
 </dd>
 </dl>
 </dd></dl>

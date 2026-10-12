@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,8 +525,8 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``fov`` is not isotropic or not positive, if ``matrix`` is not</span>
-<span class="sd">        positive, or if ``num_points`` is below 2.</span>
+<span class="sd">        If ``fov`` is not isotropic or not positive, if ``matrix`` is below 2,</span>
+<span class="sd">        or if ``num_points`` is below 2.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -578,20 +578,21 @@
 <span class="sd">        How the local pitch changes with radius: not at all, as</span>
 <span class="sd">        ``radius ** variable_density_power``, or between two plateaus joined</span>
 <span class="sd">        by a logistic transition.</span>
-<span class="sd">    inner_design_interleaves, outer_design_interleaves : float, default=None</span>
-<span class="sd">        Local interleaf count at the centre and at the edge. The inner one</span>
-<span class="sd">        defaults to ``design_interleaves``; the outer one to twice the inner</span>
-<span class="sd">        for a variable-density spiral, and is required for a dual-density</span>
-<span class="sd">        one. A larger count is a coarser pitch, so a variable-density</span>
-<span class="sd">        spiral undersamples the edge.</span>
+<span class="sd">    inner_design_interleaves : float, default=None</span>
+<span class="sd">        Local interleaf count at the centre; defaults to ``design_interleaves``.</span>
+<span class="sd">    outer_design_interleaves : float, default=None</span>
+<span class="sd">        Local interleaf count at the edge; defaults to twice the inner count</span>
+<span class="sd">        for variable density, and is required for dual density.</span>
+<span class="sd">        A larger count is a coarser pitch, so a variable-density spiral</span>
+<span class="sd">        undersamples the edge.</span>
 <span class="sd">    variable_density_power : float, default=2.0</span>
 <span class="sd">        Exponent of the variable-density ramp.</span>
 <span class="sd">    transition_radius : float, default=0.5</span>
-<span class="sd">        Where between the centre (0) and the edge (1) a dual-density spiral</span>
-<span class="sd">        changes pitch, and how abruptly.</span>
+<span class="sd">        Normalised radius, in (0, 1) from the centre to the edge, at which a</span>
+<span class="sd">        dual-density spiral changes pitch.</span>
 <span class="sd">    transition_speed : float, default=12.0</span>
-<span class="sd">        Where between the centre (0) and the edge (1) a dual-density spiral</span>
-<span class="sd">        changes pitch, and how abruptly.</span>
+<span class="sd">        Steepness of that change: the logistic rate per unit normalised</span>
+<span class="sd">        radius.</span>
 <span class="sd">    num_points : int, default=1024</span>
 <span class="sd">        Samples along the polyline. Sets how finely the curve is described,</span>
 <span class="sd">        not how many ADC samples the readout takes.</span>

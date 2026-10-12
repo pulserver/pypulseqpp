@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -199,7 +199,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -209,7 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -542,7 +542,7 @@ you need one that is not there. A module is a small class, and writing one
 is the same work as designing its events by hand, done once and given a
 name.</p>
 <p>In this lesson you write a <em>T2 preparation</em>: a train of pulses that tips the
-magnetization into the transverse plane, lets it decay with T2 for a set
+magnetisation into the transverse plane, lets it decay with T2 for a set
 echo time, and stores what is left back along z. Played in place of the
 inversion, it turns your MPRAGE from T1- into T2-weighted. Then you compare
 your module with the shipped
@@ -563,7 +563,7 @@ the Tours and the <a class="reference internal" href="../../../sequences.html"><
 <h2>T2 preparation<a class="headerlink" href="#t2-preparation" title="Link to this heading">#</a></h2>
 <p>The simplest robust T2 preparation is four hard pulses:</p>
 <ol class="arabic simple">
-<li><p>a 90° pulse about x tips the magnetization into the transverse plane;</p></li>
+<li><p>a 90° pulse about x tips the magnetisation into the transverse plane;</p></li>
 <li><p>two 180° pulses about y, a quarter and three quarters of the way
 through the echo time, refocus it twice, so off-resonance during the
 train cancels and the errors of the two pulses largely cancel too;</p></li>
@@ -571,7 +571,7 @@ train cancels and the errors of the two pulses largely cancel too;</p></li>
 <li><p>a crusher dephases whatever the pulses left in the transverse plane.</p></li>
 </ol>
 <p>The echo time is measured from the centre of the first pulse to the centre
-of the last. The magnetization comes back along z scaled by
+of the last. The magnetisation comes back along z scaled by
 <span class="math notranslate nohighlight">\(e^{-\mathrm{TE}/T_2}\)</span>, and the next excitation reads that.</p>
 </section>
 <section id="module-class">
@@ -847,7 +847,7 @@ CSF           T2   2000 ms, Mz after preparation 0.98
 <p>A preparation is played before every train, across the whole head, where
 the transmit field <span class="math notranslate nohighlight">\(B_1\)</span> varies by tens of per cent and the resonance
 frequency by tens to hundreds of hertz. Without relaxation, an ideal
-preparation returns the magnetization to <span class="math notranslate nohighlight">\(M_z = 1\)</span> whatever the field.
+preparation returns the magnetisation to <span class="math notranslate nohighlight">\(M_z = 1\)</span> whatever the field.
 The figure below simulates the RF of your module, and of the shipped
 <a class="reference internal" href="../../pypulseqpp.sequences.T2Preparation.html#pypulseqpp.sequences.T2Preparation" title="pypulseqpp.sequences.T2Preparation"><code class="xref py py-class docutils literal notranslate"><span class="pre">T2Preparation</span></code></a>, over a range of both errors
 with <a class="reference internal" href="../../pypulseqpp.sim_bloch.html#pypulseqpp.sim_bloch" title="pypulseqpp.sim_bloch"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_bloch()</span></code></a>:</p>
@@ -855,7 +855,7 @@ with <a class="reference internal" href="../../pypulseqpp.sim_bloch.html#pypulse
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_10_custom_sequence_module_003.png" srcset="../../../_images/sphx_glr_10_custom_sequence_module_003.png" alt="hard pulses (yours), adiabatic (shipped)" class = "sphx-glr-single-img"/><p>On resonance your hard-pulse train is robust to <span class="math notranslate nohighlight">\(B_1\)</span>: the second
 180° pulse undoes most of the error of the first. Off resonance, the
-refocusing is imperfect, the magnetization it leaves behind precesses during
+refocusing is imperfect, the magnetisation it leaves behind precesses during
 the long waits, and the stored <span class="math notranslate nohighlight">\(M_z\)</span> oscillates with the frequency,
 with a period of <span class="math notranslate nohighlight">\(2/\mathrm{TE} = 40\)</span> Hz. The shipped preparation
 replaces the 90° pulses by adiabatic half passages and the 180° pulses by
@@ -882,7 +882,7 @@ this module and the shipped T2Preparation over B1 0.6-1.4 and
 +-250 Hz with sim_bloch.
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.447 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.433 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-course-10-custom-sequence-module-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/9492cb78c66f2090c5df6ce34dc65f90/10_custom_sequence_module.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">10_custom_sequence_module.ipynb</span></code></a></p>

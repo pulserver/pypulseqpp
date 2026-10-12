@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -461,28 +461,29 @@
 <div class="viewcode-block" id="make_label">
 <a class="viewcode-back" href="../../generated/pypulseqpp.make_label.html#pypulseqpp.make_label">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_label</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>  <span class="c1"># noqa: A002</span>
-<span class="w">    </span><span class="sd">"""Create a label event.</span>
+<span class="w">    </span><span class="sd">"""Construct a label event.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    label : str</span>
-<span class="sd">        The label's name, in any spelling. Pulseq's own names keep their</span>
-<span class="sd">        numbering; anything else is minted on first use.</span>
+<span class="sd">        Label name. Pulseq's builtin names keep their reference numbering;</span>
+<span class="sd">        any other name is registered as a custom label on first use.</span>
 <span class="sd">    type : {'SET', 'INC'}</span>
-<span class="sd">        ``'SET'`` assigns ``value``, ``'INC'`` adds it to the running counter.</span>
+<span class="sd">        ``'SET'`` assigns ``value`` to the label, ``'INC'`` adds it to the</span>
+<span class="sd">        label's running value.</span>
 <span class="sd">    value : int or bool or float</span>
-<span class="sd">        The counter or flag value, taken as an integer.</span>
+<span class="sd">        Value to assign or add, converted to an integer.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    LabelEvent</span>
-<span class="sd">        The event, with its fields in slots.</span>
+<span class="sd">        The compiled label event.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``type`` is neither ``'SET'`` nor ``'INC'``. The name is not</span>
-<span class="sd">        checked, which is the point.</span>
+<span class="sd">        If ``type`` is neither ``'SET'`` nor ``'INC'``, or ``label`` is empty.</span>
+<span class="sd">        The name is not checked against Pulseq's builtin labels.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -491,7 +492,7 @@
 <span class="sd">    &gt;&gt;&gt; event.type, event.label, event.value</span>
 <span class="sd">    ('labelset', 'LIN', 12)</span>
 
-<span class="sd">    A name Pulseq does not define is accepted and is carried by name:</span>
+<span class="sd">    A name Pulseq does not define is a custom label, carried by name:</span>
 
 <span class="sd">    &gt;&gt;&gt; pp.make_label("SPARKLE", "INC", 1).label</span>
 <span class="sd">    'SPARKLE'</span>

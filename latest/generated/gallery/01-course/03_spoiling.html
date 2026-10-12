@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -199,7 +199,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -209,7 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -540,7 +540,7 @@ to download the full example code.</p>
 <a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/01-course/03_spoiling.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>With a TR of 20 ms and a T2 of tens of milliseconds, your gradient echo still
-has transverse magnetization when the next pulse arrives. That pulse refocuses
+has transverse magnetisation when the next pulse arrives. That pulse refocuses
 part of it, and the leftover from one repetition adds to the signal of the
 next: after a few hundred repetitions the signal settles into a steady state
 that depends on T2 as well as on T1 and the flip angle. A <em>spoiled</em> gradient
@@ -603,7 +603,7 @@ previous lessons:</p>
 <section id="gradient-spoiling">
 <h2>Gradient spoiling<a class="headerlink" href="#gradient-spoiling" title="Link to this heading">#</a></h2>
 <p>A spoiler is a gradient played after the readout. It winds the phase of the
-transverse magnetization across each voxel, so that what is left integrates
+transverse magnetisation across each voxel, so that what is left integrates
 to (nearly) nothing over the voxel. You prescribe it by what it does, the
 number of cycles it winds across a voxel, and
 <a class="reference internal" href="../../pypulseqpp.make_crusher.html#pypulseqpp.make_crusher" title="pypulseqpp.make_crusher"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_crusher()</span></code></a> returns the shortest gradient that does it.
@@ -630,7 +630,7 @@ an increment that itself grows by <span class="math notranslate nohighlight">\(\
 <div class="math notranslate nohighlight">
 \[\varphi_n = \varphi_{n-1} + n\,\Delta\varphi
           = \tfrac{1}{2}\,n(n+1)\,\Delta\varphi .\]</div>
-<p>The leftover magnetization a pulse refocuses was created some repetitions
+<p>The leftover magnetisation a pulse refocuses was created some repetitions
 earlier, and with this quadratic phase each earlier repetition comes back at
 a different phase, so their sum averages out. The ADC gets the same phase as
 the pulse, so the signal you want is not affected.</p>
@@ -788,7 +788,7 @@ from the sequence), and plot it against the spoiler area, the phase
 increment and the flip angle, next to the ideally spoiled signal.
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 12.115 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 11.835 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-course-03-spoiling-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/b7ab7862c93051872b2d06b3b22a066f/03_spoiling.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">03_spoiling.ipynb</span></code></a></p>

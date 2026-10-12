@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -466,18 +466,19 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SmsExcitation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""SLR slice excitation modulated into simultaneous spectral bands.</span>
 
-<span class="sd">    Slice centre spacing is converted to frequency using the selection</span>
-<span class="sd">    gradient. Band phases control the combined peak B1.</span>
+<span class="sd">    The slice spacing is converted to a band spacing in frequency with the</span>
+<span class="sd">    selection gradient amplitude. The band phases set the peak B1 of the</span>
+<span class="sd">    combined pulse.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    flip_angle_deg : float</span>
-<span class="sd">        Nominal flip angle (degrees), per band.</span>
+<span class="sd">        Flip angle of each band (degrees).</span>
 <span class="sd">    thickness_m : float</span>
-<span class="sd">        Slice thickness (m): the single-band pulse's measured bandwidth over</span>
-<span class="sd">        the selection plateau.</span>
+<span class="sd">        Slice thickness (m), set by the selection gradient plateau against the</span>
+<span class="sd">        single-band pulse's measured bandwidth.</span>
 <span class="sd">    slice_gap_m : float</span>
 <span class="sd">        Centre-to-centre spacing between excited slices (m).</span>
 <span class="sd">    n_bands : int, default=2</span>
@@ -485,16 +486,16 @@
 <span class="sd">    duration_s : float, default=0.003</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    phases : {'quadratic'} or sequence of float, default='quadratic'</span>
-<span class="sd">        Per-band phase (rad). ``'quadratic'`` spreads the peak; ``None`` leaves</span>
-<span class="sd">        every band in phase, which is the worst case for peak B1.</span>
+<span class="sd">        Phase of each band (rad). ``'quadratic'`` lowers the peak B1; ``None``</span>
+<span class="sd">        leaves every band in phase, the highest peak.</span>
 <span class="sd">    rephase : bool, default=True</span>
-<span class="sd">        Include a slice rephaser.</span>
+<span class="sd">        Include the slice rephaser.</span>
 <span class="sd">    time_bw_product : float, default=4.0</span>
-<span class="sd">        Time-bandwidth product of the underlying slice profile.</span>
+<span class="sd">        Time-bandwidth product of the single-band pulse.</span>
 <span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
 <span class="sd">        Selection axis.</span>
 <span class="sd">    use : str, default='excitation'</span>
-<span class="sd">        Pulseq RF-use tag, used by trajectory integration.</span>
+<span class="sd">        Pulseq RF use tag.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -616,8 +617,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">MultibandExcitation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Non-spatially-selective RF excitation with off-resonance sidebands.</span>
 
-<span class="sd">    Sideband weights are specified as power relative to the central band,</span>
-<span class="sd">    not amplitude. A target B1 RMS and TR can instead determine the weights.</span>
+<span class="sd">    The sideband weights are given as power relative to the on-resonance band,</span>
+<span class="sd">    or solved from a target RMS B1 over a repetition time.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -633,17 +634,18 @@
 <span class="sd">        Bands counting the on-resonance one: two for a single sideband, three</span>
 <span class="sd">        for a symmetric pair.</span>
 <span class="sd">    sideband_power : float, default=1.0</span>
-<span class="sd">        Power of *each* sideband relative to the on-resonance band. Ignored</span>
-<span class="sd">        when ``b1rms_ut`` is given.</span>
+<span class="sd">        Power of each sideband relative to the on-resonance band. Ignored when</span>
+<span class="sd">        ``b1rms_ut`` is given.</span>
 <span class="sd">    b1rms_ut : float, default=None</span>
 <span class="sd">        Target root-mean-square B1 over the repetition (uT), from which the</span>
 <span class="sd">        sideband power is solved. Needs ``tr``.</span>
 <span class="sd">    tr : float, default=None</span>
-<span class="sd">        The repetition the RMS is taken over (s).</span>
+<span class="sd">        Repetition time the RMS is taken over (s).</span>
 <span class="sd">    time_bw_product : float, default=4.0</span>
-<span class="sd">        Time-bandwidth product of the underlying envelope.</span>
+<span class="sd">        Time-bandwidth product of the Gaussian envelope.</span>
 <span class="sd">    use : str, default='saturation'</span>
-<span class="sd">        Pulseq RF-use tag, used by trajectory integration.</span>
+<span class="sd">        Pulseq RF use tag.</span>
+
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -653,11 +655,12 @@
 <span class="sd">        Band frequency offsets (Hz), including the on-resonance band.</span>
 <span class="sd">    band_power_fraction : numpy.ndarray</span>
 <span class="sd">        Share of the total ``|B1|^2`` each band carries.</span>
-<span class="sd">    sideband_power : float, default=1.0</span>
-<span class="sd">        Power of each sideband relative to the on-resonance band, whether it</span>
-<span class="sd">        was given or solved.</span>
-<span class="sd">    b1rms_ut : float, default=None</span>
-<span class="sd">        Root-mean-square B1 achieved over ``tr``, when one was given.</span>
+<span class="sd">    sideband_power : float</span>
+<span class="sd">        Power of each sideband relative to the on-resonance band, given or</span>
+<span class="sd">        solved from ``b1rms_ut``.</span>
+<span class="sd">    b1rms_ut : float</span>
+<span class="sd">        Root-mean-square B1 (uT) of the pulse over ``tr``; set only when</span>
+<span class="sd">        ``tr`` was given.</span>
 <span class="sd">    peak_ut : float</span>
 <span class="sd">        Peak B1 (uT), the quantity limited by the transmit chain.</span>
 
@@ -786,7 +789,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_b1_squared_integral</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``int |B1|^2 dt`` over a pulse, in tesla squared seconds."""</span>
+<span class="w">    </span><span class="sd">"""Integral of ``|B1|^2`` over a pulse (T^2 s)."""</span>
     <span class="n">signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">signal</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span>
     <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">dwell</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">time</span><span class="p">)))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">shape_dur</span><span class="p">)</span>

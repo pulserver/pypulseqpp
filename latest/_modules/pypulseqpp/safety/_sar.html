@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -466,13 +466,22 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">VopModel</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Virtual observation points, and optional global SAR matrices.</span>
 
-<span class="sd">    ``vops`` is ``(N, Nc, Nc)``, complex Hermitian, in W/kg per unit channel</span>
-<span class="sd">    drive squared: SAR is ``v^H Q v`` for the channel drive phasors ``v`` at</span>
-<span class="sd">    peak amplitude. ``global_matrix`` is ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with</span>
-<span class="sd">    one matrix per body model as a population's file carries; the global SAR of</span>
-<span class="sd">    a window is the largest over the models. ``metadata`` is what the file says</span>
-<span class="sd">    about itself, such as the coil, the drive unit, the channel order and the</span>
-<span class="sd">    ``safety_factor`` every local SAR is multiplied by.</span>
+<span class="sd">    SAR is ``v^H Q v`` for the channel drive phasors ``v`` at peak amplitude</span>
+<span class="sd">    and a matrix ``Q``; the global SAR of a window is the largest over the</span>
+<span class="sd">    body models.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vops : numpy.ndarray</span>
+<span class="sd">        Complex Hermitian matrices, shape ``(N, Nc, Nc)``, in W/kg per unit</span>
+<span class="sd">        channel drive squared.</span>
+<span class="sd">    global_matrix : numpy.ndarray or None</span>
+<span class="sd">        Global SAR matrix, shape ``(Nc, Nc)``, or ``(B, Nc, Nc)`` with one</span>
+<span class="sd">        matrix per body model, in the same unit.</span>
+<span class="sd">    metadata : dict or None</span>
+<span class="sd">        What the file records about itself, such as the coil, the drive unit,</span>
+<span class="sd">        the channel order and the ``safety_factor`` every local SAR is</span>
+<span class="sd">        multiplied by.</span>
 <span class="sd">    """</span>
 
     <span class="n">vops</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -566,8 +575,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    path : str | os.PathLike</span>
-<span class="sd">        The ``.mat`` or ``.npz`` file to read.</span>
+<span class="sd">    path : str or os.PathLike</span>
+<span class="sd">        ``.mat`` or ``.npz`` file to read.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -804,15 +813,17 @@
 <span class="sd">        :func:`read_vops` and :func:`example_vops`. With one global matrix per</span>
 <span class="sd">        body model, a window's global SAR is the largest over the models.</span>
 <span class="sd">    drive_per_hz : float or array_like</span>
-<span class="sd">        Channel drive per Hz of RF amplitude, in the VOPs' drive unit: one</span>
-<span class="sd">        value, or one per channel.</span>
+<span class="sd">        Channel drive per Hz of RF amplitude, in the VOPs' drive unit; a</span>
+<span class="sd">        scalar or one value per channel.</span>
 <span class="sd">    local_limit : float, default=10.0</span>
-<span class="sd">        W/kg; IEC 60601-2-33 normal-mode head limits by default.</span>
+<span class="sd">        Local SAR limit (W/kg); the default is the IEC 60601-2-33 normal-mode</span>
+<span class="sd">        head limit.</span>
 <span class="sd">    global_limit : float, default=3.2</span>
-<span class="sd">        W/kg; IEC 60601-2-33 normal-mode head limits by default.</span>
+<span class="sd">        Global SAR limit (W/kg); the default is the IEC 60601-2-33 normal-mode</span>
+<span class="sd">        head limit.</span>
 <span class="sd">    default_shim : array_like, default=None</span>
-<span class="sd">        Channel weights of a single-channel pulse played without an RF shim;</span>
-<span class="sd">        all ones by default.</span>
+<span class="sd">        Complex channel weights applied to a single-channel pulse in a block</span>
+<span class="sd">        without an RF shim; ones when ``None``.</span>
 <span class="sd">    reference : Sequence or report, default=None</span>
 <span class="sd">        What to compare with, in the same model and calibration: a sequence,</span>
 <span class="sd">        such as a CP-mode FID, evaluated here with the same drive and default</span>
@@ -820,8 +831,8 @@
 <span class="sd">        SAR gives the reference's global SAR in each body model and its</span>
 <span class="sd">        duration. The model needs its global matrices.</span>
 <span class="sd">    safety_factor : float, default=None</span>
-<span class="sd">        Factor, at least 1, every local SAR is multiplied by; the model's</span>
-<span class="sd">        ``metadata["safety_factor"]`` when None, and 1 when it has none.</span>
+<span class="sd">        Factor, at least 1, every local SAR is multiplied by; when ``None``,</span>
+<span class="sd">        the model's ``metadata["safety_factor"]``, else 1.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

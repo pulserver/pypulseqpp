@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,19 +526,18 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">NonSelectiveRefocusing</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/nonselective.html#NonSelectiveRefocusing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.NonSelectiveRefocusing" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Rectangular refocusing pulse between two identical crushers.</p>
-<p>The default phase is pi/2 radians for CPMG with a zero-phase excitation.
-Set spoiling_cycles=0 to omit the crushers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=180.0</em>) – Nominal flip angle (degrees).</p></li>
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=180.0</em>) – Flip angle (degrees).</p></li>
 <li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Pulse duration (s).</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each crusher winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero
-omits the crushers, for an echo train that crushes elsewhere.</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each crusher produces across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
+Zero omits the crushers.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
-<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Crusher axis.</p></li>
-<li><p><strong>phase_offset_rad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=np.pi / 2</em>) – RF phase. The CPMG quarter turn by default.</p></li>
+<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Gradient channel of the crushers.</p></li>
+<li><p><strong>phase_offset_rad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=np.pi / 2</em>) – RF phase (rad); the default is the CPMG quarter turn relative to a
+zero-phase excitation.</p></li>
 <li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='refocusing'</em>) – What the pulse is for; the trajectory core negates accumulated k at a
 refocusing pulse, so this is not cosmetic.</p></li>
 </ul>
@@ -591,7 +590,7 @@ refocusing pulse, so this is not cosmetic.</p></li>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveRefocusing.register.html#pypulseqpp.sequences.NonSelectiveRefocusing.register" title="pypulseqpp.sequences.NonSelectiveRefocusing.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveRefocusing.sim_rf.html#pypulseqpp.sequences.NonSelectiveRefocusing.sim_rf" title="pypulseqpp.sequences.NonSelectiveRefocusing.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -603,10 +602,10 @@ refocusing pulse, so this is not cosmetic.</p></li>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveRefocusing.blocks.html#pypulseqpp.sequences.NonSelectiveRefocusing.blocks" title="pypulseqpp.sequences.NonSelectiveRefocusing.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveRefocusing.duration.html#pypulseqpp.sequences.NonSelectiveRefocusing.duration" title="pypulseqpp.sequences.NonSelectiveRefocusing.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveRefocusing.seq.html#pypulseqpp.sequences.NonSelectiveRefocusing.seq" title="pypulseqpp.sequences.NonSelectiveRefocusing.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

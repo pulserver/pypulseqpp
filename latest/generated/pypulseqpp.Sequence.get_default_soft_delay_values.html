@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,17 +525,18 @@
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.get_default_soft_delay_values">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_default_soft_delay_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.get_default_soft_delay_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.get_default_soft_delay_values" title="Link to this definition">#</a></dt>
 <dd><p>Return each soft delay’s default value.</p>
-<p>A soft delay says how a block’s duration follows from a value the
-console supplies: <cite>duration = value / factor + offset</cite>. Read the other
-way, the duration a block was built with says what value that is –
-and every block sharing a numeric id has to agree about it.</p>
+<p>The default is the value <code class="docutils literal notranslate"><span class="pre">(duration</span> <span class="pre">-</span> <span class="pre">offset)</span> <span class="pre">*</span> <span class="pre">factor</span></code> that
+reproduces the duration a block was built with; blocks sharing a
+numeric id have to agree on it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p><strong>defaults</strong> (<em>dict[str, float]</em>) – The default value for each soft delay, by its hint.</p></li>
-<li><p><strong>error_report</strong> (<em>list[str]</em>) – One line per disagreement found; empty when they all agree.</p></li>
-<li><p><strong>limits</strong> (<em>list[dict | None]</em>) – Per numeric id, the default, the hint, the block it came from,
-and the range of values that keep the block duration positive.</p></li>
+<li><p><strong>defaults</strong> (<em>dict[str, float]</em>) – The default value of each soft delay, by its hint.</p></li>
+<li><p><strong>error_report</strong> (<em>list[str]</em>) – One line per inconsistency found; empty when there is none.</p></li>
+<li><p><strong>limits</strong> (<em>list[dict | None]</em>) – Per numeric id, None if unused, else a dict with the default
+(<code class="docutils literal notranslate"><span class="pre">'def'</span></code>), the hint (<code class="docutils literal notranslate"><span class="pre">'hint'</span></code>), the first block it was derived
+from (<code class="docutils literal notranslate"><span class="pre">'blk'</span></code>) and the range of values that keep the block
+duration non-negative (<code class="docutils literal notranslate"><span class="pre">'min'</span></code>, <code class="docutils literal notranslate"><span class="pre">'max'</span></code>).</p></li>
 </ul>
 </p>
 </dd>

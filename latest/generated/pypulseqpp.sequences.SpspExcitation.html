@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,35 +525,37 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.SpspExcitation">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">SpspExcitation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/spectral.html#SpspExcitation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.SpspExcitation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
-<p>Spectral-spatial excitation using SLR subpulses on an alternating gradient.</p>
-<p>The spectral time-bandwidth product and bandwidth set total duration.
-Subpulse count controls spectral repetition spacing. The subpulses play
-under alternating gradient lobes, so a slice offset is a phase that
-follows the gradient’s area rather than a frequency: move the slice with
+<p>Spectral-spatial excitation of SLR subpulses on an alternating gradient.</p>
+<p>The spectral bandwidth and time-bandwidth product set the total duration,
+and the subpulse count sets the spacing of the spectral repetitions. Under
+alternating gradient lobes a slice offset is a phase that follows the
+gradient’s area, not a frequency offset: move the slice with
 <a class="reference internal" href="pypulseqpp.sequences.SpspExcitation.shift.html#pypulseqpp.sequences.SpspExcitation.shift" title="pypulseqpp.sequences.SpspExcitation.shift"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shift()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Nominal flip angle (degrees).</p></li>
-<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Slice thickness (m).</p></li>
-<li><p><strong>spectral_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Spectral passband (Hz). With <code class="docutils literal notranslate"><span class="pre">spectral_time_bw_product</span></code> it fixes the
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Flip angle (degrees).</p></li>
+<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Slice or slab thickness (m).</p></li>
+<li><p><strong>spectral_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Spectral passband (Hz); with <code class="docutils literal notranslate"><span class="pre">spectral_time_bw_product</span></code> it sets the
 total duration.</p></li>
 <li><p><strong>freq_offset_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Centre of the spectral band (Hz).</p></li>
-<li><p><strong>is_slab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Merge any rephaser into the selection gradient rather than a second block.</p></li>
-<li><p><strong>rephase</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Include a slice rephaser.</p></li>
+<li><p><strong>is_slab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Merge the rephaser into the selection gradient instead of playing it in
+a second block.</p></li>
+<li><p><strong>rephase</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Include the slice rephaser, if the design requires one.</p></li>
 <li><p><strong>spatial_time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product of each spatial subpulse.</p></li>
 <li><p><strong>spectral_time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=3.0</em>) – Time-bandwidth product of the spectral envelope.</p></li>
 <li><p><strong>n_subpulses</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=10</em>) – Subpulses in the train.</p></li>
 <li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Selection axis.</p></li>
-<li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='excitation'</em>) – Pulseq RF-use tag, used by trajectory integration.</p></li>
+<li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='excitation'</em>) – Pulseq RF use tag.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – The alternating selection gradient.</p></li>
-<li><p><strong>gz_reph</strong> (<em>TrapEvent</em>) – Its rephaser, only when needed, rephase=True and is_slab=False.</p></li>
+<li><p><strong>gz_reph</strong> (<em>TrapEvent</em>) – The rephaser; present only when the design requires one,
+<code class="docutils literal notranslate"><span class="pre">rephase</span></code> is true and <code class="docutils literal notranslate"><span class="pre">is_slab</span></code> is false.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
@@ -577,7 +579,7 @@ total duration.</p></li>
 </pre></div>
 </div>
 <p>The subpulse train under its alternating gradient, and the transverse
-magnetization over position and frequency together. The spectral
+magnetisation over position and frequency together. The spectral
 passband repeats at the subpulse rate, which <code class="docutils literal notranslate"><span class="pre">n_subpulses</span></code> sets:</p>
 <figure class="align-default" id="id1">
 <img alt="../_images/pypulseqpp-sequences-SpspExcitation-1_00.svg" class="plot-directive" src="../_images/pypulseqpp-sequences-SpspExcitation-1_00.svg" />
@@ -603,7 +605,7 @@ passband repeats at the subpulse rate, which <code class="docutils literal notra
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SpspExcitation.register.html#pypulseqpp.sequences.SpspExcitation.register" title="pypulseqpp.sequences.SpspExcitation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.SpspExcitation.shift.html#pypulseqpp.sequences.SpspExcitation.shift" title="pypulseqpp.sequences.SpspExcitation.shift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift</span></code></a></p></td>
 <td><p>Move the selected slice to <code class="docutils literal notranslate"><span class="pre">position</span></code> (m) and return the pulse.</p></td>
@@ -618,10 +620,10 @@ passband repeats at the subpulse rate, which <code class="docutils literal notra
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SpspExcitation.blocks.html#pypulseqpp.sequences.SpspExcitation.blocks" title="pypulseqpp.sequences.SpspExcitation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.SpspExcitation.duration.html#pypulseqpp.sequences.SpspExcitation.duration" title="pypulseqpp.sequences.SpspExcitation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SpspExcitation.seq.html#pypulseqpp.sequences.SpspExcitation.seq" title="pypulseqpp.sequences.SpspExcitation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

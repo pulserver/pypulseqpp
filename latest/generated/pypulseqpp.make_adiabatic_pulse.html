@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -555,7 +555,7 @@ quarters are (10 by default).</p></li>
 <li><p><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Delay before the pulse, in s. A <code class="docutils literal notranslate"><span class="pre">&quot;goia_wurst&quot;</span></code> pulse starts no
 earlier than its gradient’s ramp ends, so its delay can be longer.</p></li>
 <li><p><strong>duration</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Pulse duration, in s.</p></li>
-<li><p><strong>dwell</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – RF raster, in s; the system’s by default.</p></li>
+<li><p><strong>dwell</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – RF sample spacing, in s; the system’s <code class="docutils literal notranslate"><span class="pre">rf_raster_time</span></code> by default.</p></li>
 <li><p><strong>freq_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Frequency (Hz) and phase (rad) offsets.</p></li>
 <li><p><strong>phase_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Frequency (Hz) and phase (rad) offsets.</p></li>
 <li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits for the slice-selection gradient, in place of the system’s.</p></li>
@@ -568,16 +568,18 @@ by <code class="docutils literal notranslate"><span class="pre">&quot;goia_wurst
 <li><p><strong>slice_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Slice thickness, in m, when <code class="docutils literal notranslate"><span class="pre">return_gz</span></code>.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>default=None</em>) – System limits.</p></li>
 <li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='inversion'</em>) – What the pulse is for, as Pulseq records it.</p></li>
-<li><p><strong>freq_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Field-strength-relative offsets.</p></li>
-<li><p><strong>phase_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Field-strength-relative offsets.</p></li>
+<li><p><strong>freq_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Frequency and phase offsets in ppm of the Larmor frequency at the
+system’s <code class="docutils literal notranslate"><span class="pre">B0</span></code>, as in PyPulseq.</p></li>
+<li><p><strong>phase_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Frequency and phase offsets in ppm of the Larmor frequency at the
+system’s <code class="docutils literal notranslate"><span class="pre">B0</span></code>, as in PyPulseq.</p></li>
 <li><p><strong>flip_angle</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=np.pi / 2</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;bir4&quot;</span></code> rotation, in rad.</p></li>
 <li><p><strong>kappa</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=math.atan</em><em>(</em><em>20.0</em><em>)</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;bir4&quot;</span></code> frequency-sweep shape: <code class="docutils literal notranslate"><span class="pre">tan(kappa</span> <span class="pre">*</span> <span class="pre">s)</span> <span class="pre">/</span> <span class="pre">tan(kappa)</span></code>
 over each quarter.</p></li>
-<li><p><strong>gradient_modulation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=0.9</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;goia_wurst&quot;</span></code> gradient modulation depth, in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1)</span></code>: the gradient
+<li><p><strong>gradient_modulation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.9</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;goia_wurst&quot;</span></code> gradient modulation depth, in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1)</span></code>: the gradient
 follows <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">-</span> <span class="pre">gradient_modulation)</span> <span class="pre">+</span> <span class="pre">gradient_modulation</span> <span class="pre">*</span>
 <span class="pre">|cos(pi</span> <span class="pre">t</span> <span class="pre">/</span> <span class="pre">T)|^gradient_order</span></code> of its peak,
 <code class="docutils literal notranslate"><span class="pre">bandwidth</span> <span class="pre">/</span> <span class="pre">slice_thickness</span></code>.</p></li>
-<li><p><strong>gradient_order</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=4</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;goia_wurst&quot;</span></code> exponent of the gradient modulation.</p></li>
+<li><p><strong>gradient_order</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;goia_wurst&quot;</span></code> exponent of the gradient modulation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

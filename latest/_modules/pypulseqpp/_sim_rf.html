@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -566,18 +566,20 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf : SimpleNamespace or RfEvent</span>
-<span class="sd">        Its ``freq_ppm`` and ``phase_ppm`` are converted with the default</span>
-<span class="sd">        system's gamma and B0, with a warning.</span>
+<span class="sd">        The RF event. Its ``freq_ppm`` and ``phase_ppm`` are converted with</span>
+<span class="sd">        the default system's gamma and B0, with a warning.</span>
 <span class="sd">    rephase_factor : float, default=None</span>
 <span class="sd">        Free precession after the pulse, as a signed fraction of its</span>
 <span class="sd">        duration. Defaults to zero when ``rf.use == "refocusing"`` and to</span>
 <span class="sd">        ``-(shape_dur - center) / shape_dur``, the slice-select rephaser,</span>
 <span class="sd">        otherwise.</span>
 <span class="sd">    prephase_factor : float, default=0.0</span>
-<span class="sd">        The same, before the pulse.</span>
+<span class="sd">        Free precession before the pulse, as a signed fraction of its</span>
+<span class="sd">        duration.</span>
 <span class="sd">    df : float, default=1.0</span>
-<span class="sd">        In Hz: the axis holds ``round(bandwidth / df)`` points, so their</span>
-<span class="sd">        spacing is about ``bandwidth_multiplier * df``.</span>
+<span class="sd">        Frequency resolution (Hz) of the unwidened axis: the axis holds</span>
+<span class="sd">        ``round(bandwidth / df)`` points, so their spacing is about</span>
+<span class="sd">        ``bandwidth_multiplier * df``.</span>
 <span class="sd">    bandwidth_multiplier : float, default=4.0</span>
 <span class="sd">        Width of the frequency axis, in bandwidths. The bandwidth is</span>
 <span class="sd">        :func:`calc_rf_bandwidth` at half maximum plus ``|freq_offset|``;</span>

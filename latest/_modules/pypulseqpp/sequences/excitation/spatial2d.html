@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -465,34 +465,34 @@
 <span class="w">    </span><span class="sd">"""Small-tip spiral excitation selective in two dimensions.</span>
 
 <span class="sd">    The selected disc extends along the unencoded axis. Its periodic replicas</span>
-<span class="sd">    are set by the excitation FOV, which should cover the object. Each arm</span>
-<span class="sd">    is retraced with RF off; the closed trajectory needs no separate rephaser.</span>
+<span class="sd">    lie at the excitation FOV distance, which should cover the object. Each</span>
+<span class="sd">    arm is retraced with RF off, so the trajectory ends at the origin and</span>
+<span class="sd">    needs no rephaser.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    flip_angle_deg : float</span>
-<span class="sd">        Nominal flip angle (degrees), reached at the centre of the disc.</span>
+<span class="sd">        Flip angle (degrees) at the centre of the disc.</span>
 <span class="sd">    fov : float</span>
-<span class="sd">        Excitation field of view (m), square. The distance to the first</span>
+<span class="sd">        Square excitation field of view (m); the distance to the first</span>
 <span class="sd">        repeated disc.</span>
 <span class="sd">    matrix : int</span>
-<span class="sd">        Excitation grid size, square. How finely the profile is specified, and</span>
-<span class="sd">        so how far out the trajectory reaches.</span>
+<span class="sd">        Excitation grid size, square; sets the extent of the trajectory in</span>
+<span class="sd">        excitation k-space.</span>
 <span class="sd">    selective_size : float or sequence of float, default=None</span>
-<span class="sd">        Diameter (m) of the excited disc. Half the field of view by default.</span>
+<span class="sd">        Diameter of the excited disc (m). ``None`` is half the field of view.</span>
 <span class="sd">    target : numpy.ndarray, default=None</span>
-<span class="sd">        Complex desired profile on the ``(matrix, matrix)`` grid, instead of a</span>
-<span class="sd">        disc.</span>
+<span class="sd">        Complex profile on the ``(matrix, matrix)`` grid, instead of a disc.</span>
 <span class="sd">    n_interleaves : int, default=None</span>
-<span class="sd">        Spiral arms to play. The default covers excitation k-space at Nyquist;</span>
-<span class="sd">        fewer is a proportionally shorter pulse and a repeated disc that moves</span>
+<span class="sd">        Spiral arms played. ``None`` samples excitation k-space at Nyquist;</span>
+<span class="sd">        fewer arms give a proportionally shorter pulse and a repeated disc</span>
 <span class="sd">        proportionally closer.</span>
 <span class="sd">    axes : sequence of str, default=('x', 'y')</span>
 <span class="sd">        The two gradient channels the trajectory runs on.</span>
 <span class="sd">    use : str, default='excitation'</span>
-<span class="sd">        Pulseq RF-use tag, used by trajectory integration.</span>
+<span class="sd">        Pulseq RF use tag.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -501,13 +501,13 @@
 <span class="sd">    gradients : tuple of GradEvent</span>
 <span class="sd">        One per axis, played in the pulse's own block.</span>
 <span class="sd">    rephasers : tuple of TrapEvent</span>
-<span class="sd">        Empty for the spiral trajectory; the attribute is present because a</span>
-<span class="sd">        trajectory that does not end at the origin requires rephasers.</span>
+<span class="sd">        Rephasing gradients; empty, because the spiral trajectory ends at the</span>
+<span class="sd">        origin.</span>
 <span class="sd">    self_refocused : bool</span>
 <span class="sd">        Whether the excitation k-space trajectory ends at the origin without</span>
 <span class="sd">        a rephaser.</span>
 <span class="sd">    duration_s : float</span>
-<span class="sd">        Pulse length (s), which the trajectory fixed.</span>
+<span class="sd">        Pulse length (s), set by the trajectory.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -530,7 +530,7 @@
 <span class="sd">    (True, ())</span>
 
 <span class="sd">    The subpulse train under the spiral gradients, and the transverse</span>
-<span class="sd">    magnetization over the selected plane:</span>
+<span class="sd">    magnetisation over the selected plane:</span>
 
 <span class="sd">    .. plot::</span>
 <span class="sd">       :include-source: false</span>

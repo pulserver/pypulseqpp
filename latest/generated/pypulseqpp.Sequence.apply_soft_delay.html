@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -524,29 +524,24 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.apply_soft_delay">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">apply_soft_delay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.apply_soft_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.apply_soft_delay" title="Link to this definition">#</a></dt>
-<dd><p>Set each named soft delay to the value given.</p>
-<p>A soft delay says how long its block lasts in terms of a value the
-console supplies: <code class="docutils literal notranslate"><span class="pre">duration</span> <span class="pre">=</span> <span class="pre">value</span> <span class="pre">/</span> <span class="pre">factor</span> <span class="pre">+</span> <span class="pre">offset</span></code>, rounded onto
-the block duration raster. Naming one here writes that duration into
-every block that plays it.</p>
+<dd><p>Set the duration of every block carrying a named soft delay.</p>
+<p>The duration of a block with a soft delay is
+<code class="docutils literal notranslate"><span class="pre">value</span> <span class="pre">/</span> <span class="pre">factor</span> <span class="pre">+</span> <span class="pre">offset</span></code>, rounded onto the block duration raster.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – What each delay, by its hint, is to be set to, in seconds. A
-delay in the sequence that is not named here is left unchanged.</p>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Value (s) of each soft delay, by its hint. Soft delays not named
+are unchanged.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a name given is not in the sequence, if a hint and a numeric
-    id do not agree about which delay they name, or if the value
-    asked for would make a block last less than nothing.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a name is not a hint in the sequence, if a hint and a numeric
+    id are inconsistent between blocks, or if a value gives a negative
+    block duration.</p>
 </dd>
 <dt class="field-odd">Warns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>UserWarning</strong> – When a duration had to move more than half a microsecond to
-reach the raster. Once per delay, not once per block.</p>
+<dd class="field-odd"><p><strong>UserWarning</strong> – When rounding onto the raster moves a duration by more than half
+a microsecond; once per soft delay.</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>Finding the soft delays is a compiled pass over the block table:
-nothing else in a block is decoded to answer whether it heads one.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">())</span>

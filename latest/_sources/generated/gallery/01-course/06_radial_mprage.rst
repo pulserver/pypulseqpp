@@ -23,9 +23,9 @@
 ================
 
 MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion
-pulse flips the longitudinal magnetization; while it recovers, at a speed set
+pulse flips the longitudinal magnetisation; while it recovers, at a speed set
 by each tissue's T1, a fast train of gradient echoes reads it out; then the
-magnetization recovers before the next inversion. White and grey matter
+magnetisation recovers before the next inversion. White and grey matter
 recover at different speeds, and the train catches them while they differ.
 
 In this lesson your radial gradient echo of lesson 5 becomes the readout
@@ -120,7 +120,7 @@ every 2.5 s.
 Inversion pulse
 ---------------
 
-An adiabatic pulse inverts the magnetization uniformly even where the
+An adiabatic pulse inverts the magnetisation uniformly even where the
 transmit field is weak or strong, which a 180 degree sinc would not.
 :func:`~pypulseqpp.make_adiabatic_pulse` makes a hyperbolic secant, 10 ms
 long. ``use="inversion"`` tells the scanner and the checks what it is.
@@ -403,7 +403,7 @@ Signal evolution
 ----------------
 
 The simulation below follows the longitudinal
-magnetization of three tissues through the scan: inverted, recovering for
+magnetisation of three tissues through the scan: inverted, recovering for
 TI, tipped by 8 degrees and recovering for one spoke TR at a time along the
 train, then recovering until the next inversion. After a few inversions it
 repeats exactly; the figure shows that steady period, with the signal of
@@ -493,7 +493,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.280 seconds)
+   **Total running time of the script:** (0 minutes 1.293 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_06_radial_mprage.py:

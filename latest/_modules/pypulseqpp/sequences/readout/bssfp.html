@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -469,15 +469,49 @@
 <span class="w">    </span><span class="sd">"""Balanced SSFP repetition with TE fixed at TR/2.</span>
 
 <span class="sd">    Every axis is balanced between consecutive RF centres. The slice</span>
-<span class="sd">    rephasers are part of that balance and are built here, so pass an</span>
-<span class="sd">    excitation built with ``rephase=False``.</span>
+<span class="sd">    rephasers belong to that balance and are built here, so ``rf`` and ``gz``</span>
+<span class="sd">    come from an excitation built with ``rephase=False``.</span>
 
-<span class="sd">    The module's blocks are excitation, acquisition, rewind. A loop plays each</span>
-<span class="sd">    shot as the previous shot's rewind, excitation, acquisition, and writes</span>
-<span class="sd">    the transients itself: the half-flip pulse (``rf`` at half amplitude,</span>
-<span class="sd">    opposite in phase to the first excitation) then ``wait_prep``;</span>
+<span class="sd">    The module's blocks are excitation, acquisition, rewind. The caller plays</span>
+<span class="sd">    each shot as the previous shot's rewind, excitation and acquisition, and</span>
+<span class="sd">    writes the transients: the half-flip pulse (``rf`` at half amplitude,</span>
+<span class="sd">    opposite in phase to the first excitation) followed by ``wait_prep``;</span>
 <span class="sd">    ``wait_rewind`` with ``gz_rew`` in place of the first rewind; and a last</span>
 <span class="sd">    rewind block to ramp down.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    rf : RfEvent</span>
+<span class="sd">        The excitation.</span>
+<span class="sd">    gz : GradEvent, default=None</span>
+<span class="sd">        Its selection gradient without a rephaser, played in the excitation</span>
+<span class="sd">        block; ``None`` for a hard pulse.</span>
+<span class="sd">    fov : float or sequence of float</span>
+<span class="sd">        Field of view per encoded axis, readout first (m).</span>
+<span class="sd">    matrix : int or sequence of int</span>
+<span class="sd">        Matrix size per encoded axis, readout first.</span>
+<span class="sd">    tr : float, default=None</span>
+<span class="sd">        Repetition time (s). ``None`` is as short as possible; a longer TR is</span>
+<span class="sd">        added evenly either side of the echo, so TE stays at TR/2.</span>
+<span class="sd">    half_flip_prep : bool, default=True</span>
+<span class="sd">        Build ``wait_prep`` for the half-flip preparation. Requires the</span>
+<span class="sd">        acquisition block after the echo to be at least as long as the</span>
+<span class="sd">        excitation block after the pulse centre. False when the caller ramps</span>
+<span class="sd">        the signal in with dummy repetitions.</span>
+<span class="sd">    oversampling : float, default=1.0</span>
+<span class="sd">        Readout oversampling: the sample spacing in k-space is</span>
+<span class="sd">        ``1 / (oversampling * fov)``.</span>
+<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
+<span class="sd">        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved</span>
+<span class="sd">        on the ADC and gradient rasters.</span>
+<span class="sd">    labels : sequence of str, default=None</span>
+<span class="sd">        Labels set to 0 on the acquisition block, to be changed per shot by the</span>
+<span class="sd">        caller.</span>
+<span class="sd">    trigger : TriggerEvent or DigitalOutputEvent, default=None</span>
+<span class="sd">        Event armed on the rewind block.</span>
+
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -494,65 +528,35 @@
 <span class="sd">        In-plane encode at its largest step, and the same negated, to be scaled</span>
 <span class="sd">        per shot.</span>
 <span class="sd">    gz_pre, gz_rew : TrapEvent</span>
-<span class="sd">        The slice rephasers: ``gz_pre`` in the acquisition block after the</span>
-<span class="sd">        pulse, ``gz_rew`` in the rewind block before the next one. Absent for</span>
-<span class="sd">        a hard pulse.</span>
+<span class="sd">        Slice rephasers: ``gz_pre`` in the acquisition block after the pulse,</span>
+<span class="sd">        ``gz_rew`` in the rewind block before the next pulse. Absent for a</span>
+<span class="sd">        hard pulse.</span>
 <span class="sd">    gz_partition, gz_partition_rew : TrapEvent</span>
 <span class="sd">        Partition encode at its largest step, and the same negated, sharing</span>
 <span class="sd">        the window of ``gz_pre`` and ``gz_rew`` respectively. 3D only.</span>
 <span class="sd">    adc : AdcEvent</span>
 <span class="sd">        The acquisition window, spanning the readout plateau.</span>
 <span class="sd">    adc_labels : LabelSetEvent or list of LabelSetEvent</span>
-<span class="sd">        One per name in ``labels``; a bare event when there is one.</span>
+<span class="sd">        One per name in ``labels``.</span>
 <span class="sd">    prep_labels, train_labels, end_labels : list of LabelSetEvent</span>
 <span class="sd">        ``ONCE`` set to 1, 0 and 2, for the half-flip block, the block after</span>
 <span class="sd">        it and the final rewind.</span>
 <span class="sd">    wait_prep : DelayEvent</span>
-<span class="sd">        Played after the half-flip block; with the ``wait_rewind`` block it</span>
-<span class="sd">        puts the half-flip pulse half a repetition before the first</span>
-<span class="sd">        excitation. Absent under ``half_flip_prep=False``.</span>
+<span class="sd">        Delay after the half-flip block; with the ``wait_rewind`` block it</span>
+<span class="sd">        places the half-flip pulse half a repetition before the first</span>
+<span class="sd">        excitation. Absent with ``half_flip_prep=False``.</span>
 <span class="sd">    wait_rewind : DelayEvent</span>
-<span class="sd">        The rewind block's duration, for the first repetition.</span>
+<span class="sd">        Delay of the rewind block's duration, for the first repetition.</span>
 <span class="sd">    tr, te : float</span>
 <span class="sd">        Repetition and echo time (s); ``te`` is always half of ``tr``.</span>
 <span class="sd">    bandwidth_hz : float</span>
 <span class="sd">        Achieved ADC sampling rate (Hz).</span>
 <span class="sd">    n_samples : int</span>
-<span class="sd">        Samples per repetition.</span>
+<span class="sd">        ADC samples per repetition.</span>
 <span class="sd">    delta_kx : float</span>
-<span class="sd">        Read-axis k-space step (1/m).</span>
+<span class="sd">        K-space sample spacing along the readout (1/m).</span>
 <span class="sd">    readout_duration : float</span>
-<span class="sd">        Sampling window (s).</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    system : pypulseqpp.Opts</span>
-<span class="sd">        System limits.</span>
-<span class="sd">    rf : RfEvent</span>
-<span class="sd">        The excitation.</span>
-<span class="sd">    gz : GradEvent, default=None</span>
-<span class="sd">        Its selection gradient without a rephaser, played in the excitation</span>
-<span class="sd">        block. ``None`` for a hard pulse.</span>
-<span class="sd">    fov : float or sequence of float</span>
-<span class="sd">        Field of view (m), per encoded axis, readout first.</span>
-<span class="sd">    matrix : int or sequence of int</span>
-<span class="sd">        Matrix size, per encoded axis.</span>
-<span class="sd">    tr : float, default=None</span>
-<span class="sd">        Repetition time (s). ``None`` is as short as possible; a longer one is</span>
-<span class="sd">        padded evenly either side of the echo, so TE stays at TR/2.</span>
-<span class="sd">    half_flip_prep : bool, default=True</span>
-<span class="sd">        Publish ``wait_prep``. This requires the acquisition block after the</span>
-<span class="sd">        echo to be at least as long as the excitation block after the pulse</span>
-<span class="sd">        centre. Turn it off to ramp the train in with dummy repetitions.</span>
-<span class="sd">    oversampling : float, default=1.0</span>
-<span class="sd">        Read oversampling.</span>
-<span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
-<span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
-<span class="sd">        achieved raster-compatible rate.</span>
-<span class="sd">    labels : sequence of str, default=None</span>
-<span class="sd">        Counters emitted on the acquisition block.</span>
-<span class="sd">    trigger : event, default=None</span>
-<span class="sd">        A trigger or digital output armed on the rewind block.</span>
+<span class="sd">        Duration of the sampling window (s).</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -759,11 +763,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ramp</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Z trapezoid of ``area`` over ``duration``, or ``None`` if there is none.</span>
+<span class="w">    </span><span class="sd">"""Return a z trapezoid of ``area`` over ``duration`` with ramps of ``ramp``, or None for zero area.</span>
 
-<span class="sd">    The ramp is given rather than solved, so that two lobes over the same</span>
-<span class="sd">    window share their vertex times whatever their areas -- which is what lets</span>
-<span class="sd">    a rephaser and a partition encode be added into one trapezoid.</span>
+<span class="sd">    Lobes over one window share their vertex times whatever their areas, so a</span>
+<span class="sd">    rephaser and a partition encode can be added into one trapezoid.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">area</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -773,11 +776,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ramp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Shortest window that holds a z trapezoid of ``area`` on ramps of ``ramp``.</span>
+<span class="w">    </span><span class="sd">"""Return the shortest window holding a z trapezoid of ``area`` on ramps of ``ramp``.</span>
 
-<span class="sd">    The caller passes a rephaser plus the outermost partition step: the loop</span>
-<span class="sd">    adds the two into one trapezoid, and their sum must stay within</span>
-<span class="sd">    ``max_grad``.</span>
+<span class="sd">    ``area`` is a rephaser plus the largest partition step: the caller adds</span>
+<span class="sd">    the two into one trapezoid, whose amplitude must stay within ``max_grad``.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">ramp</span> <span class="o">+</span> <span class="n">area</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span>
 

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -466,15 +466,20 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">ChronaxieModel</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Rheobase-chronaxie nerve model.</span>
 
-<span class="sd">    ``chronaxie`` is in s and ``rheobase`` in T/m/s. The response is</span>
-<span class="sd">    normalised by ``rheobase / alpha``: a rectangular slew S held for tau</span>
-<span class="sd">    reaches ``S alpha tau / (rheobase (chronaxie + tau))``.</span>
+<span class="sd">    The response is normalised by ``rheobase / alpha``: a rectangular slew S</span>
+<span class="sd">    held for tau reaches ``S alpha tau / (rheobase (chronaxie + tau))``. The</span>
+<span class="sd">    chronaxie, and with it the shape of the response kernel, is shared by the</span>
+<span class="sd">    axes; ``rheobase`` and ``alpha`` scale the response and are one value for</span>
+<span class="sd">    every axis or one per physical axis.</span>
 
-<span class="sd">    ``rheobase`` and ``alpha`` are one value for every axis, or one per</span>
-<span class="sd">    physical axis. The chronaxie, and with it the shape of the response</span>
-<span class="sd">    kernel, is shared by the axes; per-axis values scale the response of each</span>
-<span class="sd">    axis to a given slew, so a gradient coil whose axes stimulate differently</span>
-<span class="sd">    is not evaluated on every axis as its most stimulating one.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chronaxie : float</span>
+<span class="sd">        Chronaxie (s).</span>
+<span class="sd">    rheobase : float or tuple of float</span>
+<span class="sd">        Rheobase (T/m/s), one value or one per physical axis.</span>
+<span class="sd">    alpha : float or tuple of float</span>
+<span class="sd">        Dimensionless response scale, one value or one per physical axis.</span>
 <span class="sd">    """</span>
 
     <span class="n">chronaxie</span><span class="p">:</span> <span class="nb">float</span>
@@ -491,21 +496,21 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">read_safe_model</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimpleNamespace</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Read a SAFE nerve model from a Siemens ``.asc`` hardware description.</span>
 
-<span class="sd">    Reading is upstream PyPulseq's ``readasc`` and ``asc_to_hw``; the result</span>
+<span class="sd">    Reading is upstream PyPulseq's ``readasc`` and ``asc_to_hw``. The result</span>
 <span class="sd">    is shaped like ``pypulseq.utils.safe_pns_prediction.safe_example_hw()``:</span>
 <span class="sd">    ``x``, ``y`` and ``z``, each with ``a1``-``a3``, ``tau1``-``tau3`` (ms),</span>
 <span class="sd">    ``stim_limit`` (T/m/s) and ``g_scale``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    path : str | os.PathLike</span>
-<span class="sd">        The ``.asc`` file to read.</span>
+<span class="sd">    path : str or os.PathLike</span>
+<span class="sd">        Siemens ``.asc`` hardware description.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    types.SimpleNamespace</span>
-<span class="sd">        The model, shaped as described above, for</span>
-<span class="sd">        :func:`~pypulseqpp.safety.check_pns` to take as its ``model``.</span>
+<span class="sd">        The SAFE model, accepted as ``model`` by</span>
+<span class="sd">        :func:`~pypulseqpp.safety.check_pns`.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseq.utils.siemens.asc_to_hw</span><span class="w"> </span><span class="kn">import</span> <span class="n">asc_to_hw</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pypulseq.utils.siemens.readasc</span><span class="w"> </span><span class="kn">import</span> <span class="n">readasc</span>
@@ -604,14 +609,15 @@
 <span class="sd">        description shaped like upstream's ``safe_example_hw()``; or a ``.asc``</span>
 <span class="sd">        file for :func:`read_safe_model`.</span>
 <span class="sd">    rotation : array_like, default=None</span>
-<span class="sd">        3x3 prescription rotation from logical to physical axes, applied after</span>
-<span class="sd">        each block's own rotation; identity (axial) by default.</span>
+<span class="sd">        3x3 prescription rotation from logical to physical axes, composed</span>
+<span class="sd">        after each block's own rotation; identity (axial) when ``None``.</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        Source of the gyromagnetic ratio; the sequence's own by default.</span>
+<span class="sd">        Source of the gyromagnetic ratio (Hz/T); ``seq.system`` when</span>
+<span class="sd">        ``None``, then the default :class:`~pypulseqpp.Opts`.</span>
 <span class="sd">    trace : bool, default=False</span>
 <span class="sd">        Also return the response over time, which a diagnostic plot draws.</span>
-<span class="sd">        The trace is one value per gradient raster interval over the whole</span>
-<span class="sd">        sequence, so it costs four arrays of ``samples`` each.</span>
+<span class="sd">        The trace has one value per gradient raster interval over the whole</span>
+<span class="sd">        sequence.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -626,6 +632,15 @@
 <span class="sd">        1-based ``block`` that plays it. Under ``trace``, ``time`` (s),</span>
 <span class="sd">        ``response`` -- the root-sum-square, as a fraction of threshold -- and</span>
 <span class="sd">        each axis's own ``response``, all of length ``samples``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``model`` is none of the accepted forms.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a model coefficient is not positive, a SAFE axis lacks a field or</span>
+<span class="sd">        its ``a1 + a2 + a3`` is not 1, or ``rotation`` is not a 3x3</span>
+<span class="sd">        orthonormal matrix.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>

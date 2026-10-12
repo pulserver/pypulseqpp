@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -503,9 +503,9 @@
 <span class="sd">    n : int</span>
 <span class="sd">        Number of angles.</span>
 <span class="sd">    full_circle : bool, default=False</span>
-<span class="sd">        ``False`` (the default) is the ``pi``-periodic radial/blade golden</span>
-<span class="sd">        angle ``pi / phi``; ``True`` is the full-turn spiral golden angle</span>
-<span class="sd">        ``2 * pi / phi**2``. Default is False.</span>
+<span class="sd">        ``False`` selects the ``pi``-periodic radial/blade increment</span>
+<span class="sd">        ``pi / phi``; ``True`` selects the full-turn spiral increment</span>
+<span class="sd">        ``2 * pi / phi**2``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -563,7 +563,8 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``n`` is below one, or the approximation index is out of range.</span>
+<span class="sd">        If ``n`` is negative, ``tiny_index`` is below 1 or</span>
+<span class="sd">        ``approximation_order`` is below 2.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -610,7 +611,7 @@
 <span class="sd">    n : int</span>
 <span class="sd">        Number of angles.</span>
 <span class="sd">    index : int, default=2</span>
-<span class="sd">        Tiny-golden index ``N &gt;= 1`` (default 2).</span>
+<span class="sd">        Tiny-golden index, at least 1.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -654,8 +655,8 @@
 <span class="sd">    n : int</span>
 <span class="sd">        Number of angles.</span>
 <span class="sd">    span : float, default=2.0 * np.pi</span>
-<span class="sd">        Angular range the spokes are spread across, in radians. ``pi`` for</span>
-<span class="sd">        diametric spokes, ``2 * pi`` (the default) for full-turn arms.</span>
+<span class="sd">        Angular range (rad) the angles are spread across: ``pi`` for</span>
+<span class="sd">        diametric spokes, ``2 * pi`` for full-turn arms.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -665,7 +666,7 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``n`` is below one, or ``span`` is not positive.</span>
+<span class="sd">        If ``n`` is negative.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -704,7 +705,7 @@
 <span class="sd">    n_views : int</span>
 <span class="sd">        Spokes in the base shell, at least three.</span>
 <span class="sd">    n_shots : int, default=1</span>
-<span class="sd">        Rotated replays of that shell.</span>
+<span class="sd">        Number of rotated replays of the base shell, at least one.</span>
 <span class="sd">    scheme : {'spiral', 'meridian'}, default='spiral'</span>
 <span class="sd">        ``'spiral'`` winds pole to pole across equal-area rings, so the shell</span>
 <span class="sd">        alone is already near-uniform. ``'meridian'`` is a half great circle in</span>
@@ -716,13 +717,15 @@
 <span class="sd">    directions : numpy.ndarray</span>
 <span class="sd">        Unit spoke directions of the base shell, shape ``(n_views, 3)``.</span>
 <span class="sd">    rotations : numpy.ndarray</span>
-<span class="sd">        Rotation matrices, shape ``(n_shots, 3, 3)``, each turning the whole</span>
-<span class="sd">        shell to where that shot samples.</span>
+<span class="sd">        Rotation matrices, shape ``(n_shots, 3, 3)``: rotations about the z</span>
+<span class="sd">        axis by ``2*pi*k/n_shots``, ``k = 0..n_shots-1``. Each maps the whole</span>
+<span class="sd">        base shell to the directions that shot samples.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a count is out of range or ``scheme`` is unknown.</span>
+<span class="sd">        If ``n_views`` is below 3, ``n_shots`` is below 1 or ``scheme`` is</span>
+<span class="sd">        unknown.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>

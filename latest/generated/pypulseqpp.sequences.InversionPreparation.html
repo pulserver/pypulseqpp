@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,24 +526,23 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">InversionPreparation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/inversion.html#InversionPreparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.InversionPreparation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Non-selective adiabatic inversion, followed by an optional crusher.</p>
-<p>The acquisition loop supplies the inversion-time delay.</p>
+<p>The module contains no inversion-time delay; the caller adds it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Inversion pulse duration (s). Shorter durations increase the required
-sweep rate and may violate the adiabatic condition.</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Dephasing of the crusher, in cycles across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero
-omits the crusher.</p></li>
-<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m) — the smallest voxel
-dimension, since that is the one that has to be spoiled.</p></li>
-<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Crusher axis.</p></li>
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Inversion pulse duration (s); a shorter pulse needs a faster sweep,
+which may violate the adiabatic condition.</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing of the crusher across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero omits
+the crusher.</p></li>
+<li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m); the smallest voxel
+dimension.</p></li>
+<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Gradient channel of the crusher.</p></li>
 <li><p><strong>pulse_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='hypsec'</em>) – Adiabatic sweep family.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=40000.0</em>) – Frequency width of the sweep (Hz).</p></li>
 <li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=4</em>) – Sweep-rate margin over the adiabatic condition.</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the inversion block, which starts each shot. The
-module creates the label events; the acquisition loop assigns their
-per-shot values.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels the inversion block sets to 0, to be changed per shot by the
+caller.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -595,7 +594,7 @@ empty, and a bare event rather than a list when there is one.</p></li>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.InversionPreparation.register.html#pypulseqpp.sequences.InversionPreparation.register" title="pypulseqpp.sequences.InversionPreparation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.InversionPreparation.sim_rf.html#pypulseqpp.sequences.InversionPreparation.sim_rf" title="pypulseqpp.sequences.InversionPreparation.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -607,10 +606,10 @@ empty, and a bare event rather than a list when there is one.</p></li>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.InversionPreparation.blocks.html#pypulseqpp.sequences.InversionPreparation.blocks" title="pypulseqpp.sequences.InversionPreparation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.InversionPreparation.duration.html#pypulseqpp.sequences.InversionPreparation.duration" title="pypulseqpp.sequences.InversionPreparation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.InversionPreparation.seq.html#pypulseqpp.sequences.InversionPreparation.seq" title="pypulseqpp.sequences.InversionPreparation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

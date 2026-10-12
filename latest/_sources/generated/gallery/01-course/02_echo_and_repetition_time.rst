@@ -38,7 +38,7 @@ shorten it further by acquiring only part of the echo.
 - Shorten TE with an asymmetric echo.
 
 Previous: :doc:`01_first_gradient_echo`. Next: :doc:`03_spoiling`, where you
-deal with the magnetization one repetition leaves to the next.
+deal with the magnetisation one repetition leaves to the next.
 
 .. GENERATED FROM PYTHON SOURCE LINES 24-36
 
@@ -490,7 +490,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.300 seconds)
+   **Total running time of the script:** (0 minutes 0.297 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_02_echo_and_repetition_time.py:

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -570,7 +570,7 @@ previous change is an INC:</p>
 <div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="The scanner plays your sequence and hands the reconstruction a stream of readouts. To put each readout in its place, the reconstruction has to know which k-space line it is, which slice, which average, and what the field of view and the matrix are. None of that can be guessed from the samples: you write it into the sequence, as labels on the blocks and definitions in the file header."><img alt="" src="../_images/sphx_glr_04_labels_and_metadata_thumb.png" />
 <p><a class="reference internal" href="gallery/01-course/04_labels_and_metadata.html"><span class="doc">4. Labels and metadata</span></a></p>
   <div class="sphx-glr-thumbnail-title">4. Labels and metadata</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion pulse flips the longitudinal magnetization; while it recovers, at a speed set by each tissue&#x27;s T1, a fast train of gradient echoes reads it out; then the magnetization recovers before the next inversion. White and grey matter recover at different speeds, and the train catches them while they differ."><img alt="" src="../_images/sphx_glr_06_radial_mprage_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion pulse flips the longitudinal magnetisation; while it recovers, at a speed set by each tissue&#x27;s T1, a fast train of gradient echoes reads it out; then the magnetisation recovers before the next inversion. White and grey matter recover at different speeds, and the train catches them while they differ."><img alt="" src="../_images/sphx_glr_06_radial_mprage_thumb.png" />
 <p><a class="reference internal" href="gallery/01-course/06_radial_mprage.html"><span class="doc">6. Radial MPRAGE</span></a></p>
   <div class="sphx-glr-thumbnail-title">6. Radial MPRAGE</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="Your MPRAGE of lesson 6 is a script: the protocol sits in constants at the top, and changing the inversion time means editing the file. In this lesson you turn it into a sequence function, a function of the scanner and the protocol that returns the sequence. That is the form every sequence shipped with pypulseqpp takes, and the form a scanner console or a command line can drive: they read the protocol from the function&#x27;s signature and docstring, and call it with the values the user prescribes."><img alt="" src="../_images/sphx_glr_08_sequence_functions_thumb.png" />

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -558,11 +558,11 @@ packets, even ones first. With one frame, slices one TR cannot hold are
 dealt round-robin into packets; a time series must fit every slice in
 one. A multiband shot excites <code class="docutils literal notranslate"><span class="pre">multiband</span></code> slices at once and a
 blipped-CAIPI train encodes the band in <code class="docutils literal notranslate"><span class="pre">PAR</span></code>.</p>
-<p>Two prescans are linked ahead of the imaging: the
-<code class="docutils literal notranslate"><span class="pre">calibration</span></code>, a single-band gradient echo per slice over the central
-<code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines (<code class="docutils literal notranslate"><span class="pre">REF</span></code>), when undersampled or multiband; and the
-<code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume with the phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>),
-for distortion correction.</p>
+<p>Two prescans are linked ahead of the imaging: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, a
+single-band gradient echo per slice over the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines
+(<code class="docutils literal notranslate"><span class="pre">REF</span></code>), when undersampled or multiband; and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one
+volume with the phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion
+correction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -592,7 +592,7 @@ TE.</p></li>
 <li><p><strong>fat_saturation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Saturate fat before every shot, at the flip
 <a class="reference internal" href="../pypulseqpp.sequences.fat_null_flip_deg.html#pypulseqpp.sequences.fat_null_flip_deg" title="pypulseqpp.sequences.fat_null_flip_deg"><code class="xref py py-func docutils literal notranslate"><span class="pre">fat_null_flip_deg()</span></code></a> gives, which leaves it
 at zero when the shot’s excitation comes.</p></li>
-<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring volumes before a time series; with one frame,
+<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring volumes before a time series; with one frame,
 non-acquiring shots per slice before each packet.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>

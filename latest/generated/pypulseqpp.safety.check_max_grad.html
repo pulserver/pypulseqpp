@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -529,17 +529,22 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>seq</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a>) – Sequence to check.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits; defaults to seq.system.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> (Hz/m); <code class="docutils literal notranslate"><span class="pre">seq.system</span></code> when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>is_ok</strong> (<em>bool</em>) – True when the largest per-axis amplitude does not exceed <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.</p></li>
+<li><p><strong>is_ok</strong> (<em>bool</em>) – True when the largest per-axis amplitude does not exceed <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.
+Always True when <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> is not positive.</p></li>
 <li><p><strong>report</strong> (<em>SimpleNamespace</em>) – <code class="docutils literal notranslate"><span class="pre">limit</span></code>; the <code class="docutils literal notranslate"><span class="pre">per_axis</span></code> and <code class="docutils literal notranslate"><span class="pre">vector</span></code> peaks; and <code class="docutils literal notranslate"><span class="pre">axes</span></code>, the
 peak of each of x, y and z on its own. Each peak carries <code class="docutils literal notranslate"><span class="pre">value</span></code> in
-Hz/m, the 1-based <code class="docutils literal notranslate"><span class="pre">block</span></code> containing it, and its <code class="docutils literal notranslate"><span class="pre">axis</span></code>.</p></li>
+Hz/m, the 1-based <code class="docutils literal notranslate"><span class="pre">block</span></code> containing it, and its <code class="docutils literal notranslate"><span class="pre">axis</span></code>
+(<code class="docutils literal notranslate"><span class="pre">'x'</span></code>, <code class="docutils literal notranslate"><span class="pre">'y'</span></code> or <code class="docutils literal notranslate"><span class="pre">'z'</span></code>).</p></li>
 </ul>
 </p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If neither <code class="docutils literal notranslate"><span class="pre">system</span></code> nor <code class="docutils literal notranslate"><span class="pre">seq.system</span></code> is available.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>

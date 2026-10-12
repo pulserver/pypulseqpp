@@ -23,8 +23,8 @@ FID and spin echo
 =================
 
 The simplest signal you can acquire is the free induction decay (FID): a
-pulse tips the magnetization into the transverse plane and the receiver records
-what the precessing magnetization emits. This Tour builds that sequence, checks
+pulse tips the magnetisation into the transverse plane and the receiver records
+what the precessing magnetisation emits. This Tour builds that sequence, checks
 the flip angle of its pulses with a Bloch simulation, and then adds a
 refocusing pulse and a pair of crusher gradients so that the acquisition is
 centred on a spin echo at the echo time you prescribe.
@@ -214,8 +214,8 @@ Flip angle
 ----------
 
 :func:`~pypulseqpp.sim_rf` runs a Bloch simulation of each pulse as it is
-stored in the sequence. On resonance, a block pulse rotates the magnetization
-by its flip angle :math:`\alpha`, so the transverse magnetization is
+stored in the sequence. On resonance, a block pulse rotates the magnetisation
+by its flip angle :math:`\alpha`, so the transverse magnetisation is
 :math:`|M_{xy}| = \sin\alpha`:
 
 .. GENERATED FROM PYTHON SOURCE LINES 119-135
@@ -243,7 +243,7 @@ by its flip angle :math:`\alpha`, so the transverse magnetization is
 .. GENERATED FROM PYTHON SOURCE LINES 136-139
 
 The four simulated pulses sit on the curve: the 90 degree pulse puts all the
-magnetization in the transverse plane, and the others a fraction
+magnetisation in the transverse plane, and the others a fraction
 :math:`\sin\alpha` of it.
 
 .. GENERATED FROM PYTHON SOURCE LINES 141-154
@@ -318,7 +318,7 @@ wound through ``CRUSHER_CYCLES`` cycles across a voxel, which integrates to
 nothing over it.
 
 So you prescribe a crusher by the phase it winds across a voxel: an area
-:math:`A` turns the magnetization through :math:`A\,\Delta x` cycles across an
+:math:`A` turns the magnetisation through :math:`A\,\Delta x` cycles across an
 extent :math:`\Delta x`. :func:`~pypulseqpp.make_crusher` takes the dephasing
 and the voxel and solves the shortest gradient that delivers it within the
 amplitude and slew limits.

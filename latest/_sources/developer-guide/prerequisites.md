@@ -1,6 +1,6 @@
 # Development prerequisites
 
-Development requires Git, Python 3.10–3.13, a C++17 compiler and CMake. Clone
+Development requires Git, Python 3.10–3.14, a C++17 compiler and CMake. Clone
 all submodules; `external/MRArbGrad` is part of the native build and the
 SeqEyes source is pinned separately under `viewer/`.
 

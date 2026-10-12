@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -524,10 +524,9 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.make_excitation">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">make_excitation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/_choose.html#make_excitation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.make_excitation" title="Link to this definition">#</a></dt>
-<dd><p>Build the excitation <code class="docutils literal notranslate"><span class="pre">kind</span></code> names, from one prescription of a slab.</p>
-<p>A volumetric sequence is prescribed with a slab and then excites it one of
-three ways, and which one it is does not change anything else about the
-sequence. This is that choice.</p>
+<dd><p>Build the excitation module named by <code class="docutils literal notranslate"><span class="pre">kind</span></code> for a slab prescription.</p>
+<p>The three kinds share one prescription, so a volumetric sequence selects
+among them by <code class="docutils literal notranslate"><span class="pre">kind</span></code> alone.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -537,13 +536,13 @@ water-selective spectral-spatial pulse, as <a class="reference internal" href="p
 them.</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Flip angle (degrees).</p></li>
 <li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Slab thickness (m). A hard pulse excites everything and ignores it.</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Duration of the selective pulse (s).</p></li>
-<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product of the SLR design.</p></li>
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Duration of the <code class="docutils literal notranslate"><span class="pre">'slab'</span></code> pulse (s).</p></li>
+<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product of the <code class="docutils literal notranslate"><span class="pre">'slab'</span></code> SLR pulse.</p></li>
 <li><p><strong>hard_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0005</em>) – Duration of the hard pulse (s), rounded up to an even number of block
 rasters so that its centre lands on the raster, which a spin echo
 needs in order to place its refocusing pulse midway.</p></li>
-<li><p><strong>fat_shift_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=-3.4</em>) – Methylene shift from water (ppm), converted against <code class="docutils literal notranslate"><span class="pre">system.gamma</span></code>
-and <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> into the spectral band the <code class="docutils literal notranslate"><span class="pre">'spsp'</span></code> pulse rejects.</p></li>
+<li><p><strong>fat_shift_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=-3.4</em>) – Methylene shift from water (ppm), converted with <code class="docutils literal notranslate"><span class="pre">system.gamma</span></code> and
+<code class="docutils literal notranslate"><span class="pre">system.B0</span></code> to the frequency band the <code class="docutils literal notranslate"><span class="pre">'spsp'</span></code> pulse rejects.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

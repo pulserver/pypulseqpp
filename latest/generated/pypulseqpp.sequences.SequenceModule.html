@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -528,33 +528,33 @@
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>A reusable block layout with named, mutable event templates.</p>
 <p>Subclasses assign <code class="docutils literal notranslate"><span class="pre">self.seq</span></code> and add blocks in <code class="docutils literal notranslate"><span class="pre">init_module</span></code>. Events
-are published from constructor locals onto <code class="docutils literal notranslate"><span class="pre">events</span></code> and onto the module
-itself.
-Repeated references are deduplicated by identity: one distinct object
-becomes a scalar event, several become a list in first-seen order.
-Explicit register calls preserve the supplied structure, including
-one-element lists.</p>
+are published from the constructor’s locals onto <code class="docutils literal notranslate"><span class="pre">events</span></code> and onto the
+module itself. Repeated references are deduplicated by identity: one
+distinct object becomes a scalar event, several become a list in
+first-seen order. <a class="reference internal" href="pypulseqpp.sequences.SequenceModule.register.html#pypulseqpp.sequences.SequenceModule.register" title="pypulseqpp.sequences.SequenceModule.register"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register()</span></code></a> preserves the supplied structure,
+including one-element lists.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>*args</strong> – Forwarded to init_module.</p></li>
-<li><p><strong>**kwargs</strong> – Forwarded to init_module.</p></li>
+<li><p><strong>*args</strong> – Forwarded to <a class="reference internal" href="pypulseqpp.sequences.SequenceModule.init_module.html#pypulseqpp.sequences.SequenceModule.init_module" title="pypulseqpp.sequences.SequenceModule.init_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">init_module()</span></code></a>.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <a class="reference internal" href="pypulseqpp.sequences.SequenceModule.init_module.html#pypulseqpp.sequences.SequenceModule.init_module" title="pypulseqpp.sequences.SequenceModule.init_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">init_module()</span></code></a>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>events</strong> (<em>types.SimpleNamespace</em>) – Published events. Use this namespace when a name conflicts with a
 module attribute; publication warns about conflicts.</p></li>
-<li><p><strong>center</strong> (<em>float</em>) – Timing reference in seconds from the module start, set by the
-subclass: typically an RF centre or an echo.</p></li>
+<li><p><strong>center</strong> (<em>float</em>) – Timing reference (s) from the module start, set by the subclass:
+typically an RF centre or an echo.</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>blocks retains the original event objects for replay. Mutating those
-objects does not rewrite the stored sequence used for analysis.
-Only calculate_kspace, check_timing, test_report and waveforms_and_times
-are forwarded to seq.</p>
+<p><code class="docutils literal notranslate"><span class="pre">blocks</span></code> retains the original event objects for replay. Mutating
+those objects does not rewrite the stored sequence used for analysis.
+Of the sequence’s methods, only <code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code>, <code class="docutils literal notranslate"><span class="pre">check_timing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">paper_plot</span></code>, <code class="docutils literal notranslate"><span class="pre">test_report</span></code> and <code class="docutils literal notranslate"><span class="pre">waveforms_and_times</span></code> are forwarded
+to <code class="docutils literal notranslate"><span class="pre">seq</span></code>.</p>
 <p class="rubric">Examples</p>
 <p>A subclass assigns <code class="docutils literal notranslate"><span class="pre">seq</span></code> and adds its blocks; the constructor’s locals
 are published under their own names and on <code class="docutils literal notranslate"><span class="pre">events</span></code>:</p>
@@ -585,7 +585,7 @@ are published under their own names and on <code class="docutils literal notrans
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SequenceModule.register.html#pypulseqpp.sequences.SequenceModule.register" title="pypulseqpp.sequences.SequenceModule.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 </tbody>
 </table>
@@ -594,10 +594,10 @@ are published under their own names and on <code class="docutils literal notrans
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SequenceModule.blocks.html#pypulseqpp.sequences.SequenceModule.blocks" title="pypulseqpp.sequences.SequenceModule.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.SequenceModule.duration.html#pypulseqpp.sequences.SequenceModule.duration" title="pypulseqpp.sequences.SequenceModule.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.SequenceModule.seq.html#pypulseqpp.sequences.SequenceModule.seq" title="pypulseqpp.sequences.SequenceModule.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

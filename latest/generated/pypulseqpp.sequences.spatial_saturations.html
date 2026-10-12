@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -524,12 +524,25 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.spatial_saturations">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">spatial_saturations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/spatialsat.html#spatial_saturations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.spatial_saturations" title="Link to this definition">#</a></dt>
-<dd><p>Return the <a class="reference internal" href="pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a> of each <code class="docutils literal notranslate"><span class="pre">(normal,</span> <span class="pre">position,</span> <span class="pre">thickness)</span></code> band with a thickness.</p>
-<p>A band of zero thickness is not played, which is how a sequence function
-leaves one of its bands off. <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> go to every module.</p>
+<dd><p>Return a <a class="reference internal" href="pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a> for each band of nonzero thickness.</p>
+<p>A band of zero thickness is skipped.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a thickness is negative, or a band with a thickness has a zero
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
+<li><p><strong>bands</strong> (<em>iterable</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a>) – <code class="docutils literal notranslate"><span class="pre">(normal,</span> <span class="pre">position,</span> <span class="pre">thickness)</span></code> per band, as <a class="reference internal" href="pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a>
+takes them (m for position and thickness).</p></li>
+<li><p><strong>**kwargs</strong> – Passed to every <a class="reference internal" href="pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>One per band with a thickness, in the order given.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference internal" href="pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation">SpatialSaturation</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a thickness is negative, or a band with a thickness has a zero
     normal.</p>
 </dd>
 </dl>

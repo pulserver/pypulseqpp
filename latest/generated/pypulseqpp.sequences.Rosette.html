@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,14 +548,14 @@ the circular limit, above one they wind more tightly.</p></li>
 limits allow, and a longer value stretches the waveform uniformly.
 The ramps at each end can make the first and last crossing intervals
 differ slightly from the mean.</p></li>
-<li><p><strong>bandwidth_hz_px</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz). The dwell is also bounded by the step
-limit and floored to the ADC raster, so the realised bandwidth can be
+<li><p><strong>bandwidth_hz_px</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested ADC sampling rate <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz). The step limit and
+the ADC raster can only shorten the dwell, so the realised rate can be
 higher.</p></li>
 <li><p><strong>oversamp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – ADC oversampling; tightens the step limit without changing the
 gradient.</p></li>
-<li><p><strong>axes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em><em>, </em><em>default=</em><em>(</em><em>'x'</em><em>, </em><em>'y'</em><em>)</em>) – Channels for the path’s two components.</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=</em><em>(</em><em>'x'</em><em>, </em><em>'y'</em><em>)</em>) – Channels of the path’s two components.</p></li>
 <li><p><strong>solver_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Path-resampling factor of the time-optimal solver.</p></li>
-<li><p><strong>derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Apply <a class="reference internal" href="pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.apply_system_derates()</span></code></a> first.</p></li>
+<li><p><strong>derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Apply <a class="reference internal" href="pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.apply_system_derates()</span></code></a> to <code class="docutils literal notranslate"><span class="pre">system</span></code> first.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>

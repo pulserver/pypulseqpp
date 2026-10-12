@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -528,38 +528,52 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>, </em><em>sequence module</em><em> or </em><em>RF event</em>) – Source of the RF event. From a sequence, only the pulse’s own block is
-simulated unless a range is given.</p></li>
+<li><p><strong>source</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>, </em><em>sequence module</em><em> or </em><em>RF event</em>) – Source of the pulse. For a sequence, only the pulse’s own block is
+simulated unless a range is given; a module is simulated in full.</p></li>
 <li><p><strong>pulse</strong> (<em>RF event</em><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Which pulse of <code class="docutils literal notranslate"><span class="pre">source</span></code>: an event, or the <code class="docutils literal notranslate"><span class="pre">use</span></code> it is tagged with
 (<code class="docutils literal notranslate"><span class="pre">&quot;refocusing&quot;</span></code> finds a spin echo’s refocusing pulse). The first
 pulse by default.</p></li>
-<li><p><strong>time_range</strong> (<em>sequence</em><em>, </em><em>default=None</em>) – Blocks of a sequence to simulate over, where the profile needs more
-than the pulse’s own block.</p></li>
-<li><p><strong>block_range</strong> (<em>sequence</em><em>, </em><em>default=None</em>) – Blocks of a sequence to simulate over, where the profile needs more
-than the pulse’s own block.</p></li>
+<li><p><strong>time_range</strong> (<em>sequence</em><em>, </em><em>default=None</em>) – Range to simulate over, for a sequence source: two times (s), or the
+first and last block (1-based, inclusive). At most one.</p></li>
+<li><p><strong>block_range</strong> (<em>sequence</em><em>, </em><em>default=None</em>) – Range to simulate over, for a sequence source: two times (s), or the
+first and last block (1-based, inclusive). At most one.</p></li>
 <li><p><strong>plane</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – One of <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code> and <code class="docutils literal notranslate"><span class="pre">f</span></code> (off-resonance) for a profile, or
-two for a plane drawn as <code class="docutils literal notranslate"><span class="pre">|Mxy|</span></code> and <code class="docutils literal notranslate"><span class="pre">Mz</span></code> heatmaps. By default the
-axis the pulse is selective along, or <code class="docutils literal notranslate"><span class="pre">f</span></code> without a gradient.</p></li>
-<li><p><strong>kind</strong> (<em>{&quot;excitation&quot;</em><em>, </em><em>&quot;refocusing&quot;</em><em>, </em><em>&quot;inversion&quot;</em><em>, </em><em>&quot;saturation&quot;}</em><em>, </em><em>default=None</em>) – Which response a profile draws; the pulse’s <code class="docutils literal notranslate"><span class="pre">use</span></code> by default.</p></li>
-<li><p><strong>extent</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>pair</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits of the first and second axis: a half-width about zero or a
-<code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code> pair, in mm for a position and Hz for off-resonance.</p></li>
-<li><p><strong>span</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>pair</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits of the first and second axis: a half-width about zero or a
-<code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code> pair, in mm for a position and Hz for off-resonance.</p></li>
+two for a plane drawn as <code class="docutils literal notranslate"><span class="pre">|Mxy|</span></code> and <code class="docutils literal notranslate"><span class="pre">Mz</span></code> heatmaps. When <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+the axis the pulse is selective along, or <code class="docutils literal notranslate"><span class="pre">f</span></code> without a gradient.</p></li>
+<li><p><strong>kind</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Response a profile draws: <code class="docutils literal notranslate"><span class="pre">'refocusing'</span></code> draws refocusing
+efficiency, <code class="docutils literal notranslate"><span class="pre">'inversion'</span></code>, <code class="docutils literal notranslate"><span class="pre">'saturation'</span></code> and <code class="docutils literal notranslate"><span class="pre">'preparation'</span></code>
+draw <code class="docutils literal notranslate"><span class="pre">Mz</span></code>, and any other value <code class="docutils literal notranslate"><span class="pre">|Mxy|</span></code>. The pulse’s <code class="docutils literal notranslate"><span class="pre">use</span></code> when
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>extent</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>pair</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits of the first and second axis of <code class="docutils literal notranslate"><span class="pre">plane</span></code>: a half-width about
+zero or a <code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code> pair, in mm for a position and Hz for
+off-resonance. Derived from the pulse when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>span</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>pair</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Limits of the first and second axis of <code class="docutils literal notranslate"><span class="pre">plane</span></code>: a half-width about
+zero or a <code class="docutils literal notranslate"><span class="pre">(low,</span> <span class="pre">high)</span></code> pair, in mm for a position and Hz for
+off-resonance. Derived from the pulse when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 <li><p><strong>samples</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=401</em>) – Points per axis; a plane caps at 91 a side.</p></li>
-<li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=8e-06</em>) – Integration step in seconds, wherever the window is integrated rather
-than the pulse alone.</p></li>
+<li><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=8e-06</em>) – Integration step (s) where the window is integrated rather than the
+pulse alone.</p></li>
 <li><p><strong>whole</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Integrate everything in the window – every pulse, gradient and the
 precession between them – rather than the pulse alone. A plane is
 always integrated this way.</p></li>
-<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>)</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Figure title.</p></li>
 <li><p><strong>plot_now</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Show the figure before returning.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.11.2)">matplotlib.figure.Figure</a></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The envelope panel (<code class="docutils literal notranslate"><span class="pre">|B1|</span></code> in microtesla against time in ms) and the
+profile, or the two heatmaps for a plane.</p>
 </dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">source</span></code> holds no RF event, or the range given holds none.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.11.2)">matplotlib.figure.Figure</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">source</span></code> or the range given holds no RF event, <code class="docutils literal notranslate"><span class="pre">plane</span></code> is not
+    one or two of <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">f</span></code>, or a single position axis
+    is not the pulse’s selection axis and <code class="docutils literal notranslate"><span class="pre">whole</span></code> is False.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.15)"><strong>TypeError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">source</span></code> is not a Sequence, a sequence module or an RF event.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>

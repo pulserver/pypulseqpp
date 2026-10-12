@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -523,6 +523,11 @@
 <span class="sd">        If the sample count, dwell or rasters are not positive, or the</span>
 <span class="sd">        duration floor is negative.</span>
 
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    make_adc : build the ADC event from the returned dwell.</span>
+<span class="sd">    calc_adc_segments : split a long ADC into equal segments.</span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
@@ -533,11 +538,6 @@
 <span class="sd">    (5.0, 480.0)</span>
 <span class="sd">    &gt;&gt;&gt; round(duration / 10e-6, 6)</span>
 <span class="sd">    48.0</span>
-
-<span class="sd">    See Also</span>
-<span class="sd">    --------</span>
-<span class="sd">    make_adc : build the ADC event from the returned dwell.</span>
-<span class="sd">    calc_adc_segments : split a long ADC into equal segments.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">num_samples</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"num_samples must be &gt;= 1"</span><span class="p">)</span>
@@ -566,21 +566,18 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Choose an ADC dwell from a requested receiver bandwidth.</span>
 
-<span class="sd">    Receiver bandwidth is the full sampling bandwidth, ``1 / dwell`` in Hz,</span>
-<span class="sd">    not bandwidth per pixel.</span>
-
 <span class="sd">    Search upward from the nearest ADC-raster dwell satisfying the duration</span>
-<span class="sd">    floor, for at most ``MAX_RASTER_SEARCH_STEPS`` candidates. If none aligns</span>
-<span class="sd">    the readout to the gradient raster, return that starting dwell.</span>
-<span class="sd">    Inputs must have positive sample count, bandwidth and rasters.</span>
+<span class="sd">    floor, for at most ``MAX_RASTER_SEARCH_STEPS`` candidates, for the first</span>
+<span class="sd">    whose readout duration is a whole number of gradient rasters. If none is,</span>
+<span class="sd">    return that starting dwell. Inputs must be positive.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    nx_ro : int</span>
 <span class="sd">        Number of readout samples.</span>
 <span class="sd">    target_bw_hz_px : float</span>
-<span class="sd">        Requested receiver bandwidth ``1 / dwell`` (Hz), not a bandwidth per</span>
-<span class="sd">        pixel despite the ``_px`` suffix.</span>
+<span class="sd">        Requested receiver bandwidth ``1 / dwell`` (Hz); this is not the</span>
+<span class="sd">        bandwidth per pixel, ``1 / (nx_ro * dwell)``.</span>
 <span class="sd">    grad_raster_s, adc_raster_s : float</span>
 <span class="sd">        Gradient and ADC rasters (s).</span>
 <span class="sd">    min_flat_time_s : float</span>
@@ -596,8 +593,8 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; from pypulseqpp._timing import quantize_readout_timing</span>
-<span class="sd">    &gt;&gt;&gt; dwell, flat = quantize_readout_timing(256, 62_500.0, 1e-5, 1e-7, 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; dwell, flat = pp.quantize_readout_timing(256, 62_500.0, 1e-5, 1e-7, 0.0)</span>
 <span class="sd">    &gt;&gt;&gt; abs(flat / 1e-5 - round(flat / 1e-5)) &lt; 1e-9</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>

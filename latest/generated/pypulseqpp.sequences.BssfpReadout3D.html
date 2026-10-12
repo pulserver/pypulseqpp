@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -532,12 +532,12 @@ partition encode to the slice rephaser whose window it shares
 example with <a class="reference internal" href="pypulseqpp.add_gradients.html#pypulseqpp.add_gradients" title="pypulseqpp.add_gradients"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.add_gradients()</span></code></a>, rather than playing it
 alone.</p>
 <p>Every axis is balanced between consecutive RF centres. The slice
-rephasers are part of that balance and are built here, so pass an
-excitation built with <code class="docutils literal notranslate"><span class="pre">rephase=False</span></code>.</p>
-<p>The module’s blocks are excitation, acquisition, rewind. A loop plays each
-shot as the previous shot’s rewind, excitation, acquisition, and writes
-the transients itself: the half-flip pulse (<code class="docutils literal notranslate"><span class="pre">rf</span></code> at half amplitude,
-opposite in phase to the first excitation) then <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code>;
+rephasers belong to that balance and are built here, so <code class="docutils literal notranslate"><span class="pre">rf</span></code> and <code class="docutils literal notranslate"><span class="pre">gz</span></code>
+come from an excitation built with <code class="docutils literal notranslate"><span class="pre">rephase=False</span></code>.</p>
+<p>The module’s blocks are excitation, acquisition, rewind. The caller plays
+each shot as the previous shot’s rewind, excitation and acquisition, and
+writes the transients: the half-flip pulse (<code class="docutils literal notranslate"><span class="pre">rf</span></code> at half amplitude,
+opposite in phase to the first excitation) followed by <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code>;
 <code class="docutils literal notranslate"><span class="pre">wait_rewind</span></code> with <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> in place of the first rewind; and a last
 rewind block to ramp down.</p>
 <dl class="field-list simple">
@@ -546,19 +546,22 @@ rewind block to ramp down.</p>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The excitation.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em><em>, </em><em>default=None</em>) – Its selection gradient without a rephaser, played in the excitation
-block. <code class="docutils literal notranslate"><span class="pre">None</span></code> for a hard pulse.</p></li>
-<li><p><strong>fov</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Field of view (m), per encoded axis, readout first.</p></li>
-<li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Matrix size, per encoded axis.</p></li>
-<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Repetition time (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible; a longer one is
-padded evenly either side of the echo, so TE stays at TR/2.</p></li>
-<li><p><strong>half_flip_prep</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Publish <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code>. This requires the acquisition block after the
-echo to be at least as long as the excitation block after the pulse
-centre. Turn it off to ramp the train in with dummy repetitions.</p></li>
-<li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Read oversampling.</p></li>
-<li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested ADC sampling rate (Hz). <code class="docutils literal notranslate"><span class="pre">bandwidth_hz</span></code> reports the
-achieved raster-compatible rate.</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the acquisition block.</p></li>
-<li><p><strong>trigger</strong> (<em>event</em><em>, </em><em>default=None</em>) – A trigger or digital output armed on the rewind block.</p></li>
+block; <code class="docutils literal notranslate"><span class="pre">None</span></code> for a hard pulse.</p></li>
+<li><p><strong>fov</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Field of view per encoded axis, readout first (m).</p></li>
+<li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Matrix size per encoded axis, readout first.</p></li>
+<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Repetition time (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible; a longer TR is
+added evenly either side of the echo, so TE stays at TR/2.</p></li>
+<li><p><strong>half_flip_prep</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Build <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code> for the half-flip preparation. Requires the
+acquisition block after the echo to be at least as long as the
+excitation block after the pulse centre. False when the caller ramps
+the signal in with dummy repetitions.</p></li>
+<li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling: the sample spacing in k-space is
+<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(oversampling</span> <span class="pre">*</span> <span class="pre">fov)</span></code>.</p></li>
+<li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested ADC sampling rate (Hz); <code class="docutils literal notranslate"><span class="pre">bandwidth_hz</span></code> is the rate achieved
+on the ADC and gradient rasters.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels set to 0 on the acquisition block, to be changed per shot by the
+caller.</p></li>
+<li><p><strong>trigger</strong> (<em>TriggerEvent</em><em> or </em><em>DigitalOutputEvent</em><em>, </em><em>default=None</em>) – Event armed on the rewind block.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -571,24 +574,24 @@ the end of the acquisition block; <code class="docutils literal notranslate"><sp
 plateau and rewinds the read axis.</p></li>
 <li><p><strong>gy_pre, gy_rew</strong> (<em>TrapEvent</em>) – In-plane encode at its largest step, and the same negated, to be scaled
 per shot.</p></li>
-<li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – The slice rephasers: <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code> in the acquisition block after the
-pulse, <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> in the rewind block before the next one. Absent for
-a hard pulse.</p></li>
+<li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – Slice rephasers: <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code> in the acquisition block after the pulse,
+<code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> in the rewind block before the next pulse. Absent for a
+hard pulse.</p></li>
 <li><p><strong>gz_partition, gz_partition_rew</strong> (<em>TrapEvent</em>) – Partition encode at its largest step, and the same negated, sharing
 the window of <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code> and <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> respectively. 3D only.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, spanning the readout plateau.</p></li>
-<li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>; a bare event when there is one.</p></li>
+<li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
 <li><p><strong>prep_labels, train_labels, end_labels</strong> (<em>list of LabelSetEvent</em>) – <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> set to 1, 0 and 2, for the half-flip block, the block after
 it and the final rewind.</p></li>
-<li><p><strong>wait_prep</strong> (<em>DelayEvent</em>) – Played after the half-flip block; with the <code class="docutils literal notranslate"><span class="pre">wait_rewind</span></code> block it
-puts the half-flip pulse half a repetition before the first
-excitation. Absent under <code class="docutils literal notranslate"><span class="pre">half_flip_prep=False</span></code>.</p></li>
-<li><p><strong>wait_rewind</strong> (<em>DelayEvent</em>) – The rewind block’s duration, for the first repetition.</p></li>
+<li><p><strong>wait_prep</strong> (<em>DelayEvent</em>) – Delay after the half-flip block; with the <code class="docutils literal notranslate"><span class="pre">wait_rewind</span></code> block it
+places the half-flip pulse half a repetition before the first
+excitation. Absent with <code class="docutils literal notranslate"><span class="pre">half_flip_prep=False</span></code>.</p></li>
+<li><p><strong>wait_rewind</strong> (<em>DelayEvent</em>) – Delay of the rewind block’s duration, for the first repetition.</p></li>
 <li><p><strong>tr, te</strong> (<em>float</em>) – Repetition and echo time (s); <code class="docutils literal notranslate"><span class="pre">te</span></code> is always half of <code class="docutils literal notranslate"><span class="pre">tr</span></code>.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<em>float</em>) – Achieved ADC sampling rate (Hz).</p></li>
-<li><p><strong>n_samples</strong> (<em>int</em>) – Samples per repetition.</p></li>
-<li><p><strong>delta_kx</strong> (<em>float</em>) – Read-axis k-space step (1/m).</p></li>
-<li><p><strong>readout_duration</strong> (<em>float</em>) – Sampling window (s).</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – ADC samples per repetition.</p></li>
+<li><p><strong>delta_kx</strong> (<em>float</em>) – K-space sample spacing along the readout (1/m).</p></li>
+<li><p><strong>readout_duration</strong> (<em>float</em>) – Duration of the sampling window (s).</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
@@ -638,7 +641,7 @@ published separately and is not played in the layout drawn here:</p>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.BssfpReadout3D.register.html#pypulseqpp.sequences.BssfpReadout3D.register" title="pypulseqpp.sequences.BssfpReadout3D.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 </tbody>
 </table>
@@ -647,10 +650,10 @@ published separately and is not played in the layout drawn here:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.BssfpReadout3D.blocks.html#pypulseqpp.sequences.BssfpReadout3D.blocks" title="pypulseqpp.sequences.BssfpReadout3D.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.BssfpReadout3D.duration.html#pypulseqpp.sequences.BssfpReadout3D.duration" title="pypulseqpp.sequences.BssfpReadout3D.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.BssfpReadout3D.seq.html#pypulseqpp.sequences.BssfpReadout3D.seq" title="pypulseqpp.sequences.BssfpReadout3D.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

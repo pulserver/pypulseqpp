@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -199,7 +199,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -209,7 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="style.html">Coding style</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -521,7 +521,7 @@
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-and-gallery">Examples and gallery</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gallery-scope">Gallery scope</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#explain-decisions-not-execution">Explain decisions, not execution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#decisions-and-execution">Decisions and execution</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#theory-in-examples">Theory in examples</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#code-comments">Code comments</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
@@ -531,13 +531,13 @@
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tours">Tours</a></li>
 </ul>
 </li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-examples-and-gallery-examples">API examples and gallery examples</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#an-example-is-a-tour-of-an-object-not-a-call-of-it">An example is a tour of an object, not a call of it</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#defaults-of-a-plotting-helper">Defaults of a plotting helper</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legends-sit-outside-the-panel">Legends sit outside the panel</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-and-gallery-examples">API and gallery examples</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#object-tours">Object tours</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-defaults">Plotting defaults</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legend-placement">Legend placement</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#figure-typography-and-size">Figure typography and size</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry-and-traversal-are-different-figures">Geometry and traversal are different figures</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostics-come-from-the-implementation-they-illustrate">Diagnostics come from the implementation they illustrate</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry-and-traversal-figures">Geometry and traversal figures</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostic-sources">Diagnostic sources</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-scope">Example scope</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gallery-organization-and-navigation">Gallery organization and navigation</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#running-an-example-in-colab">Running an example in Colab</a></li>
@@ -757,8 +757,8 @@ A = PFS,
 </ol>
 <p>These elements need not become separate headings, particularly for short examples.</p>
 </section>
-<section id="explain-decisions-not-execution">
-<h4>Explain decisions, not execution<a class="headerlink" href="#explain-decisions-not-execution" title="Link to this heading">#</a></h4>
+<section id="decisions-and-execution">
+<h4>Decisions and execution<a class="headerlink" href="#decisions-and-execution" title="Link to this heading">#</a></h4>
 <p>Prose should explain decisions whose significance is scientific, mathematical, numerical, or specific to the library.</p>
 <p>Useful explanations include:</p>
 <ul class="simple">
@@ -832,7 +832,7 @@ A = PFS,
 <p>Gallery prose can provide more context than API reference, but should remain concise, technical, and restrained.</p>
 <p>Avoid:</p>
 <ul class="simple">
-<li><p>second-person narration unless genuinely useful;</p></li>
+<li><p>second-person narration outside the Course and the Tours, which address the reader as “you”;</p></li>
 <li><p>“we” merely to narrate execution;</p></li>
 <li><p>rhetorical questions;</p></li>
 <li><p>enthusiasm and promotional language;</p></li>
@@ -874,25 +874,25 @@ A = PFS,
 <p>The catalogue pages that follow the Tours are scientific gallery examples and reference material, not lessons; <a class="reference internal" href="../sequences.html"><span class="doc">Sequence catalogue</span></a> links each of them from its sequence’s reference page.</p>
 </section>
 </section>
-<section id="api-examples-and-gallery-examples">
-<h4>API examples and gallery examples<a class="headerlink" href="#api-examples-and-gallery-examples" title="Link to this heading">#</a></h4>
+<section id="api-and-gallery-examples">
+<h4>API and gallery examples<a class="headerlink" href="#api-and-gallery-examples" title="Link to this heading">#</a></h4>
 <p>Three kinds of example are legitimate, and they are not interchangeable: the course lesson described above, the scientific gallery example, and the API example.</p>
 <p>An <strong>API example</strong> shows how an object is constructed and used. It belongs in the <code class="docutils literal notranslate"><span class="pre">Examples</span></code> section of a docstring or on the reference page for that object, it is a few lines long, and it needs no experiment, sweep or scientific result. Reference material that illustrates one object belongs here; where an executed configuration and the figures it produces are large enough to be a page of their own, the reference page links the gallery example that carries them rather than repeating it.</p>
 <p>A <strong>gallery example</strong> teaches a scientific, numerical or design concept through an executable workflow and an observable result. It exists because running it produces something worth examining.</p>
 <p>The gallery is therefore not a catalogue of what the library ships. A reference page per object fulfils that role, and an object does not earn a gallery example by being undocumented elsewhere.</p>
 </section>
-<section id="an-example-is-a-tour-of-an-object-not-a-call-of-it">
-<h4>An example is a tour of an object, not a call of it<a class="headerlink" href="#an-example-is-a-tour-of-an-object-not-a-call-of-it" title="Link to this heading">#</a></h4>
+<section id="object-tours">
+<h4>Object tours<a class="headerlink" href="#object-tours" title="Link to this heading">#</a></h4>
 <p>An example that constructs an object in its simplest form, prints a number and draws one figure documents nothing the reference page does not already carry. Where a public interface exposes modes that materially change what it produces — acceleration, segmentation, partial sampling, a train length, a density — at least one example demonstrates one of them, and shows what it changes.</p>
 <p>Show the consequence, not only the call. A second configuration earns its place by the figure or the table that compares it with the first.</p>
 </section>
-<section id="defaults-of-a-plotting-helper">
-<h4>Defaults of a plotting helper<a class="headerlink" href="#defaults-of-a-plotting-helper" title="Link to this heading">#</a></h4>
+<section id="plotting-defaults">
+<h4>Plotting defaults<a class="headerlink" href="#plotting-defaults" title="Link to this heading">#</a></h4>
 <p>Where a plotting helper chooses something automatically — a representative window, a colour scale, a decimation — an example calls it the way a reader would, without overriding that choice.</p>
 <p>If the automatic choice produces a poor figure, that is a defect in the helper or in the object being drawn. Investigate it and fix it there. Hard-coding a selection in the example hides the defect from everyone who is not reading the example’s source.</p>
 </section>
-<section id="legends-sit-outside-the-panel">
-<h4>Legends sit outside the panel<a class="headerlink" href="#legends-sit-outside-the-panel" title="Link to this heading">#</a></h4>
+<section id="legend-placement">
+<h4>Legend placement<a class="headerlink" href="#legend-placement" title="Link to this heading">#</a></h4>
 <p>A legend is placed outside the axes it describes — above them, below them or beside them — in every figure, on an explanation page, in a gallery example and in a docstring plot alike. A legend inside a panel covers data, and which data it covers depends on the values the build happened to produce.</p>
 <p>Where one legend describes series drawn in several panels, it belongs to the figure rather than to one of them, above the row it applies to. Draw the figure with <code class="docutils literal notranslate"><span class="pre">layout=&quot;constrained&quot;</span></code> and place the legend with <code class="docutils literal notranslate"><span class="pre">fig.legend(loc=&quot;outside</span> <span class="pre">upper</span> <span class="pre">center&quot;)</span></code>, so the layout engine reserves its room and nothing is clipped or overlaps a panel title.</p>
 </section>
@@ -901,13 +901,13 @@ A = PFS,
 <p>Every documentation figure — gallery, explanation page and docstring plot — takes its font sizes, resolution and layout engine from <code class="docutils literal notranslate"><span class="pre">docs/figure_style.py</span></code>, and is drawn on a transparent canvas in the house ink. A gallery script sets no font size, DPI or <code class="docutils literal notranslate"><span class="pre">rcParams</span></code> of its own. The gallery’s image scraper narrows a figure wider than the documentation column to the column’s width before saving it, so text keeps its point size on the page; a script draws at the size its content needs and no wider. The public plotting helpers of <code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.plot</span></code> size their text relative to <code class="docutils literal notranslate"><span class="pre">font.size</span></code>, so the documentation style governs them without arguments. A change to a public plotting default, such as a canvas size, is an API decision and is not made for the documentation.</p>
 <p>A static diagram is a pair of SVG files, light and dark, shown with the <code class="docutils literal notranslate"><span class="pre">only-light</span></code> and <code class="docutils literal notranslate"><span class="pre">only-dark</span></code> classes so the site’s theme selects one; a single SVG whose colours follow <code class="docutils literal notranslate"><span class="pre">prefers-color-scheme</span></code> follows the operating system instead and is not used.</p>
 </section>
-<section id="geometry-and-traversal-are-different-figures">
-<h4>Geometry and traversal are different figures<a class="headerlink" href="#geometry-and-traversal-are-different-figures" title="Link to this heading">#</a></h4>
+<section id="geometry-and-traversal-figures">
+<h4>Geometry and traversal figures<a class="headerlink" href="#geometry-and-traversal-figures" title="Link to this heading">#</a></h4>
 <p>A plot of where the samples are answers a different question from a plot of the order they were acquired in, and both differ from a plot of the path between them. When the traversal matters — when a reader needs to see what happens between one acquisition and the next — draw the connections and the direction, not only coloured points.</p>
 <p>Derive an ordering or traversal figure from what the implementation records: its labels, its loop, the acquisitions themselves. A figure that reconstructs an idealised ordering from the prescription can disagree with the sequence, and is then worse than no figure.</p>
 </section>
-<section id="diagnostics-come-from-the-implementation-they-illustrate">
-<h4>Diagnostics come from the implementation they illustrate<a class="headerlink" href="#diagnostics-come-from-the-implementation-they-illustrate" title="Link to this heading">#</a></h4>
+<section id="diagnostic-sources">
+<h4>Diagnostic sources<a class="headerlink" href="#diagnostic-sources" title="Link to this heading">#</a></h4>
 <p>A figure of what a check computed uses the check’s own computation. Where the public interface does not return enough to draw it, extend that interface — an optional trace, a diagnostic function — rather than recomputing the algorithm in the example. Two implementations of one calculation disagree eventually, and the documentation is where it will not be noticed.</p>
 </section>
 <section id="example-scope">
@@ -934,29 +934,27 @@ A = PFS,
 <p>This is the appropriate place for material that would be too pedagogical for API reference or too general for an example.</p>
 <section id="organization-of-an-explanatory-page">
 <h4>Organization of an explanatory page<a class="headerlink" href="#organization-of-an-explanatory-page" title="Link to this heading">#</a></h4>
-<p>An explanatory page is usually clearest in this order:</p>
+<p>Every explanation page has the same compact layout, so a reader finds the same thing in the same place on each:</p>
 <ol class="arabic simple">
-<li><p><strong>The concept or problem.</strong> What physical, mathematical, or computational situation is being described, in standard terminology.</p></li>
-<li><p><strong>The formal model or criterion.</strong> The equation, definition, or decision rule that makes the concept precise, with its symbols, units, and assumptions stated.</p></li>
-<li><p><strong>Consequences and trade-offs.</strong> What the model implies for the quantities a user controls, including limiting cases and what is given up to gain something else.</p></li>
-<li><p><strong>The software abstraction.</strong> How the library represents the concept, and which interface corresponds to which part of the model.</p></li>
+<li><p><strong>Title.</strong> The field’s name for the subject.</p></li>
+<li><p><strong>TL;DR.</strong> At most three one-line bullets stating what the page establishes, with no claim the page does not support. A page with a single <code class="docutils literal notranslate"><span class="pre">##</span></code> section may omit it; landing pages, API reference pages and gallery examples have none.</p></li>
+<li><p><strong>Opening.</strong> Two to four sentences addressed to the reader, giving the mental model before any interface.</p></li>
+<li><p><strong>Capabilities.</strong> One bold line per capability, each followed by a toggle, closed by default, naming the code that implements it and the tests that hold it, in the words of the test names.</p></li>
+<li><p><strong>Division of responsibility.</strong> What belongs to another layer — the scanner, PyPulseq, Pulserver — as a short bold-led list, where there is a real boundary.</p></li>
+<li><p><strong>Method.</strong> One figure carrying the mechanism, drawn at build time from the code, and at most three short subsections on what the capability list does not say. The section ends with a link to the page’s counterpart under the developer guide’s internals.</p></li>
+<li><p><strong>Examples.</strong> Links to the Course lessons, Tours, sequence pages and API pages that run it.</p></li>
 </ol>
-<p>The order matters: a page that opens with the class name and works outward teaches the interface rather than the subject. Sections need not carry these four labels, and a short page may cover several in one section, but a page that never reaches the formal model is under-specified, and one that never reaches the software abstraction belongs somewhere other than this project’s documentation.</p>
+<p>Long rules, formulas, tables and derivations go to the internals page, not to the explanation; no claim is dropped in moving them. No fact is stated in two sections of the same page, and a plot is preferred to the prose it would replace. The explanation pages form one flat list under the Explanations section.</p>
 <p>Explanatory documentation may:</p>
 <ul class="simple">
 <li><p>introduce terminology to readers outside the immediate specialty;</p></li>
 <li><p>establish mathematical notation;</p></li>
-<li><p>derive or motivate formulations;</p></li>
 <li><p>explain relationships between concepts;</p></li>
-<li><p>compare related approaches;</p></li>
 <li><p>connect library abstractions to underlying theory;</p></li>
 <li><p>explain conventions and their consequences;</p></li>
-<li><p>discuss architectural or API design decisions;</p></li>
 <li><p>explain numerical or scientific trade-offs;</p></li>
 <li><p>connect implementations to literature or upstream software.</p></li>
 </ul>
-<p>An explanation page with more than one <code class="docutils literal notranslate"><span class="pre">##</span></code> section opens with a <strong>TL;DR</strong> block directly under its title: a short list of the page’s conclusions, each stated as the page states it, with no claim the page does not support. It lets a reader decide whether the page answers their question. A page with a single section may omit it. Landing pages, API reference pages and gallery examples have none.</p>
-<p>An explanation page has one obvious purpose and, where appropriate, a strong conceptual anchor: a figure, a table, an equation or a similarly compact device that the page is organised around. A figure is not required for its own sake. The explanation pages form one flat list under the Explanations section; a page is not nested below another page.</p>
 <p>Where possible, begin from the scientific, mathematical, or computational concept rather than from the Python class hierarchy.</p>
 <p>For example, an explanation of an inverse-problem library might first introduce</p>
 <div class="math notranslate nohighlight">
@@ -968,7 +966,7 @@ y = A(x) + \varepsilon
 \[
 \min_x D(Ax, y) + \lambda R(x),
 \]</div>
-<p>before explaining how the library represents (A), (D), and (R).</p>
+<p>before explaining how the library represents <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(D\)</span>, and <span class="math notranslate nohighlight">\(R\)</span>.</p>
 </section>
 <section id="accessibility-and-terminology">
 <h4>Accessibility and terminology<a class="headerlink" href="#accessibility-and-terminology" title="Link to this heading">#</a></h4>
@@ -1011,6 +1009,7 @@ y = A(x) + \varepsilon
 <p>Verbs such as <em>buys</em>, <em>pays</em>, <em>holds</em>, <em>carries</em>, <em>walks</em>, <em>drives</em>, <em>plays</em>, <em>refuses</em>, <em>asks</em>, <em>wants</em>, <em>sits</em>, and <em>spends</em> are the usual vehicles for both failure modes. The rule is semantic, not lexical: use them only with their established technical meaning, and state the relationship directly when the meaning would be figurative. An amplifier drives a load, an iterator walks a tree, a buffer holds samples, a solver takes a step, a field carries energy — these are the conventional terms and are correct. The same words are wrong when they stand in for a relationship that could have been stated.</p>
 <p><strong>Headings name the concept.</strong> A heading is an index entry and a semantic landmark, so it should normally be a concise noun phrase naming the concept, operation, quantity or task the section establishes. It is not a description of the section, a summary of its conclusion, or a phrase that only makes sense after the section has been read.</p>
 <p>Apply this test: would the heading look ordinary in a well-edited textbook, methods paper, or mature scientific-Python documentation? If not, simplify it.</p>
+<p>The rule covers page titles as well as section headings: not “What X does”, “How it works” or “See it run”, but “Capabilities”, “Method”, “Examples”. Two exceptions are deliberate: Course lesson titles keep the lesson voice (“Your first gradient echo”), while the headings inside a lesson name concepts; and the README keeps “How it works”, “Learn more” and “How to cite”.</p>
 <p>Rule out, in particular, miniature prose statements, rhetorical questions, and headings varied for stylistic effect. Sibling headings that name comparable things should be phrased comparably; variation for its own sake makes a contents list harder to scan.</p>
 <p>Avoid:</p>
 <blockquote>
@@ -1244,7 +1243,7 @@ Spatial axis along which the finite difference is evaluated.</p>
 </section>
 <section id="developer-documentation">
 <h2>Developer documentation<a class="headerlink" href="#developer-documentation" title="Link to this heading">#</a></h2>
-<p>Developer documentation may discuss implementation architecture and internal abstractions more directly than user-facing documentation.</p>
+<p>Developer documentation may discuss implementation architecture and internal abstractions more directly than user-facing documentation. The pages under <code class="docutils literal notranslate"><span class="pre">docs/developer-guide/internals/</span></code> are each the counterpart of one explanation page: they hold the rules, formulas, tables and figures the explanation links to, in the dry declarative register.</p>
 <p>Use the same precise terminology and restrained prose.</p>
 <p>Explain rationale where it helps maintainers understand why an architecture, representation, or constraint exists.</p>
 <p>Distinguish current design rationale from historical narration.</p>
@@ -1324,14 +1323,13 @@ Spatial axis along which the finite difference is evaluated.</p>
 <section id="explanation">
 <h3>Explanation<a class="headerlink" href="#explanation" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Does the page have one obvious purpose and, where appropriate, a conceptual anchor?</p></li>
-<li><p>If it has more than one section, does it open with a TL;DR that states only what the page establishes?</p></li>
-<li><p>Does the page teach the underlying concept rather than narrate the API?</p></li>
+<li><p>Does the page follow the layout: TL;DR of at most three bullets, opening, Capabilities, Division of responsibility, Method with one figure, Examples?</p></li>
+<li><p>Does every capability’s toggle name real code and real tests?</p></li>
+<li><p>Is each fact stated once, with the long rules and derivations on the internals page?</p></li>
 <li><p>Are standard terms introduced accurately and then used consistently?</p></li>
 <li><p>Are motivation, relationships, assumptions, and design choices clear?</p></li>
 <li><p>Is the material accessible without sacrificing technical terminology?</p></li>
 <li><p>Does the depth remain relevant to the software?</p></li>
-<li><p>Does the page reach a formal model or criterion, and then the software abstraction?</p></li>
 <li><p>Are mechanisms and trade-offs stated explicitly rather than compressed into a rhetorical sentence?</p></li>
 </ul>
 </section>
@@ -1422,7 +1420,7 @@ Spatial axis along which the finite difference is evaluated.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-and-gallery">Examples and gallery</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gallery-scope">Gallery scope</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#explain-decisions-not-execution">Explain decisions, not execution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#decisions-and-execution">Decisions and execution</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#theory-in-examples">Theory in examples</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#code-comments">Code comments</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
@@ -1432,13 +1430,13 @@ Spatial axis along which the finite difference is evaluated.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tours">Tours</a></li>
 </ul>
 </li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-examples-and-gallery-examples">API examples and gallery examples</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#an-example-is-a-tour-of-an-object-not-a-call-of-it">An example is a tour of an object, not a call of it</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#defaults-of-a-plotting-helper">Defaults of a plotting helper</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legends-sit-outside-the-panel">Legends sit outside the panel</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-and-gallery-examples">API and gallery examples</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#object-tours">Object tours</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-defaults">Plotting defaults</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legend-placement">Legend placement</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#figure-typography-and-size">Figure typography and size</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry-and-traversal-are-different-figures">Geometry and traversal are different figures</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostics-come-from-the-implementation-they-illustrate">Diagnostics come from the implementation they illustrate</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry-and-traversal-figures">Geometry and traversal figures</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostic-sources">Diagnostic sources</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-scope">Example scope</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#gallery-organization-and-navigation">Gallery organization and navigation</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#running-an-example-in-colab">Running an example in Colab</a></li>

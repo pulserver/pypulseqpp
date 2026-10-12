@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -477,11 +477,10 @@
     <span class="n">hard_duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5e-3</span><span class="p">,</span>
     <span class="n">fat_shift_ppm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.4</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Build the excitation ``kind`` names, from one prescription of a slab.</span>
+<span class="w">    </span><span class="sd">"""Build the excitation module named by ``kind`` for a slab prescription.</span>
 
-<span class="sd">    A volumetric sequence is prescribed with a slab and then excites it one of</span>
-<span class="sd">    three ways, and which one it is does not change anything else about the</span>
-<span class="sd">    sequence. This is that choice.</span>
+<span class="sd">    The three kinds share one prescription, so a volumetric sequence selects</span>
+<span class="sd">    among them by ``kind`` alone.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -496,16 +495,16 @@
 <span class="sd">    thickness_m : float</span>
 <span class="sd">        Slab thickness (m). A hard pulse excites everything and ignores it.</span>
 <span class="sd">    duration_s : float, default=0.003</span>
-<span class="sd">        Duration of the selective pulse (s).</span>
+<span class="sd">        Duration of the ``'slab'`` pulse (s).</span>
 <span class="sd">    time_bw_product : float, default=4.0</span>
-<span class="sd">        Time-bandwidth product of the SLR design.</span>
+<span class="sd">        Time-bandwidth product of the ``'slab'`` SLR pulse.</span>
 <span class="sd">    hard_duration_s : float, default=0.0005</span>
 <span class="sd">        Duration of the hard pulse (s), rounded up to an even number of block</span>
 <span class="sd">        rasters so that its centre lands on the raster, which a spin echo</span>
 <span class="sd">        needs in order to place its refocusing pulse midway.</span>
 <span class="sd">    fat_shift_ppm : float, default=-3.4</span>
-<span class="sd">        Methylene shift from water (ppm), converted against ``system.gamma``</span>
-<span class="sd">        and ``system.B0`` into the spectral band the ``'spsp'`` pulse rejects.</span>
+<span class="sd">        Methylene shift from water (ppm), converted with ``system.gamma`` and</span>
+<span class="sd">        ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

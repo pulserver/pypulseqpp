@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -538,7 +538,7 @@
 <span class="sd">    duration : float, default=0.01</span>
 <span class="sd">        Pulse duration, in s.</span>
 <span class="sd">    dwell : float, default=None</span>
-<span class="sd">        RF raster, in s; the system's by default.</span>
+<span class="sd">        RF sample spacing, in s; the system's ``rf_raster_time`` by default.</span>
 <span class="sd">    freq_offset, phase_offset : float, default=0.0</span>
 <span class="sd">        Frequency (Hz) and phase (rad) offsets.</span>
 <span class="sd">    max_grad, max_slew : float, default=None</span>
@@ -558,18 +558,19 @@
 <span class="sd">    use : str, default='inversion'</span>
 <span class="sd">        What the pulse is for, as Pulseq records it.</span>
 <span class="sd">    freq_ppm, phase_ppm : float, default=0.0</span>
-<span class="sd">        Field-strength-relative offsets.</span>
+<span class="sd">        Frequency and phase offsets in ppm of the Larmor frequency at the</span>
+<span class="sd">        system's ``B0``, as in PyPulseq.</span>
 <span class="sd">    flip_angle : float, default=np.pi / 2</span>
 <span class="sd">        ``"bir4"`` rotation, in rad.</span>
 <span class="sd">    kappa : float, default=math.atan(20.0)</span>
 <span class="sd">        ``"bir4"`` frequency-sweep shape: ``tan(kappa * s) / tan(kappa)``</span>
 <span class="sd">        over each quarter.</span>
-<span class="sd">    gradient_modulation : float, int, default=0.9</span>
+<span class="sd">    gradient_modulation : float, default=0.9</span>
 <span class="sd">        ``"goia_wurst"`` gradient modulation depth, in ``[0, 1)``: the gradient</span>
 <span class="sd">        follows ``(1 - gradient_modulation) + gradient_modulation *</span>
 <span class="sd">        |cos(pi t / T)|^gradient_order`` of its peak,</span>
 <span class="sd">        ``bandwidth / slice_thickness``.</span>
-<span class="sd">    gradient_order : float, int, default=4</span>
+<span class="sd">    gradient_order : float, default=4</span>
 <span class="sd">        ``"goia_wurst"`` exponent of the gradient modulation.</span>
 
 <span class="sd">    Returns</span>

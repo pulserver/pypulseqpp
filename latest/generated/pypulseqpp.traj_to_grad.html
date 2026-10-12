@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -536,16 +536,21 @@ raster and are differentiated without limit enforcement.</p>
 <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">n)</span></code>, in 1/m.</p></li>
 <li><p><strong>raster_time</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Gradient raster (s). Defaults to the system’s.</p></li>
 <li><p><strong>time_optimal</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Re-parameterise the path within the limits rather than differentiate it.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits; supplies <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> and the raster.</p></li>
-<li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Path-resampling factor the solver works at.</p></li>
-<li><p><strong>start_at_zero</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Ramp the waveform up from and back down to zero amplitude.</p></li>
-<li><p><strong>end_at_zero</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Ramp the waveform up from and back down to zero amplitude.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – System limits; supplies <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> and, when
+<code class="docutils literal notranslate"><span class="pre">raster_time</span></code> is omitted, the raster. Not limiting when
+<code class="docutils literal notranslate"><span class="pre">time_optimal</span></code> is false.</p></li>
+<li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Path-resampling factor the solver works at; read only when
+<code class="docutils literal notranslate"><span class="pre">time_optimal</span></code>.</p></li>
+<li><p><strong>start_at_zero</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Ramp the waveform up from and back down to zero amplitude; read only
+when <code class="docutils literal notranslate"><span class="pre">time_optimal</span></code>.</p></li>
+<li><p><strong>end_at_zero</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Ramp the waveform up from and back down to zero amplitude; read only
+when <code class="docutils literal notranslate"><span class="pre">time_optimal</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>g</strong> (<em>numpy.ndarray</em>) – Gradient waveform (Hz/m), same axis convention as <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p></li>
-<li><p><strong>slew</strong> (<em>numpy.ndarray</em>) – Slew rate (Hz/m/s), one value per gradient sample.</p></li>
+<li><p><strong>g</strong> (<em>numpy.ndarray</em>) – Gradient waveform (Hz/m), time last like <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p></li>
+<li><p><strong>slew</strong> (<em>numpy.ndarray</em>) – Slew rate (Hz/m/s), one value per gradient sample, shaped like <code class="docutils literal notranslate"><span class="pre">g</span></code>.</p></li>
 </ul>
 </p>
 </dd>

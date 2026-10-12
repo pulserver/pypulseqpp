@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -530,8 +530,8 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>opts</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits. Not modified.</p></li>
-<li><p><strong>grad_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_GRAD_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> / <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
-<li><p><strong>slew_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_SLEW_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> / <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
+<li><p><strong>grad_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_GRAD_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> to allow.</p></li>
+<li><p><strong>slew_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_SLEW_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -550,9 +550,9 @@
 </div>
 <p class="rubric">Notes</p>
 <p>The default fractions, <a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html#pypulseqpp.MAX_GRAD_DERATE" title="pypulseqpp.MAX_GRAD_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_GRAD_DERATE</span></code></a> and
-<a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE" title="pypulseqpp.MAX_SLEW_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code></a>, leave a margin below the gradient amplitude and
-slew-rate limits for a waveform designed on one axis at a time and played
-while other axes are active.</p>
+<a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE" title="pypulseqpp.MAX_SLEW_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code></a>, leave a margin below the amplitude and slew-rate
+limits for waveforms designed on one axis at a time and played while
+other axes are active.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">opts</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="n">max_grad</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">grad_unit</span><span class="o">=</span><span class="s2">"mT/m"</span><span class="p">,</span> <span class="n">max_slew</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">slew_unit</span><span class="o">=</span><span class="s2">"T/m/s"</span><span class="p">)</span>

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -532,12 +532,13 @@
 <li><p><strong>model</strong> (<a class="reference internal" href="pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><em>ChronaxieModel</em></a><em>, </em><em>mapping</em><em>, </em><em>SAFE description</em><em>, or </em><em>path</em>) – A <a class="reference internal" href="pypulseqpp.safety.ChronaxieModel.html#pypulseqpp.safety.ChronaxieModel" title="pypulseqpp.safety.ChronaxieModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChronaxieModel</span></code></a> or a mapping of its fields; a SAFE
 description shaped like upstream’s <code class="docutils literal notranslate"><span class="pre">safe_example_hw()</span></code>; or a <code class="docutils literal notranslate"><span class="pre">.asc</span></code>
 file for <a class="reference internal" href="pypulseqpp.safety.read_safe_model.html#pypulseqpp.safety.read_safe_model" title="pypulseqpp.safety.read_safe_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_safe_model()</span></code></a>.</p></li>
-<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes, applied after
-each block’s own rotation; identity (axial) by default.</p></li>
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio; the sequence’s own by default.</p></li>
+<li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes, composed
+after each block’s own rotation; identity (axial) when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio (Hz/T); <code class="docutils literal notranslate"><span class="pre">seq.system</span></code> when
+<code class="docutils literal notranslate"><span class="pre">None</span></code>, then the default <a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a>.</p></li>
 <li><p><strong>trace</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Also return the response over time, which a diagnostic plot draws.
-The trace is one value per gradient raster interval over the whole
-sequence, so it costs four arrays of <code class="docutils literal notranslate"><span class="pre">samples</span></code> each.</p></li>
+The trace has one value per gradient raster interval over the whole
+sequence.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -553,6 +554,14 @@ threshold, stays below 1 at every sample.</p></li>
 each axis’s own <code class="docutils literal notranslate"><span class="pre">response</span></code>, all of length <code class="docutils literal notranslate"><span class="pre">samples</span></code>.</p></li>
 </ul>
 </p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.15)"><strong>TypeError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">model</span></code> is none of the accepted forms.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a model coefficient is not positive, a SAFE axis lacks a field or
+    its <code class="docutils literal notranslate"><span class="pre">a1</span> <span class="pre">+</span> <span class="pre">a2</span> <span class="pre">+</span> <span class="pre">a3</span></code> is not 1, or <code class="docutils literal notranslate"><span class="pre">rotation</span></code> is not a 3x3
+    orthonormal matrix.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>

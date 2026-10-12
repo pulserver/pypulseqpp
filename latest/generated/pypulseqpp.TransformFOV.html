@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -529,9 +529,9 @@
 <p>Scales gradient amplitudes per channel axis, translates the field of view
 in metres along the channel axes, or the logical axes with
 <code class="docutils literal notranslate"><span class="pre">through_rotation</span></code>, and composes a rotation after each block’s own
-rotation; a rotation given with a translation does not turn it. Field of
-view scales inversely with gradient amplitude, so halving an axis’s scale
-doubles the field of view along it.</p>
+rotation. A rotation given with a translation does not turn the
+translation. The field of view scales inversely with gradient amplitude,
+so halving an axis’s scale doubles the field of view along it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -550,11 +550,11 @@ A factor of zero disables encoding on that axis.</p></li>
 converted into the frame of <code class="docutils literal notranslate"><span class="pre">translation</span></code> using the transpose of its
 rotation.</p></li>
 <li><p><strong>use_rotation_extension</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Must be True; waveform-baked rotation is not implemented.</p></li>
-<li><p><strong>through_rotation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Translate along the logical axes: a block that carries a rotation <code class="docutils literal notranslate"><span class="pre">R</span></code>
-is translated by the gradients it plays, <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">g</span></code>, rather than by those
-on its channel axes, <code class="docutils literal notranslate"><span class="pre">g</span></code>. The first suits a design whose rotations
-are its own, such as the spokes of a radial readout; the second, a
-sequence whose rotations are a prescription composed onto it.</p></li>
+<li><p><strong>through_rotation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Translate along the logical axes: a block carrying rotation <code class="docutils literal notranslate"><span class="pre">R</span></code> is
+translated by the rotated gradients <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">g</span></code> instead of its channel-axis
+gradients <code class="docutils literal notranslate"><span class="pre">g</span></code>. Suited to designs whose rotations are part of the
+encoding, such as radial spokes; leave False for a sequence whose
+rotations are a prescription composed onto it.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>default=None</em>) – Stored for compatibility; not used to validate transformed events.</p></li>
 </ul>
 </dd>
@@ -572,9 +572,10 @@ without RF resets. RF and ADC shift phases share this reference.</p></li>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>A nonzero translation updates both state vectors. Reuse them only for consecutive
-ranges; initialise them to the state entering the first selected block.
-Block ranges do not automatically integrate preceding blocks.</p>
+<p>A nonzero translation updates <code class="docutils literal notranslate"><span class="pre">block_k_origin</span></code> and <code class="docutils literal notranslate"><span class="pre">swept_k</span></code> on each
+application. A block range does not integrate the blocks before it, so
+ranges must be applied consecutively with the same object, or the two
+attributes set to the state entering the first block of the range.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">())</span>
@@ -594,7 +595,7 @@ Block ranges do not automatically integrate preceding blocks.</p>
 <td><p>The reference toolbox's name for the same thing.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.TransformFOV.apply_to_sequence.html#pypulseqpp.TransformFOV.apply_to_sequence" title="pypulseqpp.TransformFOV.apply_to_sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_to_sequence</span></code></a></p></td>
-<td><p>Apply scaling, translation, then rotation.</p></td>
+<td><p>Apply the scaling, translation and rotation, in that order, and return the sequence.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.TransformFOV.trajectories.html#pypulseqpp.TransformFOV.trajectories" title="pypulseqpp.TransformFOV.trajectories"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trajectories</span></code></a></p></td>
 <td><p>Return ADC trajectories on the channel axes, in 1/m.</p></td>

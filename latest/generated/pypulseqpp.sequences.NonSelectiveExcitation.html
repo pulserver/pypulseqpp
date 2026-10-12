@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -530,16 +530,16 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=10.0</em>) – Nominal flip angle (degrees).</p></li>
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=10.0</em>) – Flip angle (degrees).</p></li>
 <li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Pulse duration (s); spectral width scales inversely with duration.</p></li>
 <li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='excitation'</em>) – Pulseq use tag. Undefined pulses are treated as excitations by
 k-space analysis.</p></li>
-<li><p><strong>freq_offset_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Transmit offsets designed into the pulse. A scan loop moves
-<code class="docutils literal notranslate"><span class="pre">module.rf.freq_offset</span></code> and <code class="docutils literal notranslate"><span class="pre">module.rf.phase_offset</span></code> per shot
-instead of rebuilding the module.</p></li>
-<li><p><strong>phase_offset_rad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Transmit offsets designed into the pulse. A scan loop moves
-<code class="docutils literal notranslate"><span class="pre">module.rf.freq_offset</span></code> and <code class="docutils literal notranslate"><span class="pre">module.rf.phase_offset</span></code> per shot
-instead of rebuilding the module.</p></li>
+<li><p><strong>freq_offset_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Transmit frequency (Hz) and phase (rad) offsets of the pulse. A scan
+loop changes <code class="docutils literal notranslate"><span class="pre">module.rf.freq_offset</span></code> and <code class="docutils literal notranslate"><span class="pre">module.rf.phase_offset</span></code>
+per shot instead of rebuilding the module.</p></li>
+<li><p><strong>phase_offset_rad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Transmit frequency (Hz) and phase (rad) offsets of the pulse. A scan
+loop changes <code class="docutils literal notranslate"><span class="pre">module.rf.freq_offset</span></code> and <code class="docutils literal notranslate"><span class="pre">module.rf.phase_offset</span></code>
+per shot instead of rebuilding the module.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -580,7 +580,7 @@ is the transform of a rectangle:</p>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveExcitation.register.html#pypulseqpp.sequences.NonSelectiveExcitation.register" title="pypulseqpp.sequences.NonSelectiveExcitation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveExcitation.sim_rf.html#pypulseqpp.sequences.NonSelectiveExcitation.sim_rf" title="pypulseqpp.sequences.NonSelectiveExcitation.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -592,10 +592,10 @@ is the transform of a rectangle:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveExcitation.blocks.html#pypulseqpp.sequences.NonSelectiveExcitation.blocks" title="pypulseqpp.sequences.NonSelectiveExcitation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveExcitation.duration.html#pypulseqpp.sequences.NonSelectiveExcitation.duration" title="pypulseqpp.sequences.NonSelectiveExcitation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.NonSelectiveExcitation.seq.html#pypulseqpp.sequences.NonSelectiveExcitation.seq" title="pypulseqpp.sequences.NonSelectiveExcitation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

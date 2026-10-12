@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,25 +525,25 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.OffResonanceSaturation">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">OffResonanceSaturation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/saturation.html#OffResonanceSaturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.OffResonanceSaturation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
-<p>Repeat one off-resonance pulse, followed by an optional three-axis spoiler.</p>
+<p>Train of one off-resonance pulse, followed by an optional three-axis spoiler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits.</p></li>
-<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The pulse to play.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
+<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The pulse played <code class="docutils literal notranslate"><span class="pre">n_pulses</span></code> times.</p></li>
 <li><p><strong>n_pulses</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Pulses in the train.</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Dephasing of the final spoiler, in cycles across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
-Zero omits the spoiler, as required for a pulse used for its phase
-effect rather than for saturation.</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing of the closing spoiler across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
+Zero omits the spoiler, for a pulse used for its phase effect.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
-<li><p><strong>labels</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em><em>, </em><em>default=None</em>) – Counters emitted on the first pulse’s block.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels set to 0 on the first pulse’s block, to be changed per shot by
+the caller.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The pulse, published once however many times it is played.</p></li>
-<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – The closing spoiler, when there is one.</p></li>
-<li><p><strong>prep_labels</strong> (<em>LabelEvent | list[LabelEvent]</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
+<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Spoiler gradient of each axis; absent when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is zero.</p></li>
+<li><p><strong>prep_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
@@ -568,7 +568,7 @@ effect rather than for saturation.</p></li>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>Three pulses back to back, and the longitudinal magnetization they
+<p>Three pulses back to back, and the longitudinal magnetisation they
 leave across the spectrum:</p>
 <figure class="align-default" id="id1">
 <img alt="../_images/pypulseqpp-sequences-OffResonanceSaturation-1_00.svg" class="plot-directive" src="../_images/pypulseqpp-sequences-OffResonanceSaturation-1_00.svg" />
@@ -594,7 +594,7 @@ leave across the spectrum:</p>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.OffResonanceSaturation.register.html#pypulseqpp.sequences.OffResonanceSaturation.register" title="pypulseqpp.sequences.OffResonanceSaturation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.OffResonanceSaturation.sim_rf.html#pypulseqpp.sequences.OffResonanceSaturation.sim_rf" title="pypulseqpp.sequences.OffResonanceSaturation.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -606,10 +606,10 @@ leave across the spectrum:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.OffResonanceSaturation.blocks.html#pypulseqpp.sequences.OffResonanceSaturation.blocks" title="pypulseqpp.sequences.OffResonanceSaturation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.OffResonanceSaturation.duration.html#pypulseqpp.sequences.OffResonanceSaturation.duration" title="pypulseqpp.sequences.OffResonanceSaturation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.OffResonanceSaturation.seq.html#pypulseqpp.sequences.OffResonanceSaturation.seq" title="pypulseqpp.sequences.OffResonanceSaturation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -199,7 +199,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -209,7 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -540,9 +540,9 @@ to download the full example code.</p>
 <a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/01-course/06_radial_mprage.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion
-pulse flips the longitudinal magnetization; while it recovers, at a speed set
+pulse flips the longitudinal magnetisation; while it recovers, at a speed set
 by each tissue’s T1, a fast train of gradient echoes reads it out; then the
-magnetization recovers before the next inversion. White and grey matter
+magnetisation recovers before the next inversion. White and grey matter
 recover at different speeds, and the train catches them while they differ.</p>
 <p>In this lesson your radial gradient echo of lesson 5 becomes the readout
 train of a 3D MPRAGE, played as a <em>stack of stars</em>: the spokes are in-plane,
@@ -608,7 +608,7 @@ every 2.5 s.</p>
 </section>
 <section id="inversion-pulse">
 <h2>Inversion pulse<a class="headerlink" href="#inversion-pulse" title="Link to this heading">#</a></h2>
-<p>An adiabatic pulse inverts the magnetization uniformly even where the
+<p>An adiabatic pulse inverts the magnetisation uniformly even where the
 transmit field is weak or strong, which a 180 degree sinc would not.
 <a class="reference internal" href="../../pypulseqpp.make_adiabatic_pulse.html#pypulseqpp.make_adiabatic_pulse" title="pypulseqpp.make_adiabatic_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_adiabatic_pulse()</span></code></a> makes a hyperbolic secant, 10 ms
 long. <code class="docutils literal notranslate"><span class="pre">use=&quot;inversion&quot;</span></code> tells the scanner and the checks what it is.
@@ -776,7 +776,7 @@ encoding on z next to the prewinder:</p>
 <section id="signal-evolution">
 <h2>Signal evolution<a class="headerlink" href="#signal-evolution" title="Link to this heading">#</a></h2>
 <p>The simulation below follows the longitudinal
-magnetization of three tissues through the scan: inverted, recovering for
+magnetisation of three tissues through the scan: inverted, recovering for
 TI, tipped by 8 degrees and recovering for one spoke TR at a time along the
 train, then recovering until the next inversion. After a few inversions it
 repeats exactly; the figure shows that steady period, with the signal of
@@ -824,7 +824,7 @@ gradient per partition, rewind kz in the spoiler block, label LIN and
 PAR, RF spoil at 117 degrees, and check the timing.
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.280 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.293 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-course-06-radial-mprage-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/0b1a5032474026afbfb82fc47ea27979/06_radial_mprage.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">06_radial_mprage.ipynb</span></code></a></p>

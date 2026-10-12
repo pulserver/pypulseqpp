@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -199,7 +199,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -209,7 +209,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -539,8 +539,8 @@ to download the full example code.</p>
 <a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/latest/_colab/02-tours/01_fid_and_spin_echo.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>The simplest signal you can acquire is the free induction decay (FID): a
-pulse tips the magnetization into the transverse plane and the receiver records
-what the precessing magnetization emits. This Tour builds that sequence, checks
+pulse tips the magnetisation into the transverse plane and the receiver records
+what the precessing magnetisation emits. This Tour builds that sequence, checks
 the flip angle of its pulses with a Bloch simulation, and then adds a
 refocusing pulse and a pair of crusher gradients so that the acquisition is
 centred on a spin echo at the echo time you prescribe.</p>
@@ -633,8 +633,8 @@ the other three, which differ only in the pulse amplitude.</p>
 <section id="flip-angle">
 <h2>Flip angle<a class="headerlink" href="#flip-angle" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../../pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> runs a Bloch simulation of each pulse as it is
-stored in the sequence. On resonance, a block pulse rotates the magnetization
-by its flip angle <span class="math notranslate nohighlight">\(\alpha\)</span>, so the transverse magnetization is
+stored in the sequence. On resonance, a block pulse rotates the magnetisation
+by its flip angle <span class="math notranslate nohighlight">\(\alpha\)</span>, so the transverse magnetisation is
 <span class="math notranslate nohighlight">\(|M_{xy}| = \sin\alpha\)</span>:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">on_resonance</span></a> <span class="o">=</span> <span class="p">[</span><span class="p">]</span><span class="w">
 </span><span class="k">for</span> <span class="n">pulse</span> <span class="ow">in</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">pulses</span></a><span class="p">:</span><span class="w">
@@ -642,7 +642,7 @@ by its flip angle <span class="math notranslate nohighlight">\(\alpha\)</span>, 
 </span>    <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">on_resonance</span></a><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">mxy</span></a><span class="p">[</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.argmin.html#numpy.argmin" title="numpy.argmin"><span class="n">np</span><span class="o">.</span><span class="n">argmin</span></a><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">frequency</span></a><span class="p">)</span><span class="p">)</span><span class="p">]</span><span class="p">)</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_01_fid_and_spin_echo_002.png" srcset="../../../_images/sphx_glr_01_fid_and_spin_echo_002.png" alt="01 fid and spin echo" class = "sphx-glr-single-img"/><p>The four simulated pulses sit on the curve: the 90 degree pulse puts all the
-magnetization in the transverse plane, and the others a fraction
+magnetisation in the transverse plane, and the others a fraction
 <span class="math notranslate nohighlight">\(\sin\alpha\)</span> of it.</p>
 </section>
 <section id="spin-echo">
@@ -695,7 +695,7 @@ without being inverted, such as that FID, sees the two areas add, and is left
 wound through <code class="docutils literal notranslate"><span class="pre">CRUSHER_CYCLES</span></code> cycles across a voxel, which integrates to
 nothing over it.</p>
 <p>So you prescribe a crusher by the phase it winds across a voxel: an area
-<span class="math notranslate nohighlight">\(A\)</span> turns the magnetization through <span class="math notranslate nohighlight">\(A\,\Delta x\)</span> cycles across an
+<span class="math notranslate nohighlight">\(A\)</span> turns the magnetisation through <span class="math notranslate nohighlight">\(A\,\Delta x\)</span> cycles across an
 extent <span class="math notranslate nohighlight">\(\Delta x\)</span>. <a class="reference internal" href="../../pypulseqpp.make_crusher.html#pypulseqpp.make_crusher" title="pypulseqpp.make_crusher"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_crusher()</span></code></a> takes the dephasing
 and the voxel and solves the shortest gradient that delivers it within the
 amplitude and slew limits.</p>

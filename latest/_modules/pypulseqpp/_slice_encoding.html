@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -718,10 +718,8 @@
 <span class="sd">        Small-tip, excitation, spin-echo, inversion or saturation envelope.</span>
 <span class="sd">    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'</span>
 <span class="sd">        FIR design method of the envelope.</span>
-<span class="sd">    passband_ripple : float, default=0.01</span>
-<span class="sd">        Ripple allowed in the passband.</span>
-<span class="sd">    stopband_ripple : float, default=0.01</span>
-<span class="sd">        Ripple allowed in the stopband.</span>
+<span class="sd">    passband_ripple, stopband_ripple : float, default=0.01</span>
+<span class="sd">        Fractional ripple allowed in the passband and the stopband.</span>
 <span class="sd">    max_b1 : float, default=1.8e-05</span>
 <span class="sd">        Peak B1, in T; each subpulse is the shortest, on the gradient raster,</span>
 <span class="sd">        that stays within it.</span>
@@ -740,19 +738,18 @@
 <span class="sd">        System limits.</span>
 <span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq ``use`` tag.</span>
-<span class="sd">    freq_ppm : float, default=0.0</span>
-<span class="sd">        Field-strength-relative frequency offset.</span>
-<span class="sd">    phase_ppm : float, default=0.0</span>
-<span class="sd">        Field-strength-relative phase offset.</span>
+<span class="sd">    freq_ppm, phase_ppm : float, default=0.0</span>
+<span class="sd">        Frequency and phase offsets in ppm of the Larmor frequency at the</span>
+<span class="sd">        system's ``B0``, as in PyPulseq.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    rf : SimpleNamespace</span>
+<span class="sd">    rf : RfEvent</span>
 <span class="sd">        The subpulse train.</span>
-<span class="sd">    gz : SimpleNamespace</span>
+<span class="sd">    gz : GradEvent</span>
 <span class="sd">        The blip train, an extended trapezoid with the same delay as ``rf``.</span>
-<span class="sd">    gzr : SimpleNamespace</span>
-<span class="sd">        Rephaser of minus the blip area after the RF centre.</span>
+<span class="sd">    gzr : TrapEvent</span>
+<span class="sd">        Rephaser of minus the blip area accrued after the RF centre.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>

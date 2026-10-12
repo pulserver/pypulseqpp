@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -684,45 +684,56 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    source : Sequence, sequence module or RF event</span>
-<span class="sd">        Source of the RF event. From a sequence, only the pulse's own block is</span>
-<span class="sd">        simulated unless a range is given.</span>
+<span class="sd">        Source of the pulse. For a sequence, only the pulse's own block is</span>
+<span class="sd">        simulated unless a range is given; a module is simulated in full.</span>
 <span class="sd">    pulse : RF event or str, default=None</span>
 <span class="sd">        Which pulse of ``source``: an event, or the ``use`` it is tagged with</span>
 <span class="sd">        (``"refocusing"`` finds a spin echo's refocusing pulse). The first</span>
 <span class="sd">        pulse by default.</span>
 <span class="sd">    time_range, block_range : sequence, default=None</span>
-<span class="sd">        Blocks of a sequence to simulate over, where the profile needs more</span>
-<span class="sd">        than the pulse's own block.</span>
+<span class="sd">        Range to simulate over, for a sequence source: two times (s), or the</span>
+<span class="sd">        first and last block (1-based, inclusive). At most one.</span>
 <span class="sd">    plane : str, default=None</span>
 <span class="sd">        One of ``x``, ``y``, ``z`` and ``f`` (off-resonance) for a profile, or</span>
-<span class="sd">        two for a plane drawn as ``|Mxy|`` and ``Mz`` heatmaps. By default the</span>
-<span class="sd">        axis the pulse is selective along, or ``f`` without a gradient.</span>
-<span class="sd">    kind : {"excitation", "refocusing", "inversion", "saturation"}, default=None</span>
-<span class="sd">        Which response a profile draws; the pulse's ``use`` by default.</span>
+<span class="sd">        two for a plane drawn as ``|Mxy|`` and ``Mz`` heatmaps. When ``None``,</span>
+<span class="sd">        the axis the pulse is selective along, or ``f`` without a gradient.</span>
+<span class="sd">    kind : str, default=None</span>
+<span class="sd">        Response a profile draws: ``'refocusing'`` draws refocusing</span>
+<span class="sd">        efficiency, ``'inversion'``, ``'saturation'`` and ``'preparation'``</span>
+<span class="sd">        draw ``Mz``, and any other value ``|Mxy|``. The pulse's ``use`` when</span>
+<span class="sd">        ``None``.</span>
 <span class="sd">    extent, span : float or pair of float, default=None</span>
-<span class="sd">        Limits of the first and second axis: a half-width about zero or a</span>
-<span class="sd">        ``(low, high)`` pair, in mm for a position and Hz for off-resonance.</span>
+<span class="sd">        Limits of the first and second axis of ``plane``: a half-width about</span>
+<span class="sd">        zero or a ``(low, high)`` pair, in mm for a position and Hz for</span>
+<span class="sd">        off-resonance. Derived from the pulse when ``None``.</span>
 <span class="sd">    samples : int, default=401</span>
 <span class="sd">        Points per axis; a plane caps at 91 a side.</span>
 <span class="sd">    dt : float, default=8e-06</span>
-<span class="sd">        Integration step in seconds, wherever the window is integrated rather</span>
-<span class="sd">        than the pulse alone.</span>
+<span class="sd">        Integration step (s) where the window is integrated rather than the</span>
+<span class="sd">        pulse alone.</span>
 <span class="sd">    whole : bool, default=False</span>
 <span class="sd">        Integrate everything in the window -- every pulse, gradient and the</span>
 <span class="sd">        precession between them -- rather than the pulse alone. A plane is</span>
 <span class="sd">        always integrated this way.</span>
 <span class="sd">    title : str, default=None</span>
+<span class="sd">        Figure title.</span>
 <span class="sd">    plot_now : bool, default=True</span>
 <span class="sd">        Show the figure before returning.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    matplotlib.figure.Figure</span>
+<span class="sd">        The envelope panel (``|B1|`` in microtesla against time in ms) and the</span>
+<span class="sd">        profile, or the two heatmaps for a plane.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``source`` holds no RF event, or the range given holds none.</span>
+<span class="sd">        If ``source`` or the range given holds no RF event, ``plane`` is not</span>
+<span class="sd">        one or two of ``x``, ``y``, ``z``, ``f``, or a single position axis</span>
+<span class="sd">        is not the pulse's selection axis and ``whole`` is False.</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If ``source`` is not a Sequence, a sequence module or an RF event.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>

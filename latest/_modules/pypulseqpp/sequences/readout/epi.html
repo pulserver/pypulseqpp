@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -476,16 +476,98 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">_EpiReadout</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One RF event followed by an EPI train with a fixed phase-encode pattern.</span>
 
-<span class="sd">    The scan loop sets the shot origin by scaling prewinders. Blips implement</span>
-<span class="sd">    the relative offsets and share the readout ramps; flyback blips instead</span>
-<span class="sd">    play in the rewind gaps. TE is measured to the train line ``te_line``,</span>
-<span class="sd">    the first by default, because which line samples the centre of k-space</span>
-<span class="sd">    depends on the shot origin that the loop sets.</span>
+<span class="sd">    The caller sets the shot origin by scaling the prewinders. Blips step</span>
+<span class="sd">    between the lines of ``order`` and share the readout ramps; with</span>
+<span class="sd">    ``flyback`` they play in the rewind gaps instead. TE is timed to the line</span>
+<span class="sd">    ``te_line`` (the first by default), because which line samples the centre</span>
+<span class="sd">    of k-space depends on the shot origin the caller sets.</span>
 
-<span class="sd">    Navigator lines, when asked for, are read after the read prewinder and</span>
-<span class="sd">    before the phase-encode prewinder, without blips, so they sample the</span>
-<span class="sd">    centre line at alternating polarities. The train then continues the</span>
-<span class="sd">    alternation.</span>
+<span class="sd">    Navigator lines are read after the read prewinder and before the</span>
+<span class="sd">    phase-encode prewinder, without blips, so they sample the centre line at</span>
+<span class="sd">    alternating polarities; the train continues the alternation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    rf : RfEvent</span>
+<span class="sd">        Pulse that opens the repetition; a refocusing pulse gives the readout</span>
+<span class="sd">        half of a spin-echo EPI.</span>
+<span class="sd">    gz : GradEvent, default=None</span>
+<span class="sd">        Selection gradient played with ``rf``.</span>
+<span class="sd">    gz_reph : GradEvent, default=None</span>
+<span class="sd">        Rephaser of ``gz``, left-aligned in the first block after the pulse.</span>
+<span class="sd">    fov : float or sequence of float</span>
+<span class="sd">        Field of view per encoded axis, readout first (m).</span>
+<span class="sd">    matrix : int or sequence of int</span>
+<span class="sd">        Matrix size per encoded axis, readout first.</span>
+<span class="sd">    order : array_like, default=None</span>
+<span class="sd">        Integer offsets from the shot origin, ``(etl,)`` or ``(etl, 2)``, one</span>
+<span class="sd">        row per line. When given, ``etl`` to ``extent`` are ignored; ``None``</span>
+<span class="sd">        generates the train with :func:`~pypulseqpp.make_epi_shot_offsets`.</span>
+<span class="sd">    etl : int, default=None</span>
+<span class="sd">        Lines per repetition. ``None`` is what one shot of ``scheme`` needs to</span>
+<span class="sd">        cross the phase-encode matrix.</span>
+<span class="sd">    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'</span>
+<span class="sd">        Ordering to generate. ``'linear'`` steps by ``segments * acceleration``</span>
+<span class="sd">        every line within one partition; ``'caipi'`` adds the partition</span>
+<span class="sd">        sawtooth of blipped-CAIPI; ``'zigzag'`` traverses up and down a</span>
+<span class="sd">        phase-encode segment instead of across the matrix.</span>
+<span class="sd">    acceleration : int, default=1</span>
+<span class="sd">        Phase-encode undersampling ``Ry``: the number of lines a blip steps.</span>
+<span class="sd">    segments : int, default=1</span>
+<span class="sd">        Shots ``S`` the lattice is interleaved across. The blip becomes</span>
+<span class="sd">        ``S * Ry``, which shortens the train.</span>
+<span class="sd">    partition_acceleration : int, default=1</span>
+<span class="sd">        Partition undersampling ``Rz``, the height of the CAIPI cycle.</span>
+<span class="sd">        ``'caipi'`` only.</span>
+<span class="sd">    caipi_shift : int, default=1</span>
+<span class="sd">        Partitions the pattern climbs per acquired line. ``'caipi'`` only.</span>
+<span class="sd">    extent : int, default=None</span>
+<span class="sd">        Phase-encode lines one pass spans. Required by ``'zigzag'`` and</span>
+<span class="sd">        rejected by the other schemes.</span>
+<span class="sd">    te : float, default=None</span>
+<span class="sd">        Echo time (s), from the RF centre to the echo of line ``te_line``.</span>
+<span class="sd">        ``None`` is as short as possible. Consecutive echoes are ``esp``</span>
+<span class="sd">        apart; ``echo_times`` lists them.</span>
+<span class="sd">    te_line : float, default=0.0</span>
+<span class="sd">        Line, counted from zero and possibly fractional, that ``te`` is timed</span>
+<span class="sd">        to.</span>
+<span class="sd">    tr : float, default=None</span>
+<span class="sd">        Repetition time (s) of the whole module, including the longest echo</span>
+<span class="sd">        shift. ``None`` is as short as possible.</span>
+<span class="sd">    navigator_lines : int, default=0</span>
+<span class="sd">        Lines read without blips between the read and phase-encode prewinders,</span>
+<span class="sd">        for odd-even phase correction. Rejected with ``flyback``.</span>
+<span class="sd">    echo_shifts : int, default=1</span>
+<span class="sd">        Number of shots whose trains are delayed by successive multiples of</span>
+<span class="sd">        ``esp / echo_shifts``. The module plays no shift: the caller lengthens</span>
+<span class="sd">        ``wait_shift``.</span>
+<span class="sd">    oversampling : float, default=1.0</span>
+<span class="sd">        Readout oversampling: the sample spacing in k-space is</span>
+<span class="sd">        ``1 / (oversampling * fov)``.</span>
+<span class="sd">    readout_bandwidth_hz : float, default=500000.0</span>
+<span class="sd">        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved</span>
+<span class="sd">        on the ADC and gradient rasters.</span>
+<span class="sd">    ramp_sampling : bool, default=True</span>
+<span class="sd">        Sample across the read ramps as well as the plateau, which shortens the</span>
+<span class="sd">        echo spacing. False restricts the window to the plateau.</span>
+<span class="sd">    flyback : bool, default=False</span>
+<span class="sd">        Read every line in the same direction, rewinding between lines, instead</span>
+<span class="sd">        of alternating polarity. Adds a rewind per line and removes the</span>
+<span class="sd">        odd-even echo inconsistency of a bipolar train.</span>
+<span class="sd">    spoiling_cycles : float, default=0.0</span>
+<span class="sd">        Cycles of read-axis dephasing across ``voxel_size_m`` left at the end</span>
+<span class="sd">        of the repetition.</span>
+<span class="sd">    voxel_size_m : float, default=None</span>
+<span class="sd">        Length the spoiling is counted over (m); ``None`` is the readout</span>
+<span class="sd">        resolution.</span>
+<span class="sd">    labels : sequence of str, default=None</span>
+<span class="sd">        Names of the labels holding the shot origin of each encoded axis,</span>
+<span class="sd">        phase encode first: two for a 3D train, one for 2D.</span>
+<span class="sd">    trigger : TriggerEvent or DigitalOutputEvent, default=None</span>
+<span class="sd">        Event armed on the prewinder block.</span>
+
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -500,159 +582,70 @@
 <span class="sd">        Read prewinder, half a line lobe against the first line's polarity,</span>
 <span class="sd">        right-aligned in the prewinder block so that it ends where the first</span>
 <span class="sd">        line starts.</span>
-<span class="sd">    gx : list[GradEvent]</span>
+<span class="sd">    gx : list of GradEvent</span>
 <span class="sd">        One read lobe per line: alternating polarity for a blipped train, the</span>
 <span class="sd">        same lobe every time for a flyback one.</span>
-<span class="sd">    gx_navigator : list[GradEvent]</span>
-<span class="sd">        One read lobe per navigator line, the first positive. Present only</span>
-<span class="sd">        with ``navigator_lines``.</span>
+<span class="sd">    gx_navigator : list of GradEvent</span>
+<span class="sd">        One read lobe per navigator line, the first positive; present only with</span>
+<span class="sd">        ``navigator_lines``.</span>
 <span class="sd">    gx_flyback : TrapEvent</span>
 <span class="sd">        The rewind between two lines. ``flyback`` only.</span>
 <span class="sd">    gy_blips, gz_blips : list</span>
-<span class="sd">        One phase-encode event per line, or ``None`` where no step is asked</span>
-<span class="sd">        for, always ``etl`` long. A blipped train's entry carries the second</span>
-<span class="sd">        half of the step into the line and the first half of the next out of</span>
-<span class="sd">        it; a flyback train's is the whole step, played in the rewind block</span>
-<span class="sd">        *after* that line, so its last entry is always ``None``.</span>
+<span class="sd">        One phase-encode event per line, ``etl`` long, with ``None`` where no</span>
+<span class="sd">        step is taken. In a blipped train an entry carries the second half of</span>
+<span class="sd">        the step into the line and the first half of the step to the next line</span>
+<span class="sd">        out of it; in a flyback train it is the whole step, played in the</span>
+<span class="sd">        rewind block after that line, so the last entry is ``None``.</span>
 <span class="sd">        ``gz_blips`` is 3D only.</span>
 <span class="sd">    gy_pre, gz_pre : TrapEvent</span>
 <span class="sd">        Phase encodes at their largest step, to be scaled per shot,</span>
-<span class="sd">        right-aligned with ``gx_pre``; with ``navigator_lines`` they take a</span>
+<span class="sd">        right-aligned with ``gx_pre``; with ``navigator_lines`` they play in a</span>
 <span class="sd">        block of their own after the navigator. ``gz_pre`` is 3D only.</span>
 <span class="sd">    gy_rew, gz_rew : TrapEvent</span>
-<span class="sd">        The encodes negated, left-aligned in the last block of the repetition.</span>
+<span class="sd">        The negated encodes, left-aligned in the last block of the repetition.</span>
 <span class="sd">    gx_spoil : GradEvent</span>
 <span class="sd">        Read-axis trapezoid in the last block: returns the read axis from the</span>
-<span class="sd">        end of the last line through k = 0 and adds the requested spoiling.</span>
+<span class="sd">        end of the last line to k = 0 and adds the spoiling.</span>
 <span class="sd">    adc : AdcEvent</span>
 <span class="sd">        The acquisition window, shared by every line.</span>
-<span class="sd">    shot_labels : tuple[LabelEvent, ...]</span>
-<span class="sd">        ``SET`` counters on the prewinder block, one per name in ``labels``.</span>
-<span class="sd">        The acquisition loop sets them to the shot's origin. Always a tuple,</span>
-<span class="sd">        whatever the number of names, so that it can be unpacked into a block.</span>
-<span class="sd">    line_labels : tuple[tuple[LabelEvent, ...], ...]</span>
-<span class="sd">        Per line, the ``INC`` counters that step from the previous line to this</span>
-<span class="sd">        one -- the ordering, expressed as labels. Empty for the first line,</span>
-<span class="sd">        which the ``SET`` already placed.</span>
-<span class="sd">    order : NDArray[np.int64]</span>
-<span class="sd">        ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.</span>
+<span class="sd">    shot_labels : tuple of LabelSetEvent</span>
+<span class="sd">        ``SET`` events on the prewinder block, one per name in ``labels``, for</span>
+<span class="sd">        the caller to set to the shot origin. Always a tuple, so it can be</span>
+<span class="sd">        unpacked into a block.</span>
+<span class="sd">    line_labels : tuple of tuple of LabelIncEvent</span>
+<span class="sd">        Per line, the ``INC`` events that step from the previous line to this</span>
+<span class="sd">        one; empty for the first line, which ``shot_labels`` places.</span>
+<span class="sd">    order : numpy.ndarray</span>
+<span class="sd">        Integer ``(etl, 2)`` ``(ky, kz)`` offsets from the shot origin.</span>
 <span class="sd">    wait_te : DelayEvent</span>
-<span class="sd">        Present only when a TE longer than the minimum was asked for.</span>
+<span class="sd">        Present only when ``te`` exceeds the minimum.</span>
 <span class="sd">    wait_shift : DelayEvent</span>
-<span class="sd">        The echo-shift delay right before the first train line, one block</span>
-<span class="sd">        raster long. Present only with ``echo_shifts`` above one; the loop</span>
-<span class="sd">        lengthens it by ``s * echo_shift_step`` on shot ``s`` and shortens</span>
-<span class="sd">        ``wait_tr`` by as much.</span>
+<span class="sd">        Echo-shift delay before the first train line, one block raster long;</span>
+<span class="sd">        present only with ``echo_shifts`` above 1. The caller lengthens it by</span>
+<span class="sd">        ``s * echo_shift_step`` on shot ``s`` and shortens ``wait_tr`` by the</span>
+<span class="sd">        same amount.</span>
 <span class="sd">    wait_tr : DelayEvent</span>
-<span class="sd">        Present when a TR longer than the minimum was asked for, or when</span>
-<span class="sd">        ``echo_shifts`` is above one: it then holds the longest shift.</span>
+<span class="sd">        Present when ``tr`` exceeds the minimum, or when ``echo_shifts`` is</span>
+<span class="sd">        above 1, in which case it holds the longest shift.</span>
 <span class="sd">    etl : int</span>
 <span class="sd">        Lines per repetition.</span>
 <span class="sd">    esp : float</span>
 <span class="sd">        Echo spacing (s).</span>
-<span class="sd">    echo_times : NDArray[np.float64]</span>
-<span class="sd">        Each line's echo time (s) from the excitation isodelay, with no echo</span>
-<span class="sd">        shift.</span>
+<span class="sd">    echo_times : numpy.ndarray</span>
+<span class="sd">        Echo time of each line (s) from the RF centre, without echo shift.</span>
 <span class="sd">    echo_time : float</span>
-<span class="sd">        Echo time (s) of train line ``te_line``, the echo time that ``te``</span>
-<span class="sd">        specifies.</span>
+<span class="sd">        Echo time (s) of line ``te_line``, the time ``te`` specifies.</span>
 <span class="sd">    echo_shift_step : float</span>
 <span class="sd">        Echo shift between successive shots (s), ``esp / echo_shifts`` on the</span>
 <span class="sd">        block raster; zero with one shift.</span>
 <span class="sd">    bandwidth_hz : float</span>
-<span class="sd">        Achieved ADC sampling rate (Hz).</span>
+<span class="sd">        Achieved ADC sampling rate ``1 / dwell`` (Hz).</span>
 <span class="sd">    n_samples : int</span>
-<span class="sd">        Samples per line.</span>
+<span class="sd">        ADC samples per line.</span>
 <span class="sd">    delta_kx : float</span>
-<span class="sd">        Read-axis k-space step (1/m).</span>
+<span class="sd">        K-space sample spacing along the readout (1/m).</span>
 <span class="sd">    blip_span : float</span>
-<span class="sd">        Time one phase-encode step takes (s). It is paid out of the read ramps.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    system : Opts</span>
-<span class="sd">        System limits.</span>
-<span class="sd">    rf : RfEvent</span>
-<span class="sd">        The pulse that opens the repetition. A refocusing pulse builds the</span>
-<span class="sd">        readout half of a spin-echo EPI.</span>
-<span class="sd">    gz : GradEvent, default=None</span>
-<span class="sd">        A selection gradient played in the same block as ``rf``.</span>
-<span class="sd">    gz_reph : GradEvent, default=None</span>
-<span class="sd">        The rephaser that unwinds ``gz``.</span>
-<span class="sd">    fov : float | Sequence[float]</span>
-<span class="sd">        Field of view (m), per encoded axis, readout first.</span>
-<span class="sd">    matrix : int | Sequence[int]</span>
-<span class="sd">        Matrix size, per encoded axis.</span>
-<span class="sd">    order : ArrayLike, default=None</span>
-<span class="sd">        ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one</span>
-<span class="sd">        row per line. When supplied, the generator arguments below are ignored;</span>
-<span class="sd">        the default takes a train from :func:`~pypulseqpp.make_epi_shot_offsets`.</span>
-<span class="sd">    etl : int, default=None</span>
-<span class="sd">        Lines per repetition. Defaults to what one shot of the requested</span>
-<span class="sd">        scheme needs to cross the phase-encode matrix.</span>
-<span class="sd">    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'</span>
-<span class="sd">        Which built-in ordering to generate. ``'linear'`` steps by</span>
-<span class="sd">        ``segments * acceleration`` every line and never leaves its</span>
-<span class="sd">        partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;</span>
-<span class="sd">        ``'zigzag'`` traverses up and down a phase-encode segment instead of</span>
-<span class="sd">        across the whole matrix.</span>
-<span class="sd">    acceleration : int, default=1</span>
-<span class="sd">        Phase-encode undersampling, ``Ry``: lines the blip skips.</span>
-<span class="sd">    segments : int, default=1</span>
-<span class="sd">        Shots the train is interleaved across, ``S``. The blip becomes</span>
-<span class="sd">        ``S * Ry``, which shortens the train without changing the lattice</span>
-<span class="sd">        sampled.</span>
-<span class="sd">    partition_acceleration : int, default=1</span>
-<span class="sd">        Partition undersampling ``Rz``, the height of the CAIPI cycle.</span>
-<span class="sd">        ``'caipi'`` only.</span>
-<span class="sd">    caipi_shift : int, default=1</span>
-<span class="sd">        Partitions the pattern climbs per acquired line. ``'caipi'`` only.</span>
-<span class="sd">    extent : int, default=None</span>
-<span class="sd">        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused</span>
-<span class="sd">        by the others.</span>
-<span class="sd">    te : float, default=None</span>
-<span class="sd">        Excitation isodelay to the echo of train line ``te_line`` (s). ``None``</span>
-<span class="sd">        is as short as possible; every echo is ``esp`` from the next, and</span>
-<span class="sd">        ``echo_times`` lists them.</span>
-<span class="sd">    te_line : float, default=0.0</span>
-<span class="sd">        Train line, counted from zero and possibly fractional, that ``te`` is</span>
-<span class="sd">        timed to.</span>
-<span class="sd">    tr : float, default=None</span>
-<span class="sd">        Repetition time (s), over the whole module. It includes the longest</span>
-<span class="sd">        echo shift.</span>
-<span class="sd">    navigator_lines : int, default=0</span>
-<span class="sd">        Lines read without blips between the read and the phase-encode</span>
-<span class="sd">        prewinders, for odd-even phase correction. Refused with ``flyback``.</span>
-<span class="sd">    echo_shifts : int, default=1</span>
-<span class="sd">        Shots whose trains are delayed by successive multiples of</span>
-<span class="sd">        ``esp / echo_shifts``, so the echo time grows smoothly across the</span>
-<span class="sd">        interleaved lines. The module plays no shift; the loop lengthens</span>
-<span class="sd">        ``wait_shift``.</span>
-<span class="sd">    oversampling : float, default=1.0</span>
-<span class="sd">        Read oversampling: ``delta_kx`` shrinks and the sampled read field of</span>
-<span class="sd">        view grows, while resolution is fixed by ``fov`` and ``matrix``.</span>
-<span class="sd">    readout_bandwidth_hz : float, default=500000.0</span>
-<span class="sd">        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the</span>
-<span class="sd">        achieved raster-compatible rate.</span>
-<span class="sd">    ramp_sampling : bool, default=True</span>
-<span class="sd">        Sample across the read ramps as well as the plateau, which shortens</span>
-<span class="sd">        the echo spacing. When off, the window covers the plateau only and the</span>
-<span class="sd">        train is longer.</span>
-<span class="sd">    flyback : bool, default=False</span>
-<span class="sd">        Read every line in the same direction, rewinding between them, instead</span>
-<span class="sd">        of alternating polarity. This adds a rewind per line and removes the</span>
-<span class="sd">        odd-even echo inconsistency of a bipolar train.</span>
-<span class="sd">    spoiling_cycles : float, default=0.0</span>
-<span class="sd">        Read-axis spoiling at the end of the repetition, in cycles across</span>
-<span class="sd">        ``voxel_size_m``.</span>
-<span class="sd">    voxel_size_m : float, default=None</span>
-<span class="sd">        Length the spoiling is counted over (m). The read resolution by</span>
-<span class="sd">        default.</span>
-<span class="sd">    labels : Sequence[str], default=None</span>
-<span class="sd">        Counters for the encoded axes, phase encode first. Two names for a 3D</span>
-<span class="sd">        train, one for 2D.</span>
-<span class="sd">    trigger : TriggerEvent, default=None</span>
-<span class="sd">        A trigger or digital output armed on the prewinder block.</span>
+<span class="sd">        Duration of one phase-encode step (s), taken from the read ramps.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -1024,7 +1017,7 @@
     <span class="n">blip_span</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">ramp_sampling</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">"""One line's read gradient, and how far into it the echo falls.</span>
+<span class="w">    </span><span class="sd">"""Return one line's read gradient and the time (s) from its start to the centre of the window.</span>
 
 <span class="sd">    The lobe is padded symmetrically either side of the acquisition window, by</span>
 <span class="sd">    enough to hold half a phase-encode step and never less than the receiver's</span>

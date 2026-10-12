@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -446,7 +446,7 @@
                 <article class="bd-article">
                   
   <h1>Source code for pypulseqpp.sequences.preparation.diffusion</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Diffusion preparation: weight the magnetization, then store it on z."""</span>
+<span></span><span class="sd">"""Diffusion preparation: weight the magnetisation, then store it on z."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -467,57 +467,60 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">DiffusionPreparation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Non-selective diffusion preparation with hard tip-down and storage pulses.</span>
 
-<span class="sd">    A matched gradient pair surrounds one refocusing pulse. Design one axis</span>
-<span class="sd">    at b_value, then scale the pair for lower b-values and rotate it per</span>
-<span class="sd">    direction. The closing spoiler is separate from the diffusion pair.</span>
+<span class="sd">    A pair of identical diffusion lobes surrounds one refocusing pulse. The</span>
+<span class="sd">    pair is designed on one axis at ``b_value``; scale it for lower b-values</span>
+<span class="sd">    (:meth:`scale_for`) and rotate it per direction. The closing spoiler is</span>
+<span class="sd">    separate from the pair.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    b_value : float</span>
-<span class="sd">        Design b-value (s/mm^2). This is the largest the module can produce;</span>
-<span class="sd">        everything else is reached by scaling down.</span>
+<span class="sd">        Design b-value (s/mm^2), the largest the module plays; lower values are</span>
+<span class="sd">        reached by scaling the lobes.</span>
 <span class="sd">    gradient_duration_s : float, default=0.02</span>
 <span class="sd">        Duration of each diffusion lobe (s).</span>
 <span class="sd">    gradient_separation_s : float, default=0.03</span>
-<span class="sd">        Onset-to-onset separation of the two lobes (s). Must exceed</span>
-<span class="sd">        ``gradient_duration_s`` by enough to hold the refocusing pulse.</span>
+<span class="sd">        Onset-to-onset separation of the two lobes (s); the gap between them</span>
+<span class="sd">        holds the refocusing pulse.</span>
 <span class="sd">    pulse_duration_s : float, default=0.0005</span>
-<span class="sd">        Duration of each 90 (s).</span>
+<span class="sd">        Duration of each 90 degree pulse (s).</span>
 <span class="sd">    refocusing_duration_s : float, default=0.001</span>
-<span class="sd">        Duration of the 180 (s).</span>
+<span class="sd">        Duration of the 180 degree pulse (s).</span>
 <span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
-<span class="sd">        Axis the canonical pair is designed on.</span>
+<span class="sd">        Gradient channel the pair is designed on.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
-<span class="sd">        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.</span>
+<span class="sd">        Cycles of dephasing of the closing spoiler across ``voxel_size_m``.</span>
+<span class="sd">        Zero omits the spoiler.</span>
 <span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
 <span class="sd">    labels : sequence of str, default=None</span>
-<span class="sd">        Counters emitted on the first pulse's block.</span>
+<span class="sd">        Labels set to 0 on the first pulse's block, to be changed per shot by</span>
+<span class="sd">        the caller.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf_prep : RfEvent</span>
-<span class="sd">        The 90 that tips down.</span>
+<span class="sd">        The 90 degree tip-down pulse.</span>
 <span class="sd">    rf_ref : RfEvent</span>
-<span class="sd">        The 180 between the lobes.</span>
+<span class="sd">        The 180 degree refocusing pulse between the lobes.</span>
 <span class="sd">    rf_store : RfEvent</span>
-<span class="sd">        The 90 that stores what is left.</span>
+<span class="sd">        The 90 degree storage pulse.</span>
 <span class="sd">    g_diff : TrapEvent</span>
-<span class="sd">        The diffusion lobe, published once because both sides play the same</span>
-<span class="sd">        event. Scale it per b-value, rotate it per direction.</span>
+<span class="sd">        The diffusion lobe at the design b-value, played identically on both</span>
+<span class="sd">        sides of the refocusing pulse.</span>
 <span class="sd">    wait_first, wait_last : DelayEvent</span>
-<span class="sd">        The gaps before and after the refocusing pulse, each absent when the</span>
-<span class="sd">        timing leaves none.</span>
+<span class="sd">        The gaps before and after the refocusing pulse; each is absent when</span>
+<span class="sd">        zero.</span>
 <span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
-<span class="sd">        The closing spoiler.</span>
+<span class="sd">        Spoiler gradient of each axis; absent when ``spoiling_cycles`` is zero.</span>
 <span class="sd">    prep_labels : LabelSetEvent or list of LabelSetEvent</span>
 <span class="sd">        One per name in ``labels``.</span>
 <span class="sd">    b_value : float</span>
-<span class="sd">        The design b-value achieved (s/mm^2).</span>
+<span class="sd">        Design b-value of the lobes as played (s/mm^2).</span>
 <span class="sd">    max_b_value : float</span>
-<span class="sd">        What this timing could reach at full gradient amplitude (s/mm^2).</span>
+<span class="sd">        b-value this timing reaches at ``system.max_grad`` (s/mm^2).</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -598,7 +601,7 @@
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># Half a turn from the tip-down: the refocusing pulse is about the</span>
-        <span class="c1"># perpendicular axis, which leaves the tipped magnetization where it is,</span>
+        <span class="c1"># perpendicular axis, which leaves the tipped magnetisation where it is,</span>
         <span class="c1"># so undoing the first rotation is what carries it back to +z.</span>
         <span class="n">rf_store</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span>
             <span class="n">flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
@@ -677,18 +680,18 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        b_value : float</span>
-<span class="sd">            Wanted b-value (s/mm^2), between zero and the design value.</span>
+<span class="sd">            Wanted b-value (s/mm^2), from zero to the design value.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        float</span>
-<span class="sd">            Factor to pass to :func:`pypulseq.scale_grad`.</span>
+<span class="sd">            Amplitude factor for :func:`pypulseqpp.scale_grad` applied to</span>
+<span class="sd">            ``g_diff``.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If ``b_value`` is negative or above the design value, which the</span>
-<span class="sd">            module cannot reach by scaling down.</span>
+<span class="sd">            If ``b_value`` is negative or above the design value.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">b_value</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_value</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -701,9 +704,9 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_pair_b_value</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">middle_duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Integrate b in s/mm^2 for a rasterised pair of identical trapezoids.</span>
+<span class="w">    </span><span class="sd">"""Return b (s/mm^2) of two identical lobes around a refocusing pulse.</span>
 
-<span class="sd">    Negate the second lobe in the effective gradient to account for refocusing.</span>
+<span class="sd">    The second lobe is negated in the effective gradient.</span>
 <span class="sd">    """</span>
     <span class="n">count</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">lobe</span><span class="p">)</span> <span class="o">/</span> <span class="n">raster</span><span class="p">)</span>
     <span class="n">times</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span>

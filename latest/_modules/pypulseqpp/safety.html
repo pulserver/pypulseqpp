@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -519,16 +519,23 @@
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        Sequence to check.</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        System limits; defaults to seq.system.</span>
+<span class="sd">        Source of ``max_grad`` (Hz/m); ``seq.system`` when ``None``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    is_ok : bool</span>
 <span class="sd">        True when the largest per-axis amplitude does not exceed ``max_grad``.</span>
+<span class="sd">        Always True when ``max_grad`` is not positive.</span>
 <span class="sd">    report : SimpleNamespace</span>
 <span class="sd">        ``limit``; the ``per_axis`` and ``vector`` peaks; and ``axes``, the</span>
 <span class="sd">        peak of each of x, y and z on its own. Each peak carries ``value`` in</span>
-<span class="sd">        Hz/m, the 1-based ``block`` containing it, and its ``axis``.</span>
+<span class="sd">        Hz/m, the 1-based ``block`` containing it, and its ``axis``</span>
+<span class="sd">        (``'x'``, ``'y'`` or ``'z'``).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If neither ``system`` nor ``seq.system`` is available.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -562,15 +569,23 @@
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        Sequence to check.</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        System limits; the sequence's own by default.</span>
+<span class="sd">        Source of ``max_slew`` (Hz/m/s) and ``grad_raster_time`` (s);</span>
+<span class="sd">        ``seq.system`` when ``None``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    is_ok : bool</span>
 <span class="sd">        True when the largest per-axis slew rate does not exceed ``max_slew``.</span>
+<span class="sd">        Always True when ``max_slew`` is not positive.</span>
 <span class="sd">    report : SimpleNamespace</span>
 <span class="sd">        ``limit``; the ``per_axis`` and ``vector`` slew-rate peaks in Hz/m/s;</span>
-<span class="sd">        and ``axes``, the peak of each of x, y and z on its own.</span>
+<span class="sd">        and ``axes``, the peak of each of x, y and z on its own. Peaks carry</span>
+<span class="sd">        the same fields as in :func:`check_max_grad`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If neither ``system`` nor ``seq.system`` is available.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -606,8 +621,8 @@
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        The sequence to check.</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        System limits supplying the slew limit a discontinuity is compared</span>
-<span class="sd">        with; the sequence's own by default.</span>
+<span class="sd">        Source of ``max_slew`` (Hz/m/s), which a discontinuity is compared</span>
+<span class="sd">        with, and ``grad_raster_time`` (s); ``seq.system`` when ``None``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -618,6 +633,11 @@
 <span class="sd">        ``limit``; the ``discontinuities`` found, each naming the ``block``,</span>
 <span class="sd">        the ``axis``, the amplitudes ``before`` and ``after`` the boundary and</span>
 <span class="sd">        the ``slew`` rate the step implies; and ``ends_at_zero``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If neither ``system`` nor ``seq.system`` is available.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -470,32 +470,32 @@
 <div class="viewcode-block" id="OffResonanceSaturation">
 <a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.OffResonanceSaturation.html#pypulseqpp.sequences.OffResonanceSaturation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OffResonanceSaturation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Repeat one off-resonance pulse, followed by an optional three-axis spoiler.</span>
+<span class="w">    </span><span class="sd">"""Train of one off-resonance pulse, followed by an optional three-axis spoiler.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    system : Opts</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    rf_prep : RfEvent</span>
-<span class="sd">        The pulse to play.</span>
+<span class="sd">        The pulse played ``n_pulses`` times.</span>
 <span class="sd">    n_pulses : int, default=1</span>
 <span class="sd">        Pulses in the train.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
-<span class="sd">        Dephasing of the final spoiler, in cycles across ``voxel_size_m``.</span>
-<span class="sd">        Zero omits the spoiler, as required for a pulse used for its phase</span>
-<span class="sd">        effect rather than for saturation.</span>
+<span class="sd">        Cycles of dephasing of the closing spoiler across ``voxel_size_m``.</span>
+<span class="sd">        Zero omits the spoiler, for a pulse used for its phase effect.</span>
 <span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
-<span class="sd">    labels : Sequence[str], default=None</span>
-<span class="sd">        Counters emitted on the first pulse's block.</span>
+<span class="sd">    labels : sequence of str, default=None</span>
+<span class="sd">        Labels set to 0 on the first pulse's block, to be changed per shot by</span>
+<span class="sd">        the caller.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf_prep : RfEvent</span>
 <span class="sd">        The pulse, published once however many times it is played.</span>
 <span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
-<span class="sd">        The closing spoiler, when there is one.</span>
-<span class="sd">    prep_labels : LabelEvent | list[LabelEvent]</span>
+<span class="sd">        Spoiler gradient of each axis; absent when ``spoiling_cycles`` is zero.</span>
+<span class="sd">    prep_labels : LabelSetEvent or list of LabelSetEvent</span>
 <span class="sd">        One per name in ``labels``.</span>
 
 <span class="sd">    Raises</span>
@@ -520,7 +520,7 @@
 <span class="sd">    &gt;&gt;&gt; prep.blocks[0] == prep.blocks[1] == prep.blocks[2]</span>
 <span class="sd">    True</span>
 
-<span class="sd">    Three pulses back to back, and the longitudinal magnetization they</span>
+<span class="sd">    Three pulses back to back, and the longitudinal magnetisation they</span>
 <span class="sd">    leave across the spectrum:</span>
 
 <span class="sd">    .. plot::</span>
@@ -591,26 +591,27 @@
     <span class="n">freq_offset_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">time_bw_product</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Design the non-spatially-selective SLR envelope used by MT preparations.</span>
+<span class="w">    </span><span class="sd">"""Design a non-selective SLR saturation pulse.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits the pulse is designed against.</span>
 <span class="sd">    flip_angle_deg : float</span>
-<span class="sd">        Nominal flip angle, in degrees.</span>
+<span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float</span>
-<span class="sd">        Pulse duration, in s.</span>
+<span class="sd">        Pulse duration (s).</span>
 <span class="sd">    freq_offset_hz : float</span>
-<span class="sd">        Offset from water, in Hz.</span>
+<span class="sd">        Frequency offset (Hz).</span>
 <span class="sd">    time_bw_product : float</span>
 <span class="sd">        Time-bandwidth product, which with ``duration_s`` sets the saturated</span>
 <span class="sd">        band.</span>
 
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    object</span>
-<span class="sd">        The RF event, with no selection gradient and ``use="saturation"``.</span>
+<span class="sd">    RfEvent</span>
+<span class="sd">        The pulse, with ``use="saturation"``.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
@@ -631,23 +632,23 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    system : Opts</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    flip_angle_deg : float, default=500.0</span>
-<span class="sd">        Nominal flip angle (degrees). Far above 90: the point is deposited</span>
-<span class="sd">        power, not a tip.</span>
+<span class="sd">        Flip angle (degrees); the large value sets the saturation power.</span>
 <span class="sd">    freq_offset_hz : float, default=-1500.0</span>
-<span class="sd">        Offset from water (Hz); must not be zero.</span>
+<span class="sd">        Offset from water (Hz); nonzero.</span>
 <span class="sd">    duration_s : float, default=0.008</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    time_bw_product : float, default=4.0</span>
-<span class="sd">        Time-bandwidth product, which with ``duration_s`` sets how wide a band</span>
-<span class="sd">        of the bound pool is saturated.</span>
+<span class="sd">        Time-bandwidth product; with ``duration_s`` it sets the width of the</span>
+<span class="sd">        saturated band.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``freq_offset_hz`` is zero or a duration is not positive.</span>
+<span class="sd">        If ``freq_offset_hz`` is zero, or ``duration_s`` or ``time_bw_product``</span>
+<span class="sd">        is not positive.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -707,19 +708,19 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">IhMtPreparation</span><span class="p">(</span><span class="n">OffResonanceSaturation</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Simultaneous dual-offset saturation for ihMT measurements.</span>
 
-<span class="sd">    Each band receives 1/sqrt(2) of the matched single-offset amplitude.</span>
-<span class="sd">    Compare against positive- and negative-offset MtPreparation acquisitions</span>
-<span class="sd">    at matched deposited power.</span>
+<span class="sd">    Each band has ``1/sqrt(2)`` of the amplitude of the single-offset pulse of</span>
+<span class="sd">    the same ``flip_angle_deg``, so the deposited power equals that of one</span>
+<span class="sd">    single-offset pulse.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    system : Opts</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    flip_angle_deg : float, default=500.0</span>
-<span class="sd">        Flip angle (degrees) of the single-offset arm this one is matched</span>
-<span class="sd">        against. Each band gets ``1 / sqrt(2)`` of it.</span>
+<span class="sd">        Flip angle (degrees) of the matched single-offset pulse.</span>
 <span class="sd">    freq_offset_hz : float, default=1500.0</span>
-<span class="sd">        Distance of each band from water (Hz), positive. Both signs are built.</span>
+<span class="sd">        Offset of each band from water (Hz), positive; bands are placed at</span>
+<span class="sd">        both signs.</span>
 <span class="sd">    duration_s : float, default=0.008</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    time_bw_product : float, default=4.0</span>
@@ -729,13 +730,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    rf_prep : RfEvent</span>
 <span class="sd">        The dual-band pulse.</span>
-<span class="sd">    band_offsets_hz : NDArray[np.float64]</span>
-<span class="sd">        Where the two bands actually landed (Hz), for a spectral check.</span>
+<span class="sd">    band_offsets_hz : numpy.ndarray</span>
+<span class="sd">        Frequency offsets of the two bands (Hz).</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``freq_offset_hz`` is not positive or a duration is not positive.</span>
+<span class="sd">        If ``freq_offset_hz``, ``duration_s`` or ``time_bw_product`` is not</span>
+<span class="sd">        positive.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -803,44 +805,46 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">BlochSiegertPreparation</span><span class="p">(</span><span class="n">OffResonanceSaturation</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Off-resonance Fermi pulse for Bloch-Siegert B1 mapping.</span>
 
-<span class="sd">    By default, no spoiler is played, preserving transverse phase between</span>
-<span class="sd">    excitation and readout. Calibration constants describe phase per squared</span>
-<span class="sd">    RF amplitude.</span>
+<span class="sd">    No spoiler is played by default, which preserves the transverse phase</span>
+<span class="sd">    between excitation and readout. The pulse shifts the phase by an amount</span>
+<span class="sd">    proportional to the squared B1, reported by ``kbs`` and</span>
+<span class="sd">    ``kbs_per_gauss2``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    system : Opts</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    freq_offset_hz : float, default=4000.0</span>
 <span class="sd">        Offset from water (Hz); flip its sign for the second acquisition.</span>
 <span class="sd">    duration_s : float, default=0.008</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    peak_b1_hz : float, default=500.0</span>
-<span class="sd">        Plateau amplitude, in Pulseq units.</span>
+<span class="sd">        Plateau amplitude (Hz).</span>
 <span class="sd">    flat_fraction : float, default=0.8</span>
 <span class="sd">        Fraction of the duration held at ``peak_b1_hz``, in ``(0, 1)``.</span>
 <span class="sd">    transition_fraction : float, default=0.02</span>
-<span class="sd">        Width of each shoulder, as a fraction of the duration.</span>
+<span class="sd">        Width parameter of each shoulder, as a fraction of the duration.</span>
 <span class="sd">    dwell_s : float, default=1e-05</span>
 <span class="sd">        RF raster (s).</span>
 <span class="sd">    spoiling_cycles : float, default=0.0</span>
-<span class="sd">        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.</span>
-<span class="sd">        Zero, the default here, omits the spoiler, for the reason above.</span>
+<span class="sd">        Cycles of dephasing of the closing spoiler across ``voxel_size_m``.</span>
+<span class="sd">        Zero omits the spoiler.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    rf_prep : RfEvent</span>
 <span class="sd">        The Fermi pulse.</span>
 <span class="sd">    kbs : float</span>
-<span class="sd">        Phase shift per unit squared Pulseq amplitude (rad).</span>
+<span class="sd">        Bloch-Siegert phase shift (rad) of the pulse at ``peak_b1_hz``.</span>
 <span class="sd">    kbs_per_gauss2 : float</span>
-<span class="sd">        The same constant in rad/G^2.</span>
+<span class="sd">        Bloch-Siegert phase shift per squared peak B1 (rad/G^2); independent</span>
+<span class="sd">        of ``peak_b1_hz``.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``freq_offset_hz`` is zero, a duration or amplitude is not</span>
-<span class="sd">        positive, or the envelope fractions are out of range.</span>
+<span class="sd">        If ``freq_offset_hz`` is zero, ``duration_s``, ``peak_b1_hz`` or</span>
+<span class="sd">        ``dwell_s`` is not positive, or an envelope fraction is out of range.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>

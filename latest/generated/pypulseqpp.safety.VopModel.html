@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,13 +526,22 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">VopModel</span></span><a class="reference internal" href="../_modules/pypulseqpp/safety/_sar.html#VopModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.VopModel" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
 <p>Virtual observation points, and optional global SAR matrices.</p>
-<p><code class="docutils literal notranslate"><span class="pre">vops</span></code> is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code>, complex Hermitian, in W/kg per unit channel
-drive squared: SAR is <code class="docutils literal notranslate"><span class="pre">v^H</span> <span class="pre">Q</span> <span class="pre">v</span></code> for the channel drive phasors <code class="docutils literal notranslate"><span class="pre">v</span></code> at
-peak amplitude. <code class="docutils literal notranslate"><span class="pre">global_matrix</span></code> is <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> with
-one matrix per body model as a population’s file carries; the global SAR of
-a window is the largest over the models. <code class="docutils literal notranslate"><span class="pre">metadata</span></code> is what the file says
-about itself, such as the coil, the drive unit, the channel order and the
-<code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is multiplied by.</p>
+<p>SAR is <code class="docutils literal notranslate"><span class="pre">v^H</span> <span class="pre">Q</span> <span class="pre">v</span></code> for the channel drive phasors <code class="docutils literal notranslate"><span class="pre">v</span></code> at peak amplitude
+and a matrix <code class="docutils literal notranslate"><span class="pre">Q</span></code>; the global SAR of a window is the largest over the
+body models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vops</strong> (<em>numpy.ndarray</em>) – Complex Hermitian matrices, shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code>, in W/kg per unit
+channel drive squared.</p></li>
+<li><p><strong>global_matrix</strong> (<em>numpy.ndarray or None</em>) – Global SAR matrix, shape <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> with one
+matrix per body model, in the same unit.</p></li>
+<li><p><strong>metadata</strong> (<em>dict or None</em>) – What the file records about itself, such as the coil, the drive unit,
+the channel order and the <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is
+multiplied by.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <p class="rubric">Methods</p>

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -480,33 +480,33 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SpiralNavigator</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Three orthogonal thick-slab spiral navigators.</span>
 
-<span class="sd">    Reuses one excitation and readout under axial, sagittal and coronal</span>
-<span class="sd">    rotations. ADC blocks carry NAV labels. Navigator excitations perturb</span>
-<span class="sd">    the host sequence's longitudinal magnetisation; choose flip angle and</span>
-<span class="sd">    repetition count accordingly.</span>
+<span class="sd">    One excitation and readout are played under axial, sagittal and coronal</span>
+<span class="sd">    rotations. The blocks that acquire set the ``NAV`` label to 1, and a final</span>
+<span class="sd">    block sets it to 0. The navigator excitations perturb the longitudinal</span>
+<span class="sd">    magnetisation of the host sequence.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    fov : float, default=0.32</span>
-<span class="sd">        In-plane field of view (m). Wide enough to contain the head.</span>
+<span class="sd">        In-plane field of view (m).</span>
 <span class="sd">    matrix : int, default=32</span>
-<span class="sd">        Acquired in-plane matrix. Coarse on purpose.</span>
+<span class="sd">        In-plane matrix size, at least 8.</span>
 <span class="sd">    thickness_m : float, default=0.01</span>
 <span class="sd">        Slab thickness (m).</span>
 <span class="sd">    flip_angle_deg : float, default=8.0</span>
-<span class="sd">        Nominal flip angle (degrees). See above.</span>
+<span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Excitation pulse duration (s).</span>
 <span class="sd">    readout_bandwidth_hz : float, default=250000.0</span>
-<span class="sd">        Requested sample spacing along the arm.</span>
+<span class="sd">        Requested ADC sampling rate (Hz).</span>
 <span class="sd">    navigator_tr : float, default=None</span>
-<span class="sd">        Repetition time of one three-plane navigator (s). ``None`` packs the</span>
-<span class="sd">        planes back to back. A longer one leaves room for the reconstruction</span>
-<span class="sd">        and the pose estimate to come back before the next navigator.</span>
+<span class="sd">        Repetition time of one three-plane navigator (s). ``None`` plays the</span>
+<span class="sd">        planes back to back; otherwise each plane is padded to a third of it.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
-<span class="sd">        Spoiler moment at the end of each plane, in cycles across the slab.</span>
+<span class="sd">        Cycles of spoiler dephasing at the end of each plane, across the</span>
+<span class="sd">        spiral's resolution.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -515,9 +515,10 @@
 <span class="sd">    readout : SpiralReadout2D</span>
 <span class="sd">        The designed interleaf every plane plays.</span>
 <span class="sd">    rotations : dict</span>
-<span class="sd">        The rotation carried by each plane's blocks, keyed by plane name.</span>
+<span class="sd">        Rotation applied to the blocks of each plane (``None`` for axial),</span>
+<span class="sd">        keyed by plane name.</span>
 <span class="sd">    plane_duration : float</span>
-<span class="sd">        Length of one plane (s).</span>
+<span class="sd">        Duration of one plane (s).</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -630,12 +631,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">requested</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return the navigator count that fits a time window.</span>
+<span class="w">        </span><span class="sd">"""Return the number of navigators that fit in a time window.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        window : float</span>
-<span class="sd">            Dead time available (s).</span>
+<span class="sd">            Available dead time (s).</span>
 <span class="sd">        requested : int or str, default='auto'</span>
 <span class="sd">            ``"auto"`` takes as many as fit, up to ``limit``; an integer</span>
 <span class="sd">            requests exactly that many and raises if they do not fit.</span>

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -547,15 +547,14 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.gre_multiecho2D_sequence">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">gre_multiecho2D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.gre_multiecho2D_sequence" title="Link to this definition">#</a></dt>
 <dd><p>RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo.</p>
-<p>One line per repetition, read at <code class="docutils literal notranslate"><span class="pre">n_echoes</span></code> echo times: monopolar, with
-a flyback rewinder after every echo but the last, or bipolar, with even
-echoes read backwards. Each acquisition carries its echo index as
-<code class="docutils literal notranslate"><span class="pre">ECO</span></code>. Slices one TR cannot hold are dealt round-robin into packets,
-played one after another; within a packet the even slices are excited
-before the odd ones. Every packet starts with its own dummy
-repetitions, and the last slice of a packet waits out the rest of the TR.
-Under undersampling the calibration lines are acquired first, marked
-<code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
+<p>One line per repetition, read at <code class="docutils literal notranslate"><span class="pre">n_echoes</span></code> echo times: monopolar, with a
+flyback rewinder after every echo but the last, or bipolar, with even
+echoes read backwards. Each acquisition carries its echo index as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>.
+Slices one TR cannot hold are dealt round-robin into packets, played one
+after another; within a packet the even slices are excited before the odd
+ones. Every packet starts with its own dummy repetitions, and the last
+slice of a packet waits out the rest of the TR. Under undersampling the
+calibration lines are acquired first, marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -583,7 +582,7 @@ samples before the echo, which shortens the minimum TE. A bipolar
 train needs a full echo.</p></li>
 <li><p><strong>partial_fourier_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Fraction of the phase-encode extent acquired, in <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>.
 Truncates the lines before the centre.</p></li>
-<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring repetitions before the first line of each packet.
+<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring repetitions before the first line of each packet.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Fully sampled calibration lines at the centre of k-space, acquired

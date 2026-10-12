@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -533,32 +533,32 @@ with rewinders), <code class="docutils literal notranslate"><span class="pre">&q
 <code class="docutils literal notranslate"><span class="pre">&quot;in_out&quot;</span></code> (edge through centre to edge, with both). Each half of an
 <code class="docutils literal notranslate"><span class="pre">&quot;in_out&quot;</span></code> arm is designed for twice the interleaf counts, so one arm
 samples like two outward ones.</p>
-<p>The dwell is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">bandwidth_hz_px</span></code> (Hz) floored to the ADC raster.
+<p>The dwell is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">bandwidth_hz_px</span></code> floored to the ADC raster.
 Where the time-optimal arm would put adjacent samples more than
 <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(oversamp</span> <span class="pre">*</span> <span class="pre">fov)</span></code> apart at that dwell, the arm is slowed rather
 than the bandwidth raised. The ADC fills the arm with whole samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits.</p></li>
+<li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
 <li><p><strong>fov</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Isotropic field of view (m).</p></li>
 <li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Isotropic matrix size.</p></li>
 <li><p><strong>design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Interleaf count the pitch is designed for, not the number of arms
 acquired.</p></li>
 <li><p><strong>direction</strong> (<em>{'outward'</em><em>, </em><em>'inward'</em><em>, </em><em>'in_out'}</em><em>, </em><em>default='outward'</em>) – Traversal, as above.</p></li>
-<li><p><strong>density</strong> (<em>{'constant'</em><em>, </em><em>'variable'</em><em>, </em><em>'dual'}</em><em>, </em><em>default='constant'</em>) – Constant pitch, a radial power-law transition, or a logistic
-transition.</p></li>
-<li><p><strong>inner_design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Local pitch at the centre and at the edge.</p></li>
-<li><p><strong>outer_design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Local pitch at the centre and at the edge.</p></li>
+<li><p><strong>density</strong> (<em>{'constant'</em><em>, </em><em>'variable'</em><em>, </em><em>'dual'}</em><em>, </em><em>default='constant'</em>) – Pitch constant, rising as a power of the radius, or changing between
+two plateaus by a logistic transition.</p></li>
+<li><p><strong>inner_design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Local interleaf count at the centre; defaults to <code class="docutils literal notranslate"><span class="pre">design_interleaves</span></code>.</p></li>
+<li><p><strong>outer_design_interleaves</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Local interleaf count at the edge; defaults to twice the inner count
+for variable density, and is required for dual density.</p></li>
 <li><p><strong>variable_density_power</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Exponent of the normalised radius, for variable density.</p></li>
-<li><p><strong>transition_radius</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.5</em>) – Normalised radius and logistic steepness of the dual-density
-transition.</p></li>
-<li><p><strong>transition_speed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=12.0</em>) – Normalised radius and logistic steepness of the dual-density
-transition.</p></li>
+<li><p><strong>transition_radius</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.5</em>) – Normalised radius, in (0, 1), at which a dual-density spiral changes
+pitch.</p></li>
+<li><p><strong>transition_speed</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=12.0</em>) – Logistic rate per unit normalised radius of that change.</p></li>
 <li><p><strong>num_points</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1024</em>) – Path samples given to the solver, not ADC samples.</p></li>
-<li><p><strong>bandwidth_hz_px</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz).</p></li>
+<li><p><strong>bandwidth_hz_px</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested ADC sampling rate <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz).</p></li>
 <li><p><strong>oversamp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – ADC oversampling; tightens the step limit.</p></li>
-<li><p><strong>axes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em><em>, </em><em>default=</em><em>(</em><em>'x'</em><em>, </em><em>'y'</em><em>)</em>) – Channels for the path’s two components.</p></li>
+<li><p><strong>axes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=</em><em>(</em><em>'x'</em><em>, </em><em>'y'</em><em>)</em>) – Channels of the path’s two components.</p></li>
 <li><p><strong>solver_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Path-resampling factor of the time-optimal solver.</p></li>
 <li><p><strong>derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Apply <a class="reference internal" href="pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.apply_system_derates()</span></code></a> first.</p></li>
 </ul>

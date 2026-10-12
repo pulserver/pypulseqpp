@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -471,16 +471,16 @@
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    flip_angle_deg : float, default=10.0</span>
-<span class="sd">        Nominal flip angle (degrees).</span>
+<span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Pulse duration (s); spectral width scales inversely with duration.</span>
 <span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq use tag. Undefined pulses are treated as excitations by</span>
 <span class="sd">        k-space analysis.</span>
 <span class="sd">    freq_offset_hz, phase_offset_rad : float, default=0.0</span>
-<span class="sd">        Transmit offsets designed into the pulse. A scan loop moves</span>
-<span class="sd">        ``module.rf.freq_offset`` and ``module.rf.phase_offset`` per shot</span>
-<span class="sd">        instead of rebuilding the module.</span>
+<span class="sd">        Transmit frequency (Hz) and phase (rad) offsets of the pulse. A scan</span>
+<span class="sd">        loop changes ``module.rf.freq_offset`` and ``module.rf.phase_offset``</span>
+<span class="sd">        per shot instead of rebuilding the module.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -547,29 +547,28 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">NonSelectiveRefocusing</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Rectangular refocusing pulse between two identical crushers.</span>
 
-<span class="sd">    The default phase is pi/2 radians for CPMG with a zero-phase excitation.</span>
-<span class="sd">    Set spoiling_cycles=0 to omit the crushers.</span>
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    system : pypulseqpp.Opts</span>
 <span class="sd">        System limits.</span>
 <span class="sd">    flip_angle_deg : float, default=180.0</span>
-<span class="sd">        Nominal flip angle (degrees).</span>
+<span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Pulse duration (s).</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
-<span class="sd">        Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero</span>
-<span class="sd">        omits the crushers, for an echo train that crushes elsewhere.</span>
+<span class="sd">        Cycles of dephasing each crusher produces across ``voxel_size_m``.</span>
+<span class="sd">        Zero omits the crushers.</span>
 <span class="sd">    voxel_size_m : float, default=0.001</span>
 <span class="sd">        Length the dephasing is counted over (m).</span>
 <span class="sd">    axis : {'z', 'x', 'y'}, default='z'</span>
-<span class="sd">        Crusher axis.</span>
+<span class="sd">        Gradient channel of the crushers.</span>
 <span class="sd">    phase_offset_rad : float, default=np.pi / 2</span>
-<span class="sd">        RF phase. The CPMG quarter turn by default.</span>
+<span class="sd">        RF phase (rad); the default is the CPMG quarter turn relative to a</span>
+<span class="sd">        zero-phase excitation.</span>
 <span class="sd">    use : str, default='refocusing'</span>
 <span class="sd">        What the pulse is for; the trajectory core negates accumulated k at a</span>
 <span class="sd">        refocusing pulse, so this is not cosmetic.</span>
+
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,12 +526,10 @@
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">paper_plot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.paper_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.paper_plot" title="Link to this definition">#</a></dt>
 <dd><p>Draw a publication-style diagram of one repetition, using mrsd.</p>
 <p>Rows are RF, the gradient axes z, y and x after each block’s rotation,
-and ADC, each drawn from the waveform the sequence plays. Every row
-carries its own scale, set by the largest magnitude that channel reaches
-over the repetitions drawn, so heights are comparable within a row and
-not between rows. The other repetitions are drawn underneath in
-<code class="docutils literal notranslate"><span class="pre">underlay_color</span></code>, which shows what changes from one to the next, and
-a TR interval is marked below.</p>
+and ADC. Each row is scaled to the largest magnitude its channel
+reaches over the repetitions drawn, so heights compare within a row
+and not between rows. The other repetitions are drawn underneath in
+<code class="docutils literal notranslate"><span class="pre">underlay_color</span></code>, and the repetition time is marked below.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -546,8 +544,9 @@ default, which reads against a light and a dark background alike.</p></li>
 <li><p><strong>gy_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default=None</em>) – A Matplotlib colour for the y gradient row, as <code class="docutils literal notranslate"><span class="pre">rf_color</span></code>.</p></li>
 <li><p><strong>gz_color</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>...</em><em>]</em><em>, </em><em>default=None</em>) – A Matplotlib colour for the z gradient row, as <code class="docutils literal notranslate"><span class="pre">rf_color</span></code>.</p></li>
 <li><p><strong>rf_plot</strong> (<em>{'abs'</em><em>, </em><em>'real'</em><em>, </em><em>'imag'}</em><em>, </em><em>default='abs'</em>) – Which part of the RF waveform to draw.</p></li>
-<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=None</em>) – 1-based repetition to draw. By default, the one in which an axis
-reaches its largest magnitude.</p></li>
+<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=None</em>) – 1-based repetition to draw solid. By default, the one that
+acquires the most ADC blocks, ties broken by the largest gradient
+excursion on the axes that differ between repetitions.</p></li>
 <li><p><strong>max_underlays</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=16</em>) – At most this many repetitions, evenly spaced, are drawn underneath,
 together with those in which each axis reaches its most negative and
 most positive value; 0 draws none.</p></li>
@@ -566,9 +565,8 @@ empty for a <code class="docutils literal notranslate"><span class="pre">time_ra
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>Repetitions are detected from the block definitions. Choosing them is
-one compiled pass over the block table, and only the repetitions drawn
-are expanded, so the cost does not grow with the length of the scan. A
+<p>Repetitions are those of <a class="reference internal" href="pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a>, or the range declared by
+the <code class="docutils literal notranslate"><span class="pre">PlotTRsize</span></code> and <code class="docutils literal notranslate"><span class="pre">PlotTRstart</span></code> definitions when present; a
 sequence that does not repeat is one repetition, drawn whole.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>

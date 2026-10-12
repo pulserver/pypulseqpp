@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -531,15 +531,17 @@ selection gradient.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rf</strong> (<em>SimpleNamespace</em><em> or </em><em>RfEvent</em>) – Its <code class="docutils literal notranslate"><span class="pre">freq_ppm</span></code> and <code class="docutils literal notranslate"><span class="pre">phase_ppm</span></code> are converted with the default
-system’s gamma and B0, with a warning.</p></li>
+<li><p><strong>rf</strong> (<em>SimpleNamespace</em><em> or </em><em>RfEvent</em>) – The RF event. Its <code class="docutils literal notranslate"><span class="pre">freq_ppm</span></code> and <code class="docutils literal notranslate"><span class="pre">phase_ppm</span></code> are converted with
+the default system’s gamma and B0, with a warning.</p></li>
 <li><p><strong>rephase_factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Free precession after the pulse, as a signed fraction of its
 duration. Defaults to zero when <code class="docutils literal notranslate"><span class="pre">rf.use</span> <span class="pre">==</span> <span class="pre">&quot;refocusing&quot;</span></code> and to
 <code class="docutils literal notranslate"><span class="pre">-(shape_dur</span> <span class="pre">-</span> <span class="pre">center)</span> <span class="pre">/</span> <span class="pre">shape_dur</span></code>, the slice-select rephaser,
 otherwise.</p></li>
-<li><p><strong>prephase_factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – The same, before the pulse.</p></li>
-<li><p><strong>df</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – In Hz: the axis holds <code class="docutils literal notranslate"><span class="pre">round(bandwidth</span> <span class="pre">/</span> <span class="pre">df)</span></code> points, so their
-spacing is about <code class="docutils literal notranslate"><span class="pre">bandwidth_multiplier</span> <span class="pre">*</span> <span class="pre">df</span></code>.</p></li>
+<li><p><strong>prephase_factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Free precession before the pulse, as a signed fraction of its
+duration.</p></li>
+<li><p><strong>df</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Frequency resolution (Hz) of the unwidened axis: the axis holds
+<code class="docutils literal notranslate"><span class="pre">round(bandwidth</span> <span class="pre">/</span> <span class="pre">df)</span></code> points, so their spacing is about
+<code class="docutils literal notranslate"><span class="pre">bandwidth_multiplier</span> <span class="pre">*</span> <span class="pre">df</span></code>.</p></li>
 <li><p><strong>bandwidth_multiplier</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Width of the frequency axis, in bandwidths. The bandwidth is
 <a class="reference internal" href="pypulseqpp.calc_rf_bandwidth.html#pypulseqpp.calc_rf_bandwidth" title="pypulseqpp.calc_rf_bandwidth"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_bandwidth()</span></code></a> at half maximum plus <code class="docutils literal notranslate"><span class="pre">|freq_offset|</span></code>;
 the axis is centred on <code class="docutils literal notranslate"><span class="pre">freq_offset</span></code>.</p></li>

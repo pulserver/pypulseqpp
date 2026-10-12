@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -489,9 +489,14 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">AcousticResponse</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A gradient coil's acoustic transfer function, per physical axis.</span>
 
-<span class="sd">    ``transfer`` is ``(3, bins)`` complex, the sound pressure in Pa per mT/m of</span>
-<span class="sd">    gradient on x, y and z, at the frequencies ``k * frequency_step`` Hz for</span>
-<span class="sd">    ``k = 0 .. bins - 1``.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    transfer : numpy.ndarray</span>
+<span class="sd">        Complex, shape ``(3, bins)``: sound pressure (Pa) per mT/m of gradient</span>
+<span class="sd">        on x, y and z, at the frequencies ``k * frequency_step`` for</span>
+<span class="sd">        ``k = 0 .. bins - 1``.</span>
+<span class="sd">    frequency_step : float</span>
+<span class="sd">        Bin spacing (Hz).</span>
 <span class="sd">    """</span>
 
     <span class="n">transfer</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -513,8 +518,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    path : str | os.PathLike</span>
-<span class="sd">        The HDF5 file to read.</span>
+<span class="sd">    path : str or os.PathLike</span>
+<span class="sd">        HDF5 file to read.</span>
 <span class="sd">    sampling_interval : float</span>
 <span class="sd">        Sampling interval (s) the bins refer to; bin ``k`` lies at</span>
 <span class="sd">        ``k / (N * sampling_interval)`` Hz.</span>
@@ -594,12 +599,12 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    frequency : array_like</span>
-<span class="sd">        Frequencies in Hz.</span>
+<span class="sd">        Frequencies (Hz).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    NDArray[np.float64]</span>
-<span class="sd">        The amplitude gain, the shape of ``frequency``.</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        Amplitude gain, the shape of ``frequency``.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -669,14 +674,15 @@
 <span class="sd">        The gradient coil's acoustic transfer function, on the physical axes;</span>
 <span class="sd">        see :func:`read_acoustic_response`.</span>
 <span class="sd">    rotation : array_like, default=None</span>
-<span class="sd">        3x3 prescription rotation from logical to physical axes, applied after</span>
-<span class="sd">        each block's own rotation; identity (axial) by default.</span>
+<span class="sd">        3x3 prescription rotation from logical to physical axes, composed</span>
+<span class="sd">        after each block's own rotation; identity (axial) when ``None``.</span>
 <span class="sd">    peak_limit : float, default=140.0</span>
-<span class="sd">        Largest peak level allowed, in dB.</span>
+<span class="sd">        Largest peak level allowed (dB re 20 uPa).</span>
 <span class="sd">    average_limit : float, default=99.0</span>
-<span class="sd">        Largest A-weighted average level allowed, in dB(A).</span>
+<span class="sd">        Largest A-weighted average level allowed (dB(A) re 20 uPa).</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        Source of the gyromagnetic ratio; the sequence's own by default.</span>
+<span class="sd">        Source of the gyromagnetic ratio (Hz/T); ``seq.system`` when</span>
+<span class="sd">        ``None``, then the default :class:`~pypulseqpp.Opts`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -699,8 +705,7 @@
 <span class="sd">    -----</span>
 <span class="sd">    The repetition is sampled at the centres of ``n`` equal intervals, ``n``</span>
 <span class="sd">    the smallest transform length with only small prime factors that reaches</span>
-<span class="sd">    the highest frequency ``response`` tabulates. Its</span>
-<span class="sd">    harmonics ``k / duration`` are weighted by ``response``, linearly</span>
+<span class="sd">    the highest frequency ``response`` tabulates. Its harmonics ``k / duration`` are weighted by ``response``, linearly</span>
 <span class="sd">    interpolated between bins and zero above them, and summed over the axes;</span>
 <span class="sd">    the averages are taken over the harmonics (Parseval), the A-weighted one</span>
 <span class="sd">    with :func:`a_weighting`. Levels are referred to 20 uPa.</span>

@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -531,7 +531,7 @@ share both poles; each nonpolar ring has one spoke per shot.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n_views</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Spokes in the base shell, at least three.</p></li>
-<li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Rotated replays of that shell.</p></li>
+<li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Number of rotated replays of the base shell, at least one.</p></li>
 <li><p><strong>scheme</strong> (<em>{'spiral'</em><em>, </em><em>'meridian'}</em><em>, </em><em>default='spiral'</em>) – <code class="docutils literal notranslate"><span class="pre">'spiral'</span></code> winds pole to pole across equal-area rings, so the shell
 alone is already near-uniform. <code class="docutils literal notranslate"><span class="pre">'meridian'</span></code> is a half great circle in
 the x-z plane at equal polar steps, which is simpler and oversamples
@@ -541,13 +541,15 @@ the poles.</p></li>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>directions</strong> (<em>numpy.ndarray</em>) – Unit spoke directions of the base shell, shape <code class="docutils literal notranslate"><span class="pre">(n_views,</span> <span class="pre">3)</span></code>.</p></li>
-<li><p><strong>rotations</strong> (<em>numpy.ndarray</em>) – Rotation matrices, shape <code class="docutils literal notranslate"><span class="pre">(n_shots,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>, each turning the whole
-shell to where that shot samples.</p></li>
+<li><p><strong>rotations</strong> (<em>numpy.ndarray</em>) – Rotation matrices, shape <code class="docutils literal notranslate"><span class="pre">(n_shots,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>: rotations about the z
+axis by <code class="docutils literal notranslate"><span class="pre">2*pi*k/n_shots</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">0..n_shots-1</span></code>. Each maps the whole
+base shell to the directions that shot samples.</p></li>
 </ul>
 </p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a count is out of range or <code class="docutils literal notranslate"><span class="pre">scheme</span></code> is unknown.</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">n_views</span></code> is below 3, <code class="docutils literal notranslate"><span class="pre">n_shots</span></code> is below 1 or <code class="docutils literal notranslate"><span class="pre">scheme</span></code> is
+    unknown.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

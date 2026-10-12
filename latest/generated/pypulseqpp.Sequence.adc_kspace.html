@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -534,14 +534,10 @@ the samples; excitations reset it and refocusing pulses invert it.</p>
 <li><p><strong>trajectory_delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>ArrayLike</em><em>, </em><em>default=0.0</em>) – Per-axis timing correction (s); positive values advance the gradient.</p></li>
 <li><p><strong>gradient_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>ArrayLike</em><em>, </em><em>default=0.0</em>) – A background gradient per axis, in Hz/m.</p></li>
 <li><p><strong>block_range</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Two 1-based block indices; only those blocks are followed.</p></li>
-<li><p><strong>readouts</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Two 0-based readout indices, <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">stop</span></code>: only the
-samples of the readouts from <code class="docutils literal notranslate"><span class="pre">first</span></code> to before <code class="docutils literal notranslate"><span class="pre">stop</span></code>, in the
-order <a class="reference internal" href="pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_echoes()</span></code></a> lists them, each where following the
-whole sequence puts it. k-space is integrated from the last block
-before readout <code class="docutils literal notranslate"><span class="pre">first</span></code> that plays an excitation, or a pulse with
-no use recorded, and does not acquire, so a trajectory delay that
-moves an earlier block’s gradient past that pulse’s centre is not
-seen. Not combined with <code class="docutils literal notranslate"><span class="pre">block_range</span></code>.</p></li>
+<li><p><strong>readouts</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>]</em><em>, </em><em>default=None</em>) – Half-open range <code class="docutils literal notranslate"><span class="pre">(first,</span> <span class="pre">stop)</span></code> of 0-based readout indices, in
+the order of <a class="reference internal" href="pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_echoes()</span></code></a>. Only those readouts’ samples are
+returned, at the positions the whole sequence gives them. Not with
+<code class="docutils literal notranslate"><span class="pre">block_range</span></code>; see Notes.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -555,6 +551,12 @@ seen. Not combined with <code class="docutils literal notranslate"><span class="
     is not two indices <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">first</span> <span class="pre">&lt;=</span> <span class="pre">stop</span> <span class="pre">&lt;=</span></code> the number of readouts.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">readouts</span></code>, k-space is integrated from the last block before
+readout <code class="docutils literal notranslate"><span class="pre">first</span></code> that plays an excitation (or a pulse with no use
+recorded) and does not acquire. A trajectory delay that moves an
+earlier block’s gradient past that pulse’s centre is therefore not
+seen.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -470,9 +470,15 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">ForbiddenBand</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A forbidden gradient band, a frequency range on one physical axis.</span>
 
-<span class="sd">    ``axis`` is ``"x"``, ``"y"``, ``"z"`` or None for every axis; ``f_min`` and</span>
-<span class="sd">    ``f_max`` are inclusive edges in Hz; ``tolerance`` is the largest amplitude</span>
-<span class="sd">    allowed inside the band, in mT/m, and 0 where the table states none.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    axis : str or None</span>
+<span class="sd">        ``'x'``, ``'y'``, ``'z'``, or ``None`` for every axis.</span>
+<span class="sd">    f_min, f_max : float</span>
+<span class="sd">        Inclusive band edges (Hz).</span>
+<span class="sd">    tolerance : float</span>
+<span class="sd">        Largest amplitude allowed inside the band (mT/m); 0 where the table</span>
+<span class="sd">        states none.</span>
 <span class="sd">    """</span>
 
     <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
@@ -498,8 +504,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    path : str | os.PathLike</span>
-<span class="sd">        The ``.asc`` file to read.</span>
+<span class="sd">    path : str or os.PathLike</span>
+<span class="sd">        Siemens ``.asc`` hardware description.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -598,15 +604,18 @@
 <span class="sd">        Which window, counted from zero. A report names the worst window of</span>
 <span class="sd">        each band as ``window``.</span>
 <span class="sd">    window_width : float, default=0.04</span>
-<span class="sd">        Window length (s). Give the width the report was made with.</span>
+<span class="sd">        Window length (s). Use the width of the report the window index</span>
+<span class="sd">        refers to.</span>
 <span class="sd">    stride : float, default=None</span>
 <span class="sd">        Step between window starts (s); half the width by default.</span>
 <span class="sd">    frequency_oversampling : int, default=3</span>
-<span class="sd">        Transform length as a multiple of the window's sample count.</span>
+<span class="sd">        Zero-padded transform length, in window lengths.</span>
 <span class="sd">    rotation : array_like, default=None</span>
-<span class="sd">        3x3 prescription rotation from logical to physical axes.</span>
+<span class="sd">        3x3 prescription rotation from logical to physical axes, composed</span>
+<span class="sd">        after each block's own rotation; identity (axial) when ``None``.</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        Source of the gyromagnetic ratio; the sequence's own by default.</span>
+<span class="sd">        Source of the gyromagnetic ratio (Hz/T); ``seq.system`` when</span>
+<span class="sd">        ``None``, then the default :class:`~pypulseqpp.Opts`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -618,8 +627,9 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a width, stride or oversampling is out of range, or the sequence</span>
-<span class="sd">        has no window of that index.</span>
+<span class="sd">        If ``window_width`` or ``stride`` is not positive,</span>
+<span class="sd">        ``frequency_oversampling`` is below 1, ``window`` is negative, or the</span>
+<span class="sd">        sequence has no window of that index.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">window_width</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"window_width must be positive"</span><span class="p">)</span>
@@ -680,16 +690,16 @@
 <span class="sd">    seq : Sequence</span>
 <span class="sd">        Sequence to check.</span>
 <span class="sd">    bands : iterable of ForbiddenBand, or path</span>
-<span class="sd">        Bands as ``(axis, f_min, f_max, tolerance)``, or a table for</span>
-<span class="sd">        :func:`read_forbidden_bands`.</span>
+<span class="sd">        Bands as ``(axis, f_min, f_max, tolerance)`` tuples, or the path of a</span>
+<span class="sd">        ``.asc`` file read by :func:`read_forbidden_bands`.</span>
 <span class="sd">    window_width : float, default=0.04</span>
-<span class="sd">        Window length in seconds.</span>
+<span class="sd">        Window length (s).</span>
 <span class="sd">    stride : float, default=None</span>
-<span class="sd">        Step between window starts in seconds; ``window_width / 2`` by default.</span>
+<span class="sd">        Step between window starts (s); ``window_width / 2`` when ``None``.</span>
 <span class="sd">    frequency_oversampling : int, default=3</span>
 <span class="sd">        Zero-padded transform length, in window lengths.</span>
 <span class="sd">    min_threshold : float, default=10.0</span>
-<span class="sd">        Threshold in mT/m for a band whose tolerance is 0.</span>
+<span class="sd">        Threshold (mT/m) for a band whose tolerance is 0.</span>
 <span class="sd">    rotation : array_like, default=None</span>
 <span class="sd">        3x3 prescription rotation from logical to physical axes, applied after</span>
 <span class="sd">        each block's own rotation; identity (axial) by default.</span>
@@ -715,8 +725,9 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a band's frequency range is empty or negative, or a rotation is</span>
-<span class="sd">        not a 3x3 matrix.</span>
+<span class="sd">        If ``min_threshold``, ``window_width`` or ``stride`` is not positive,</span>
+<span class="sd">        ``frequency_oversampling`` is below 1, a band's frequency range is</span>
+<span class="sd">        empty or negative, or ``rotation`` is not a 3x3 orthonormal matrix.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>

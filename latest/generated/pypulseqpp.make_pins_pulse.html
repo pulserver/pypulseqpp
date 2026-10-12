@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -543,8 +543,8 @@ centre otherwise.</p>
 <li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product of the envelope.</p></li>
 <li><p><strong>pulse_type</strong> (<em>{'st'</em><em>, </em><em>'ex'</em><em>, </em><em>'se'</em><em>, </em><em>'inv'</em><em>, </em><em>'sat'}</em><em>, </em><em>default='st'</em>) – Small-tip, excitation, spin-echo, inversion or saturation envelope.</p></li>
 <li><p><strong>filter_type</strong> (<em>{'ls'</em><em>, </em><em>'pm'</em><em>, </em><em>'min'</em><em>, </em><em>'max'</em><em>, </em><em>'ms'}</em><em>, </em><em>default='ls'</em>) – FIR design method of the envelope.</p></li>
-<li><p><strong>passband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Ripple allowed in the passband.</p></li>
-<li><p><strong>stopband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Ripple allowed in the stopband.</p></li>
+<li><p><strong>passband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Fractional ripple allowed in the passband and the stopband.</p></li>
+<li><p><strong>stopband_ripple</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Fractional ripple allowed in the passband and the stopband.</p></li>
 <li><p><strong>max_b1</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.8e-05</em>) – Peak B1, in T; each subpulse is the shortest, on the gradient raster,
 that stays within it.</p></li>
 <li><p><strong>delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Delay before the pulse (s).</p></li>
@@ -555,15 +555,17 @@ system’s.</p></li>
 <li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Slew limit for the blips and the rephaser, in place of the system’s.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a><em>, </em><em>default=None</em>) – System limits.</p></li>
 <li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='excitation'</em>) – Pulseq <code class="docutils literal notranslate"><span class="pre">use</span></code> tag.</p></li>
-<li><p><strong>freq_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Field-strength-relative frequency offset.</p></li>
-<li><p><strong>phase_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Field-strength-relative phase offset.</p></li>
+<li><p><strong>freq_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Frequency and phase offsets in ppm of the Larmor frequency at the
+system’s <code class="docutils literal notranslate"><span class="pre">B0</span></code>, as in PyPulseq.</p></li>
+<li><p><strong>phase_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Frequency and phase offsets in ppm of the Larmor frequency at the
+system’s <code class="docutils literal notranslate"><span class="pre">B0</span></code>, as in PyPulseq.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>rf</strong> (<em>SimpleNamespace</em>) – The subpulse train.</p></li>
-<li><p><strong>gz</strong> (<em>SimpleNamespace</em>) – The blip train, an extended trapezoid with the same delay as <code class="docutils literal notranslate"><span class="pre">rf</span></code>.</p></li>
-<li><p><strong>gzr</strong> (<em>SimpleNamespace</em>) – Rephaser of minus the blip area after the RF centre.</p></li>
+<li><p><strong>rf</strong> (<em>RfEvent</em>) – The subpulse train.</p></li>
+<li><p><strong>gz</strong> (<em>GradEvent</em>) – The blip train, an extended trapezoid with the same delay as <code class="docutils literal notranslate"><span class="pre">rf</span></code>.</p></li>
+<li><p><strong>gzr</strong> (<em>TrapEvent</em>) – Rephaser of minus the blip area accrued after the RF centre.</p></li>
 </ul>
 </p>
 </dd>

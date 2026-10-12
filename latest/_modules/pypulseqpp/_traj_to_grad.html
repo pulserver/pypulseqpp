@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -486,18 +486,22 @@
 <span class="sd">    time_optimal : bool, default=True</span>
 <span class="sd">        Re-parameterise the path within the limits rather than differentiate it.</span>
 <span class="sd">    system : pypulseqpp.Opts, default=None</span>
-<span class="sd">        System limits; supplies ``max_grad``, ``max_slew`` and the raster.</span>
+<span class="sd">        System limits; supplies ``max_grad``, ``max_slew`` and, when</span>
+<span class="sd">        ``raster_time`` is omitted, the raster. Not limiting when</span>
+<span class="sd">        ``time_optimal`` is false.</span>
 <span class="sd">    oversampling : int, default=8</span>
-<span class="sd">        Path-resampling factor the solver works at.</span>
+<span class="sd">        Path-resampling factor the solver works at; read only when</span>
+<span class="sd">        ``time_optimal``.</span>
 <span class="sd">    start_at_zero, end_at_zero : bool, default=True</span>
-<span class="sd">        Ramp the waveform up from and back down to zero amplitude.</span>
+<span class="sd">        Ramp the waveform up from and back down to zero amplitude; read only</span>
+<span class="sd">        when ``time_optimal``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    g : numpy.ndarray</span>
-<span class="sd">        Gradient waveform (Hz/m), same axis convention as ``k``.</span>
+<span class="sd">        Gradient waveform (Hz/m), time last like ``k``.</span>
 <span class="sd">    slew : numpy.ndarray</span>
-<span class="sd">        Slew rate (Hz/m/s), one value per gradient sample.</span>
+<span class="sd">        Slew rate (Hz/m/s), one value per gradient sample, shaped like ``g``.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>

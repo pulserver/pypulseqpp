@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -66,7 +66,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Code of conduct" href="code-of-conduct.html" />
-    <link rel="prev" title="Pre-commit" href="pre-commit.html" />
+    <link rel="prev" title="Pre-commit hooks" href="pre-commit.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="latest" />
@@ -197,7 +197,7 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
@@ -207,7 +207,7 @@
 <li class="toctree-l2"><a class="reference internal" href="style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -513,10 +513,10 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="pull-requests">
 <h1>Pull requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h1>
-<p>A pull request states what changed, why it changed, any linked issue or
-discussion, the validation commands and documentation impact. New behaviour
-requires a regression test where practical. The repository template supplies
-the concise structure used during review.</p>
+<p>A pull request follows the repository template: <em>What changed</em>, <em>Why</em>, with
+any linked issue or discussion, <em>Validation</em>, with the exact commands run and
+their results, and <em>Documentation impact</em>. New behaviour requires a regression
+test where practical. Pull requests target <code class="docutils literal notranslate"><span class="pre">main</span></code>.</p>
 </section>
 
 
@@ -536,7 +536,7 @@ the concise structure used during review.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Pre-commit</p>
+        <p class="prev-next-title">Pre-commit hooks</p>
       </div>
     </a>
     <a class="right-next"

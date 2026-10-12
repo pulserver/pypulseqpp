@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -525,17 +525,17 @@
 <dt class="sig sig-object py" id="pypulseqpp.safety.read_safe_model">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.safety.</span></span><span class="sig-name descname"><span class="pre">read_safe_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/safety/_pns.html#read_safe_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.safety.read_safe_model" title="Link to this definition">#</a></dt>
 <dd><p>Read a SAFE nerve model from a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware description.</p>
-<p>Reading is upstream PyPulseq’s <code class="docutils literal notranslate"><span class="pre">readasc</span></code> and <code class="docutils literal notranslate"><span class="pre">asc_to_hw</span></code>; the result
+<p>Reading is upstream PyPulseq’s <code class="docutils literal notranslate"><span class="pre">readasc</span></code> and <code class="docutils literal notranslate"><span class="pre">asc_to_hw</span></code>. The result
 is shaped like <code class="docutils literal notranslate"><span class="pre">pypulseq.utils.safe_pns_prediction.safe_example_hw()</span></code>:
 <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code>, each with <code class="docutils literal notranslate"><span class="pre">a1</span></code>-<code class="docutils literal notranslate"><span class="pre">a3</span></code>, <code class="docutils literal notranslate"><span class="pre">tau1</span></code>-<code class="docutils literal notranslate"><span class="pre">tau3</span></code> (ms),
 <code class="docutils literal notranslate"><span class="pre">stim_limit</span></code> (T/m/s) and <code class="docutils literal notranslate"><span class="pre">g_scale</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><em>os.PathLike</em></a>) – The <code class="docutils literal notranslate"><span class="pre">.asc</span></code> file to read.</p>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><em>os.PathLike</em></a>) – Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> hardware description.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The model, shaped as described above, for
-<a class="reference internal" href="pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a> to take as its <code class="docutils literal notranslate"><span class="pre">model</span></code>.</p>
+<dd class="field-even"><p>The SAFE model, accepted as <code class="docutils literal notranslate"><span class="pre">model</span></code> by
+<a class="reference internal" href="pypulseqpp.safety.check_pns.html#pypulseqpp.safety.check_pns" title="pypulseqpp.safety.check_pns"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_pns()</span></code></a>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/types.html#types.SimpleNamespace" title="(in Python v3.15)">types.SimpleNamespace</a></p>

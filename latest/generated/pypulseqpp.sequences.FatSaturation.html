@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,36 +526,34 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">FatSaturation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/fatsat.html#FatSaturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.FatSaturation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.</p>
-<p>The pulse plays no gradient, so a field-of-view offset or rotation applied
-afterwards leaves it as it is: it saturates fat wherever the prescription
-puts the image.</p>
+<p>The pulse plays with no gradient, so a field-of-view offset or rotation
+applied afterwards does not change it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>freq_offset_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=FAT_SHIFT_PPM</em>) – Fat offset from water (ppm). Carried on the pulse as a ppm offset
-rather than as hertz, so the interpreter resolves it against the
-field the scan actually runs at.</p></li>
+<li><p><strong>freq_offset_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=FAT_SHIFT_PPM</em>) – Fat offset from water (ppm), carried on the pulse as a ppm offset,
+which an interpreter resolves against the field of the scan.</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=110.0</em>) – Saturation flip angle (degrees).</p></li>
-<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250.0</em>) – Spectral passband (Hz). With <code class="docutils literal notranslate"><span class="pre">time_bw_product</span></code> it fixes the pulse
-duration, which is <code class="docutils literal notranslate"><span class="pre">time_bw_product</span> <span class="pre">/</span> <span class="pre">bandwidth_hz</span></code>.</p></li>
+<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250.0</em>) – Spectral passband (Hz); the pulse duration is
+<code class="docutils literal notranslate"><span class="pre">time_bw_product</span> <span class="pre">/</span> <span class="pre">bandwidth_hz</span></code>.</p></li>
 <li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Time-bandwidth product.</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each spoiler axis winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing of each spoiler across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The saturation pulse.</p></li>
-<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Closing spoiler on all three axes.</p></li>
+<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Spoiler gradient of each axis.</p></li>
 <li><p><strong>freq_offset_ppm</strong> (<em>float</em>) – The fat offset the pulse carries (ppm).</p></li>
-<li><p><strong>freq_offset_hz</strong> (<em>float</em>) – What that comes to at <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> (Hz), for reference; the pulse
-itself is field-independent.</p></li>
+<li><p><strong>freq_offset_hz</strong> (<em>float</em>) – The offset at <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> (Hz); informational, the pulse carries
+<code class="docutils literal notranslate"><span class="pre">freq_offset_ppm</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a bandwidth, time-bandwidth product or voxel size is not positive,
-    or the spoiler was asked for zero cycles.</p>
+    or <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is not positive.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -570,7 +568,7 @@ itself is field-independent.</p></li>
 <span class="go">['rf']</span>
 </pre></div>
 </div>
-<p>The pulse with its spoiler, and the longitudinal magnetization left
+<p>The pulse with its spoiler, and the longitudinal magnetisation left
 across the spectrum. The band sits at the fat resonance for the field
 the module was designed at, and water at zero offset is untouched:</p>
 <figure class="align-default" id="id1">
@@ -597,7 +595,7 @@ the module was designed at, and water at zero offset is untouched:</p>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.FatSaturation.register.html#pypulseqpp.sequences.FatSaturation.register" title="pypulseqpp.sequences.FatSaturation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.FatSaturation.sim_rf.html#pypulseqpp.sequences.FatSaturation.sim_rf" title="pypulseqpp.sequences.FatSaturation.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -609,10 +607,10 @@ the module was designed at, and water at zero offset is untouched:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.FatSaturation.blocks.html#pypulseqpp.sequences.FatSaturation.blocks" title="pypulseqpp.sequences.FatSaturation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.FatSaturation.duration.html#pypulseqpp.sequences.FatSaturation.duration" title="pypulseqpp.sequences.FatSaturation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.FatSaturation.seq.html#pypulseqpp.sequences.FatSaturation.seq" title="pypulseqpp.sequences.FatSaturation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

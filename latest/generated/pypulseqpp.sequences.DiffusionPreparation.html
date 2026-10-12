@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,39 +526,42 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">DiffusionPreparation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/diffusion.html#DiffusionPreparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.DiffusionPreparation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Non-selective diffusion preparation with hard tip-down and storage pulses.</p>
-<p>A matched gradient pair surrounds one refocusing pulse. Design one axis
-at b_value, then scale the pair for lower b-values and rotate it per
-direction. The closing spoiler is separate from the diffusion pair.</p>
+<p>A pair of identical diffusion lobes surrounds one refocusing pulse. The
+pair is designed on one axis at <code class="docutils literal notranslate"><span class="pre">b_value</span></code>; scale it for lower b-values
+(<a class="reference internal" href="pypulseqpp.sequences.DiffusionPreparation.scale_for.html#pypulseqpp.sequences.DiffusionPreparation.scale_for" title="pypulseqpp.sequences.DiffusionPreparation.scale_for"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scale_for()</span></code></a>) and rotate it per direction. The closing spoiler is
+separate from the pair.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>b_value</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Design b-value (s/mm^2). This is the largest the module can produce;
-everything else is reached by scaling down.</p></li>
+<li><p><strong>b_value</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Design b-value (s/mm^2), the largest the module plays; lower values are
+reached by scaling the lobes.</p></li>
 <li><p><strong>gradient_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.02</em>) – Duration of each diffusion lobe (s).</p></li>
-<li><p><strong>gradient_separation_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.03</em>) – Onset-to-onset separation of the two lobes (s). Must exceed
-<code class="docutils literal notranslate"><span class="pre">gradient_duration_s</span></code> by enough to hold the refocusing pulse.</p></li>
-<li><p><strong>pulse_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0005</em>) – Duration of each 90 (s).</p></li>
-<li><p><strong>refocusing_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Duration of the 180 (s).</p></li>
-<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Axis the canonical pair is designed on.</p></li>
-<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing the closing spoiler winds across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.</p></li>
+<li><p><strong>gradient_separation_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.03</em>) – Onset-to-onset separation of the two lobes (s); the gap between them
+holds the refocusing pulse.</p></li>
+<li><p><strong>pulse_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0005</em>) – Duration of each 90 degree pulse (s).</p></li>
+<li><p><strong>refocusing_duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Duration of the 180 degree pulse (s).</p></li>
+<li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Gradient channel the pair is designed on.</p></li>
+<li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing of the closing spoiler across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
+Zero omits the spoiler.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
-<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Counters emitted on the first pulse’s block.</p></li>
+<li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels set to 0 on the first pulse’s block, to be changed per shot by
+the caller.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The 90 that tips down.</p></li>
-<li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The 180 between the lobes.</p></li>
-<li><p><strong>rf_store</strong> (<em>RfEvent</em>) – The 90 that stores what is left.</p></li>
-<li><p><strong>g_diff</strong> (<em>TrapEvent</em>) – The diffusion lobe, published once because both sides play the same
-event. Scale it per b-value, rotate it per direction.</p></li>
-<li><p><strong>wait_first, wait_last</strong> (<em>DelayEvent</em>) – The gaps before and after the refocusing pulse, each absent when the
-timing leaves none.</p></li>
-<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – The closing spoiler.</p></li>
+<li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The 90 degree tip-down pulse.</p></li>
+<li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The 180 degree refocusing pulse between the lobes.</p></li>
+<li><p><strong>rf_store</strong> (<em>RfEvent</em>) – The 90 degree storage pulse.</p></li>
+<li><p><strong>g_diff</strong> (<em>TrapEvent</em>) – The diffusion lobe at the design b-value, played identically on both
+sides of the refocusing pulse.</p></li>
+<li><p><strong>wait_first, wait_last</strong> (<em>DelayEvent</em>) – The gaps before and after the refocusing pulse; each is absent when
+zero.</p></li>
+<li><p><strong>gx_spoil, gy_spoil, gz_spoil</strong> (<em>GradEvent</em>) – Spoiler gradient of each axis; absent when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is zero.</p></li>
 <li><p><strong>prep_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
-<li><p><strong>b_value</strong> (<em>float</em>) – The design b-value achieved (s/mm^2).</p></li>
-<li><p><strong>max_b_value</strong> (<em>float</em>) – What this timing could reach at full gradient amplitude (s/mm^2).</p></li>
+<li><p><strong>b_value</strong> (<em>float</em>) – Design b-value of the lobes as played (s/mm^2).</p></li>
+<li><p><strong>max_b_value</strong> (<em>float</em>) – b-value this timing reaches at <code class="docutils literal notranslate"><span class="pre">system.max_grad</span></code> (s/mm^2).</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
@@ -598,7 +601,7 @@ rather than cancelling:</p>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.DiffusionPreparation.register.html#pypulseqpp.sequences.DiffusionPreparation.register" title="pypulseqpp.sequences.DiffusionPreparation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.DiffusionPreparation.scale_for.html#pypulseqpp.sequences.DiffusionPreparation.scale_for" title="pypulseqpp.sequences.DiffusionPreparation.scale_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_for</span></code></a></p></td>
 <td><p>Return the gradient-amplitude factor for a requested b-value.</p></td>
@@ -613,10 +616,10 @@ rather than cancelling:</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.DiffusionPreparation.blocks.html#pypulseqpp.sequences.DiffusionPreparation.blocks" title="pypulseqpp.sequences.DiffusionPreparation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.DiffusionPreparation.duration.html#pypulseqpp.sequences.DiffusionPreparation.duration" title="pypulseqpp.sequences.DiffusionPreparation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.DiffusionPreparation.seq.html#pypulseqpp.sequences.DiffusionPreparation.seq" title="pypulseqpp.sequences.DiffusionPreparation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

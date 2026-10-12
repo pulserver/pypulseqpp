@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -503,9 +503,14 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Waveforms</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Gradient corner waveforms and an optional complex RF envelope.</span>
 
-<span class="sd">    Each channel has shape ``(2, n)``: time in seconds, then amplitude.</span>
-<span class="sd">    Gradient amplitudes are in Hz/m; RF amplitudes are in Hz.</span>
-<span class="sd">    ``rf`` is None unless RF expansion was requested.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gx, gy, gz : numpy.ndarray</span>
+<span class="sd">        ``(2, n)``: time (s), then gradient amplitude (Hz/m), after each</span>
+<span class="sd">        block's rotation.</span>
+<span class="sd">    rf : numpy.ndarray or None</span>
+<span class="sd">        ``(2, n)``: time (s), then complex RF amplitude (Hz); None unless RF</span>
+<span class="sd">        expansion was requested.</span>
 <span class="sd">    """</span>
 
     <span class="n">gx</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -530,11 +535,22 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">RfTimes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""RF centres in play order, including all Pulseq use tags.</span>
+<span class="w">    </span><span class="sd">"""RF pulse centre times in play order, for all Pulseq RF uses.</span>
 
-<span class="sd">    ``t`` is in seconds; ``block`` contains 1-based indices. Frequency</span>
-<span class="sd">    offsets are in Hz and phase offsets in radians, including ppm terms.</span>
-<span class="sd">    Phase includes ``2*pi*frequency*centre`` relative to the RF event.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : numpy.ndarray</span>
+<span class="sd">        Centre time of each pulse (s).</span>
+<span class="sd">    freq_offset : numpy.ndarray</span>
+<span class="sd">        Frequency offset (Hz), ppm offset included.</span>
+<span class="sd">    phase_offset : numpy.ndarray</span>
+<span class="sd">        Phase offset (rad), ppm offset included, plus</span>
+<span class="sd">        ``2*pi*freq_offset*centre`` where ``centre`` is the pulse centre</span>
+<span class="sd">        relative to the start of the RF event.</span>
+<span class="sd">    use : tuple[str, ...]</span>
+<span class="sd">        RF use of each pulse, one of `RF_USES`.</span>
+<span class="sd">    block : numpy.ndarray</span>
+<span class="sd">        1-based block of each pulse.</span>
 <span class="sd">    """</span>
 
     <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
@@ -589,16 +605,26 @@
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdcTimes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""ADC sampling times and offsets at window and sample resolution.</span>
+<span class="w">    </span><span class="sd">"""ADC sampling times and offsets, per window and per sample.</span>
 
-<span class="sd">    Per window, ``freq_offset`` (Hz) and ``phase_offset`` (rad) are stored</span>
-<span class="sd">    offsets without ppm corrections; ``block`` is 1-based and</span>
-<span class="sd">    ``num_samples`` gives the window length.</span>
-
-<span class="sd">    Per sample, ``t`` is in seconds, ``phase_modulation`` and</span>
-<span class="sd">    ``sample_phase`` are in radians, and ``sample_frequency`` is in Hz.</span>
-<span class="sd">    Sample phase includes ppm terms, modulation and accumulated</span>
-<span class="sd">    ``2*pi*frequency*time`` within the ADC event.</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t : numpy.ndarray</span>
+<span class="sd">        Per sample: time (s) from the start of the scan.</span>
+<span class="sd">    freq_offset, phase_offset : numpy.ndarray</span>
+<span class="sd">        Per window: the stored frequency offset (Hz) and phase offset (rad),</span>
+<span class="sd">        without ppm terms.</span>
+<span class="sd">    phase_modulation : numpy.ndarray</span>
+<span class="sd">        Per sample: phase modulation (rad).</span>
+<span class="sd">    sample_phase : numpy.ndarray</span>
+<span class="sd">        Per sample: phase (rad), including ppm terms, phase modulation and</span>
+<span class="sd">        ``2*pi*frequency*time`` accumulated within the ADC event.</span>
+<span class="sd">    sample_frequency : numpy.ndarray</span>
+<span class="sd">        Per sample: frequency (Hz).</span>
+<span class="sd">    block : numpy.ndarray</span>
+<span class="sd">        Per window: 1-based block.</span>
+<span class="sd">    num_samples : numpy.ndarray</span>
+<span class="sd">        Per window: number of samples.</span>
 <span class="sd">    """</span>
 
     <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>

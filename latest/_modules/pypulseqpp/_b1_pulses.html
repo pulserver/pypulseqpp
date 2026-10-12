@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -573,18 +573,20 @@
 <span class="sd">    of the RF, so the selection is along B1 rather than along space (Grissom,</span>
 <span class="sd">    Cao and Does, J Magn Reson 242:189, 2014). No gradient is played.</span>
 
-<span class="sd">    Parameters not listed below are as in :func:`make_slr_pulse`.</span>
+<span class="sd">    ``flip_angle``, ``time_bw_product``, the ripples, ``dwell``, ``delay``,</span>
+<span class="sd">    ``system`` and ``use`` are as in :func:`make_slr_pulse`, except the</span>
+<span class="sd">    ``dwell`` default of 0.0, which is the system's ``rf_raster_time``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    amplitude : float</span>
-<span class="sd">        RF amplitude the pulse plays at, in T: where B1 is nominal.</span>
+<span class="sd">        RF amplitude the pulse plays at (T): the nominal B1.</span>
 <span class="sd">    passband_center : float, default=1.0</span>
-<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
-<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">        Centre of the selected B1 band, relative to ``amplitude``.</span>
 <span class="sd">    passband_width : float, default=0.2</span>
-<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
-<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">        Width of the selected B1 band, relative to ``amplitude``. The pulse</span>
+<span class="sd">        lasts about ``2 * time_bw_product`` over this width in Hz, that is</span>
+<span class="sd">        over ``passband_width * amplitude * gamma``.</span>
 <span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;</span>
 <span class="sd">        the flip is ``flip_angle``.</span>
@@ -648,18 +650,20 @@
 <span class="sd">    into ``num_subslices`` sub-bands of B1, counted from the lowest, and</span>
 <span class="sd">    ``subslice`` is excited at ``subslice_phase`` relative to the rest.</span>
 
-<span class="sd">    Parameters not listed below are as in :func:`make_slr_pulse`.</span>
+<span class="sd">    ``flip_angle``, ``time_bw_product``, the ripples, ``dwell``, ``delay``,</span>
+<span class="sd">    ``system`` and ``use`` are as in :func:`make_slr_pulse`, except the</span>
+<span class="sd">    ``dwell`` default of 0.0, which is the system's ``rf_raster_time``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    amplitude : float</span>
-<span class="sd">        RF amplitude the pulse plays at, in T: where B1 is nominal.</span>
+<span class="sd">        RF amplitude the pulse plays at (T): the nominal B1.</span>
 <span class="sd">    passband_center : float, default=1.0</span>
-<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
-<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">        Centre of the selected B1 band, relative to ``amplitude``.</span>
 <span class="sd">    passband_width : float, default=0.5</span>
-<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
-<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">        Width of the selected B1 band, relative to ``amplitude``. The pulse</span>
+<span class="sd">        lasts about ``2 * time_bw_product`` over this width in Hz, that is</span>
+<span class="sd">        over ``passband_width * amplitude * gamma``.</span>
 <span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;</span>
 <span class="sd">        the flip is ``flip_angle``.</span>
@@ -734,15 +738,18 @@
 <span class="sd">    ``scipy.linalg.hadamard(order)``, sub-bands are counted from the lowest</span>
 <span class="sd">    B1, and row 0 is the plain band.</span>
 
-<span class="sd">    Parameters not listed below are as in :func:`make_slr_pulse`.</span>
+<span class="sd">    ``flip_angle``, ``time_bw_product``, the ripples, ``dwell``, ``delay``,</span>
+<span class="sd">    ``system`` and ``use`` are as in :func:`make_slr_pulse`, except the</span>
+<span class="sd">    ``dwell`` default of 0.0, which is the system's ``rf_raster_time``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    amplitude : float</span>
-<span class="sd">        RF amplitude the pulse plays at, in T: where B1 is nominal.</span>
+<span class="sd">        RF amplitude the pulse plays at (T): the nominal B1.</span>
 <span class="sd">    passband_center, passband_width : float, default=1.0</span>
-<span class="sd">        The band of B1 selected, relative to ``amplitude``. The pulse lasts</span>
-<span class="sd">        about twice ``time_bw_product`` over the width in Hz.</span>
+<span class="sd">        Centre and width of the selected B1 band, relative to ``amplitude``.</span>
+<span class="sd">        The pulse lasts about ``2 * time_bw_product`` over the width in Hz,</span>
+<span class="sd">        that is over ``passband_width * amplitude * gamma``.</span>
 <span class="sd">    pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'</span>
 <span class="sd">        Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;</span>
 <span class="sd">        the flip is ``flip_angle``.</span>
@@ -817,7 +824,7 @@
 <span class="sd">    amplitude : float</span>
 <span class="sd">        RF amplitude where B1 is nominal, in T.</span>
 <span class="sd">    duration : float</span>
-<span class="sd">        In s.</span>
+<span class="sd">        Pulse duration, in s.</span>
 <span class="sd">    k : float, default=42.0</span>
 <span class="sd">        Sweep shape: ``gamma B1 t / k``, with ``gamma B1`` in rad/s, must stay</span>
 <span class="sd">        below one over half the pulse; a larger ``k`` keeps the sweep further</span>

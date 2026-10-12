@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -526,8 +526,8 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">MultibandExcitation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/excitation/multiband.html#MultibandExcitation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.MultibandExcitation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Non-spatially-selective RF excitation with off-resonance sidebands.</p>
-<p>Sideband weights are specified as power relative to the central band,
-not amplitude. A target B1 RMS and TR can instead determine the weights.</p>
+<p>The sideband weights are given as power relative to the on-resonance band,
+or solved from a target RMS B1 over a repetition time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -537,13 +537,13 @@ not amplitude. A target B1 RMS and TR can instead determine the weights.</p>
 <li><p><strong>band_offset_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Sideband offset from the on-resonance band (Hz).</p></li>
 <li><p><strong>n_bands</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=3</em>) – Bands counting the on-resonance one: two for a single sideband, three
 for a symmetric pair.</p></li>
-<li><p><strong>sideband_power</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Power of <em>each</em> sideband relative to the on-resonance band. Ignored
-when <code class="docutils literal notranslate"><span class="pre">b1rms_ut</span></code> is given.</p></li>
+<li><p><strong>sideband_power</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Power of each sideband relative to the on-resonance band. Ignored when
+<code class="docutils literal notranslate"><span class="pre">b1rms_ut</span></code> is given.</p></li>
 <li><p><strong>b1rms_ut</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Target root-mean-square B1 over the repetition (uT), from which the
 sideband power is solved. Needs <code class="docutils literal notranslate"><span class="pre">tr</span></code>.</p></li>
-<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – The repetition the RMS is taken over (s).</p></li>
-<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product of the underlying envelope.</p></li>
-<li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='saturation'</em>) – Pulseq RF-use tag, used by trajectory integration.</p></li>
+<li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Repetition time the RMS is taken over (s).</p></li>
+<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product of the Gaussian envelope.</p></li>
+<li><p><strong>use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='saturation'</em>) – Pulseq RF use tag.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -551,9 +551,10 @@ sideband power is solved. Needs <code class="docutils literal notranslate"><span
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The modulated pulse.</p></li>
 <li><p><strong>band_offsets_hz</strong> (<em>numpy.ndarray</em>) – Band frequency offsets (Hz), including the on-resonance band.</p></li>
 <li><p><strong>band_power_fraction</strong> (<em>numpy.ndarray</em>) – Share of the total <code class="docutils literal notranslate"><span class="pre">|B1|^2</span></code> each band carries.</p></li>
-<li><p><strong>sideband_power</strong> (<em>float, default=1.0</em>) – Power of each sideband relative to the on-resonance band, whether it
-was given or solved.</p></li>
-<li><p><strong>b1rms_ut</strong> (<em>float, default=None</em>) – Root-mean-square B1 achieved over <code class="docutils literal notranslate"><span class="pre">tr</span></code>, when one was given.</p></li>
+<li><p><strong>sideband_power</strong> (<em>float</em>) – Power of each sideband relative to the on-resonance band, given or
+solved from <code class="docutils literal notranslate"><span class="pre">b1rms_ut</span></code>.</p></li>
+<li><p><strong>b1rms_ut</strong> (<em>float</em>) – Root-mean-square B1 (uT) of the pulse over <code class="docutils literal notranslate"><span class="pre">tr</span></code>; set only when
+<code class="docutils literal notranslate"><span class="pre">tr</span></code> was given.</p></li>
 <li><p><strong>peak_ut</strong> (<em>float</em>) – Peak B1 (uT), the quantity limited by the transmit chain.</p></li>
 </ul>
 </dd>
@@ -613,7 +614,7 @@ was given or solved.</p></li>
 <td><p>Publish events from the caller's locals and register keyword aliases.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.MultibandExcitation.register.html#pypulseqpp.sequences.MultibandExcitation.register" title="pypulseqpp.sequences.MultibandExcitation.register"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register</span></code></a></p></td>
-<td><p>Publish named events without requiring prior block registration.</p></td>
+<td><p>Publish named events, whether or not they were added to a block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.MultibandExcitation.sim_rf.html#pypulseqpp.sequences.MultibandExcitation.sim_rf" title="pypulseqpp.sequences.MultibandExcitation.sim_rf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sim_rf</span></code></a></p></td>
 <td><p>Simulate this module's pulse across off-resonance.</p></td>
@@ -625,10 +626,10 @@ was given or solved.</p></li>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.MultibandExcitation.blocks.html#pypulseqpp.sequences.MultibandExcitation.blocks" title="pypulseqpp.sequences.MultibandExcitation.blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">blocks</span></code></a></p></td>
-<td><p>Return block tuples in play order, retaining the original event objects.</p></td>
+<td><p>Block tuples in play order, holding the original event objects.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pypulseqpp.sequences.MultibandExcitation.duration.html#pypulseqpp.sequences.MultibandExcitation.duration" title="pypulseqpp.sequences.MultibandExcitation.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Duration of the module in seconds.</p></td>
+<td><p>Duration of the module (s).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="pypulseqpp.sequences.MultibandExcitation.seq.html#pypulseqpp.sequences.MultibandExcitation.seq" title="pypulseqpp.sequences.MultibandExcitation.seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq</span></code></a></p></td>
 <td><p>Sequence holding the module's construction-time block layout.</p></td>

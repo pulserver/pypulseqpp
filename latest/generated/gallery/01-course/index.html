@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -518,7 +518,7 @@
 </div><div class="sphx-glr-thumbcontainer" tooltip="In lesson 1 the echo landed wherever the blocks put it: right after the prewinder, in the middle of the readout. A protocol asks for an echo time and a repetition time, so in this lesson you put the echo exactly where the protocol asks for it, find the shortest echo time your readout allows, and shorten it further by acquiring only part of the echo."><img alt="" src="../../../_images/sphx_glr_02_echo_and_repetition_time_thumb.png" />
 <p><a class="reference internal" href="02_echo_and_repetition_time.html"><span class="doc">2. Echo and repetition time</span></a></p>
   <div class="sphx-glr-thumbnail-title">2. Echo and repetition time</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="With a TR of 20 ms and a T2 of tens of milliseconds, your gradient echo still has transverse magnetization when the next pulse arrives. That pulse refocuses part of it, and the leftover from one repetition adds to the signal of the next: after a few hundred repetitions the signal settles into a steady state that depends on T2 as well as on T1 and the flip angle. A spoiled gradient echo removes that leftover, so the steady state is the simple one that every T1-weighted protocol assumes."><img alt="" src="../../../_images/sphx_glr_03_spoiling_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="With a TR of 20 ms and a T2 of tens of milliseconds, your gradient echo still has transverse magnetisation when the next pulse arrives. That pulse refocuses part of it, and the leftover from one repetition adds to the signal of the next: after a few hundred repetitions the signal settles into a steady state that depends on T2 as well as on T1 and the flip angle. A spoiled gradient echo removes that leftover, so the steady state is the simple one that every T1-weighted protocol assumes."><img alt="" src="../../../_images/sphx_glr_03_spoiling_thumb.png" />
 <p><a class="reference internal" href="03_spoiling.html"><span class="doc">3. Spoiling</span></a></p>
   <div class="sphx-glr-thumbnail-title">3. Spoiling</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="The scanner plays your sequence and hands the reconstruction a stream of readouts. To put each readout in its place, the reconstruction has to know which k-space line it is, which slice, which average, and what the field of view and the matrix are. None of that can be guessed from the samples: you write it into the sequence, as labels on the blocks and definitions in the file header."><img alt="" src="../../../_images/sphx_glr_04_labels_and_metadata_thumb.png" />
@@ -527,7 +527,7 @@
 </div><div class="sphx-glr-thumbcontainer" tooltip="So far each repetition of your gradient echo acquired a horizontal line of k-space, moved up or down by the phase encoding. A radial acquisition acquires spokes instead: lines through the centre of k-space, each rotated by its own angle. Every spoke samples the centre, which makes radial imaging robust to motion, and the spokes can be ordered so that any subset of them covers k-space evenly."><img alt="" src="../../../_images/sphx_glr_05_radial_sampling_thumb.png" />
 <p><a class="reference internal" href="05_radial_sampling.html"><span class="doc">5. Radial sampling and gradient surgery</span></a></p>
   <div class="sphx-glr-thumbnail-title">5. Radial sampling and gradient surgery</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion pulse flips the longitudinal magnetization; while it recovers, at a speed set by each tissue&#x27;s T1, a fast train of gradient echoes reads it out; then the magnetization recovers before the next inversion. White and grey matter recover at different speeds, and the train catches them while they differ."><img alt="" src="../../../_images/sphx_glr_06_radial_mprage_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion pulse flips the longitudinal magnetisation; while it recovers, at a speed set by each tissue&#x27;s T1, a fast train of gradient echoes reads it out; then the magnetisation recovers before the next inversion. White and grey matter recover at different speeds, and the train catches them while they differ."><img alt="" src="../../../_images/sphx_glr_06_radial_mprage_thumb.png" />
 <p><a class="reference internal" href="06_radial_mprage.html"><span class="doc">6. Radial MPRAGE</span></a></p>
   <div class="sphx-glr-thumbnail-title">6. Radial MPRAGE</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="A sequence that passes check_timing is one the scanner can play, block by block. Whether it should is a question about the whole scan: does any gradient exceed the amplitude or slew-rate limit once it is rotated, does the switching stimulate peripheral nerves, does the gradient waveform drive the coil at one of its mechanical resonances, how much RF power does the subject absorb. pypulseqpp computes each of these from the sequence, and this lesson runs them on your MPRAGE."><img alt="" src="../../../_images/sphx_glr_07_hardware_and_safety_checks_thumb.png" />

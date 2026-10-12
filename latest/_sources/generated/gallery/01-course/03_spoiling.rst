@@ -23,7 +23,7 @@
 ===========
 
 With a TR of 20 ms and a T2 of tens of milliseconds, your gradient echo still
-has transverse magnetization when the next pulse arrives. That pulse refocuses
+has transverse magnetisation when the next pulse arrives. That pulse refocuses
 part of it, and the leftover from one repetition adds to the signal of the
 next: after a few hundred repetitions the signal settles into a steady state
 that depends on T2 as well as on T1 and the flip angle. A *spoiled* gradient
@@ -115,7 +115,7 @@ Gradient spoiling
 -----------------
 
 A spoiler is a gradient played after the readout. It winds the phase of the
-transverse magnetization across each voxel, so that what is left integrates
+transverse magnetisation across each voxel, so that what is left integrates
 to (nearly) nothing over the voxel. You prescribe it by what it does, the
 number of cycles it winds across a voxel, and
 :func:`~pypulseqpp.make_crusher` returns the shortest gradient that does it.
@@ -163,7 +163,7 @@ an increment that itself grows by :math:`\Delta\varphi` every repetition:
     \varphi_n = \varphi_{n-1} + n\,\Delta\varphi
               = \tfrac{1}{2}\,n(n+1)\,\Delta\varphi .
 
-The leftover magnetization a pulse refocuses was created some repetitions
+The leftover magnetisation a pulse refocuses was created some repetitions
 earlier, and with this quadratic phase each earlier repetition comes back at
 a different phase, so their sum averages out. The ADC gets the same phase as
 the pulse, so the signal you want is not affected.
@@ -466,7 +466,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 12.115 seconds)
+   **Total running time of the script:** (0 minutes 11.835 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_03_spoiling.py:

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -553,7 +553,7 @@
 <span class="sd">    filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'</span>
 <span class="sd">        FIR design method.</span>
 <span class="sd">    passband_ripple, stopband_ripple : float, default=0.01</span>
-<span class="sd">        Ripple allowed in each band.</span>
+<span class="sd">        Fractional ripple allowed in the passband and the stopband.</span>
 <span class="sd">    cancel_alpha_phase : bool, default=False</span>
 <span class="sd">        Remove the SLR alpha polynomial's phase.</span>
 <span class="sd">    root_flip : bool, default=False</span>
@@ -570,7 +570,8 @@
 <span class="sd">    use : str, default='undefined'</span>
 <span class="sd">        Pulseq ``use`` tag.</span>
 <span class="sd">    freq_ppm, phase_ppm : float, default=0.0</span>
-<span class="sd">        Field-strength-relative offsets.</span>
+<span class="sd">        Frequency and phase offsets in ppm of the Larmor frequency at the</span>
+<span class="sd">        system's ``B0``, as in PyPulseq.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1081,7 +1082,8 @@
 <span class="sd">        disc.</span>
 <span class="sd">    n_interleaves : int, default=None</span>
 <span class="sd">        Spiral arms to play. The default covers excitation k-space at the</span>
-<span class="sd">        Nyquist spacing. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.</span>
+<span class="sd">        Nyquist spacing; fewer arms shorten the pulse and reduce the</span>
+<span class="sd">        alias-free excitation field of view.</span>
 <span class="sd">    axes : sequence of str, default=('x', 'y')</span>
 <span class="sd">        The two gradient channels the trajectory runs on.</span>
 <span class="sd">    b1_maps : array_like, default=None</span>
@@ -1317,13 +1319,13 @@
     <span class="n">use</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"preparation"</span><span class="p">,</span>
     <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Build the adiabatic half-passage pair that tips magnetization down and back.</span>
+<span class="w">    </span><span class="sd">"""Make a pair of adiabatic half passages, tipping magnetisation into the transverse plane and back.</span>
 
 <span class="sd">    ``down`` is the first half of a full adiabatic sweep (far off-resonance to</span>
 <span class="sd">    on-resonance), taking ``+z`` to the transverse plane independently of B1</span>
 <span class="sd">    above the adiabatic threshold. ``up`` is ``down`` time-reversed and</span>
-<span class="sd">    conjugated, so the phase accrued on the way down unwinds on the way up.</span>
-<span class="sd">    Both play at their designed amplitude.</span>
+<span class="sd">    conjugated, which returns the magnetisation to ``+z``. Both play at their</span>
+<span class="sd">    designed amplitude.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1344,7 +1346,8 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    down, up : SimpleNamespace</span>
+<span class="sd">    down, up : RfEvent</span>
+<span class="sd">        The first and the second half passage.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -1422,19 +1425,18 @@
 <span class="sd">    n_segments : int</span>
 <span class="sd">        Pulses in the train.</span>
 <span class="sd">    duration : float, default=DEFAULT_DURATION</span>
-<span class="sd">        Of each pulse, in s. The SLR core, to which ``time_bw_product`` and</span>
-<span class="sd">        ``refocusing_tbw`` refer, spans about ``duration / 1.75``; a Blackman taper</span>
-<span class="sd">        fills the rest.</span>
+<span class="sd">        Duration of each pulse, in s. The SLR core, to which</span>
+<span class="sd">        ``time_bw_product`` and ``refocusing_tbw`` refer, spans about</span>
+<span class="sd">        ``duration / 1.75``; a Blackman taper fills the rest.</span>
 <span class="sd">    spin_echo : bool, default=False</span>
 <span class="sd">        Design for a spin-echo segment, whose refocusing pulse is returned too.</span>
 <span class="sd">    refocusing_tbw : float, default=8.0</span>
 <span class="sd">        Time-bandwidth product of that refocusing pulse.</span>
 <span class="sd">    t1 : float, default=math.inf</span>
-<span class="sd">        Longitudinal relaxation time and the time between pulses, in s;</span>
-<span class="sd">        ``t1=inf`` is no recovery.</span>
+<span class="sd">        Longitudinal relaxation time, in s; ``inf`` is no recovery between</span>
+<span class="sd">        pulses.</span>
 <span class="sd">    segment_tr : float, default=0.06</span>
-<span class="sd">        Longitudinal relaxation time and the time between pulses, in s;</span>
-<span class="sd">        ``t1=inf`` is no recovery.</span>
+<span class="sd">        Time between successive pulses, in s; read only for a finite ``t1``.</span>
 <span class="sd">    use_mz : bool, default=True</span>
 <span class="sd">        Design each pulse against the profile the earlier ones left.</span>
 <span class="sd">    return_gz : bool, default=False</span>

@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -196,7 +196,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -206,7 +206,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -493,24 +493,17 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Read a Pulseq file into a sequence whose system describes what is in it.</span>
 
-<span class="sd">    :meth:`~pypulseqpp.Sequence.read` replaces a sequence's contents and takes</span>
-<span class="sd">    its rasters from the file, but leaves the sequence on whatever system it</span>
-<span class="sd">    was constructed with. The limits and rasters of that system are what the</span>
-<span class="sd">    design helpers solve against and what the checks in</span>
-<span class="sd">    :mod:`pypulseqpp.safety` compare a waveform with, so a file read onto the</span>
-<span class="sd">    shared default system is measured against limits that have nothing to do</span>
-<span class="sd">    with it. This builds the system from the file instead.</span>
+<span class="sd">    Unlike :meth:`~pypulseqpp.Sequence.read`, which keeps the system the</span>
+<span class="sd">    sequence was constructed with, this builds the system from the file, so</span>
+<span class="sd">    that the checks of :mod:`pypulseqpp.safety` compare the sequence with its</span>
+<span class="sd">    own limits. Text and binary files are detected from their contents.</span>
 
-<span class="sd">    The rasters always come from the file. A limit or a field strength comes</span>
-<span class="sd">    from the file when it states one, as :data:`_LIMITS` names the</span>
-<span class="sd">    definitions, and from the argument here when one is given, which wins. A</span>
-<span class="sd">    gradient limit that neither supplies is the larger of the</span>
-<span class="sd">    :class:`~pypulseqpp.Opts` default and the largest amplitude the file</span>
-<span class="sd">    actually reaches, so that the sequence read back satisfies the checks it</span>
-<span class="sd">    was written under. Dead times are not recorded in a ``.seq`` file and stay</span>
-<span class="sd">    at their defaults.</span>
-
-<span class="sd">    Text and binary are told apart by what is in the bytes.</span>
+<span class="sd">    The rasters come from the file. The gradient limit, slew-rate limit and</span>
+<span class="sd">    ``B0`` come from the ``MaxGrad``, ``MaxSlew`` and ``B0`` definitions when</span>
+<span class="sd">    the file states them, and from ``max_grad`` and ``max_slew`` when given,</span>
+<span class="sd">    which take precedence. A limit that neither supplies is the larger of the</span>
+<span class="sd">    :class:`~pypulseqpp.Opts` default and the largest value the file reaches.</span>
+<span class="sd">    Dead times are not recorded in a ``.seq`` file and keep their defaults.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -523,17 +516,19 @@
 <span class="sd">    max_slew : float, default=None</span>
 <span class="sd">        Slew-rate limit (Hz/m/s), resolved the same way.</span>
 <span class="sd">    detect_rf_use : bool, default=False</span>
-<span class="sd">        Work out what each unlabelled pulse is for, from what it does. A file</span>
-<span class="sd">        written before revision 1.5.0 has nowhere to record it.</span>
+<span class="sd">        Assign a use to each RF event without one, as</span>
+<span class="sd">        :meth:`~pypulseqpp.Sequence.detect_rf_use` does. Files before revision</span>
+<span class="sd">        1.5.0 record no use.</span>
 <span class="sd">    remove_duplicates : bool, default=True</span>
 <span class="sd">        Collapse identical library rows after reading.</span>
 <span class="sd">    verify : bool, default=False</span>
-<span class="sd">        Check the file against the signature it carries.</span>
+<span class="sd">        Check the file against the signature it carries; a file without one</span>
+<span class="sd">        is refused.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    pypulseqpp.Sequence</span>
-<span class="sd">        The sequence, on a system built from the file.</span>
+<span class="sd">        The sequence, with ``system`` built from the file.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
@@ -616,18 +611,17 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">_pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Read a sequence file and every file its ``NextSequence`` definitions name, in play order.</span>
 
-<span class="sd">    :func:`pypulseqpp.sequences.write` writes a scan with prescans as such a</span>
-<span class="sd">    chain. A ``NextSequence`` name is relative to the directory of the file</span>
-<span class="sd">    naming it. Each file is read by :func:`read`, onto a system built from it.</span>
+<span class="sd">    A ``NextSequence`` name is relative to the directory of the file naming</span>
+<span class="sd">    it, as :func:`pypulseqpp.sequences.write` writes a scan with prescans.</span>
+<span class="sd">    Each file is read by :func:`read`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    file_path : str | os.PathLike[str]</span>
 <span class="sd">        The first file of the chain.</span>
 <span class="sd">    detect_rf_use : bool, default=False</span>
-<span class="sd">        Work out what each unlabelled pulse of every file is for, as</span>
-<span class="sd">        :func:`read` does. A file whose pulses all record their use is read as</span>
-<span class="sd">        it is.</span>
+<span class="sd">        Assign a use to each unlabelled RF event of every file, as :func:`read`</span>
+<span class="sd">        does.</span>
 <span class="sd">    remove_duplicates : bool, default=True</span>
 <span class="sd">        Collapse identical library rows of every file after reading.</span>
 <span class="sd">    verify : bool, default=False</span>
@@ -698,7 +692,7 @@
     <span class="n">remove_duplicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">check_timing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Write a sequence as Pulseq text or binary.</span>
+<span class="w">    </span><span class="sd">"""Write a sequence as a Pulseq text or binary file.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -710,12 +704,12 @@
 <span class="sd">        Write the binary form instead of text. The binary writer runs no</span>
 <span class="sd">        timing check.</span>
 <span class="sd">    create_signature : bool, default=True</span>
-<span class="sd">        Sign the file, in both forms.</span>
+<span class="sd">        Append an MD5 signature, in both forms.</span>
 <span class="sd">    remove_duplicates : bool, default=True</span>
 <span class="sd">        Write a deduplicated copy, leaving ``seq`` as it is.</span>
 <span class="sd">    check_timing : bool, default=True</span>
-<span class="sd">        Text only: check the timing while writing, which warns about what</span>
-<span class="sd">        fails and records ``TotalDuration``.</span>
+<span class="sd">        Text only: run the timing check first, warning on findings and</span>
+<span class="sd">        recording ``TotalDuration``.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

@@ -57,7 +57,7 @@ Course
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="With a TR of 20 ms and a T2 of tens of milliseconds, your gradient echo still has transverse magnetization when the next pulse arrives. That pulse refocuses part of it, and the leftover from one repetition adds to the signal of the next: after a few hundred repetitions the signal settles into a steady state that depends on T2 as well as on T1 and the flip angle. A spoiled gradient echo removes that leftover, so the steady state is the simple one that every T1-weighted protocol assumes.">
+    <div class="sphx-glr-thumbcontainer" tooltip="With a TR of 20 ms and a T2 of tens of milliseconds, your gradient echo still has transverse magnetisation when the next pulse arrives. That pulse refocuses part of it, and the leftover from one repetition adds to the signal of the next: after a few hundred repetitions the signal settles into a steady state that depends on T2 as well as on T1 and the flip angle. A spoiled gradient echo removes that leftover, so the steady state is the simple one that every T1-weighted protocol assumes.">
 
 .. only:: html
 
@@ -108,7 +108,7 @@ Course
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion pulse flips the longitudinal magnetization; while it recovers, at a speed set by each tissue&#x27;s T1, a fast train of gradient echoes reads it out; then the magnetization recovers before the next inversion. White and grey matter recover at different speeds, and the train catches them while they differ.">
+    <div class="sphx-glr-thumbcontainer" tooltip="MPRAGE is the T1-weighted 3D scan of almost every brain protocol. An inversion pulse flips the longitudinal magnetisation; while it recovers, at a speed set by each tissue&#x27;s T1, a fast train of gradient echoes reads it out; then the magnetisation recovers before the next inversion. White and grey matter recover at different speeds, and the train catches them while they differ.">
 
 .. only:: html
 

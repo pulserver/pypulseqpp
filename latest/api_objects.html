@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -197,7 +197,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -207,7 +207,7 @@
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -537,10 +537,10 @@ from.</p>
 <td><p>Create a digital output pulse event a.k.a.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_label.html#pypulseqpp.make_label" title="pypulseqpp.make_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_label</span></code></a></p></td>
-<td><p>Create a label event.</p></td>
+<td><p>Construct a label event.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_rf_shim.html#pypulseqpp.make_rf_shim" title="pypulseqpp.make_rf_shim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rf_shim</span></code></a></p></td>
-<td><p>Create complex per-transmit-channel weights for a block's RF envelope.</p></td>
+<td><p>Construct an RF shim extension event.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_rotation.html#pypulseqpp.make_rotation" title="pypulseqpp.make_rotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rotation</span></code></a></p></td>
 <td><p>Create a rotation extension event for a block's gradients.</p></td>
@@ -555,7 +555,7 @@ from.</p>
 <td><p>Sets delays of the objects within the block to achieve the desired alignment of the objects in the block.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.block_to_events.html#pypulseqpp.block_to_events" title="pypulseqpp.block_to_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block_to_events</span></code></a></p></td>
-<td><p>Split a block into its events, or pass events through unchanged.</p></td>
+<td><p>Return the events of a block, or of a list of events, as a tuple.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.calc_absolute_offsets.html#pypulseqpp.calc_absolute_offsets" title="pypulseqpp.calc_absolute_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_absolute_offsets</span></code></a></p></td>
 <td><p>Return an RF or ADC event's frequency and phase offsets with its ppm offsets resolved.</p></td>
@@ -590,7 +590,7 @@ from.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_arbitrary_grad.html#pypulseqpp.make_arbitrary_grad" title="pypulseqpp.make_arbitrary_grad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_arbitrary_grad</span></code></a></p></td>
-<td><p>Create a gradient from amplitudes sampled at raster centres.</p></td>
+<td><p>Construct an arbitrary gradient event from amplitudes sampled at raster centres.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_crusher.html#pypulseqpp.make_crusher" title="pypulseqpp.make_crusher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_crusher</span></code></a></p></td>
 <td><p>Create a crusher winding <code class="docutils literal notranslate"><span class="pre">dephasing_cycles</span></code> of phase across a voxel.</p></td>
@@ -629,7 +629,7 @@ from.</p>
 <td><p>1D interpolate amplitude values <cite>amplitudes</cite> at time indices <cite>times</cite> as per the gradient raster time <cite>grad_raster_time</cite> to generate a gradient waveform.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.rotate_3d.html#pypulseqpp.rotate_3d" title="pypulseqpp.rotate_3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_3d</span></code></a></p></td>
-<td><p>Rotate and sum gradient projections onto the output axes.</p></td>
+<td><p>Rotate a block's gradient events by explicit projection onto the rotated axes.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.scale_grad.html#pypulseqpp.scale_grad" title="pypulseqpp.scale_grad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_grad</span></code></a></p></td>
 <td><p>Scales the gradient with the scalar.</p></td>
@@ -655,7 +655,7 @@ from.</p>
 <td><p>Read a sequence file and every file its <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code> definitions name, in play order.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.io.write.html#pypulseqpp.io.write" title="pypulseqpp.io.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a></p></td>
-<td><p>Write a sequence as Pulseq text or binary.</p></td>
+<td><p>Write a sequence as a Pulseq text or binary file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.io.SequenceLibraries.html#pypulseqpp.io.SequenceLibraries" title="pypulseqpp.io.SequenceLibraries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceLibraries</span></code></a></p></td>
 <td><p>A sequence's block table and every library it holds, as read-only arrays.</p></td>
@@ -672,7 +672,7 @@ from.</p>
 <td><p>A reusable block layout with named, mutable event templates.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RfModule</span></code></a></p></td>
-<td><p>Sequence module with off-resonance simulation of an individual RF pulse.</p></td>
+<td><p>Sequence module whose RF pulse can be simulated across off-resonance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.NonSelectiveExcitation.html#pypulseqpp.sequences.NonSelectiveExcitation" title="pypulseqpp.sequences.NonSelectiveExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonSelectiveExcitation</span></code></a></p></td>
 <td><p>Rectangular RF excitation without a selection gradient.</p></td>
@@ -693,7 +693,7 @@ from.</p>
 <td><p>SLR excitation of a spectral band without spatial selection.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SpspExcitation.html#pypulseqpp.sequences.SpspExcitation" title="pypulseqpp.sequences.SpspExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpspExcitation</span></code></a></p></td>
-<td><p>Spectral-spatial excitation using SLR subpulses on an alternating gradient.</p></td>
+<td><p>Spectral-spatial excitation of SLR subpulses on an alternating gradient.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SmsExcitation.html#pypulseqpp.sequences.SmsExcitation" title="pypulseqpp.sequences.SmsExcitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SmsExcitation</span></code></a></p></td>
 <td><p>SLR slice excitation modulated into simultaneous spectral bands.</p></td>
@@ -720,7 +720,7 @@ from.</p>
 <td><p>Off-resonance SLR saturation followed by an optional spoiler.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.OffResonanceSaturation.html#pypulseqpp.sequences.OffResonanceSaturation" title="pypulseqpp.sequences.OffResonanceSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffResonanceSaturation</span></code></a></p></td>
-<td><p>Repeat one off-resonance pulse, followed by an optional three-axis spoiler.</p></td>
+<td><p>Train of one off-resonance pulse, followed by an optional three-axis spoiler.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a></p></td>
 <td><p>Slab-selective saturation pulse in the physical frame, followed by a three-axis spoiler.</p></td>
@@ -798,7 +798,7 @@ from.</p>
 <td><p>Continuous-gradient ZTE shell, including its initial and final ramps.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.NonCartesianGradient.html#pypulseqpp.sequences.NonCartesianGradient" title="pypulseqpp.sequences.NonCartesianGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonCartesianGradient</span></code></a></p></td>
-<td><p>One canonical non-Cartesian base interleaf, independent of its acquisition schedule.</p></td>
+<td><p>Base interleaf of a non-Cartesian trajectory, independent of its acquisition schedule.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.Arbitrary.html#pypulseqpp.sequences.Arbitrary" title="pypulseqpp.sequences.Arbitrary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Arbitrary</span></code></a></p></td>
 <td><p>Base interleaf from a caller-supplied 2D or 3D k-space path.</p></td>
@@ -853,7 +853,7 @@ from.</p>
 <td><p>Create a [optionally slice selective] Gauss pulse.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.make_half_passages.html#pypulseqpp.make_half_passages" title="pypulseqpp.make_half_passages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_half_passages</span></code></a></p></td>
-<td><p>Build the adiabatic half-passage pair that tips magnetization down and back.</p></td>
+<td><p>Make a pair of adiabatic half passages, tipping magnetisation into the transverse plane and back.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.make_sinc_pulse.html#pypulseqpp.make_sinc_pulse" title="pypulseqpp.make_sinc_pulse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_sinc_pulse</span></code></a></p></td>
 <td><p>Creates a radio-frequency sinc pulse event and optionally accompanying slice select and slice select rephasing trapezoidal gradient events.</p></td>
@@ -1051,7 +1051,7 @@ from.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters" title="pypulseqpp.sequences.parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code></a></p></td>
-<td><p>Return each protocol parameter of a sequence function with its type, default, unit and description.</p></td>
+<td><p>Return the protocol parameters of a sequence function.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter" title="pypulseqpp.sequences.ProtocolParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProtocolParameter</span></code></a></p></td>
 <td><p>One protocol parameter, as a sequence function declares and documents it.</p></td>
@@ -1063,25 +1063,25 @@ from.</p>
 <td><p>Write a sequence, or a chain of sequences, as Pulseq files.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">duration</span></code></a></p></td>
-<td><p>Return the time a sequence, or a chain of sequences, plays, in seconds.</p></td>
+<td><p>Return the play time (s) of a sequence or a chain of sequences.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.EXCITATIONS.html#pypulseqpp.sequences.EXCITATIONS" title="pypulseqpp.sequences.EXCITATIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EXCITATIONS</span></code></a></p></td>
 <td><p>The excitations <a class="reference internal" href="generated/pypulseqpp.sequences.make_excitation.html#pypulseqpp.sequences.make_excitation" title="pypulseqpp.sequences.make_excitation"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_excitation()</span></code></a> builds, in the order a prescription usually offers them.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.make_excitation.html#pypulseqpp.sequences.make_excitation" title="pypulseqpp.sequences.make_excitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_excitation</span></code></a></p></td>
-<td><p>Build the excitation <code class="docutils literal notranslate"><span class="pre">kind</span></code> names, from one prescription of a slab.</p></td>
+<td><p>Build the excitation module named by <code class="docutils literal notranslate"><span class="pre">kind</span></code> for a slab prescription.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.spatial_saturations.html#pypulseqpp.sequences.spatial_saturations" title="pypulseqpp.sequences.spatial_saturations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatial_saturations</span></code></a></p></td>
-<td><p>Return the <a class="reference internal" href="generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a> of each <code class="docutils literal notranslate"><span class="pre">(normal,</span> <span class="pre">position,</span> <span class="pre">thickness)</span></code> band with a thickness.</p></td>
+<td><p>Return a <a class="reference internal" href="generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a> for each band of nonzero thickness.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">steady_state_dummies</span></code></a></p></td>
-<td><p>Return the repetitions to play before acquiring, so the longitudinal magnetization is within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its spoiled steady state.</p></td>
+<td><p>Return the dummy repetitions that bring a spoiled steady state within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.STEADY_STATE_T1_S.html#pypulseqpp.sequences.STEADY_STATE_T1_S" title="pypulseqpp.sequences.STEADY_STATE_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code></a></p></td>
 <td><p>T1 the dummies are counted for (s): grey matter at 3 T, among the longest of brain tissue but CSF's.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.fat_null_flip_deg.html#pypulseqpp.sequences.fat_null_flip_deg" title="pypulseqpp.sequences.fat_null_flip_deg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fat_null_flip_deg</span></code></a></p></td>
-<td><p>Return the flip angle that leaves fat's longitudinal magnetization at zero <code class="docutils literal notranslate"><span class="pre">delay_s</span></code> after the pulse, played once every <code class="docutils literal notranslate"><span class="pre">period_s</span></code>.</p></td>
+<td><p>Return the saturation flip angle (degrees) that nulls fat at the excitation.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.FAT_T1_S.html#pypulseqpp.sequences.FAT_T1_S" title="pypulseqpp.sequences.FAT_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAT_T1_S</span></code></a></p></td>
 <td><p>T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J Roentgenol 183:343, 2004).</p></td>

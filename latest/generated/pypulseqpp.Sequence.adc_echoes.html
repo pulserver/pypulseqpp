@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=65512f79" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -195,7 +195,7 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -205,7 +205,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -524,27 +524,19 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="pypulseqpp.Sequence.adc_echoes">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">adc_echoes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_sequence.html#Sequence.adc_echoes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.Sequence.adc_echoes" title="Link to this definition">#</a></dt>
-<dd><p>Return, per readout, the axes it moves along and where it passes nearest the centre.</p>
+<dd><p>Return, per readout, the axes its k-space moves along and the samples nearest the k-space centre.</p>
 <p>One entry per block that acquires, in play order. k-space is integrated
 as <a class="reference internal" href="pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace" title="pypulseqpp.Sequence.adc_kspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_kspace()</span></code></a> integrates it, after each block’s rotation:
 excitations, and pulses with no use recorded, reset it, and refocusing
 pulses invert it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">block</span></code>, 1-based, and <code class="docutils literal notranslate"><span class="pre">num_samples</span></code>, each <code class="docutils literal notranslate"><span class="pre">(n,)</span></code>;
-<code class="docutils literal notranslate"><span class="pre">first_sample</span></code>, the column of the readout’s first sample in
-<a class="reference internal" href="pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace" title="pypulseqpp.Sequence.adc_kspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_kspace()</span></code></a>; <code class="docutils literal notranslate"><span class="pre">moving</span></code>, <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">3)</span></code>, whether its k-space
-spans more than 1e-6 of its widest span along x, y and z; and
-<code class="docutils literal notranslate"><span class="pre">echo</span></code>, <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">2)</span></code>, the first and last 0-based sample no further
-from the centre of k-space, over the moving axes, than the nearest
-sample plus 1% of the larger k step beside it, -1 for a readout
-that does not move or has fewer than two samples. <code class="docutils literal notranslate"><span class="pre">start</span></code>,
-<code class="docutils literal notranslate"><span class="pre">path</span></code>, <code class="docutils literal notranslate"><span class="pre">paths</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code> and <code class="docutils literal notranslate"><span class="pre">rotations</span></code> give each
-readout’s k-space as its first sample plus one of the distinct
-paths from there, turned by the block’s rotation;
-None when an RF pulse that excites or refocuses, or has no use
-recorded, plays in a block that acquires, or when more than one
-readout in 16 has a path of its own.</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">moving</span></code> is true along an axis where the readout’s k-space spans
+more than 1e-6 of its widest span. The fields <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">path</span></code>,
+<code class="docutils literal notranslate"><span class="pre">paths</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code> and <code class="docutils literal notranslate"><span class="pre">rotations</span></code> are None when an RF pulse
+that excites or refocuses, or has no use recorded, plays in a block
+that acquires, or when more than one readout in 16 has a path of
+its own.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>AdcEchoes</p>
