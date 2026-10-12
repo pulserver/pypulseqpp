@@ -1,7 +1,6 @@
 """The MPRAGE example sequences: Cartesian, stack of stars and stack of spirals."""
 
 import importlib
-from collections import Counter
 
 import numpy as np
 import pytest
@@ -75,14 +74,25 @@ def support(ry=1, rz=1, n_acs_y=24, n_acs_z=16, ordering="radial", **_):
         elliptical=True,
         sampling="poisson" if ordering == "shuffling" else "lattice",
         seed=module(CARTESIAN).SHUFFLE_SEED,
+        train_length=train_length(ry),
     )
     return sorted({*calibrating, *imaging}), set(calibrating)
 
 
-def partitions(name, **kwargs):
-    """The partitions a prescription acquires, from the sampling helper the sequence calls."""
+def train_length(ry=1):
+    """Views per Cartesian train: as many as one line holds at this undersampling."""
+    return -(-SMALL[CARTESIAN]["n_y"] // ry)
+
+
+def shot_count(name, **kwargs):
+    """The shots a prescription plays: a train of views each, or a partition each."""
     if name == CARTESIAN:
-        return sorted({z for _, z in support(**kwargs)[0]})
+        return len(support(**kwargs)[0]) // train_length(kwargs.get("ry", 1))
+    return len(partitions(name, **kwargs))
+
+
+def partitions(name, **kwargs):
+    """The partitions a stack prescription acquires, from the sampling helper the sequence calls."""
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         kwargs.get("n_z", SMALL[name]["n_z"]),
         kwargs.get("rz", 1),
@@ -100,10 +110,10 @@ def test_a_small_mprage_passes_its_timing_check_and_repeats_one_shot(name):
     assert seq.check_timing()[0]
     assert start == 1
     # One shot is the repeating unit, the dummy included.
-    assert size * (1 + len(partitions(name))) == len(seq.block_events)
+    assert size * (1 + shot_count(name)) == len(seq.block_events)
 
 
-@pytest.mark.parametrize("name", SMALL)
+@pytest.mark.parametrize("name", [STARS, SPIRALS])
 def test_every_shot_reads_one_partition_in_order(name):
     seq = built(name)
     (par,) = labels(seq, "PAR")
@@ -124,10 +134,9 @@ def test_a_train_read_into_one_image_leaves_the_echo_counter_alone(name):
 
 def test_a_shuffled_train_counts_its_place_as_the_time_it_resolves():
     seq = built(CARTESIAN, ordering="shuffling")
-    par, eco = labels(seq, "PAR", "ECO")
+    (eco,) = labels(seq, "ECO")
 
-    assert all(np.diff(eco)[np.diff(par) == 0] == 1)
-    assert len(set(eco)) > 1
+    assert list(eco) == list(np.tile(np.arange(train_length()), shot_count(CARTESIAN)))
 
 
 @pytest.mark.parametrize("name", SMALL)
@@ -136,7 +145,7 @@ def test_every_shot_plays_the_same_number_of_excitations(name):
     inversions = pulse_times(seq, "inversion")
     excitations = pulse_times(seq, "excitation")
 
-    assert len(inversions) == 2 + len(partitions(name))
+    assert len(inversions) == 2 + shot_count(name)
     assert len(excitations) == len(inversions) * shots_of(seq)
 
 
@@ -251,38 +260,53 @@ def test_every_sampled_view_is_read_once_inside_the_ellipse(ordering):
     assert calibration <= set(views)
 
 
-def test_a_radial_shot_reads_its_lines_centre_out():
-    lin, par = labels(built(CARTESIAN), "LIN", "PAR")
-
-    for z in set(par):
-        distance = np.abs(lin[par == z] - 8)
-        assert list(distance) == sorted(distance)
-        assert distance[0] == 0 or 8 not in lin[par == z]
+def cartesian_trains(seq):
+    """The views each Cartesian shot acquires, in the order it acquires them."""
+    lin, par = labels(seq, "LIN", "PAR")
+    views = list(zip(lin.tolist(), par.tolist(), strict=True))
+    return [views[i : i + shots_of(seq)] for i in range(0, len(views), shots_of(seq))]
 
 
-def test_a_shuffled_shot_reads_the_same_lines_in_another_order():
-    def lines(seq):
-        lin, par = labels(seq, "LIN", "PAR")
-        return [list(lin[par == z]) for z in sorted(set(par))]
+@pytest.mark.parametrize(
+    "prescription",
+    [
+        {},
+        {"ordering": "shuffling", "ry": 2, "rz": 2, "n_acs_y": 4, "n_acs_z": 2},
+        {"ry": 3, "n_acs_y": 4, "n_acs_z": 2},
+    ],
+    ids=["radial", "shuffling", "ry=3"],
+)
+def test_every_shot_acquires_a_full_train_of_views(prescription):
+    seq = built(CARTESIAN, **prescription)
+    length = train_length(prescription.get("ry", 1))
 
-    radial = lines(built(CARTESIAN))
-    shuffled = lines(built(CARTESIAN, ordering="shuffling"))
+    assert shots_of(seq) == length
+    assert {len(train) for train in cartesian_trains(seq)} == {length}
+    assert (
+        len(pulse_times(seq, "excitation"))
+        == shot_count(CARTESIAN, **prescription) * length
+    )
 
-    assert [sorted(shot) for shot in radial] == [sorted(shot) for shot in shuffled]
-    assert radial != shuffled
+
+def test_a_radial_shot_reads_its_views_centre_out():
+    trains = cartesian_trains(built(CARTESIAN))
+
+    def radius(view):
+        return ((view[0] - 8) / 16) ** 2 + ((view[1] - 4) / 8) ** 2
+
+    assert (8, 4) in [train[0] for train in trains]
+    for train in trains:
+        distance = [radius(view) for view in train]
+        assert distance == sorted(distance)
 
 
-def test_a_partition_with_fewer_lines_pads_its_train_without_acquiring():
-    seq = built(CARTESIAN)
-    lengths = Counter(z for _, z in support()[0])
-    (par,) = labels(seq, "PAR")
+def test_a_shuffled_shot_reads_the_sampled_views_in_another_order():
+    radial = cartesian_trains(built(CARTESIAN))
+    shuffled = cartesian_trains(built(CARTESIAN, ordering="shuffling", ry=1, rz=1))
+    views = [view for train in shuffled for view in train]
 
-    assert len(set(lengths.values())) > 1
-    assert {
-        z: int(n) for z, n in zip(*np.unique(par, return_counts=True), strict=True)
-    } == lengths
-    assert shots_of(seq) == max(lengths.values())
-    assert len(pulse_times(seq, "excitation")) == len(lengths) * shots_of(seq)
+    assert sorted(views) == support(ordering="shuffling")[0]
+    assert shuffled != radial
 
 
 def test_an_elliptical_calibration_region_is_the_inscribed_ellipse():
@@ -371,7 +395,7 @@ def test_a_partition_shift_turns_every_angle_by_the_partition(name, shift):
 @pytest.mark.parametrize(
     ("name", "flag", "help_text"),
     [
-        (CARTESIAN, "--ordering", "Line order within a partition"),
+        (CARTESIAN, "--ordering", "Train order, and the support"),
         (STARS, "--ti", "Inversion time (s), from the inversion pulse's centre"),
         (SPIRALS, "--n-shots", "Interleaves that sample the centre of each plane"),
     ],

@@ -149,6 +149,7 @@ def make_cartesian_plane_sampling(
     elliptical_acs: bool = False,
     sampling: str = "lattice",
     seed: int = 0,
+    train_length: int = 1,
 ) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
     """Select the acquired ``(line, partition)`` views of a Cartesian ky-kz plane.
 
@@ -203,6 +204,14 @@ def make_cartesian_plane_sampling(
         variable-density Poisson-disc draw.
     seed : int, default=0
         Random seed of the Poisson-disc draw. ``sampling='poisson'`` only.
+    train_length : int, default=1
+        Number of views per echo train. The unsampled views nearest the
+        centre, by distance normalised to the grid and within partial
+        Fourier, are added to ``imaging`` until the number of views is a
+        multiple of it, so that every train is full. They lie inside the
+        ``elliptical`` crop while any view there is unsampled. When fewer
+        views than that remain unsampled, all of them are added and the last
+        train stays short.
 
     Returns
     -------
@@ -283,6 +292,7 @@ def make_cartesian_plane_sampling(
             elliptical_acs,
             sampling,
             seed,
+            train_length=train_length,
         )
     )
 
@@ -298,6 +308,7 @@ def _plane_masks(
     sampling: str,
     seed: int,
     expected: bool = False,
+    train_length: int = 1,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists.
 
@@ -313,6 +324,8 @@ def _plane_masks(
         raise ValueError(f"n_acs must be nonnegative on each axis, got {n_acs}")
     if sampling not in _PLANE_SCHEMES:
         raise ValueError(f"sampling must be one of {_PLANE_SCHEMES}, got {sampling!r}")
+    if train_length < 1:
+        raise ValueError(f"train_length must be at least 1, got {train_length}")
     first_y = n_y - round(_checked_partial_fourier(partial_fourier[0]) * n_y)
     first_z = n_z - round(_checked_partial_fourier(partial_fourier[1]) * n_z)
     n_acs_y, n_acs_z = n_acs if r_y * r_z > 1 else (0, 0)
@@ -361,6 +374,16 @@ def _plane_masks(
     imaging[:, :first_z] = False
     if elliptical:
         imaging = imaging * inside(n_y, n_z)
+    short = -int(np.count_nonzero(calibrating | (imaging > 0))) % train_length
+    if short and not expected:
+        # Fill the last train with the unsampled views nearest the centre.
+        free = ~(calibrating | imaging)
+        free[:first_y] = False
+        free[:, :first_z] = False
+        lines, partitions = np.nonzero(free)
+        radius = ((lines - n_y // 2) / n_y) ** 2 + ((partitions - n_z // 2) / n_z) ** 2
+        nearest = np.lexsort((partitions, lines, radius))[:short]
+        imaging[lines[nearest], partitions[nearest]] = True
     return calibrating, imaging
 
 
@@ -375,6 +398,7 @@ def count_cartesian_plane_sampling(
     elliptical_acs: bool = False,
     sampling: str = "lattice",
     seed: int = 0,
+    train_length: int = 1,
 ) -> tuple[int, int]:
     """Count the views :func:`make_cartesian_plane_sampling` returns, without listing them.
 
@@ -403,6 +427,7 @@ def count_cartesian_plane_sampling(
         elliptical_acs,
         sampling,
         seed,
+        train_length=train_length,
     )
     return int(np.count_nonzero(calibrating)), int(np.count_nonzero(imaging))
 

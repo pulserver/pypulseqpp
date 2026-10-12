@@ -186,3 +186,41 @@ def test_the_poisson_disc_probability_counts_the_views_and_the_fullest_partition
     # Over five partitions, which averages a draw's fluctuation out.
     smoothed = np.convolve(mean.sum(axis=0), np.ones(5) / 5, mode="same")
     assert expected.sum(axis=0).max() == pytest.approx(smoothed.max(), rel=0.04)
+
+
+@pytest.mark.parametrize("sampling", ["lattice", "poisson"])
+@pytest.mark.parametrize("length", [1, 7, 16])
+def test_a_train_length_fills_the_views_to_whole_trains_with_the_views_nearest_the_centre(
+    sampling, length
+):
+    shape = (48, 32)
+    arguments = {
+        "acceleration": (2, 2),
+        "n_acs": (8, 8),
+        "elliptical": True,
+        "sampling": sampling,
+        "seed": 3,
+    }
+    plain = {
+        view
+        for views in pp.make_cartesian_plane_sampling(shape, **arguments)
+        for view in views
+    }
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        shape, **arguments, train_length=length
+    )
+    filled = {*calibration, *imaging}
+    added = filled - plain
+
+    def radius(view):
+        return ((view[0] - 24) / 48) ** 2 + ((view[1] - 16) / 32) ** 2
+
+    assert plain <= filled
+    assert len(filled) % length == 0
+    assert len(added) < length
+    if added:
+        missed = {(y, z) for y in range(48) for z in range(32)} - filled
+        assert max(map(radius, added)) <= min(map(radius, missed))
+    assert pp.count_cartesian_plane_sampling(
+        shape, **arguments, train_length=length
+    ) == (len(calibration), len(imaging))

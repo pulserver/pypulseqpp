@@ -403,7 +403,9 @@ def fse3d(
     :func:`shot_parameters`, and the view order is radial. Every shot plays the
     longest train; past its own length a shot's refocusing pulses have zero
     amplitude and nothing is acquired, and its closing delay makes its TR, so
-    the scan stays one repeating train.
+    the scan stays one repeating train. Trains that are not individually
+    parameterized all acquire ``etl`` views: the unsampled views nearest the
+    k-space centre are added until the views fill a whole number of trains.
 
     Parameters
     ----------
@@ -636,6 +638,9 @@ def fse3d(
         elliptical_acs=elliptical_acs,
         sampling="poisson" if ordering == "shuffling" else "lattice",
         seed=SHUFFLE_SEED,
+        # Identical trains are all full; individually parameterized ones end
+        # where each shot's own length does.
+        train_length=1 if individual else etl,
     )
     calibration = set(calibrating)
     sampled = sorted({*calibrating, *imaging})
@@ -680,6 +685,17 @@ def fse3d(
     reference = []
     if waves:
         region = [v for v in sampled if v in calibration]
+        if not individual:
+            # The last reference train is filled with the views nearest the
+            # centre outside the region.
+            nearest = sorted(
+                (v for v in sampled if v not in calibration),
+                key=lambda v: (
+                    ((v[0] - n_y // 2) / n_y) ** 2 + ((v[1] - n_z // 2) / n_z) ** 2,
+                    v,
+                ),
+            )
+            region += nearest[: -len(region) % etl]
         for start in range(0, len(region), lengths[0]):
             chunk = region[start : start + lengths[0]]
             reference.append(chunk + [None] * (etl_max - len(chunk)))
