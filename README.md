@@ -34,7 +34,7 @@ noise and SAR.
   <img src="https://raw.githubusercontent.com/pulserver/pypulseqpp/main/docs/_static/architecture.svg" alt="pypulseqpp architecture" width="900">
 </picture></p>
 
-## Architecture
+## How it works
 
 A Pulseq sequence is a list of blocks played back to back, and each block
 holds at most one event per channel: an RF pulse, a gradient on each axis, an
@@ -140,7 +140,7 @@ pip install pypulseqpp
 Wheels are published for Linux x86-64, macOS (Apple silicon and x86-64) and
 Windows AMD64, Python 3.10 to 3.14.
 
-## Documentation
+## Learn more
 
 - [Course](https://pulserver.github.io/pypulseqpp/stable/examples/index.html):
   ten lessons from a pulse-acquire experiment to your own sequence module.
@@ -151,7 +151,7 @@ Windows AMD64, Python 3.10 to 3.14.
 - [Documentation](https://pulserver.github.io/pypulseqpp/stable/), for every
   option and API detail.
 
-## Citation
+## How to cite
 
 pypulseqpp has no publication of its own. If you use it, please cite Pulseq
 and PyPulseq:
