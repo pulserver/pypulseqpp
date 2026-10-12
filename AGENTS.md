@@ -373,12 +373,15 @@ navigation tree.
   establish that a sequence is safe to run on a scanner or on a subject.
   Never write "safe", "validated", "compliant" or "approved" of a sequence
   that passed one. Preserve the existing disclaimers verbatim.
-- Write dry, declarative technical prose; the README, the Course and the
-  Tours instead talk to the reader as "you", mental model first. Do not
-  personify sequences,
-  parameters, constraints, waveforms or files, and do not use a figurative
-  verb where the technical relationship can be stated directly. Headings name
-  the concept.
+- Write dry, declarative technical prose; the README, the user guide, the
+  Course, the Tours and the opening paragraph of an explanation page instead
+  talk to the reader as "you", mental model first. Do not personify
+  sequences, parameters, constraints, waveforms or files, and do not use a
+  figurative verb where the technical relationship can be stated directly.
+- Headings, page titles included, name the concept as a textbook would, not
+  "What X does" or "How it works". Course lesson titles keep the lesson voice
+  ("Your first gradient echo"), and the README keeps "How it works", "Learn
+  more" and "How to cite".
 
 ### Verification and revision
 
