@@ -61,11 +61,11 @@ def se_stack_of_blades3d(
 ) -> pp.Sequence:
     """3D stack-of-blades spin echo: one blade line at one partition per excitation.
 
-    A 90 from the selected excitation, a nonselective 180 between crushers
-    half a TE later, and one frequency-encoded line at the echo. Blades, lines
-    and partitions are chosen and ordered as
-    :mod:`gre_stack_of_blades3D_sequence` chooses them. Acquisitions carry the
-    line as ``LIN``, the blade as ``SEG`` and the partition as ``PAR``.
+    A 90 from the selected excitation, a nonselective 180 between crushers half
+    a TE later, and one frequency-encoded line at the echo. Blades, lines and
+    partitions are chosen and ordered as :mod:`gre_stack_of_blades3D_sequence`
+    chooses them. Acquisitions carry the line as ``LIN``, the blade as ``SEG``
+    and the partition as ``PAR``.
 
     Under partition undersampling the central ``n_acs_z`` partitions are
     acquired in full at every tilt, ahead of the rest, and marked ``IMA``.
@@ -100,7 +100,7 @@ def se_stack_of_blades3d(
         acquired, the centre one among them.
     partial_fourier_z : float, default=1.0
         Fraction of the partition extent acquired, in ``[0.75, 1]``.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions, at the first blade's centre line and the
         centre partition, before the scan.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).

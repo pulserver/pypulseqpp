@@ -1,6 +1,6 @@
-# From a PyPulseq script
+# PyPulseq compatibility
 
-A PyPulseq script runs with its import changed:
+A PyPulseq script runs once you change its import:
 
 ```python
 import pypulseqpp as pp  # in place of: import pypulseq as pp
@@ -9,15 +9,16 @@ import pypulseqpp as pp  # in place of: import pypulseq as pp
 The event factories (`make_sinc_pulse`, `make_trapezoid`, `make_adc`,
 `make_delay`, `make_label`), `calc_duration`, `Opts` and the `Sequence` methods
 (`add_block`, `check_timing`, `test_report`, `calculate_kspace`, `plot`,
-`write`, `read`) keep PyPulseq's signatures and units. The API reference lists
-what is implemented.
+`write`, `read`) keep PyPulseq's signatures and units. The
+{doc}`API reference <../api/index>` lists what is implemented.
 
 ## Sequence functions
 
-A sequence function is the script with the system and the parameters as
-arguments. The first parameter is `system`, the keyword parameters after it are
-the protocol, and the function returns the sequence, or a list of sequences when
-the scan has prescans, with the main sequence last:
+To reuse the script, you turn it into a sequence function: the script with the
+system and the parameters as arguments. The first parameter is `system`, the
+keyword parameters after it are the protocol, and the function returns the
+sequence, or a list of sequences with the prescans first and the main sequence
+last:
 
 | PyPulseq script | Sequence function |
 | --- | --- |

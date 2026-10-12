@@ -28,16 +28,98 @@ _READOUT_GRAD_MARGIN = 0.8
 class _EpiReadout(SequenceModule):
     """One RF event followed by an EPI train with a fixed phase-encode pattern.
 
-    The scan loop sets the shot origin by scaling prewinders. Blips implement
-    the relative offsets and share the readout ramps; flyback blips instead
-    play in the rewind gaps. TE is measured to the train line ``te_line``,
-    the first by default, because which line samples the centre of k-space
-    depends on the shot origin that the loop sets.
+    The caller sets the shot origin by scaling the prewinders. Blips step
+    between the lines of ``order`` and share the readout ramps; with
+    ``flyback`` they play in the rewind gaps instead. TE is timed to the line
+    ``te_line`` (the first by default), because which line samples the centre
+    of k-space depends on the shot origin the caller sets.
 
-    Navigator lines, when asked for, are read after the read prewinder and
-    before the phase-encode prewinder, without blips, so they sample the
-    centre line at alternating polarities. The train then continues the
-    alternation.
+    Navigator lines are read after the read prewinder and before the
+    phase-encode prewinder, without blips, so they sample the centre line at
+    alternating polarities; the train continues the alternation.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        Pulse that opens the repetition; a refocusing pulse gives the readout
+        half of a spin-echo EPI.
+    gz : GradEvent, default=None
+        Selection gradient played with ``rf``.
+    gz_reph : GradEvent, default=None
+        Rephaser of ``gz``, left-aligned in the first block after the pulse.
+    fov : float or sequence of float
+        Field of view per encoded axis, readout first (m).
+    matrix : int or sequence of int
+        Matrix size per encoded axis, readout first.
+    order : array_like, default=None
+        Integer offsets from the shot origin, ``(etl,)`` or ``(etl, 2)``, one
+        row per line. When given, ``etl`` to ``extent`` are ignored; ``None``
+        generates the train with :func:`~pypulseqpp.make_epi_shot_offsets`.
+    etl : int, default=None
+        Lines per repetition. ``None`` is what one shot of ``scheme`` needs to
+        cross the phase-encode matrix.
+    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'
+        Ordering to generate. ``'linear'`` steps by ``segments * acceleration``
+        every line within one partition; ``'caipi'`` adds the partition
+        sawtooth of blipped-CAIPI; ``'zigzag'`` traverses up and down a
+        phase-encode segment instead of across the matrix.
+    acceleration : int, default=1
+        Phase-encode undersampling ``Ry``: the number of lines a blip steps.
+    segments : int, default=1
+        Shots ``S`` the lattice is interleaved across. The blip becomes
+        ``S * Ry``, which shortens the train.
+    partition_acceleration : int, default=1
+        Partition undersampling ``Rz``, the height of the CAIPI cycle.
+        ``'caipi'`` only.
+    caipi_shift : int, default=1
+        Partitions the pattern climbs per acquired line. ``'caipi'`` only.
+    extent : int, default=None
+        Phase-encode lines one pass spans. Required by ``'zigzag'`` and
+        rejected by the other schemes.
+    te : float, default=None
+        Echo time (s), from the RF centre to the echo of line ``te_line``.
+        ``None`` is as short as possible. Consecutive echoes are ``esp``
+        apart; ``echo_times`` lists them.
+    te_line : float, default=0.0
+        Line, counted from zero and possibly fractional, that ``te`` is timed
+        to.
+    tr : float, default=None
+        Repetition time (s) of the whole module, including the longest echo
+        shift. ``None`` is as short as possible.
+    navigator_lines : int, default=0
+        Lines read without blips between the read and phase-encode prewinders,
+        for odd-even phase correction. Rejected with ``flyback``.
+    echo_shifts : int, default=1
+        Number of shots whose trains are delayed by successive multiples of
+        ``esp / echo_shifts``. The module plays no shift: the caller lengthens
+        ``wait_shift``.
+    oversampling : float, default=1.0
+        Readout oversampling: the sample spacing in k-space is
+        ``1 / (oversampling * fov)``.
+    readout_bandwidth_hz : float, default=500000.0
+        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
+        on the ADC and gradient rasters.
+    ramp_sampling : bool, default=True
+        Sample across the read ramps as well as the plateau, which shortens the
+        echo spacing. False restricts the window to the plateau.
+    flyback : bool, default=False
+        Read every line in the same direction, rewinding between lines, instead
+        of alternating polarity. Adds a rewind per line and removes the
+        odd-even echo inconsistency of a bipolar train.
+    spoiling_cycles : float, default=0.0
+        Cycles of read-axis dephasing across ``voxel_size_m`` left at the end
+        of the repetition.
+    voxel_size_m : float, default=None
+        Length the spoiling is counted over (m); ``None`` is the readout
+        resolution.
+    labels : sequence of str, default=None
+        Names of the labels holding the shot origin of each encoded axis,
+        phase encode first: two for a 3D train, one for 2D.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the prewinder block.
+
 
     Attributes
     ----------
@@ -52,159 +134,70 @@ class _EpiReadout(SequenceModule):
         Read prewinder, half a line lobe against the first line's polarity,
         right-aligned in the prewinder block so that it ends where the first
         line starts.
-    gx : list[GradEvent]
+    gx : list of GradEvent
         One read lobe per line: alternating polarity for a blipped train, the
         same lobe every time for a flyback one.
-    gx_navigator : list[GradEvent]
-        One read lobe per navigator line, the first positive. Present only
-        with ``navigator_lines``.
+    gx_navigator : list of GradEvent
+        One read lobe per navigator line, the first positive; present only with
+        ``navigator_lines``.
     gx_flyback : TrapEvent
         The rewind between two lines. ``flyback`` only.
     gy_blips, gz_blips : list
-        One phase-encode event per line, or ``None`` where no step is asked
-        for, always ``etl`` long. A blipped train's entry carries the second
-        half of the step into the line and the first half of the next out of
-        it; a flyback train's is the whole step, played in the rewind block
-        *after* that line, so its last entry is always ``None``.
+        One phase-encode event per line, ``etl`` long, with ``None`` where no
+        step is taken. In a blipped train an entry carries the second half of
+        the step into the line and the first half of the step to the next line
+        out of it; in a flyback train it is the whole step, played in the
+        rewind block after that line, so the last entry is ``None``.
         ``gz_blips`` is 3D only.
     gy_pre, gz_pre : TrapEvent
         Phase encodes at their largest step, to be scaled per shot,
-        right-aligned with ``gx_pre``; with ``navigator_lines`` they take a
+        right-aligned with ``gx_pre``; with ``navigator_lines`` they play in a
         block of their own after the navigator. ``gz_pre`` is 3D only.
     gy_rew, gz_rew : TrapEvent
-        The encodes negated, left-aligned in the last block of the repetition.
+        The negated encodes, left-aligned in the last block of the repetition.
     gx_spoil : GradEvent
         Read-axis trapezoid in the last block: returns the read axis from the
-        end of the last line through k = 0 and adds the requested spoiling.
+        end of the last line to k = 0 and adds the spoiling.
     adc : AdcEvent
         The acquisition window, shared by every line.
-    shot_labels : tuple[LabelEvent, ...]
-        ``SET`` counters on the prewinder block, one per name in ``labels``.
-        The acquisition loop sets them to the shot's origin. Always a tuple,
-        whatever the number of names, so that it can be unpacked into a block.
-    line_labels : tuple[tuple[LabelEvent, ...], ...]
-        Per line, the ``INC`` counters that step from the previous line to this
-        one -- the ordering, expressed as labels. Empty for the first line,
-        which the ``SET`` already placed.
-    order : NDArray[np.int64]
-        ``(etl, 2)`` integer ``(ky, kz)`` offsets from the shot's origin.
+    shot_labels : tuple of LabelSetEvent
+        ``SET`` events on the prewinder block, one per name in ``labels``, for
+        the caller to set to the shot origin. Always a tuple, so it can be
+        unpacked into a block.
+    line_labels : tuple of tuple of LabelIncEvent
+        Per line, the ``INC`` events that step from the previous line to this
+        one; empty for the first line, which ``shot_labels`` places.
+    order : numpy.ndarray
+        Integer ``(etl, 2)`` ``(ky, kz)`` offsets from the shot origin.
     wait_te : DelayEvent
-        Present only when a TE longer than the minimum was asked for.
+        Present only when ``te`` exceeds the minimum.
     wait_shift : DelayEvent
-        The echo-shift delay right before the first train line, one block
-        raster long. Present only with ``echo_shifts`` above one; the loop
-        lengthens it by ``s * echo_shift_step`` on shot ``s`` and shortens
-        ``wait_tr`` by as much.
+        Echo-shift delay before the first train line, one block raster long;
+        present only with ``echo_shifts`` above 1. The caller lengthens it by
+        ``s * echo_shift_step`` on shot ``s`` and shortens ``wait_tr`` by the
+        same amount.
     wait_tr : DelayEvent
-        Present when a TR longer than the minimum was asked for, or when
-        ``echo_shifts`` is above one: it then holds the longest shift.
+        Present when ``tr`` exceeds the minimum, or when ``echo_shifts`` is
+        above 1, in which case it holds the longest shift.
     etl : int
         Lines per repetition.
     esp : float
         Echo spacing (s).
-    echo_times : NDArray[np.float64]
-        Each line's echo time (s) from the excitation isodelay, with no echo
-        shift.
+    echo_times : numpy.ndarray
+        Echo time of each line (s) from the RF centre, without echo shift.
     echo_time : float
-        Echo time (s) of train line ``te_line``, the echo time that ``te``
-        specifies.
+        Echo time (s) of line ``te_line``, the time ``te`` specifies.
     echo_shift_step : float
         Echo shift between successive shots (s), ``esp / echo_shifts`` on the
         block raster; zero with one shift.
     bandwidth_hz : float
-        Achieved ADC sampling rate (Hz).
+        Achieved ADC sampling rate ``1 / dwell`` (Hz).
     n_samples : int
-        Samples per line.
+        ADC samples per line.
     delta_kx : float
-        Read-axis k-space step (1/m).
+        K-space sample spacing along the readout (1/m).
     blip_span : float
-        Time one phase-encode step takes (s). It is paid out of the read ramps.
-
-    Parameters
-    ----------
-    system : Opts
-        System limits.
-    rf : RfEvent
-        The pulse that opens the repetition. A refocusing pulse builds the
-        readout half of a spin-echo EPI.
-    gz : GradEvent, default=None
-        A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``.
-    fov : float | Sequence[float]
-        Field of view (m), per encoded axis, readout first.
-    matrix : int | Sequence[int]
-        Matrix size, per encoded axis.
-    order : ArrayLike, default=None
-        ``(etl,)`` or ``(etl, 2)`` integer offsets from the shot's origin, one
-        row per line. When supplied, the generator arguments below are ignored;
-        the default takes a train from :func:`~pypulseqpp.make_epi_shot_offsets`.
-    etl : int, default=None
-        Lines per repetition. Defaults to what one shot of the requested
-        scheme needs to cross the phase-encode matrix.
-    scheme : {'linear', 'caipi', 'zigzag'}, default='linear'
-        Which built-in ordering to generate. ``'linear'`` steps by
-        ``segments * acceleration`` every line and never leaves its
-        partition; ``'caipi'`` adds the partition sawtooth of blipped-CAIPI;
-        ``'zigzag'`` traverses up and down a phase-encode segment instead of
-        across the whole matrix.
-    acceleration : int, default=1
-        Phase-encode undersampling, ``Ry``: lines the blip skips.
-    segments : int, default=1
-        Shots the train is interleaved across, ``S``. The blip becomes
-        ``S * Ry``, which shortens the train without changing the lattice
-        sampled.
-    partition_acceleration : int, default=1
-        Partition undersampling ``Rz``, the height of the CAIPI cycle.
-        ``'caipi'`` only.
-    caipi_shift : int, default=1
-        Partitions the pattern climbs per acquired line. ``'caipi'`` only.
-    extent : int, default=None
-        Phase-encode lines one pass spans. Required by ``'zigzag'``, refused
-        by the others.
-    te : float, default=None
-        Excitation isodelay to the echo of train line ``te_line`` (s). ``None``
-        is as short as possible; every echo is ``esp`` from the next, and
-        ``echo_times`` lists them.
-    te_line : float, default=0.0
-        Train line, counted from zero and possibly fractional, that ``te`` is
-        timed to.
-    tr : float, default=None
-        Repetition time (s), over the whole module. It includes the longest
-        echo shift.
-    navigator_lines : int, default=0
-        Lines read without blips between the read and the phase-encode
-        prewinders, for odd-even phase correction. Refused with ``flyback``.
-    echo_shifts : int, default=1
-        Shots whose trains are delayed by successive multiples of
-        ``esp / echo_shifts``, so the echo time grows smoothly across the
-        interleaved lines. The module plays no shift; the loop lengthens
-        ``wait_shift``.
-    oversampling : float, default=1.0
-        Read oversampling: ``delta_kx`` shrinks and the sampled read field of
-        view grows, while resolution is fixed by ``fov`` and ``matrix``.
-    readout_bandwidth_hz : float, default=500000.0
-        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
-        achieved raster-compatible rate.
-    ramp_sampling : bool, default=True
-        Sample across the read ramps as well as the plateau, which shortens
-        the echo spacing. When off, the window covers the plateau only and the
-        train is longer.
-    flyback : bool, default=False
-        Read every line in the same direction, rewinding between them, instead
-        of alternating polarity. This adds a rewind per line and removes the
-        odd-even echo inconsistency of a bipolar train.
-    spoiling_cycles : float, default=0.0
-        Read-axis spoiling at the end of the repetition, in cycles across
-        ``voxel_size_m``.
-    voxel_size_m : float, default=None
-        Length the spoiling is counted over (m). The read resolution by
-        default.
-    labels : Sequence[str], default=None
-        Counters for the encoded axes, phase encode first. Two names for a 3D
-        train, one for 2D.
-    trigger : TriggerEvent, default=None
-        A trigger or digital output armed on the prewinder block.
+        Duration of one phase-encode step (s), taken from the read ramps.
 
     Raises
     ------
@@ -576,7 +569,7 @@ def _read_lobe(
     blip_span: float,
     ramp_sampling: bool,
 ):
-    """One line's read gradient, and how far into it the echo falls.
+    """Return one line's read gradient and the time (s) from its start to the centre of the window.
 
     The lobe is padded symmetrically either side of the acquisition window, by
     enough to hold half a phase-encode step and never less than the receiver's

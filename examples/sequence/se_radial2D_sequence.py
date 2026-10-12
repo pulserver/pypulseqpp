@@ -41,9 +41,9 @@ def se_radial2d(
 ) -> pp.Sequence:
     """Multi-slice 2D radial spin echo: one full spoke per excitation.
 
-    A slice-selective SLR 90, one slice-selective SLR 180 between crushers
-    half a TE later, and one spoke through the centre of k-space at the echo,
-    turned per shot by a rotation extension. The spokes are chosen as
+    A slice-selective SLR 90, one slice-selective SLR 180 between crushers half
+    a TE later, and one spoke through the centre of k-space at the echo, turned
+    per shot by a rotation extension. The spokes are chosen as
     :mod:`gre_radial2D_sequence` chooses them, and the slices dealt into
     packets as :mod:`gre2D_sequence` deals them. Every acquisition carries its
     spoke as ``LIN`` and its slice as ``SLC``.
@@ -76,7 +76,7 @@ def se_radial2d(
     ry : int, default=1
         Angular undersampling: one spoke in every ``ry`` of the Nyquist set
         is played.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions, at the first spoke's angle, before each
         packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).

@@ -197,7 +197,7 @@ def _frozen(array):
 
 
 def libraries(native) -> SequenceLibraries:
-    """Take a native sequence's tables; see :meth:`pypulseqpp.Sequence.libraries`."""
+    """Return the tables of a native sequence; see :meth:`pypulseqpp.Sequence.libraries`."""
     tables = native.libraries()
     return SequenceLibraries(
         layout=_LAYOUT,

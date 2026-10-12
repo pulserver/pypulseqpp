@@ -16,18 +16,19 @@ _AXES = ("x", "y", "z")
 class SmsExcitation(RfModule):
     """SLR slice excitation modulated into simultaneous spectral bands.
 
-    Slice centre spacing is converted to frequency using the selection
-    gradient. Band phases control the combined peak B1.
+    The slice spacing is converted to a band spacing in frequency with the
+    selection gradient amplitude. The band phases set the peak B1 of the
+    combined pulse.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
-        Nominal flip angle (degrees), per band.
+        Flip angle of each band (degrees).
     thickness_m : float
-        Slice thickness (m): the single-band pulse's measured bandwidth over
-        the selection plateau.
+        Slice thickness (m), set by the selection gradient plateau against the
+        single-band pulse's measured bandwidth.
     slice_gap_m : float
         Centre-to-centre spacing between excited slices (m).
     n_bands : int, default=2
@@ -35,16 +36,16 @@ class SmsExcitation(RfModule):
     duration_s : float, default=0.003
         Pulse duration (s).
     phases : {'quadratic'} or sequence of float, default='quadratic'
-        Per-band phase (rad). ``'quadratic'`` spreads the peak; ``None`` leaves
-        every band in phase, which is the worst case for peak B1.
+        Phase of each band (rad). ``'quadratic'`` lowers the peak B1; ``None``
+        leaves every band in phase, the highest peak.
     rephase : bool, default=True
-        Include a slice rephaser.
+        Include the slice rephaser.
     time_bw_product : float, default=4.0
-        Time-bandwidth product of the underlying slice profile.
+        Time-bandwidth product of the single-band pulse.
     axis : {'z', 'x', 'y'}, default='z'
         Selection axis.
     use : str, default='excitation'
-        Pulseq RF-use tag, used by trajectory integration.
+        Pulseq RF use tag.
 
     Attributes
     ----------
@@ -160,8 +161,8 @@ class SmsExcitation(RfModule):
 class MultibandExcitation(RfModule):
     """Non-spatially-selective RF excitation with off-resonance sidebands.
 
-    Sideband weights are specified as power relative to the central band,
-    not amplitude. A target B1 RMS and TR can instead determine the weights.
+    The sideband weights are given as power relative to the on-resonance band,
+    or solved from a target RMS B1 over a repetition time.
 
     Parameters
     ----------
@@ -177,17 +178,18 @@ class MultibandExcitation(RfModule):
         Bands counting the on-resonance one: two for a single sideband, three
         for a symmetric pair.
     sideband_power : float, default=1.0
-        Power of *each* sideband relative to the on-resonance band. Ignored
-        when ``b1rms_ut`` is given.
+        Power of each sideband relative to the on-resonance band. Ignored when
+        ``b1rms_ut`` is given.
     b1rms_ut : float, default=None
         Target root-mean-square B1 over the repetition (uT), from which the
         sideband power is solved. Needs ``tr``.
     tr : float, default=None
-        The repetition the RMS is taken over (s).
+        Repetition time the RMS is taken over (s).
     time_bw_product : float, default=4.0
-        Time-bandwidth product of the underlying envelope.
+        Time-bandwidth product of the Gaussian envelope.
     use : str, default='saturation'
-        Pulseq RF-use tag, used by trajectory integration.
+        Pulseq RF use tag.
+
 
     Attributes
     ----------
@@ -197,11 +199,12 @@ class MultibandExcitation(RfModule):
         Band frequency offsets (Hz), including the on-resonance band.
     band_power_fraction : numpy.ndarray
         Share of the total ``|B1|^2`` each band carries.
-    sideband_power : float, default=1.0
-        Power of each sideband relative to the on-resonance band, whether it
-        was given or solved.
-    b1rms_ut : float, default=None
-        Root-mean-square B1 achieved over ``tr``, when one was given.
+    sideband_power : float
+        Power of each sideband relative to the on-resonance band, given or
+        solved from ``b1rms_ut``.
+    b1rms_ut : float
+        Root-mean-square B1 (uT) of the pulse over ``tr``; set only when
+        ``tr`` was given.
     peak_ut : float
         Peak B1 (uT), the quantity limited by the transmit chain.
 
@@ -326,7 +329,7 @@ class MultibandExcitation(RfModule):
 
 
 def _b1_squared_integral(rf, system: pp.Opts) -> float:
-    """``int |B1|^2 dt`` over a pulse, in tesla squared seconds."""
+    """Integral of ``|B1|^2`` over a pulse (T^2 s)."""
     signal = np.asarray(rf.signal, dtype=complex) / system.gamma
     time = np.asarray(rf.t, dtype=float)
     dwell = float(np.median(np.diff(time))) if len(time) > 1 else float(rf.shape_dur)

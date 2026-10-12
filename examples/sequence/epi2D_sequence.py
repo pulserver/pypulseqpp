@@ -55,11 +55,11 @@ def train_lines(
 ) -> tuple[int, int]:
     """Return the first line of shot 0 and the lines per shot.
 
-    Shot ``s`` reads lines ``start + (s + i * n_shots) * ry``. The lattice keeps
-    every line ``i`` with ``(i - n // 2) % ry == 0``, so the centre line is
-    always read. The shots end on the lattice's last line and cover the lines
-    from ``n - round(partial_fourier * n)`` up; when the shots cannot share
-    them evenly, the extra lines extend below that, or are dropped where
+    Shot ``s`` reads lines ``start + (s + i * n_shots) * ry``. The lattice
+    keeps every line ``i`` with ``(i - n // 2) % ry == 0``, so the centre line
+    is always read. The shots end on the lattice's last line and cover the
+    lines from ``n - round(partial_fourier * n)`` up; when the shots cannot
+    share them evenly, the extra lines extend below that, or are dropped where
     there is no room.
 
     Parameters
@@ -177,11 +177,11 @@ def epi2d(
     one. A multiband shot excites ``multiband`` slices at once and a
     blipped-CAIPI train encodes the band in ``PAR``.
 
-    Two prescans are linked ahead of the imaging: the
-    ``calibration``, a single-band gradient echo per slice over the central
-    ``n_acs_y`` lines (``REF``), when undersampled or multiband; and the
-    ``reference``, one volume with the phase encode reversed (``SET = 1``),
-    for distortion correction.
+    Two prescans are linked ahead of the imaging: the ``calibration``, a
+    single-band gradient echo per slice over the central ``n_acs_y`` lines
+    (``REF``), when undersampled or multiband; and the ``reference``, one
+    volume with the phase encode reversed (``SET = 1``), for distortion
+    correction.
 
     Parameters
     ----------
@@ -227,7 +227,7 @@ def epi2d(
         Saturate fat before every shot, at the flip
         :func:`~pypulseqpp.sequences.fat_null_flip_deg` gives, which leaves it
         at zero when the shot's excitation comes.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots per slice before each packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).

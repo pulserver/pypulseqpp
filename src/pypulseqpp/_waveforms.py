@@ -141,9 +141,8 @@ def waveforms_and_times(
     block_range : sequence of int, default=None
         Two 1-based block indices. Not with ``time_range``.
     compat : bool, default=True
-        Upstream's five values. False returns a
-        :class:`pypulseqpp._results.WaveformsAndTimes`, which carries what
-        those five cannot.
+        Return upstream's five values. False returns a
+        ``WaveformsAndTimes``, which carries what those five cannot.
 
     Returns
     -------
@@ -218,10 +217,10 @@ def adc_times(seq, time_range=None):
     Returns
     -------
     t_adc : np.ndarray
-        When every sample is taken, in seconds from the start of the scan.
+        Time of each ADC sample, in seconds from the start of the scan.
     fp_adc : np.ndarray
-        n-by-2, one row per ADC window rather than per sample: frequency (Hz)
-        and phase (rad) offsets, without ppm corrections.
+        ``(n, 2)``, one row per ADC window: frequency offset (Hz) and phase
+        offset (rad), without ppm terms.
     """
     expanded, elapsed = _expand(seq, time_range=time_range)
     return _shifted(expanded["t_adc"], elapsed), expanded["window_fp"]
@@ -237,9 +236,8 @@ def rf_times(seq, time_range=None, *, compat: bool = True):
     time_range : list of float, default=None
         Two times in seconds; only the blocks they touch are expanded.
     compat : bool, default=True
-        Upstream's four values, which describe two of Pulseq's seven RF uses
-        and drop the rest. False returns a
-        :class:`pypulseqpp._results.RfTimes` covering all of them.
+        Return upstream's four values, which cover two of Pulseq's seven RF
+        uses. False returns an ``RfTimes`` covering all of them.
 
     Returns
     -------

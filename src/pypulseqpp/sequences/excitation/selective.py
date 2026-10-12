@@ -16,35 +16,34 @@ _AXES = ("x", "y", "z")
 class SpatialSelectiveExcitation(RfModule):
     """SLR excitation with a selection gradient and optional rephasing.
 
-    A slice publishes separate gz and gz_reph events in two blocks. With
-    is_slab=True, rephasing is merged into gz in one block. Set rephase=False
-    to omit it; a readout may instead include the rephaser's moment.
+    A slice plays ``gz`` and ``gz_reph`` in two blocks. With ``is_slab=True``
+    the rephaser is merged into ``gz`` in one block. ``rephase=False`` omits
+    it, for a readout that includes the rephaser's moment.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
-        Nominal flip angle (degrees).
+        Flip angle (degrees).
     thickness_m : float
-        Slice or slab thickness (m): the pulse's measured bandwidth over the
-        selection plateau.
+        Slice or slab thickness (m), set by the selection gradient plateau
+        against the pulse's measured bandwidth.
     duration_s : float, default=0.003
         Pulse duration (s).
     is_slab : bool, default=False
-        Merge the rephaser into the selection gradient, as above.
+        Merge the rephaser into the selection gradient.
     rephase : bool, default=True
-        Include a slice rephaser.
+        Include the slice rephaser.
     time_bw_product : float, default=4.0
-        Time-bandwidth product. Higher is a squarer profile and a longer pulse
-        at the same bandwidth.
+        Time-bandwidth product; a higher value gives a squarer profile and a
+        longer pulse at the same bandwidth.
     axis : {'z', 'x', 'y'}, default='z'
         Selection axis.
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
-        SLR design family. ``"ex"`` for a large-tip excitation, ``"se"`` for a
-        refocusing pulse.
+        SLR design: small-tip, excitation, spin-echo, inversion or saturation.
     use : str, default='excitation'
-        Pulseq RF-use tag, used by trajectory integration.
+        Pulseq RF use tag.
     passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the slice profile.
 
@@ -159,10 +158,9 @@ class SpatialSelectiveExcitation(RfModule):
 class SpatialSelectiveRefocusing(RfModule):
     """SLR refocusing with matched crushers joined to the selection plateau.
 
-    Uses the spin-echo SLR profile. The default RF phase is pi/2 radians
-    for a zero-phase excitation (CPMG). The selection plateau is centred on
-    the centre the pulse records, its magnitude peak, and extends past the
-    pulse until that centre lies on the block raster.
+    Uses the spin-echo SLR profile. The selection plateau is centred on the
+    pulse's recorded centre, its magnitude peak, and extends past the pulse
+    until that centre lies on the block raster.
 
     Parameters
     ----------
@@ -171,12 +169,12 @@ class SpatialSelectiveRefocusing(RfModule):
     thickness_m : float
         Slice thickness (m).
     flip_angle_deg : float, default=180.0
-        Nominal flip angle (degrees).
+        Flip angle (degrees).
     duration_s : float, default=0.003
         Pulse duration (s).
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing each crusher winds across ``voxel_size_m``. Zero
-        leaves the bare selection lobe.
+        Cycles of dephasing each crusher produces across ``voxel_size_m``.
+        Zero leaves the bare selection lobe.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
     time_bw_product : float, default=4.0
@@ -184,12 +182,14 @@ class SpatialSelectiveRefocusing(RfModule):
     axis : {'z', 'x', 'y'}, default='z'
         Selection axis; the crushers share it.
     phase_offset_rad : float, default=np.pi / 2
-        RF phase. The CPMG quarter turn by default.
+        RF phase (rad); the default is the CPMG quarter turn relative to a
+        zero-phase excitation.
     use : str, default='refocusing'
-        What the pulse is for; the trajectory core negates accumulated k at a
+        Pulseq RF use tag; the trajectory core negates accumulated k at a
         refocusing pulse.
     passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the slice profile.
+
 
     Attributes
     ----------

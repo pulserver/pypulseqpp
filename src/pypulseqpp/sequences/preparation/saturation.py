@@ -20,32 +20,32 @@ from ._common import spoiler_gradients
 
 
 class OffResonanceSaturation(RfModule):
-    """Repeat one off-resonance pulse, followed by an optional three-axis spoiler.
+    """Train of one off-resonance pulse, followed by an optional three-axis spoiler.
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits.
     rf_prep : RfEvent
-        The pulse to play.
+        The pulse played ``n_pulses`` times.
     n_pulses : int, default=1
         Pulses in the train.
     spoiling_cycles : float, default=4.0
-        Dephasing of the final spoiler, in cycles across ``voxel_size_m``.
-        Zero omits the spoiler, as required for a pulse used for its phase
-        effect rather than for saturation.
+        Cycles of dephasing of the closing spoiler across ``voxel_size_m``.
+        Zero omits the spoiler, for a pulse used for its phase effect.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
-    labels : Sequence[str], default=None
-        Counters emitted on the first pulse's block.
+    labels : sequence of str, default=None
+        Labels set to 0 on the first pulse's block, to be changed per shot by
+        the caller.
 
     Attributes
     ----------
     rf_prep : RfEvent
         The pulse, published once however many times it is played.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
-        The closing spoiler, when there is one.
-    prep_labels : LabelEvent | list[LabelEvent]
+        Spoiler gradient of each axis; absent when ``spoiling_cycles`` is zero.
+    prep_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``.
 
     Raises
@@ -70,7 +70,7 @@ class OffResonanceSaturation(RfModule):
     >>> prep.blocks[0] == prep.blocks[1] == prep.blocks[2]
     True
 
-    Three pulses back to back, and the longitudinal magnetization they
+    Three pulses back to back, and the longitudinal magnetisation they
     leave across the spectrum:
 
     .. plot::
@@ -137,26 +137,27 @@ def saturation_pulse(
     freq_offset_hz: float,
     time_bw_product: float,
 ) -> Any:
-    """Design the non-spatially-selective SLR envelope used by MT preparations.
+    """Design a non-selective SLR saturation pulse.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits the pulse is designed against.
     flip_angle_deg : float
-        Nominal flip angle, in degrees.
+        Flip angle (degrees).
     duration_s : float
-        Pulse duration, in s.
+        Pulse duration (s).
     freq_offset_hz : float
-        Offset from water, in Hz.
+        Frequency offset (Hz).
     time_bw_product : float
         Time-bandwidth product, which with ``duration_s`` sets the saturated
         band.
 
+
     Returns
     -------
-    object
-        The RF event, with no selection gradient and ``use="saturation"``.
+    RfEvent
+        The pulse, with ``use="saturation"``.
     """
     return pp.make_slr_pulse(
         np.deg2rad(flip_angle_deg),
@@ -175,23 +176,23 @@ class MtPreparation(OffResonanceSaturation):
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float, default=500.0
-        Nominal flip angle (degrees). Far above 90: the point is deposited
-        power, not a tip.
+        Flip angle (degrees); the large value sets the saturation power.
     freq_offset_hz : float, default=-1500.0
-        Offset from water (Hz); must not be zero.
+        Offset from water (Hz); nonzero.
     duration_s : float, default=0.008
         Pulse duration (s).
     time_bw_product : float, default=4.0
-        Time-bandwidth product, which with ``duration_s`` sets how wide a band
-        of the bound pool is saturated.
+        Time-bandwidth product; with ``duration_s`` it sets the width of the
+        saturated band.
 
     Raises
     ------
     ValueError
-        If ``freq_offset_hz`` is zero or a duration is not positive.
+        If ``freq_offset_hz`` is zero, or ``duration_s`` or ``time_bw_product``
+        is not positive.
 
     Examples
     --------
@@ -245,19 +246,19 @@ class MtPreparation(OffResonanceSaturation):
 class IhMtPreparation(OffResonanceSaturation):
     """Simultaneous dual-offset saturation for ihMT measurements.
 
-    Each band receives 1/sqrt(2) of the matched single-offset amplitude.
-    Compare against positive- and negative-offset MtPreparation acquisitions
-    at matched deposited power.
+    Each band has ``1/sqrt(2)`` of the amplitude of the single-offset pulse of
+    the same ``flip_angle_deg``, so the deposited power equals that of one
+    single-offset pulse.
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float, default=500.0
-        Flip angle (degrees) of the single-offset arm this one is matched
-        against. Each band gets ``1 / sqrt(2)`` of it.
+        Flip angle (degrees) of the matched single-offset pulse.
     freq_offset_hz : float, default=1500.0
-        Distance of each band from water (Hz), positive. Both signs are built.
+        Offset of each band from water (Hz), positive; bands are placed at
+        both signs.
     duration_s : float, default=0.008
         Pulse duration (s).
     time_bw_product : float, default=4.0
@@ -267,13 +268,14 @@ class IhMtPreparation(OffResonanceSaturation):
     ----------
     rf_prep : RfEvent
         The dual-band pulse.
-    band_offsets_hz : NDArray[np.float64]
-        Where the two bands actually landed (Hz), for a spectral check.
+    band_offsets_hz : numpy.ndarray
+        Frequency offsets of the two bands (Hz).
 
     Raises
     ------
     ValueError
-        If ``freq_offset_hz`` is not positive or a duration is not positive.
+        If ``freq_offset_hz``, ``duration_s`` or ``time_bw_product`` is not
+        positive.
 
     Examples
     --------
@@ -335,44 +337,46 @@ class IhMtPreparation(OffResonanceSaturation):
 class BlochSiegertPreparation(OffResonanceSaturation):
     """Off-resonance Fermi pulse for Bloch-Siegert B1 mapping.
 
-    By default, no spoiler is played, preserving transverse phase between
-    excitation and readout. Calibration constants describe phase per squared
-    RF amplitude.
+    No spoiler is played by default, which preserves the transverse phase
+    between excitation and readout. The pulse shifts the phase by an amount
+    proportional to the squared B1, reported by ``kbs`` and
+    ``kbs_per_gauss2``.
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits.
     freq_offset_hz : float, default=4000.0
         Offset from water (Hz); flip its sign for the second acquisition.
     duration_s : float, default=0.008
         Pulse duration (s).
     peak_b1_hz : float, default=500.0
-        Plateau amplitude, in Pulseq units.
+        Plateau amplitude (Hz).
     flat_fraction : float, default=0.8
         Fraction of the duration held at ``peak_b1_hz``, in ``(0, 1)``.
     transition_fraction : float, default=0.02
-        Width of each shoulder, as a fraction of the duration.
+        Width parameter of each shoulder, as a fraction of the duration.
     dwell_s : float, default=1e-05
         RF raster (s).
     spoiling_cycles : float, default=0.0
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
-        Zero, the default here, omits the spoiler, for the reason above.
+        Cycles of dephasing of the closing spoiler across ``voxel_size_m``.
+        Zero omits the spoiler.
 
     Attributes
     ----------
     rf_prep : RfEvent
         The Fermi pulse.
     kbs : float
-        Phase shift per unit squared Pulseq amplitude (rad).
+        Bloch-Siegert phase shift (rad) of the pulse at ``peak_b1_hz``.
     kbs_per_gauss2 : float
-        The same constant in rad/G^2.
+        Bloch-Siegert phase shift per squared peak B1 (rad/G^2); independent
+        of ``peak_b1_hz``.
 
     Raises
     ------
     ValueError
-        If ``freq_offset_hz`` is zero, a duration or amplitude is not
-        positive, or the envelope fractions are out of range.
+        If ``freq_offset_hz`` is zero, ``duration_s``, ``peak_b1_hz`` or
+        ``dwell_s`` is not positive, or an envelope fraction is out of range.
 
     References
     ----------

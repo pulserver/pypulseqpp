@@ -69,7 +69,7 @@ def gradient_sound(
 
     Returns
     -------
-    NDArray[np.float64]
+    numpy.ndarray
         ``(2, num_samples)``. The first channel carries the x axis and the
         second the y axis, each weighted, and both carry half the weighted z
         axis. Both are smoothed with MATLAB's ``gausswin`` window of

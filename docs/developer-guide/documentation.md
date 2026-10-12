@@ -155,7 +155,7 @@ A substantial example will often include:
 
 These elements need not become separate headings, particularly for short examples.
 
-#### Explain decisions, not execution
+#### Decisions and execution
 
 Prose should explain decisions whose significance is scientific, mathematical, numerical, or specific to the library.
 
@@ -242,7 +242,7 @@ Gallery prose can provide more context than API reference, but should remain con
 
 Avoid:
 
-* second-person narration unless genuinely useful;
+* second-person narration outside the Course and the Tours, which address the reader as "you";
 * "we" merely to narrate execution;
 * rhetorical questions;
 * enthusiasm and promotional language;
@@ -289,7 +289,7 @@ A Tour opens with its objective and a **Prerequisites** line naming the Course l
 
 The catalogue pages that follow the Tours are scientific gallery examples and reference material, not lessons; {doc}`/sequences` links each of them from its sequence's reference page.
 
-#### API examples and gallery examples
+#### API and gallery examples
 
 Three kinds of example are legitimate, and they are not interchangeable: the course lesson described above, the scientific gallery example, and the API example.
 
@@ -299,19 +299,19 @@ A **gallery example** teaches a scientific, numerical or design concept through 
 
 The gallery is therefore not a catalogue of what the library ships. A reference page per object fulfils that role, and an object does not earn a gallery example by being undocumented elsewhere.
 
-#### An example is a tour of an object, not a call of it
+#### Object tours
 
 An example that constructs an object in its simplest form, prints a number and draws one figure documents nothing the reference page does not already carry. Where a public interface exposes modes that materially change what it produces — acceleration, segmentation, partial sampling, a train length, a density — at least one example demonstrates one of them, and shows what it changes.
 
 Show the consequence, not only the call. A second configuration earns its place by the figure or the table that compares it with the first.
 
-#### Defaults of a plotting helper
+#### Plotting defaults
 
 Where a plotting helper chooses something automatically — a representative window, a colour scale, a decimation — an example calls it the way a reader would, without overriding that choice.
 
 If the automatic choice produces a poor figure, that is a defect in the helper or in the object being drawn. Investigate it and fix it there. Hard-coding a selection in the example hides the defect from everyone who is not reading the example's source.
 
-#### Legends sit outside the panel
+#### Legend placement
 
 A legend is placed outside the axes it describes — above them, below them or beside them — in every figure, on an explanation page, in a gallery example and in a docstring plot alike. A legend inside a panel covers data, and which data it covers depends on the values the build happened to produce.
 
@@ -324,13 +324,13 @@ Every documentation figure — gallery, explanation page and docstring plot — 
 
 A static diagram is a pair of SVG files, light and dark, shown with the `only-light` and `only-dark` classes so the site's theme selects one; a single SVG whose colours follow `prefers-color-scheme` follows the operating system instead and is not used.
 
-#### Geometry and traversal are different figures
+#### Geometry and traversal figures
 
 A plot of where the samples are answers a different question from a plot of the order they were acquired in, and both differ from a plot of the path between them. When the traversal matters — when a reader needs to see what happens between one acquisition and the next — draw the connections and the direction, not only coloured points.
 
 Derive an ordering or traversal figure from what the implementation records: its labels, its loop, the acquisitions themselves. A figure that reconstructs an idealised ordering from the prescription can disagree with the sequence, and is then worse than no figure.
 
-#### Diagnostics come from the implementation they illustrate
+#### Diagnostic sources
 
 A figure of what a check computed uses the check's own computation. Where the public interface does not return enough to draw it, extend that interface — an optional trace, a diagnostic function — rather than recomputing the algorithm in the example. Two implementations of one calculation disagree eventually, and the documentation is where it will not be noticed.
 
@@ -364,31 +364,27 @@ This is the appropriate place for material that would be too pedagogical for API
 
 #### Organization of an explanatory page
 
-An explanatory page is usually clearest in this order:
+Every explanation page has the same compact layout, so a reader finds the same thing in the same place on each:
 
-1. **The concept or problem.** What physical, mathematical, or computational situation is being described, in standard terminology.
-2. **The formal model or criterion.** The equation, definition, or decision rule that makes the concept precise, with its symbols, units, and assumptions stated.
-3. **Consequences and trade-offs.** What the model implies for the quantities a user controls, including limiting cases and what is given up to gain something else.
-4. **The software abstraction.** How the library represents the concept, and which interface corresponds to which part of the model.
+1. **Title.** The field's name for the subject.
+2. **TL;DR.** At most three one-line bullets stating what the page establishes, with no claim the page does not support. A page with a single `##` section may omit it; landing pages, API reference pages and gallery examples have none.
+3. **Opening.** Two to four sentences addressed to the reader, giving the mental model before any interface.
+4. **Capabilities.** One bold line per capability, each followed by a toggle, closed by default, naming the code that implements it and the tests that hold it, in the words of the test names.
+5. **Division of responsibility.** What belongs to another layer — the scanner, PyPulseq, Pulserver — as a short bold-led list, where there is a real boundary.
+6. **Method.** One figure carrying the mechanism, drawn at build time from the code, and at most three short subsections on what the capability list does not say. The section ends with a link to the page's counterpart under the developer guide's internals.
+7. **Examples.** Links to the Course lessons, Tours, sequence pages and API pages that run it.
 
-The order matters: a page that opens with the class name and works outward teaches the interface rather than the subject. Sections need not carry these four labels, and a short page may cover several in one section, but a page that never reaches the formal model is under-specified, and one that never reaches the software abstraction belongs somewhere other than this project's documentation.
+Long rules, formulas, tables and derivations go to the internals page, not to the explanation; no claim is dropped in moving them. No fact is stated in two sections of the same page, and a plot is preferred to the prose it would replace. The explanation pages form one flat list under the Explanations section.
 
 Explanatory documentation may:
 
 * introduce terminology to readers outside the immediate specialty;
 * establish mathematical notation;
-* derive or motivate formulations;
 * explain relationships between concepts;
-* compare related approaches;
 * connect library abstractions to underlying theory;
 * explain conventions and their consequences;
-* discuss architectural or API design decisions;
 * explain numerical or scientific trade-offs;
 * connect implementations to literature or upstream software.
-
-An explanation page with more than one `##` section opens with a **TL;DR** block directly under its title: a short list of the page's conclusions, each stated as the page states it, with no claim the page does not support. It lets a reader decide whether the page answers their question. A page with a single section may omit it. Landing pages, API reference pages and gallery examples have none.
-
-An explanation page has one obvious purpose and, where appropriate, a strong conceptual anchor: a figure, a table, an equation or a similarly compact device that the page is organised around. A figure is not required for its own sake. The explanation pages form one flat list under the Explanations section; a page is not nested below another page.
 
 Where possible, begin from the scientific, mathematical, or computational concept rather than from the Python class hierarchy.
 
@@ -404,7 +400,7 @@ $$
 \min_x D(Ax, y) + \lambda R(x),
 $$
 
-before explaining how the library represents \(A\), \(D\), and \(R\).
+before explaining how the library represents $A$, $D$, and $R$.
 
 #### Accessibility and terminology
 
@@ -458,6 +454,8 @@ Verbs such as *buys*, *pays*, *holds*, *carries*, *walks*, *drives*, *plays*, *r
 **Headings name the concept.** A heading is an index entry and a semantic landmark, so it should normally be a concise noun phrase naming the concept, operation, quantity or task the section establishes. It is not a description of the section, a summary of its conclusion, or a phrase that only makes sense after the section has been read.
 
 Apply this test: would the heading look ordinary in a well-edited textbook, methods paper, or mature scientific-Python documentation? If not, simplify it.
+
+The rule covers page titles as well as section headings: not "What X does", "How it works" or "See it run", but "Capabilities", "Method", "Examples". Two exceptions are deliberate: Course lesson titles keep the lesson voice ("Your first gradient echo"), while the headings inside a lesson name concepts; and the README keeps "How it works", "Learn more" and "How to cite".
 
 Rule out, in particular, miniature prose statements, rhetorical questions, and headings varied for stylistic effect. Sibling headings that name comparable things should be phrased comparably; variation for its own sake makes a contents list harder to scan.
 
@@ -725,7 +723,7 @@ An example should not be added solely to satisfy a template when it provides no 
 
 ## Developer documentation
 
-Developer documentation may discuss implementation architecture and internal abstractions more directly than user-facing documentation.
+Developer documentation may discuss implementation architecture and internal abstractions more directly than user-facing documentation. The pages under `docs/developer-guide/internals/` are each the counterpart of one explanation page: they hold the rules, formulas, tables and figures the explanation links to, in the dry declarative register.
 
 Use the same precise terminology and restrained prose.
 
@@ -806,14 +804,13 @@ A successful documentation build establishes that the documentation can be rende
 
 ### Explanation
 
-* Does the page have one obvious purpose and, where appropriate, a conceptual anchor?
-* If it has more than one section, does it open with a TL;DR that states only what the page establishes?
-* Does the page teach the underlying concept rather than narrate the API?
+* Does the page follow the layout: TL;DR of at most three bullets, opening, Capabilities, Division of responsibility, Method with one figure, Examples?
+* Does every capability's toggle name real code and real tests?
+* Is each fact stated once, with the long rules and derivations on the internals page?
 * Are standard terms introduced accurately and then used consistently?
 * Are motivation, relationships, assumptions, and design choices clear?
 * Is the material accessible without sacrificing technical terminology?
 * Does the depth remain relevant to the software?
-* Does the page reach a formal model or criterion, and then the software abstraction?
 * Are mechanisms and trade-offs stated explicitly rather than compressed into a rhetorical sentence?
 
 ### Tutorials and how-to guides

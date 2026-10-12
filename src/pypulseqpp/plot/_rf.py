@@ -234,45 +234,56 @@ def plot_rf(
     Parameters
     ----------
     source : Sequence, sequence module or RF event
-        Source of the RF event. From a sequence, only the pulse's own block is
-        simulated unless a range is given.
+        Source of the pulse. For a sequence, only the pulse's own block is
+        simulated unless a range is given; a module is simulated in full.
     pulse : RF event or str, default=None
         Which pulse of ``source``: an event, or the ``use`` it is tagged with
         (``"refocusing"`` finds a spin echo's refocusing pulse). The first
         pulse by default.
     time_range, block_range : sequence, default=None
-        Blocks of a sequence to simulate over, where the profile needs more
-        than the pulse's own block.
+        Range to simulate over, for a sequence source: two times (s), or the
+        first and last block (1-based, inclusive). At most one.
     plane : str, default=None
         One of ``x``, ``y``, ``z`` and ``f`` (off-resonance) for a profile, or
-        two for a plane drawn as ``|Mxy|`` and ``Mz`` heatmaps. By default the
-        axis the pulse is selective along, or ``f`` without a gradient.
-    kind : {"excitation", "refocusing", "inversion", "saturation"}, default=None
-        Which response a profile draws; the pulse's ``use`` by default.
+        two for a plane drawn as ``|Mxy|`` and ``Mz`` heatmaps. When ``None``,
+        the axis the pulse is selective along, or ``f`` without a gradient.
+    kind : str, default=None
+        Response a profile draws: ``'refocusing'`` draws refocusing
+        efficiency, ``'inversion'``, ``'saturation'`` and ``'preparation'``
+        draw ``Mz``, and any other value ``|Mxy|``. The pulse's ``use`` when
+        ``None``.
     extent, span : float or pair of float, default=None
-        Limits of the first and second axis: a half-width about zero or a
-        ``(low, high)`` pair, in mm for a position and Hz for off-resonance.
+        Limits of the first and second axis of ``plane``: a half-width about
+        zero or a ``(low, high)`` pair, in mm for a position and Hz for
+        off-resonance. Derived from the pulse when ``None``.
     samples : int, default=401
         Points per axis; a plane caps at 91 a side.
     dt : float, default=8e-06
-        Integration step in seconds, wherever the window is integrated rather
-        than the pulse alone.
+        Integration step (s) where the window is integrated rather than the
+        pulse alone.
     whole : bool, default=False
         Integrate everything in the window -- every pulse, gradient and the
         precession between them -- rather than the pulse alone. A plane is
         always integrated this way.
     title : str, default=None
+        Figure title.
     plot_now : bool, default=True
         Show the figure before returning.
 
     Returns
     -------
     matplotlib.figure.Figure
+        The envelope panel (``|B1|`` in microtesla against time in ms) and the
+        profile, or the two heatmaps for a plane.
 
     Raises
     ------
     ValueError
-        If ``source`` holds no RF event, or the range given holds none.
+        If ``source`` or the range given holds no RF event, ``plane`` is not
+        one or two of ``x``, ``y``, ``z``, ``f``, or a single position axis
+        is not the pulse's selection axis and ``whole`` is False.
+    TypeError
+        If ``source`` is not a Sequence, a sequence module or an RF event.
 
     Notes
     -----

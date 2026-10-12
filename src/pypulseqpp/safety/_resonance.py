@@ -20,9 +20,15 @@ from ._physical import _gamma, _prescription
 class ForbiddenBand(NamedTuple):
     """A forbidden gradient band, a frequency range on one physical axis.
 
-    ``axis`` is ``"x"``, ``"y"``, ``"z"`` or None for every axis; ``f_min`` and
-    ``f_max`` are inclusive edges in Hz; ``tolerance`` is the largest amplitude
-    allowed inside the band, in mT/m, and 0 where the table states none.
+    Attributes
+    ----------
+    axis : str or None
+        ``'x'``, ``'y'``, ``'z'``, or ``None`` for every axis.
+    f_min, f_max : float
+        Inclusive band edges (Hz).
+    tolerance : float
+        Largest amplitude allowed inside the band (mT/m); 0 where the table
+        states none.
     """
 
     axis: str | None
@@ -45,8 +51,8 @@ def read_forbidden_bands(path: str | os.PathLike) -> list[ForbiddenBand]:
 
     Parameters
     ----------
-    path : str | os.PathLike
-        The ``.asc`` file to read.
+    path : str or os.PathLike
+        Siemens ``.asc`` hardware description.
 
     Returns
     -------
@@ -142,15 +148,18 @@ def mech_resonance_spectrum(
         Which window, counted from zero. A report names the worst window of
         each band as ``window``.
     window_width : float, default=0.04
-        Window length (s). Give the width the report was made with.
+        Window length (s). Use the width of the report the window index
+        refers to.
     stride : float, default=None
         Step between window starts (s); half the width by default.
     frequency_oversampling : int, default=3
-        Transform length as a multiple of the window's sample count.
+        Zero-padded transform length, in window lengths.
     rotation : array_like, default=None
-        3x3 prescription rotation from logical to physical axes.
+        3x3 prescription rotation from logical to physical axes, composed
+        after each block's own rotation; identity (axial) when ``None``.
     system : pypulseqpp.Opts, default=None
-        Source of the gyromagnetic ratio; the sequence's own by default.
+        Source of the gyromagnetic ratio (Hz/T); ``seq.system`` when
+        ``None``, then the default :class:`~pypulseqpp.Opts`.
 
     Returns
     -------
@@ -162,8 +171,9 @@ def mech_resonance_spectrum(
     Raises
     ------
     ValueError
-        If a width, stride or oversampling is out of range, or the sequence
-        has no window of that index.
+        If ``window_width`` or ``stride`` is not positive,
+        ``frequency_oversampling`` is below 1, ``window`` is negative, or the
+        sequence has no window of that index.
     """
     if window_width <= 0.0:
         raise ValueError("window_width must be positive")
@@ -221,16 +231,16 @@ def check_mech_resonance(
     seq : Sequence
         Sequence to check.
     bands : iterable of ForbiddenBand, or path
-        Bands as ``(axis, f_min, f_max, tolerance)``, or a table for
-        :func:`read_forbidden_bands`.
+        Bands as ``(axis, f_min, f_max, tolerance)`` tuples, or the path of a
+        ``.asc`` file read by :func:`read_forbidden_bands`.
     window_width : float, default=0.04
-        Window length in seconds.
+        Window length (s).
     stride : float, default=None
-        Step between window starts in seconds; ``window_width / 2`` by default.
+        Step between window starts (s); ``window_width / 2`` when ``None``.
     frequency_oversampling : int, default=3
         Zero-padded transform length, in window lengths.
     min_threshold : float, default=10.0
-        Threshold in mT/m for a band whose tolerance is 0.
+        Threshold (mT/m) for a band whose tolerance is 0.
     rotation : array_like, default=None
         3x3 prescription rotation from logical to physical axes, applied after
         each block's own rotation; identity (axial) by default.
@@ -256,8 +266,9 @@ def check_mech_resonance(
     Raises
     ------
     ValueError
-        If a band's frequency range is empty or negative, or a rotation is
-        not a 3x3 matrix.
+        If ``min_threshold``, ``window_width`` or ``stride`` is not positive,
+        ``frequency_oversampling`` is below 1, a band's frequency range is
+        empty or negative, or ``rotation`` is not a 3x3 orthonormal matrix.
 
     Notes
     -----

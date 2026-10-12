@@ -92,13 +92,13 @@ def mprage_stack_of_stars3d(
     Each shot is the inversion, a wait that puts the first spoke's excitation
     centre at TI, one :class:`RadialStackReadout` repetition per spoke of one
     partition, and a recovery that makes every inversion-to-inversion interval
-    the TR. Partitions are played in order. The Nyquist set is
-    ``ceil(pi / 2 * n)`` spokes spread evenly over half a turn, and every
-    ``ry``-th of them is played in a golden order (:func:`golden_order`), so a
-    train binned in time still covers the half turn; one spoke waveform serves
-    every repetition, turned by a rotation extension. Acquisitions carry the
-    spoke as ``LIN`` and the partition as ``PAR``; under partition undersampling the central ``n_acs_z`` partitions
-    are acquired too, marked ``IMA``.
+    the TR. Partitions are played in order. The Nyquist set is ``ceil(pi / 2 *
+    n)`` spokes spread evenly over half a turn, and every ``ry``-th of them is
+    played in a golden order (:func:`golden_order`), so a train binned in time
+    still covers the half turn; one spoke waveform serves every repetition,
+    turned by a rotation extension. Acquisitions carry the spoke as ``LIN`` and
+    the partition as ``PAR``; under partition undersampling the central
+    ``n_acs_z`` partitions are acquired too, marked ``IMA``.
 
     Parameters
     ----------

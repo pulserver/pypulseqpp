@@ -40,13 +40,12 @@ def zte3d(
 
     One shell of views, written out as one continuous waveform that ramps up
     once at its first view and down once after its last, is replayed per shot
-    turned about z by a rotation extension. The Nyquist set is
-    ``ceil(pi * n ** 2)`` spokes over the sphere, dealt into ``n_shots``
-    shells; every ``r``-th shell is played, in order, which is angular
-    undersampling. The dead-time gap after each pulse leaves
-    ``MissingSamples`` at the centre of k-space unacquired. Dummy shells
-    precede the first shot, played as it is without the ADC. Acquisitions
-    carry the view as ``LIN`` and the shot as ``SEG``.
+    turned about z by a rotation extension. The Nyquist set is ``ceil(pi * n **
+    2)`` spokes over the sphere, dealt into ``n_shots`` shells; every ``r``-th
+    shell is played, in order, which is angular undersampling. The dead-time
+    gap after each pulse leaves ``MissingSamples`` at the centre of k-space
+    unacquired. Dummy shells precede the first shot, played as it is without
+    the ADC. Acquisitions carry the view as ``LIN`` and the shot as ``SEG``.
 
     Parameters
     ----------

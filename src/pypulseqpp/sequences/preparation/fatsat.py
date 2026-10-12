@@ -13,8 +13,8 @@ import pypulseqpp as pp
 from ..excitation._base import RfModule, rf_reference
 from ._common import spoiler_gradients
 
-#: Where the main fat resonance sits relative to water. Negative: fat precesses
-#: more slowly, so it is downfield of water in frequency.
+#: Main fat resonance relative to water (ppm); negative, because fat precesses
+#: more slowly than water.
 FAT_SHIFT_PPM = -3.45
 
 #: T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J
@@ -25,13 +25,12 @@ FAT_T1_S = 0.37
 def fat_null_flip_deg(
     delay_s: float, period_s: float, *, t1_s: float = FAT_T1_S
 ) -> float:
-    """Return the flip angle that leaves fat's longitudinal magnetization at zero ``delay_s`` after the pulse, played once every ``period_s``.
+    """Return the saturation flip angle (degrees) that nulls fat at the excitation.
 
-    In the steady state of one pulse every ``period_s``, fat nulled at the
-    excitation ``delay_s`` after the pulse recovers from zero for
-    ``period_s - delay_s`` before the next; the flip that brings it back to
-    zero by the excitation has ``cos(a) = (1 - exp(delay/T1)) / (1 -
-    exp(-(period - delay)/T1))``, a little over 90 degrees.
+    In the steady state of one saturation pulse every ``period_s``, fat is
+    zero ``delay_s`` after the pulse when the flip ``a`` satisfies
+    ``cos(a) = (1 - exp(delay/T1)) / (1 - exp(-(period - delay)/T1))``, a
+    little over 90 degrees.
 
     Parameters
     ----------
@@ -70,27 +69,25 @@ def fat_null_flip_deg(
 class FatSaturation(RfModule):
     """Spectrally selective fat saturation of the whole transmit volume, with a three-axis spoiler.
 
-    The pulse plays no gradient, so a field-of-view offset or rotation applied
-    afterwards leaves it as it is: it saturates fat wherever the prescription
-    puts the image.
+    The pulse plays with no gradient, so a field-of-view offset or rotation
+    applied afterwards does not change it.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     freq_offset_ppm : float, default=FAT_SHIFT_PPM
-        Fat offset from water (ppm). Carried on the pulse as a ppm offset
-        rather than as hertz, so the interpreter resolves it against the
-        field the scan actually runs at.
+        Fat offset from water (ppm), carried on the pulse as a ppm offset,
+        which an interpreter resolves against the field of the scan.
     flip_angle_deg : float, default=110.0
         Saturation flip angle (degrees).
     bandwidth_hz : float, default=250.0
-        Spectral passband (Hz). With ``time_bw_product`` it fixes the pulse
-        duration, which is ``time_bw_product / bandwidth_hz``.
+        Spectral passband (Hz); the pulse duration is
+        ``time_bw_product / bandwidth_hz``.
     time_bw_product : float, default=2.0
         Time-bandwidth product.
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.
+        Cycles of dephasing of each spoiler across ``voxel_size_m``.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
 
@@ -99,18 +96,18 @@ class FatSaturation(RfModule):
     rf_prep : RfEvent
         The saturation pulse.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
-        Closing spoiler on all three axes.
+        Spoiler gradient of each axis.
     freq_offset_ppm : float
         The fat offset the pulse carries (ppm).
     freq_offset_hz : float
-        What that comes to at ``system.B0`` (Hz), for reference; the pulse
-        itself is field-independent.
+        The offset at ``system.B0`` (Hz); informational, the pulse carries
+        ``freq_offset_ppm``.
 
     Raises
     ------
     ValueError
         If a bandwidth, time-bandwidth product or voxel size is not positive,
-        or the spoiler was asked for zero cycles.
+        or ``spoiling_cycles`` is not positive.
 
     Examples
     --------
@@ -123,7 +120,7 @@ class FatSaturation(RfModule):
     >>> [event.type for event in fatsat.blocks[0]]
     ['rf']
 
-    The pulse with its spoiler, and the longitudinal magnetization left
+    The pulse with its spoiler, and the longitudinal magnetisation left
     across the spectrum. The band sits at the fat resonance for the field
     the module was designed at, and water at zero offset is untouched:
 

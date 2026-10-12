@@ -21,15 +21,49 @@ class _BssfpReadout(SequenceModule):
     """Balanced SSFP repetition with TE fixed at TR/2.
 
     Every axis is balanced between consecutive RF centres. The slice
-    rephasers are part of that balance and are built here, so pass an
-    excitation built with ``rephase=False``.
+    rephasers belong to that balance and are built here, so ``rf`` and ``gz``
+    come from an excitation built with ``rephase=False``.
 
-    The module's blocks are excitation, acquisition, rewind. A loop plays each
-    shot as the previous shot's rewind, excitation, acquisition, and writes
-    the transients itself: the half-flip pulse (``rf`` at half amplitude,
-    opposite in phase to the first excitation) then ``wait_prep``;
+    The module's blocks are excitation, acquisition, rewind. The caller plays
+    each shot as the previous shot's rewind, excitation and acquisition, and
+    writes the transients: the half-flip pulse (``rf`` at half amplitude,
+    opposite in phase to the first excitation) followed by ``wait_prep``;
     ``wait_rewind`` with ``gz_rew`` in place of the first rewind; and a last
     rewind block to ramp down.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        The excitation.
+    gz : GradEvent, default=None
+        Its selection gradient without a rephaser, played in the excitation
+        block; ``None`` for a hard pulse.
+    fov : float or sequence of float
+        Field of view per encoded axis, readout first (m).
+    matrix : int or sequence of int
+        Matrix size per encoded axis, readout first.
+    tr : float, default=None
+        Repetition time (s). ``None`` is as short as possible; a longer TR is
+        added evenly either side of the echo, so TE stays at TR/2.
+    half_flip_prep : bool, default=True
+        Build ``wait_prep`` for the half-flip preparation. Requires the
+        acquisition block after the echo to be at least as long as the
+        excitation block after the pulse centre. False when the caller ramps
+        the signal in with dummy repetitions.
+    oversampling : float, default=1.0
+        Readout oversampling: the sample spacing in k-space is
+        ``1 / (oversampling * fov)``.
+    readout_bandwidth_hz : float, default=250000.0
+        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
+        on the ADC and gradient rasters.
+    labels : sequence of str, default=None
+        Labels set to 0 on the acquisition block, to be changed per shot by the
+        caller.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the rewind block.
+
 
     Attributes
     ----------
@@ -46,65 +80,35 @@ class _BssfpReadout(SequenceModule):
         In-plane encode at its largest step, and the same negated, to be scaled
         per shot.
     gz_pre, gz_rew : TrapEvent
-        The slice rephasers: ``gz_pre`` in the acquisition block after the
-        pulse, ``gz_rew`` in the rewind block before the next one. Absent for
-        a hard pulse.
+        Slice rephasers: ``gz_pre`` in the acquisition block after the pulse,
+        ``gz_rew`` in the rewind block before the next pulse. Absent for a
+        hard pulse.
     gz_partition, gz_partition_rew : TrapEvent
         Partition encode at its largest step, and the same negated, sharing
         the window of ``gz_pre`` and ``gz_rew`` respectively. 3D only.
     adc : AdcEvent
         The acquisition window, spanning the readout plateau.
     adc_labels : LabelSetEvent or list of LabelSetEvent
-        One per name in ``labels``; a bare event when there is one.
+        One per name in ``labels``.
     prep_labels, train_labels, end_labels : list of LabelSetEvent
         ``ONCE`` set to 1, 0 and 2, for the half-flip block, the block after
         it and the final rewind.
     wait_prep : DelayEvent
-        Played after the half-flip block; with the ``wait_rewind`` block it
-        puts the half-flip pulse half a repetition before the first
-        excitation. Absent under ``half_flip_prep=False``.
+        Delay after the half-flip block; with the ``wait_rewind`` block it
+        places the half-flip pulse half a repetition before the first
+        excitation. Absent with ``half_flip_prep=False``.
     wait_rewind : DelayEvent
-        The rewind block's duration, for the first repetition.
+        Delay of the rewind block's duration, for the first repetition.
     tr, te : float
         Repetition and echo time (s); ``te`` is always half of ``tr``.
     bandwidth_hz : float
         Achieved ADC sampling rate (Hz).
     n_samples : int
-        Samples per repetition.
+        ADC samples per repetition.
     delta_kx : float
-        Read-axis k-space step (1/m).
+        K-space sample spacing along the readout (1/m).
     readout_duration : float
-        Sampling window (s).
-
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    rf : RfEvent
-        The excitation.
-    gz : GradEvent, default=None
-        Its selection gradient without a rephaser, played in the excitation
-        block. ``None`` for a hard pulse.
-    fov : float or sequence of float
-        Field of view (m), per encoded axis, readout first.
-    matrix : int or sequence of int
-        Matrix size, per encoded axis.
-    tr : float, default=None
-        Repetition time (s). ``None`` is as short as possible; a longer one is
-        padded evenly either side of the echo, so TE stays at TR/2.
-    half_flip_prep : bool, default=True
-        Publish ``wait_prep``. This requires the acquisition block after the
-        echo to be at least as long as the excitation block after the pulse
-        centre. Turn it off to ramp the train in with dummy repetitions.
-    oversampling : float, default=1.0
-        Read oversampling.
-    readout_bandwidth_hz : float, default=250000.0
-        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
-        achieved raster-compatible rate.
-    labels : sequence of str, default=None
-        Counters emitted on the acquisition block.
-    trigger : event, default=None
-        A trigger or digital output armed on the rewind block.
+        Duration of the sampling window (s).
 
     Raises
     ------
@@ -311,11 +315,10 @@ def _vertices(system: pp.Opts, area: float, grad_start: float, grad_end: float):
 
 
 def _lobe(system: pp.Opts, area: float, duration: float, ramp: float):
-    """Z trapezoid of ``area`` over ``duration``, or ``None`` if there is none.
+    """Return a z trapezoid of ``area`` over ``duration`` with ramps of ``ramp``, or None for zero area.
 
-    The ramp is given rather than solved, so that two lobes over the same
-    window share their vertex times whatever their areas -- which is what lets
-    a rephaser and a partition encode be added into one trapezoid.
+    Lobes over one window share their vertex times whatever their areas, so a
+    rephaser and a partition encode can be added into one trapezoid.
     """
     if abs(area) < 1e-12:
         return None
@@ -325,11 +328,10 @@ def _lobe(system: pp.Opts, area: float, duration: float, ramp: float):
 
 
 def _z_floor(system: pp.Opts, area: float, ramp: float, raster: float) -> float:
-    """Shortest window that holds a z trapezoid of ``area`` on ramps of ``ramp``.
+    """Return the shortest window holding a z trapezoid of ``area`` on ramps of ``ramp``.
 
-    The caller passes a rephaser plus the outermost partition step: the loop
-    adds the two into one trapezoid, and their sum must stay within
-    ``max_grad``.
+    ``area`` is a rephaser plus the largest partition step: the caller adds
+    the two into one trapezoid, whose amplitude must stay within ``max_grad``.
     """
     return pp.ceil_to_raster(max(2.0 * ramp, ramp + area / system.max_grad), raster)
 

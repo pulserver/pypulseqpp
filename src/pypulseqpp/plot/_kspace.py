@@ -106,7 +106,7 @@ def sampling_order(seq, first: int, last: int) -> tuple[np.ndarray, np.ndarray]:
     seq : pypulseqpp.Sequence
         The sequence to read.
     first, last : int
-        The 1-based block range to follow.
+        First and last block (1-based, inclusive) to follow.
 
     Returns
     -------
@@ -154,19 +154,23 @@ def plot_kspace(
     seq : Sequence
         The sequence to draw.
     time_range, block_range, tr_range : sequence, default=None
-        The part of the sequence to draw, as for :meth:`Sequence.plot`; at
-        most one. The whole sequence by default.
-    plane : {"xy", "xz", "yz", ...}, default=None
-        Two of ``x``, ``y``, ``z`` and ``f`` to project onto, where ``f`` is
-        the transmit frequency of each sample's slice. By default a trajectory
-        confined to a plane is drawn in it, and any other in 3D.
+        The part of the sequence to draw; at most one. A time range is two
+        times (s), a block range the first and last block and a repetition
+        range the first and last repetition, both 1-based and inclusive. The
+        whole sequence when none is given.
+    plane : str, default=None
+        Two of ``x``, ``y``, ``z`` and ``f`` (for example ``"xy"``) to project
+        onto, where ``f`` is the transmit frequency offset (Hz) of each
+        sample's slice. When ``None``, a trajectory confined to a plane is
+        drawn in it and any other in 3D.
     show_trajectory : bool, default=True
         Also draw the trajectory between samples. The axis limits are set
         from the sampling locations either way, so a prewinder or spoiler is
         clipped rather than setting the scale.
     color_by : {"echo", "shot", "order"}, default=None
-        Colour samples by echo index within the shot, by shot index, or both
-        side by side. A panel whose index never varies is dropped.
+        Colour samples by echo index within the shot, by shot index, or by
+        both in two panels (``"order"``). A panel whose index never varies is
+        dropped.
     plot_now : bool, default=True
         Show the figure before returning.
 
@@ -178,8 +182,9 @@ def plot_kspace(
     Raises
     ------
     ValueError
-        If more than one range is given, ``color_by`` or ``plane`` is not one
-        of the values listed, or the range holds no ADC samples.
+        If more than one range is given, a range is backwards or outside the
+        sequence, ``color_by`` or ``plane`` is invalid, or the range holds no
+        ADC samples.
 
     Notes
     -----

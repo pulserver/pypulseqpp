@@ -73,6 +73,11 @@ def calc_adc_timing(
         If the sample count, dwell or rasters are not positive, or the
         duration floor is negative.
 
+    See Also
+    --------
+    make_adc : build the ADC event from the returned dwell.
+    calc_adc_segments : split a long ADC into equal segments.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -83,11 +88,6 @@ def calc_adc_timing(
     (5.0, 480.0)
     >>> round(duration / 10e-6, 6)
     48.0
-
-    See Also
-    --------
-    make_adc : build the ADC event from the returned dwell.
-    calc_adc_segments : split a long ADC into equal segments.
     """
     if num_samples < 1:
         raise ValueError("num_samples must be >= 1")
@@ -113,21 +113,18 @@ def quantize_readout_timing(
 ) -> tuple[float, float]:
     """Choose an ADC dwell from a requested receiver bandwidth.
 
-    Receiver bandwidth is the full sampling bandwidth, ``1 / dwell`` in Hz,
-    not bandwidth per pixel.
-
     Search upward from the nearest ADC-raster dwell satisfying the duration
-    floor, for at most ``MAX_RASTER_SEARCH_STEPS`` candidates. If none aligns
-    the readout to the gradient raster, return that starting dwell.
-    Inputs must have positive sample count, bandwidth and rasters.
+    floor, for at most ``MAX_RASTER_SEARCH_STEPS`` candidates, for the first
+    whose readout duration is a whole number of gradient rasters. If none is,
+    return that starting dwell. Inputs must be positive.
 
     Parameters
     ----------
     nx_ro : int
         Number of readout samples.
     target_bw_hz_px : float
-        Requested receiver bandwidth ``1 / dwell`` (Hz), not a bandwidth per
-        pixel despite the ``_px`` suffix.
+        Requested receiver bandwidth ``1 / dwell`` (Hz); this is not the
+        bandwidth per pixel, ``1 / (nx_ro * dwell)``.
     grad_raster_s, adc_raster_s : float
         Gradient and ADC rasters (s).
     min_flat_time_s : float
@@ -143,8 +140,8 @@ def quantize_readout_timing(
 
     Examples
     --------
-    >>> from pypulseqpp._timing import quantize_readout_timing
-    >>> dwell, flat = quantize_readout_timing(256, 62_500.0, 1e-5, 1e-7, 0.0)
+    >>> import pypulseqpp as pp
+    >>> dwell, flat = pp.quantize_readout_timing(256, 62_500.0, 1e-5, 1e-7, 0.0)
     >>> abs(flat / 1e-5 - round(flat / 1e-5)) < 1e-9
     True
     """

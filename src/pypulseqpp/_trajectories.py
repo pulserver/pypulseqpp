@@ -75,8 +75,8 @@ def calc_radial_trajectory(fov, matrix, *, num_points=None):
     Raises
     ------
     ValueError
-        If ``fov`` is not isotropic or not positive, if ``matrix`` is not
-        positive, or if ``num_points`` is below 2.
+        If ``fov`` is not isotropic or not positive, if ``matrix`` is below 2,
+        or if ``num_points`` is below 2.
 
     Examples
     --------
@@ -125,20 +125,21 @@ def calc_spiral_trajectory(
         How the local pitch changes with radius: not at all, as
         ``radius ** variable_density_power``, or between two plateaus joined
         by a logistic transition.
-    inner_design_interleaves, outer_design_interleaves : float, default=None
-        Local interleaf count at the centre and at the edge. The inner one
-        defaults to ``design_interleaves``; the outer one to twice the inner
-        for a variable-density spiral, and is required for a dual-density
-        one. A larger count is a coarser pitch, so a variable-density
-        spiral undersamples the edge.
+    inner_design_interleaves : float, default=None
+        Local interleaf count at the centre; defaults to ``design_interleaves``.
+    outer_design_interleaves : float, default=None
+        Local interleaf count at the edge; defaults to twice the inner count
+        for variable density, and is required for dual density.
+        A larger count is a coarser pitch, so a variable-density spiral
+        undersamples the edge.
     variable_density_power : float, default=2.0
         Exponent of the variable-density ramp.
     transition_radius : float, default=0.5
-        Where between the centre (0) and the edge (1) a dual-density spiral
-        changes pitch, and how abruptly.
+        Normalised radius, in (0, 1) from the centre to the edge, at which a
+        dual-density spiral changes pitch.
     transition_speed : float, default=12.0
-        Where between the centre (0) and the edge (1) a dual-density spiral
-        changes pitch, and how abruptly.
+        Steepness of that change: the logistic rate per unit normalised
+        radius.
     num_points : int, default=1024
         Samples along the polyline. Sets how finely the curve is described,
         not how many ADC samples the readout takes.

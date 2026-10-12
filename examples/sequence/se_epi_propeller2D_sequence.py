@@ -38,14 +38,14 @@ def se_epi_propeller2d(
 ) -> pp.Sequence:
     """Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation.
 
-    A slice-selective excitation and one refocusing pulse with crushers put
-    the spin echo on the blade's central line, so ``te`` runs from the
-    excitation centre to that line with the refocusing pulse at its midpoint.
-    The blade straddles the centre of k-space and is turned per shot by a
-    rotation extension. Slices one TR cannot hold are dealt round-robin into
-    passes, and each slice of a pass is played at ``tr / len(pass)``. Every
-    acquisition carries its line within the blade as ``LIN``, its slice as
-    ``SLC`` and its blade as ``SEG``.
+    A slice-selective excitation and one refocusing pulse with crushers put the
+    spin echo on the blade's central line, so ``te`` runs from the excitation
+    centre to that line with the refocusing pulse at its midpoint. The blade
+    straddles the centre of k-space and is turned per shot by a rotation
+    extension. Slices one TR cannot hold are dealt round-robin into passes, and
+    each slice of a pass is played at ``tr / len(pass)``. Every acquisition
+    carries its line within the blade as ``LIN``, its slice as ``SLC`` and its
+    blade as ``SEG``.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def se_epi_propeller2d(
         In-plane matrix size.
     blade_width : int, default=16
         Phase-encode lines per blade.
-    n_blades : int or None, default=None
+    n_blades : int | None, default=None
         Blades in the set. ``None`` is the smallest count that samples the
         rim of k-space at Nyquist.
     angle_scheme : {'uniform', 'golden'}, default='uniform'
@@ -68,14 +68,14 @@ def se_epi_propeller2d(
     slice_thickness : float, default=0.005
         Slice thickness (m).
     slice_gap : float, default=0.0
-        Gap between adjacent slices (m).
+        Gap between adjacent slices (m); zero is contiguous.
     slice_order : {'sequential','reverse','interleaved','center_out','outside_in','random'}, default='interleaved'
         Order the slices of one pass are excited in, as
         :func:`~pypulseqpp.make_traversal_order` visits them.
-    te : float or None, default=0.08
+    te : float | None, default=0.08
         Effective echo time, excitation centre to the blade's central
         line (s). ``None`` is as short as possible.
-    tr : float or None, default=2.0
+    tr : float | None, default=2.0
         Repetition time between successive excitations of one slice (s).
         ``None`` is as short as possible, and puts every slice in one
         pass.
@@ -83,11 +83,11 @@ def se_epi_propeller2d(
         Requested receiver bandwidth (Hz).
     crusher_cycles : float, default=4.0
         Cycles of dephasing each crusher beside the refocusing pulse winds.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring blades, at the first blade's angle, before the first
         acquired blade of each pass.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
-    n_gain_calibration_readouts : int or None, default=None
+    n_gain_calibration_readouts : int | None, default=None
         Written as the ``NumGainCalibrationReadouts`` definition. ``None``
         is one per slice.
 

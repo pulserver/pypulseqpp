@@ -54,7 +54,7 @@ def _choices(kind: str) -> tuple[Any, ...]:
 
 
 def _prescribed(function: Callable[..., Any]) -> dict[str, inspect.Parameter]:
-    """Return the parameters a protocol names: those after the first, which is ``system``."""
+    """Return the parameters a protocol names: those after ``system``."""
     return {
         name: p
         for name, p in list(inspect.signature(function).parameters.items())[1:]
@@ -63,7 +63,7 @@ def _prescribed(function: Callable[..., Any]) -> dict[str, inspect.Parameter]:
 
 
 def parameters(function: Callable[..., Any]) -> dict[str, ProtocolParameter]:
-    """Return each protocol parameter of a sequence function with its type, default, unit and description.
+    """Return the protocol parameters of a sequence function.
 
     The protocol is every parameter after the first, which is ``system``. Its
     type, default and whether it admits None are read from the annotation and

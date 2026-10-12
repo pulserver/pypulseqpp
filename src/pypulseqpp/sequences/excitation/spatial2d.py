@@ -15,34 +15,34 @@ class SpatialSelective2DExcitation(RfModule):
     """Small-tip spiral excitation selective in two dimensions.
 
     The selected disc extends along the unencoded axis. Its periodic replicas
-    are set by the excitation FOV, which should cover the object. Each arm
-    is retraced with RF off; the closed trajectory needs no separate rephaser.
+    lie at the excitation FOV distance, which should cover the object. Each
+    arm is retraced with RF off, so the trajectory ends at the origin and
+    needs no rephaser.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
-        Nominal flip angle (degrees), reached at the centre of the disc.
+        Flip angle (degrees) at the centre of the disc.
     fov : float
-        Excitation field of view (m), square. The distance to the first
+        Square excitation field of view (m); the distance to the first
         repeated disc.
     matrix : int
-        Excitation grid size, square. How finely the profile is specified, and
-        so how far out the trajectory reaches.
+        Excitation grid size, square; sets the extent of the trajectory in
+        excitation k-space.
     selective_size : float or sequence of float, default=None
-        Diameter (m) of the excited disc. Half the field of view by default.
+        Diameter of the excited disc (m). ``None`` is half the field of view.
     target : numpy.ndarray, default=None
-        Complex desired profile on the ``(matrix, matrix)`` grid, instead of a
-        disc.
+        Complex profile on the ``(matrix, matrix)`` grid, instead of a disc.
     n_interleaves : int, default=None
-        Spiral arms to play. The default covers excitation k-space at Nyquist;
-        fewer is a proportionally shorter pulse and a repeated disc that moves
+        Spiral arms played. ``None`` samples excitation k-space at Nyquist;
+        fewer arms give a proportionally shorter pulse and a repeated disc
         proportionally closer.
     axes : sequence of str, default=('x', 'y')
         The two gradient channels the trajectory runs on.
     use : str, default='excitation'
-        Pulseq RF-use tag, used by trajectory integration.
+        Pulseq RF use tag.
 
     Attributes
     ----------
@@ -51,13 +51,13 @@ class SpatialSelective2DExcitation(RfModule):
     gradients : tuple of GradEvent
         One per axis, played in the pulse's own block.
     rephasers : tuple of TrapEvent
-        Empty for the spiral trajectory; the attribute is present because a
-        trajectory that does not end at the origin requires rephasers.
+        Rephasing gradients; empty, because the spiral trajectory ends at the
+        origin.
     self_refocused : bool
         Whether the excitation k-space trajectory ends at the origin without
         a rephaser.
     duration_s : float
-        Pulse length (s), which the trajectory fixed.
+        Pulse length (s), set by the trajectory.
 
     Raises
     ------
@@ -80,7 +80,7 @@ class SpatialSelective2DExcitation(RfModule):
     (True, ())
 
     The subpulse train under the spiral gradients, and the transverse
-    magnetization over the selected plane:
+    magnetisation over the selected plane:
 
     .. plot::
        :include-source: false

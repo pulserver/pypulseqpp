@@ -31,8 +31,8 @@ def require(attribute: str | None = None) -> Any:
     Parameters
     ----------
     attribute
-        Symbol the caller needs. Checked here, so a binary that predates the
-        symbol fails at the load rather than at the call.
+        Name of a symbol the caller needs; checked at load, so a binary
+        lacking it fails here rather than at the call.
 
     Returns
     -------

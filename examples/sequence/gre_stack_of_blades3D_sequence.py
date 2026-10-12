@@ -103,7 +103,7 @@ def gre_stack_of_blades3d(
         acquired, the centre one among them.
     partial_fourier_z : float, default=1.0
         Fraction of the partition extent acquired, in ``[0.75, 1]``.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions, at the first blade's centre line and the
         centre partition, before the scan.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).

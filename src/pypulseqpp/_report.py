@@ -36,9 +36,9 @@ def report_data(seq) -> dict[str, Any]:
     dict
         ``num_blocks``, ``event_count`` and ``libraries``; ``duration``,
         ``TE`` and ``TR`` in seconds; ``flip_angles_deg``;
-        ``unique_k_positions``; ``max_gradient`` and ``max_slew_rate``, each
-        per axis and as a vector magnitude, in the file's units and in the
-        scanner's; and ``timing_ok`` with ``timing_error_report``.
+        ``unique_k_positions``; ``max_gradient`` (Hz/m and mT/m) and
+        ``max_slew_rate`` (Hz/m/s and T/m/s), each per axis and as a vector
+        magnitude; and ``timing_ok`` with ``timing_error_report``.
 
         A sequence whose encoding visits more than one position also carries
         ``dimensions``, ``spatial_resolution_mm``, ``repetitions`` and
@@ -46,7 +46,10 @@ def report_data(seq) -> dict[str, Any]:
 
     Notes
     -----
-    Calls check_timing, which may record TotalDuration.
+    Gradient peaks are those of the waveforms after each block's rotation,
+    so the axes are the logical axes. Calls
+    :meth:`~pypulseqpp.Sequence.check_timing`, which may record
+    ``TotalDuration``.
     """
     native = seq._native
     flip_angles_deg = _cxx.flip_angles(native)
@@ -258,7 +261,7 @@ def _gradient_peaks(gw_data):
 
 
 def report_text(data: dict[str, Any]) -> str:
-    """Format the statistics returned by report_data.
+    """Format the statistics returned by :func:`report_data` as text.
 
     Parameters
     ----------

@@ -100,19 +100,19 @@ def mprage3d(
     """3D MPRAGE: one inversion per partition, then a train of spoiled low-flip lines.
 
     Each shot is the inversion, a wait that puts the first line's excitation
-    centre at TI, one :class:`LineReadout3D` repetition per line of one partition,
-    and a recovery that makes every inversion-to-inversion interval the TR.
-    Partitions are played in order. Only views inside the inscribed ky-kz
-    ellipse are sampled, so partitions hold different numbers of lines; every
-    shot plays as many repetitions as the fullest partition, and the ones it
-    has no line for play without acquiring. ``ordering`` plays a partition's
+    centre at TI, one :class:`LineReadout3D` repetition per line of one
+    partition, and a recovery that makes every inversion-to-inversion interval
+    the TR. Partitions are played in order. Only views inside the inscribed
+    ky-kz ellipse are sampled, so partitions hold different numbers of lines;
+    every shot plays as many repetitions as the fullest partition, and the ones
+    it has no line for play without acquiring. ``ordering`` plays a partition's
     lines centre-out, so the centre line's excitation occurs at TI and its ADC
     echo at TI + TE, or shuffled for a time-resolved reconstruction. Each
     acquisition carries its line and its partition as ``LIN`` and ``PAR``, and,
     shuffled, its place in the train, the time a time-resolved reconstruction
-    resolves, as ``ECO``; calibration views are marked ``IMA``, and under wave-CAIPI the
-    calibration region is first acquired wave-free in shots of its own,
-    marked ``REF``.
+    resolves, as ``ECO``; calibration views are marked ``IMA``, and under
+    wave-CAIPI the calibration region is first acquired wave-free in shots of
+    its own, marked ``REF``.
 
     Parameters
     ----------
@@ -120,23 +120,18 @@ def mprage3d(
         System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
         ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
     fov_x : float, default=0.256
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the readout (m).
     fov_y : float, default=0.256
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the phase encode (m).
     fov_z : float, default=0.176
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the partition encode (m). The slab excited is
+        ``fov_z`` thick.
     n_x : int, default=256
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the readout.
     n_y : int, default=256
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the phase encode.
     n_z : int, default=176
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the partition encode.
     flip_angle_deg : float, default=9.0
         Readout excitation flip angle (degrees).
     te : float | None, default=None
@@ -161,7 +156,8 @@ def mprage3d(
         acquired line, in ``[0, rz)``.
         Unused by ``shuffling``.
     partial_fourier_x : float, default=1.0
-        Fraction of the echo acquired, in ``[0.75, 1]``.
+        Fraction of the echo acquired, in ``[0.75, 1]``. Truncates the samples
+        before the echo.
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
@@ -173,11 +169,11 @@ def mprage3d(
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, when undersampled.
+        Extent of the fully sampled calibration region along the phase encode,
+        acquired ahead of the rest when undersampled.
     n_acs_z : int, default=16
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, when undersampled.
+        Extent of the fully sampled calibration region along the partition
+        encode, acquired ahead of the rest when undersampled.
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.

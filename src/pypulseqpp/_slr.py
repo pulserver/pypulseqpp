@@ -223,7 +223,7 @@ def design_gslider(
     n : int
         Samples in the pulse; even and at least 8.
     time_bandwidth_product : float
-        Of the whole slab.
+        Time-bandwidth product of the whole slab.
     num_subslices : int
         Sub-slices the slab is divided into.
     subslice : int
@@ -280,7 +280,7 @@ def design_hadamard(
     n : int
         Samples in the pulse; even and at least 8.
     time_bandwidth_product : float
-        Of the whole slab.
+        Time-bandwidth product of the whole slab.
     order : int
         Size of the Hadamard matrix, a power of two, which is also the
         sub-bands the slab is divided into.
@@ -554,7 +554,7 @@ def design_slr(
     n : int
         Samples in the waveform; even and at least 8.
     time_bandwidth_product : float
-        Of the designed profile.
+        Time-bandwidth product of the designed profile.
     pulse_type : str, default="st"
         ``"st"`` for the small-tip beta filter, or one of `NOMINAL_FLIP`:
         ``"ex"``, ``"se"``, ``"inv"`` or ``"sat"``.
@@ -741,7 +741,7 @@ def design_recursive_slr(
     n : int
         Samples in each pulse's core; even and at least 8.
     time_bandwidth_product : float
-        Of the designed profile.
+        Time-bandwidth product of the designed profile.
     spin_echo : bool, default=False
         Design the train around a refocusing pulse, which also takes
         ``relaxation`` out of the solution.

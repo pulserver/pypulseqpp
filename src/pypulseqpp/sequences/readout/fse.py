@@ -26,11 +26,83 @@ _READOUT_GRAD_MARGIN = 0.8
 class _FseReadout(SequenceModule):
     """One excitation and a CPMG echo train, to the end of the TR.
 
-    Each refocusing pulse is centred midway between the RF centre or echo before it
-    and the echo after it. Echoes are ``esp`` apart, except that the first
-    echo is ``esp_first`` after the excitation. Phase encodes, and the
-    refocusing amplitude, are templates the loop may scale per echo; the
+    Each refocusing pulse is centred midway between the preceding RF centre
+    or echo and the following echo. Echoes are ``esp`` apart, except that the
+    first is ``esp_first`` after the excitation. The phase encodes and the
+    refocusing amplitude are templates that the caller may scale per echo; the
     sampling order sets the effective TE.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        The excitation that opens the repetition.
+    gz : GradEvent, default=None
+        Selection gradient played with ``rf``.
+    gz_reph : GradEvent, default=None
+        Rephaser of ``gz``. ``None`` for a slab excitation (``is_slab=True``),
+        which carries it in ``gz``.
+    rf_ref : RfEvent
+        Refocusing pulse, built with ``use="refocusing"``: the ``rf_ref`` of a
+        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing` for a
+        selective train, or of a
+        :class:`~pypulseqpp.sequences.NonSelectiveRefocusing` for a hard-pulse
+        train.
+    gz_ref : GradEvent, default=None
+        Selection gradient of ``rf_ref`` with its crushers, as one event
+        played in the pulse's block: the ``gz`` of a
+        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`. ``None`` for
+        a non-selective train, which is crushed on the read axis by
+        ``spoiling_cycles``.
+    fov : float or sequence of float
+        Field of view per encoded axis, readout first (m).
+    matrix : int or sequence of int
+        Matrix size per encoded axis, readout first. The caller sets the
+        number and order of acquired lines.
+    etl : int, default=8
+        Echo train length: refocusing pulses and encoded lines per repetition.
+    esp : float, default=None
+        Echo spacing (s). ``None`` is as short as possible.
+    esp_first : float, default=None
+        Time from the RF centre to the first echo (s). ``None`` is the shortest
+        that accommodates the excitation, which is ``esp`` when the excitation
+        fits in half of it. Rounded so that ``esp_first - esp`` is a multiple
+        of twice the block raster.
+    tr : float, default=None
+        Repetition time (s), over the whole module. ``None`` is as short as
+        possible.
+    partial_echo : float, default=1.0
+        Fraction of the full echo acquired, in (0.5, 1]. The samples before
+        the echo are omitted.
+    oversampling : float, default=1.0
+        Readout oversampling: the sample spacing in k-space is
+        ``1 / (oversampling * fov)``.
+    readout_bandwidth_hz : float, default=250000.0
+        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
+        on the ADC and gradient rasters.
+    spoiling_cycles : float, default=0.0
+        Cycles of read-axis crushing across ``voxel_size_m`` on each side of
+        every acquisition.
+    voxel_size_m : float, default=None
+        Length the crushing is counted over (m); ``None`` is the readout
+        resolution.
+    labels : sequence of str, default=None
+        Labels set to 0 on the acquisition block, to be changed per shot by the
+        caller.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the prephaser block.
+    wave : {'phase', 'partition', 'both'}, default=None
+        Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
+        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude`` is
+        zero, which builds no wave gradients.
+    wave_cycles : int, default=8
+        Wave periods across the sampling window.
+    wave_amplitude : float, default=0.008
+        Upper bound of the wave gradient amplitude (T/m, not Hz/m); the slew
+        rate may lower it. The module's ``wave_amplitude`` attribute is the
+        amplitude built.
+
 
     Attributes
     ----------
@@ -39,8 +111,8 @@ class _FseReadout(SequenceModule):
     gz : GradEvent
         Its selection gradient, if one was given.
     gz_reph : GradEvent
-        Its rephaser, if one was given, left-aligned in the block that contains
-        the prephaser, so that it starts at the end of the selection lobe.
+        Its rephaser, if one was given, left-aligned in the prephaser block so
+        that it starts at the end of the selection lobe.
     rf_ref : RfEvent
         The refocusing pulse, one event for the whole train.
     gz_ref : GradEvent
@@ -62,121 +134,47 @@ class _FseReadout(SequenceModule):
         The encodes negated, unwinding each line before the next refocusing
         pulse.
     gy_wave, gz_wave : GradEvent
-        Wave-encoding gradients played under the readout plateau, each
-        self-balanced so scaling one to zero changes nothing else. Only the
-        channels ``wave`` drives.
+        Wave gradients under the readout plateau, each self-balanced so that
+        scaling one to zero changes nothing else. Only the channels driven by
+        ``wave``.
     adc : AdcEvent
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
-        One per name in ``labels``; a bare event when there is one.
+        One per name in ``labels``.
     wait_esp1 : DelayEvent
-        Played after the first refocusing pulse only, when ``esp_first``
-        exceeds ``esp``. Absent otherwise.
+        Delay after the first refocusing pulse; present only when
+        ``esp_first`` exceeds ``esp``.
     wait_tr : DelayEvent
-        Present only when a TR longer than the minimum was asked for.
+        Present only when ``tr`` exceeds the minimum.
     esp : float
         Echo spacing (s).
     esp_first : float
-        Spacing of the first echo (s), equal to ``esp`` unless the excitation
-        needed more room.
+        Time from the RF centre to the first echo (s); equals ``esp`` unless
+        the excitation needs more room.
     echo_times : numpy.ndarray
-        Each echo's time (s) from the excitation isodelay.
+        Echo time of each echo (s) from the RF centre.
     bandwidth_hz : float
-        Achieved ADC sampling rate (Hz).
+        Achieved ADC sampling rate ``1 / dwell`` (Hz).
     n_samples : int
-        Samples per echo.
+        ADC samples per echo.
     center_sample : int
-        Index of the sample at the echo; partial echo moves it toward the
+        Index of the sample at the echo; ``partial_echo`` moves it toward the
         start.
     delta_kx : float
-        Read-axis k-space step (1/m).
+        K-space sample spacing along the readout (1/m).
     readout_duration : float
-        Sampling window (s).
+        Duration of the sampling window (s).
     wave_amplitude : float
-        Peak wave-encoding gradient amplitude built, in T/m, below the
-        requested one where the slew rate binds; zero without ``wave``.
-
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    rf : RfEvent
-        The excitation that opens the repetition.
-    gz : GradEvent, default=None
-        A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``. A slab excitation
-        (``is_slab=True``) has already merged it into ``gz`` and passes
-        nothing.
-    rf_ref : RfEvent
-        The refocusing pulse, which must be built with ``use="refocusing"``:
-        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`'s ``rf_ref``
-        for a selective train,
-        :class:`~pypulseqpp.sequences.NonSelectiveRefocusing`'s for a
-        hard-pulse train.
-    gz_ref : GradEvent, default=None
-        Selection gradient for ``rf_ref`` with its crushers, as one event
-        played in the pulse's block: the ``gz`` of
-        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing`. A
-        non-selective train passes nothing and crushes on the read axis
-        through ``spoiling_cycles``.
-    fov : float or sequence of float
-        Field of view (m), per encoded axis, readout first.
-    matrix : int or sequence of int
-        Matrix size per encoded axis, used to set gradient areas. The scan
-        loop controls the number and order of acquired lines.
-    etl : int, default=8
-        Echo train length: refocusing pulses, and encoded lines, per
-        repetition.
-    esp : float, default=None
-        Echo spacing (s). ``None`` is as short as possible.
-    esp_first : float, default=None
-        Spacing of the first echo (s). ``None`` is the shortest that
-        accommodates the excitation, which is ``esp`` whenever the excitation
-        fits in half of one. Rounded so that ``esp_first - esp`` is a multiple
-        of twice the block raster.
-    tr : float, default=None
-        Repetition time (s), over the whole module. ``None`` is as short as
-        possible.
-    partial_echo : float, default=1.0
-        Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the
-        samples before the echo.
-    oversampling : float, default=1.0
-        Read oversampling: ``delta_kx`` shrinks and the sampled field of view
-        grows, while resolution is fixed by ``fov`` and ``matrix``.
-    readout_bandwidth_hz : float, default=250000.0
-        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
-        achieved raster-compatible rate.
-    spoiling_cycles : float, default=0.0
-        Read-axis crushing each side of every acquisition, in cycles across
-        ``voxel_size_m``.
-    voxel_size_m : float, default=None
-        Length the crushing is counted over (m). The read resolution by
-        default.
-    labels : sequence of str, default=None
-        Counters emitted on the acquisition block. The acquisition loop
-        assigns their values.
-    trigger : event, default=None
-        A trigger or digital output armed on the prephaser block.
-    wave : {'phase', 'partition', 'both'}, default=None
-        Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
-        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``
-        is zero, which builds no wave-encoding gradients.
-    wave_cycles : int, default=8
-        Wave periods across the sampling window.
-    wave_amplitude : float, default=0.008
-        Requested peak wave-encoding gradient amplitude, in T/m rather than the
-        Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
-        module's ``wave_amplitude`` attribute reports the amplitude built.
+        Peak wave gradient amplitude built (T/m), below the requested one where
+        the slew rate binds; zero without ``wave``.
 
     Raises
     ------
     ValueError
-        If a count or fraction is out of range, ``wave`` names no wave mode or
-        would build wave-encoding gradients on a 2D train,
-        ``gz_reph`` is on the read channel, ``rf_ref`` is not marked as a
-        refocusing pulse, or the requested echo spacing or TR is shorter than
-        the train can achieve.
+        If a count or fraction is out of range, ``wave`` is not a wave mode or
+        would build wave gradients on a 2D train, ``gz_reph`` is on the read
+        channel, ``rf_ref`` is not a refocusing pulse, or ``esp`` or ``tr`` is
+        shorter than the train can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped FSE readouts.
@@ -475,11 +473,10 @@ def _span(system: pp.Opts, *events: Any) -> float:
 def _encodes(
     system: pp.Opts, resolutions, sign: float, duration: float | None
 ) -> tuple:
-    """Phase encodes on y and z, multiplied by ``sign``.
+    """Return the y and z phase encodes multiplied by ``sign``.
 
-    Always a pair, ``None`` standing in for the partition encode of a 2D train,
-    so the caller can unpack it either way. A ``duration`` no longer than the
-    shortest encode keeps the shortest encode, which already fills it.
+    Always a pair; the z entry is ``None`` for a 2D train. A ``duration``
+    longer than the shortest encode lengthens it to ``duration``.
     """
     encodes = []
     for axis, resolution in zip("yz", resolutions, strict=False):

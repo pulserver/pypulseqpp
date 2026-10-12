@@ -381,28 +381,27 @@ def fse3d(
 ) -> pp.Sequence:
     """3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid.
 
-    Only views inside the inscribed ky-kz ellipse are sampled. ``radial``
-    deals them by adaptive radial reordering (:func:`deal_trains`), so the
-    centre of k-space is acquired at the TE echo; ``shuffling`` selects a
+    Only views inside the inscribed ky-kz ellipse are sampled. ``radial`` deals
+    them by adaptive radial reordering (:func:`deal_trains`), so the centre of
+    k-space is acquired at the TE echo; ``shuffling`` selects a
     variable-density Poisson-disc support and assigns it to random echo
     positions with :func:`~pypulseqpp.make_shuffling_order` (T2 Shuffling,
     Tamir et al., Magn Reson Med 2017;77:180-195), for an echo-resolved
-    reconstruction. Every
-    acquisition carries its line and partition as ``LIN`` and ``PAR``, and,
-    shuffled, its echo, the contrast an echo-resolved reconstruction resolves,
-    as ``ECO``; calibration views are marked ``IMA``; under wave-CAIPI the
-    calibration region is first acquired wave-free in trains of its own,
-    marked ``REF``.
+    reconstruction. Every acquisition carries its line and partition as ``LIN``
+    and ``PAR``, and, shuffled, its echo, the contrast an echo-resolved
+    reconstruction resolves, as ``ECO``; calibration views are marked ``IMA``;
+    under wave-CAIPI the calibration region is first acquired wave-free in
+    trains of its own, marked ``REF``.
 
     The refocusing angle is constant, or, under ``optimized``, the angle at the
     TE echo of a train :func:`design_trains` shapes around it. Giving the
-    periphery of k-space its own TR or train length individually
-    parameterizes the trains (Buonincontri et al., ISMRM 2025, abstract
-    566-05-007): every shot moves from the centre values to the periphery ones
-    along :func:`shot_parameters`, and the view order is radial. Every shot
-    plays the longest train; past its own length a shot's refocusing pulses
-    have zero amplitude and nothing is acquired, and its closing delay makes
-    its TR, so the scan stays one repeating train.
+    periphery of k-space its own TR or train length individually parameterizes
+    the trains (Buonincontri et al., ISMRM 2025, abstract 566-05-007): every
+    shot moves from the centre values to the periphery ones along
+    :func:`shot_parameters`, and the view order is radial. Every shot plays the
+    longest train; past its own length a shot's refocusing pulses have zero
+    amplitude and nothing is acquired, and its closing delay makes its TR, so
+    the scan stays one repeating train.
 
     Parameters
     ----------
@@ -410,17 +409,14 @@ def fse3d(
         System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
         ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
     fov_x, fov_y, fov_z : float, default=0.16
-        Field of view along the readout, the phase encode and the
-        partition encode (m). A slab excited is ``fov_z`` thick.
+        Fields of view along the readout, the phase encode and the partition
+        encode, in that order (m). The slab excited is ``fov_z`` thick.
     n_x : int, default=320
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the readout.
     n_y : int, default=240
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the phase encode.
     n_z : int, default=240
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the partition encode.
     te : float | None, default=0.028
         Effective echo time (s): the echo the centre of k-space is read
         at, rounded onto the echo grid. ``None`` is the first echo.
@@ -443,7 +439,8 @@ def fse3d(
         acquired line, in ``[0, rz)``.
         Unused by ``shuffling``.
     partial_fourier_x : float, default=1.0
-        Fraction of the echo acquired, in ``[0.75, 1]``.
+        Fraction of the echo acquired, in ``[0.75, 1]``. Truncates the samples
+        before the echo.
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
@@ -457,11 +454,11 @@ def fse3d(
     esp : float | None, default=None
         Echo spacing (s). ``None`` is as short as the train admits.
     n_acs_y : int, default=24
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, when undersampled.
+        Extent of the fully sampled calibration region along the phase encode,
+        acquired ahead of the rest when undersampled.
     n_acs_z : int, default=16
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, when undersampled.
+        Extent of the fully sampled calibration region along the partition
+        encode, acquired ahead of the rest when undersampled.
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.

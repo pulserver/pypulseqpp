@@ -26,28 +26,28 @@ _SPIRAL_DIRECTIONS = ("outward", "inward", "in_out")
 def traj2grad(
     trajectory, system, *, oversampling=8, start_at_zero=True, end_at_zero=True
 ):
-    """Return the gradient waveform tracing ``trajectory`` within the vector amplitude and slew limits.
+    """Return the gradient waveform that traces a k-space path within the system limits.
 
     The path's samples describe geometry only; :func:`pypulseqpp.traj_to_grad`
-    assigns the timing.
+    assigns the timing. Amplitude and slew rate are limited as vectors.
 
     Parameters
     ----------
     trajectory : numpy.ndarray
-        K-space path, ``(n, 2)`` or ``(n, 3)``, in 1/m.
+        K-space path ``(n, 2)`` or ``(n, 3)`` (1/m).
     system : pypulseqpp.Opts
         System limits.
     oversampling : int, default=8
         Path-resampling factor the solver works at.
     start_at_zero, end_at_zero : bool, default=True
-        Ramp up from and back down to zero amplitude. Disable an endpoint
-        where a prewinder or rewinder meets the readout at non-zero amplitude.
+        Start from and end at zero gradient amplitude. False at an endpoint
+        where a prewinder or rewinder meets the readout at nonzero amplitude.
 
     Returns
     -------
     numpy.ndarray
-        ``(n_grad, 3)`` on the gradient raster, in Hz/m; zero in the third
-        column for a 2D path.
+        Gradient waveform ``(n_grad, 3)`` (Hz/m) on the gradient raster; the
+        third column is zero for a 2D path.
     """
     trajectory = np.atleast_2d(np.asarray(trajectory, dtype=float))
     gradient, _ = pp.traj_to_grad(
@@ -100,19 +100,13 @@ def _make_grad_events(system, gradient, axes, *, first=None, last=None):
 
 
 def _adc_samples(system, n_samples):
-    """Round the sample count down to a multiple of the ADC sample divisor, keeping at least one group."""
+    """Round the sample count down to a multiple of the ADC sample divisor, at least one."""
     divisor = int(getattr(system, "adc_samples_divisor", 0) or 1)
     return max(divisor, int(n_samples) // divisor * divisor)
 
 
 def _sampled_span(system, read_duration):
-    """Return the part of a readout an ADC may occupy: its span less a dead time at each end.
-
-    The window opens a dead time after the readout gradient starts and closes a
-    dead time before it ends, so the block the two share lasts exactly as long
-    as the gradient, and the waveform reaches the next block at the amplitude
-    it was designed to.
-    """
+    """Return the duration an ADC may occupy: the readout less an ADC dead time at each end."""
     return read_duration - 2 * system.adc_dead_time
 
 
@@ -198,49 +192,48 @@ def _moment_bridges(system, area, grad_start, grad_end, axes):
 
 
 class NonCartesianGradient:
-    """One canonical non-Cartesian base interleaf, independent of its acquisition schedule.
+    """Base interleaf of a non-Cartesian trajectory, independent of its acquisition schedule.
 
-    A prewinder moves the k-space position from k = 0, at zero gradient
-    amplitude, to the start of the readout; a rewinder returns it from the end
-    of the readout to k = 0 at zero amplitude. Both play in blocks of their own,
-    so ``duration`` is the longest prewinder plus ``read_duration`` plus the
-    longest rewinder (s). The subclasses design an interleaf; this class wraps
-    events designed elsewhere.
+    A prewinder moves k-space from k = 0, at zero gradient amplitude, to the
+    start of the readout; a rewinder returns it from the end of the readout to
+    k = 0 at zero amplitude. Both play in blocks of their own, so ``duration``
+    is the longest prewinder plus ``read_duration`` plus the longest rewinder
+    (s). The subclasses design an interleaf; this class wraps events designed
+    elsewhere.
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits the events were designed under.
-    gradients : Sequence[GradEvent]
+    gradients : sequence of GradEvent
         The readout waveform, one event per channel it drives.
     adc : AdcEvent
         The acquisition window under ``gradients``.
-    trajectory : ArrayLike
-        ``(n, 2)`` or ``(n, 3)`` k-space path (1/m).
+    trajectory : array_like
+        K-space path ``(n, 2)`` or ``(n, 3)`` (1/m).
     design_interleaves : int, default=None
         Interleaf count the path's pitch was designed for.
     recommended_rotations : int, default=None
         Rotated copies that sample the path's disc at Nyquist.
-    prewinders, rewinders : Sequence[GradEvent], default=()
-        Prewinding gradients from k = 0 to the path's start, and rewinding
-        gradients from its end back to k = 0, one event per channel.
+    prewinders, rewinders : sequence of GradEvent, default=()
+        Gradients from k = 0 to the path's start, and from its end back to
+        k = 0, one event per channel.
     kind : str, default=None
         Name of the interleaf family.
 
     Attributes
     ----------
-    trajectory : NDArray[np.float64]
-        ``(n, 2)`` or ``(n, 3)`` path in 1/m: the design polyline, or for
-        :class:`Rosette` the k-space at the ADC samples.
+    trajectory : numpy.ndarray
+        K-space path ``(n, 2)`` or ``(n, 3)`` (1/m): the design polyline, or
+        for :class:`Rosette` the k-space at the ADC samples.
     bandwidth_hz_px : float
-        Receiver bandwidth ``1 / adc.dwell`` (Hz), not the bandwidth per
-        pixel.
-    design_interleaves : int | None, default=None
+        Sampling rate ``1 / adc.dwell`` (Hz); not the bandwidth per pixel.
+    design_interleaves : int or None
         Interleaf count the spiral pitch was designed for.
-    recommended_rotations : int | None, default=None
-        Full spokes for Nyquist sampling at ``kmax``, ``ceil(pi * matrix / 2)``,
-        for a radial spoke; ``None`` otherwise.
-    kind : str, default=None
+    recommended_rotations : int or None
+        For a radial spoke, ``ceil(pi * matrix / 2)`` full spokes for Nyquist
+        sampling at ``kmax``; ``None`` otherwise.
+    kind : str or None
         ``"arbitrary"``, ``"full"`` (radial), ``"spiral"`` or ``"rosette"``.
 
     Examples
@@ -481,25 +474,26 @@ class Arbitrary(NonCartesianGradient):
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits.
-    trajectory : ArrayLike
-        ``(n, 2)`` or ``(n, 3)`` k-space path (1/m), with ``n >= 4``. Its
+    trajectory : array_like
+        K-space path ``(n, 2)`` or ``(n, 3)`` (1/m), with ``n >= 4``. Its
         samples set the geometry; the solver sets the timing.
     matrix : int
         Matrix size. The ADC takes ``round(matrix * oversamp)`` samples,
-        rounded down to ``system.adc_samples_divisor``.
+        rounded down to a multiple of ``system.adc_samples_divisor``.
     bandwidth_hz_px : float, default=250000.0
-        Requested ``1 / dwell`` (Hz).
+        Requested ADC sampling rate ``1 / dwell`` (Hz).
     oversamp : float, default=1.0
-        ADC oversampling, at least one.
-    axes : Sequence[str], default=None
-        Channel per path component; the first two or three of x, y, z by
-        default.
+        ADC oversampling, at least 1.
+    axes : sequence of str, default=None
+        Channel of each path component; ``None`` is the first two or three of
+        x, y, z.
     solver_oversampling : int, default=8
         Path-resampling factor of the time-optimal solver.
     derate : bool, default=True
-        Apply :func:`pypulseqpp.apply_system_derates` first.
+        Apply :func:`pypulseqpp.apply_system_derates` to ``system`` first.
+
 
     Raises
     ------
@@ -704,14 +698,14 @@ class Spiral(NonCartesianGradient):
     ``"in_out"`` arm is designed for twice the interleaf counts, so one arm
     samples like two outward ones.
 
-    The dwell is ``1 / bandwidth_hz_px`` (Hz) floored to the ADC raster.
+    The dwell is ``1 / bandwidth_hz_px`` floored to the ADC raster.
     Where the time-optimal arm would put adjacent samples more than
     ``1 / (oversamp * fov)`` apart at that dwell, the arm is slowed rather
     than the bandwidth raised. The ADC fills the arm with whole samples.
 
     Parameters
     ----------
-    system : Opts
+    system : pypulseqpp.Opts
         System limits.
     fov : float
         Isotropic field of view (m).
@@ -723,26 +717,28 @@ class Spiral(NonCartesianGradient):
     direction : {'outward', 'inward', 'in_out'}, default='outward'
         Traversal, as above.
     density : {'constant', 'variable', 'dual'}, default='constant'
-        Constant pitch, a radial power-law transition, or a logistic
-        transition.
-    inner_design_interleaves, outer_design_interleaves : float, default=None
-        Local pitch at the centre and at the edge.
+        Pitch constant, rising as a power of the radius, or changing between
+        two plateaus by a logistic transition.
+    inner_design_interleaves : float, default=None
+        Local interleaf count at the centre; defaults to ``design_interleaves``.
+    outer_design_interleaves : float, default=None
+        Local interleaf count at the edge; defaults to twice the inner count
+        for variable density, and is required for dual density.
     variable_density_power : float, default=2.0
         Exponent of the normalised radius, for variable density.
     transition_radius : float, default=0.5
-        Normalised radius and logistic steepness of the dual-density
-        transition.
+        Normalised radius, in (0, 1), at which a dual-density spiral changes
+        pitch.
     transition_speed : float, default=12.0
-        Normalised radius and logistic steepness of the dual-density
-        transition.
+        Logistic rate per unit normalised radius of that change.
     num_points : int, default=1024
         Path samples given to the solver, not ADC samples.
     bandwidth_hz_px : float, default=250000.0
-        Requested ``1 / dwell`` (Hz).
+        Requested ADC sampling rate ``1 / dwell`` (Hz).
     oversamp : float, default=1.0
         ADC oversampling; tightens the step limit.
-    axes : tuple[str, str], default=('x', 'y')
-        Channels for the path's two components.
+    axes : tuple of str, default=('x', 'y')
+        Channels of the path's two components.
     solver_oversampling : int, default=8
         Path-resampling factor of the time-optimal solver.
     derate : bool, default=True
@@ -968,18 +964,18 @@ class Rosette(NonCartesianGradient):
         The ramps at each end can make the first and last crossing intervals
         differ slightly from the mean.
     bandwidth_hz_px : float, default=250000.0
-        Requested ``1 / dwell`` (Hz). The dwell is also bounded by the step
-        limit and floored to the ADC raster, so the realised bandwidth can be
+        Requested ADC sampling rate ``1 / dwell`` (Hz). The step limit and
+        the ADC raster can only shorten the dwell, so the realised rate can be
         higher.
     oversamp : float, default=1.0
         ADC oversampling; tightens the step limit without changing the
         gradient.
-    axes : tuple[str, str], default=('x', 'y')
-        Channels for the path's two components.
+    axes : tuple of str, default=('x', 'y')
+        Channels of the path's two components.
     solver_oversampling : int, default=8
         Path-resampling factor of the time-optimal solver.
     derate : bool, default=True
-        Apply :func:`pypulseqpp.apply_system_derates` first.
+        Apply :func:`pypulseqpp.apply_system_derates` to ``system`` first.
 
     Raises
     ------

@@ -44,6 +44,15 @@ def select_trs(seq, tr=None, max_underlays=16):
     repetition is used. These definitions affect only the publication diagram;
     analyses such as SAR retain their structural repetition semantics.
 
+    Parameters
+    ----------
+    seq : pypulseqpp.Sequence
+        The sequence to read.
+    tr : int, default=None
+        The 1-based repetition to draw solid. None picks one.
+    max_underlays : int, default=16
+        The most repetitions drawn underneath.
+
     Returns
     -------
     size : int
@@ -59,15 +68,6 @@ def select_trs(seq, tr=None, max_underlays=16):
         there are at most ``max_underlays`` of them, together with the
         repetitions in which each axis reaches its most negative and most
         positive value.
-
-    Parameters
-    ----------
-    seq : pypulseqpp.Sequence
-        The sequence to read.
-    tr : int, default=None
-        The 1-based repetition to draw solid. None picks one.
-    max_underlays : int, default=16
-        The most repetitions drawn underneath.
 
     Raises
     ------
@@ -200,9 +200,11 @@ gz_color, rf_plot, tr, max_underlays, underlay_color, ax
 
     Returns
     -------
-    matplotlib.axes.Axes
-        The axes the diagram was drawn on, whether ``ax`` supplied them or
-        this made them.
+    types.SimpleNamespace
+        ``diagram``, the :class:`mrsd.Diagram`; ``tr``, the 1-based repetition
+        drawn solid; and ``underlays``, the 1-based repetitions drawn
+        underneath. ``tr`` is ``None`` and ``underlays`` empty when
+        ``time_range`` is given or the sequence has no repetition.
 
     Raises
     ------

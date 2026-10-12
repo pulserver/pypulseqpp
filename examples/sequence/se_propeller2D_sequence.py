@@ -43,13 +43,13 @@ def se_propeller2d(
 ) -> pp.Sequence:
     """Multi-slice 2D PROPELLER spin echo: one blade line per excitation.
 
-    A slice-selective SLR 90, one slice-selective SLR 180 between crushers
-    half a TE later, and one frequency-encoded line at the echo. A blade is
+    A slice-selective SLR 90, one slice-selective SLR 180 between crushers half
+    a TE later, and one frequency-encoded line at the echo. A blade is
     ``blade_width`` lines centred on k = 0, turned by a rotation extension;
     blades are chosen as :mod:`gre_propeller2D_sequence` chooses them, and the
     slices dealt into packets as :mod:`gre2D_sequence` deals them. Every
-    acquisition carries its line as ``LIN``, its blade as ``SEG`` and its
-    slice as ``SLC``.
+    acquisition carries its line as ``LIN``, its blade as ``SEG`` and its slice
+    as ``SLC``.
 
     Parameters
     ----------
@@ -78,7 +78,7 @@ def se_propeller2d(
     ry : int, default=1
         Angular undersampling: one blade in every ``ry`` of the Nyquist set
         is played.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions, at the first blade's angle, before each
         packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).

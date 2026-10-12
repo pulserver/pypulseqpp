@@ -9,7 +9,7 @@ is the same work as designing its events by hand, done once and given a
 name.
 
 In this lesson you write a *T2 preparation*: a train of pulses that tips the
-magnetization into the transverse plane, lets it decay with T2 for a set
+magnetisation into the transverse plane, lets it decay with T2 for a set
 echo time, and stores what is left back along z. Played in place of the
 inversion, it turns your MPRAGE from T1- into T2-weighted. Then you compare
 your module with the shipped
@@ -49,7 +49,7 @@ warnings.filterwarnings("ignore", message="Specified RF delay")
 #
 # The simplest robust T2 preparation is four hard pulses:
 #
-# 1. a 90° pulse about x tips the magnetization into the transverse plane;
+# 1. a 90° pulse about x tips the magnetisation into the transverse plane;
 # 2. two 180° pulses about y, a quarter and three quarters of the way
 #    through the echo time, refocus it twice, so off-resonance during the
 #    train cancels and the errors of the two pulses largely cancel too;
@@ -57,7 +57,7 @@ warnings.filterwarnings("ignore", message="Specified RF delay")
 # 4. a crusher dephases whatever the pulses left in the transverse plane.
 #
 # The echo time is measured from the centre of the first pulse to the centre
-# of the last. The magnetization comes back along z scaled by
+# of the last. The magnetisation comes back along z scaled by
 # :math:`e^{-\mathrm{TE}/T_2}`, and the next excitation reads that.
 #
 # Module class
@@ -337,7 +337,7 @@ for name, t2 in {"white matter": 70e-3, "grey matter": 100e-3, "CSF": 2.0}.items
 # A preparation is played before every train, across the whole head, where
 # the transmit field :math:`B_1` varies by tens of per cent and the resonance
 # frequency by tens to hundreds of hertz. Without relaxation, an ideal
-# preparation returns the magnetization to :math:`M_z = 1` whatever the field.
+# preparation returns the magnetisation to :math:`M_z = 1` whatever the field.
 # The figure below simulates the RF of your module, and of the shipped
 # :class:`~pypulseqpp.sequences.T2Preparation`, over a range of both errors
 # with :func:`~pypulseqpp.sim_bloch`:
@@ -404,7 +404,7 @@ plt.show()
 # %%
 # On resonance your hard-pulse train is robust to :math:`B_1`: the second
 # 180° pulse undoes most of the error of the first. Off resonance, the
-# refocusing is imperfect, the magnetization it leaves behind precesses during
+# refocusing is imperfect, the magnetisation it leaves behind precesses during
 # the long waits, and the stored :math:`M_z` oscillates with the frequency,
 # with a period of :math:`2/\mathrm{TE} = 40` Hz. The shipped preparation
 # replaces the 90° pulses by adiabatic half passages and the 180° pulses by

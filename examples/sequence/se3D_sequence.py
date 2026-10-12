@@ -67,23 +67,18 @@ def se3d(
         System limits, held under the module's ``MAX_GRAD`` (80 mT/m) and
         ``MAX_SLEW`` (200 T/m/s). ``None`` is ``pypulseqpp.Opts()``.
     fov_x : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the readout (m).
     fov_y : float, default=0.22
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the phase encode (m).
     fov_z : float, default=0.128
-        Field of view along the readout, the phase encode and the
-        partition encode (m). The slab excited is ``fov_z`` thick.
+        Field of view along the partition encode (m). The slab excited is
+        ``fov_z`` thick.
     n_x : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the readout.
     n_y : int, default=128
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the phase encode.
     n_z : int, default=64
-        Matrix size along the readout, the phase encode and the partition
-        encode.
+        Matrix size along the partition encode.
     te : float | None, default=None
         Echo time (s), excitation centre to echo, with the refocusing
         pulse at its midpoint. ``None`` is as short as possible.
@@ -98,11 +93,12 @@ def se3d(
         CAIPIRINHA shift: partitions by which the lattice is displaced per
         acquired line, in ``[0, rz)``.
     partial_fourier_x : float, default=1.0
-        Fraction of the echo acquired, in ``[0.75, 1]``.
+        Fraction of the echo acquired, in ``[0.75, 1]``. Truncates the samples
+        before the echo.
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions before the first view.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
@@ -111,13 +107,11 @@ def se3d(
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, acquired ahead of the rest when
-        undersampled.
+        Extent of the fully sampled calibration region along the phase encode,
+        acquired ahead of the rest when undersampled.
     n_acs_z : int, default=16
-        Extent of the fully sampled calibration region along the phase
-        and the partition encode, acquired ahead of the rest when
-        undersampled.
+        Extent of the fully sampled calibration region along the partition
+        encode, acquired ahead of the rest when undersampled.
     elliptical_sampling : bool, default=True
         Acquire only the views inside the ellipse inscribed in the
         ``n_y x n_z`` grid; off, the whole grid. The calibration region is

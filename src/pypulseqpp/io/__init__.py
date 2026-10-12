@@ -43,24 +43,17 @@ def read(
 ):
     """Read a Pulseq file into a sequence whose system describes what is in it.
 
-    :meth:`~pypulseqpp.Sequence.read` replaces a sequence's contents and takes
-    its rasters from the file, but leaves the sequence on whatever system it
-    was constructed with. The limits and rasters of that system are what the
-    design helpers solve against and what the checks in
-    :mod:`pypulseqpp.safety` compare a waveform with, so a file read onto the
-    shared default system is measured against limits that have nothing to do
-    with it. This builds the system from the file instead.
+    Unlike :meth:`~pypulseqpp.Sequence.read`, which keeps the system the
+    sequence was constructed with, this builds the system from the file, so
+    that the checks of :mod:`pypulseqpp.safety` compare the sequence with its
+    own limits. Text and binary files are detected from their contents.
 
-    The rasters always come from the file. A limit or a field strength comes
-    from the file when it states one, as :data:`_LIMITS` names the
-    definitions, and from the argument here when one is given, which wins. A
-    gradient limit that neither supplies is the larger of the
-    :class:`~pypulseqpp.Opts` default and the largest amplitude the file
-    actually reaches, so that the sequence read back satisfies the checks it
-    was written under. Dead times are not recorded in a ``.seq`` file and stay
-    at their defaults.
-
-    Text and binary are told apart by what is in the bytes.
+    The rasters come from the file. The gradient limit, slew-rate limit and
+    ``B0`` come from the ``MaxGrad``, ``MaxSlew`` and ``B0`` definitions when
+    the file states them, and from ``max_grad`` and ``max_slew`` when given,
+    which take precedence. A limit that neither supplies is the larger of the
+    :class:`~pypulseqpp.Opts` default and the largest value the file reaches.
+    Dead times are not recorded in a ``.seq`` file and keep their defaults.
 
     Parameters
     ----------
@@ -73,17 +66,19 @@ def read(
     max_slew : float, default=None
         Slew-rate limit (Hz/m/s), resolved the same way.
     detect_rf_use : bool, default=False
-        Work out what each unlabelled pulse is for, from what it does. A file
-        written before revision 1.5.0 has nowhere to record it.
+        Assign a use to each RF event without one, as
+        :meth:`~pypulseqpp.Sequence.detect_rf_use` does. Files before revision
+        1.5.0 record no use.
     remove_duplicates : bool, default=True
         Collapse identical library rows after reading.
     verify : bool, default=False
-        Check the file against the signature it carries.
+        Check the file against the signature it carries; a file without one
+        is refused.
 
     Returns
     -------
     pypulseqpp.Sequence
-        The sequence, on a system built from the file.
+        The sequence, with ``system`` built from the file.
 
     Raises
     ------
@@ -163,18 +158,17 @@ def read_chain(
 ) -> list[tuple[_pathlib.Path, _typing.Any]]:
     """Read a sequence file and every file its ``NextSequence`` definitions name, in play order.
 
-    :func:`pypulseqpp.sequences.write` writes a scan with prescans as such a
-    chain. A ``NextSequence`` name is relative to the directory of the file
-    naming it. Each file is read by :func:`read`, onto a system built from it.
+    A ``NextSequence`` name is relative to the directory of the file naming
+    it, as :func:`pypulseqpp.sequences.write` writes a scan with prescans.
+    Each file is read by :func:`read`.
 
     Parameters
     ----------
     file_path : str | os.PathLike[str]
         The first file of the chain.
     detect_rf_use : bool, default=False
-        Work out what each unlabelled pulse of every file is for, as
-        :func:`read` does. A file whose pulses all record their use is read as
-        it is.
+        Assign a use to each unlabelled RF event of every file, as :func:`read`
+        does.
     remove_duplicates : bool, default=True
         Collapse identical library rows of every file after reading.
     verify : bool, default=False
@@ -242,7 +236,7 @@ def write(
     remove_duplicates: bool = True,
     check_timing: bool = True,
 ) -> str | None:
-    """Write a sequence as Pulseq text or binary.
+    """Write a sequence as a Pulseq text or binary file.
 
     Parameters
     ----------
@@ -254,12 +248,12 @@ def write(
         Write the binary form instead of text. The binary writer runs no
         timing check.
     create_signature : bool, default=True
-        Sign the file, in both forms.
+        Append an MD5 signature, in both forms.
     remove_duplicates : bool, default=True
         Write a deduplicated copy, leaving ``seq`` as it is.
     check_timing : bool, default=True
-        Text only: check the timing while writing, which warns about what
-        fails and records ``TotalDuration``.
+        Text only: run the timing check first, warning on findings and
+        recording ``TotalDuration``.
 
     Returns
     -------

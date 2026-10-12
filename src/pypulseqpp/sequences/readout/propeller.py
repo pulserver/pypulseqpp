@@ -20,59 +20,59 @@ _SCHEMES = ("uniform", "golden")
 class _PropellerReadout(_EpiReadout):
     """Centred EPI blade with an in-plane rotation schedule.
 
-    Each blade is blade_width phase-encode lines wide and spans the readout
-    matrix. Scale gy_pre by blade_start and apply the blade's rotation to
-    its encoding gradients. Slice and partition axes remain along z.
-
-    Attributes
-    ----------
-    blade_angles : numpy.ndarray
-        In-plane angles (rad), one per blade. Turn about ``z``.
-    blade_start : float
-        What to scale ``gy_pre`` by to put the blade astride ``k = 0``. It does
-        not vary: a blade is centred by construction, so only the angle moves.
-    blade_width : int
-        Phase-encode lines in one blade.
-    n_blades : int
-        Blades in the set.
+    Each blade is ``blade_width`` phase-encode lines wide and spans the
+    readout matrix. The caller scales ``gy_pre`` by ``blade_start`` and applies
+    the blade's rotation about z to its encoding gradients. The slice and
+    partition axes remain along z. Further keyword arguments are those of the
+    EPI readouts.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     rf : RfEvent
-        The pulse that opens the repetition.
+        Pulse that opens the repetition.
     gz : GradEvent, default=None
-        A selection gradient played in the same block as ``rf``.
+        Selection gradient played with ``rf``.
     gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``.
+        Rephaser of ``gz``.
     fov : float
-        In-plane field of view (m), isotropic: the blade turns, so it cannot be
-        anything else.
+        Isotropic in-plane field of view (m).
     matrix : int
-        In-plane matrix size, isotropic.
+        Isotropic in-plane matrix size.
     blade_width : int, default=16
-        Phase-encode lines per blade. Narrow blades turn a scan into many short
-        trains -- less distortion per blade, more blades to cover the disc.
+        Phase-encode lines per blade.
     n_blades : int, default=None
-        Blades in the set. The default is the smallest that samples the edge of
-        the disc at Nyquist, ``ceil(pi * matrix / (2 * blade_width))``.
+        Blades in the set. ``None`` is the smallest number that samples the
+        edge of the disc at Nyquist, ``ceil(pi * matrix / (2 * blade_width))``.
     scheme : {'uniform', 'golden'}, default='uniform'
-        How the default angles are spread. ``'uniform'`` divides half a turn
-        between the blades, which is exact for the whole set and only for the
-        whole set. ``'golden'`` leaves any prefix of the set near-uniform,
-        including incomplete acquisitions.
+        Distribution of the generated angles. ``'uniform'`` divides half a turn
+        evenly between the blades, uniform only for the complete set;
+        ``'golden'`` keeps any prefix of the set near-uniform.
     angles : array_like, default=None
-        In-plane angles (rad) to use instead of generating a set.
+        In-plane blade angles (rad) instead of a generated set; excludes
+        ``n_blades``.
     fov_z, matrix_z : float, int, default=None
-        Slab field of view (m) and partitions. :class:`PropellerStackReadout`
-        only, where they are required.
+        Slab field of view (m) and partition count; required by
+        :class:`PropellerStackReadout` only.
+
+    Attributes
+    ----------
+    blade_angles : numpy.ndarray
+        In-plane blade angles (rad), one per blade, about z.
+    blade_start : float
+        Factor by which to scale ``gy_pre`` to centre the blade on k = 0; the
+        same for every blade.
+    blade_width : int
+        Phase-encode lines in one blade.
+    n_blades : int
+        Blades in the set.
 
     Raises
     ------
     ValueError
         If a count is out of range, ``scheme`` is unknown, or ``angles`` is
-        given alongside a count it would contradict.
+        given together with ``n_blades``.
     """
 
     def init_module(
@@ -200,9 +200,9 @@ class PropellerReadout2D(_PropellerReadout):
 class PropellerStackReadout(_PropellerReadout):
     """A stack of 2D PROPELLER blade sets, partition-encoded along z.
 
-    The blade turns about ``z``, the one axis the rotation leaves unchanged, so
-    the partition encode is unaffected by it: scale ``gz_pre`` per partition and
-    turn the block per blade.
+    The blade turns about z, which the rotation leaves unchanged, so the
+    partition encode is unaffected by it: scale ``gz_pre`` per partition and
+    rotate the blocks per blade.
 
     Examples
     --------

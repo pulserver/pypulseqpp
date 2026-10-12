@@ -29,19 +29,20 @@ _READOUT_GRAD_MARGIN = 0.8
 
 
 class _ArmedReadout(SequenceModule):
-    """Block layouts for compact or explicitly rotated interleaves.
+    """Block layouts of the arms of a non-Cartesian readout.
 
-    A compact layout reuses one base arm for any arm index; the acquisition
-    loop supplies its rotation. An explicit layout stores each arm separately.
+    A compact layout holds one base arm, which the caller rotates per shot; an
+    explicit layout holds each rotated arm.
     """
 
     def arm(self, index: int) -> list[tuple]:
-        """Block layout of one arm, as the module built it.
+        """Return the blocks of one arm, as built.
 
         Parameters
         ----------
         index : int
-            Which arm, counting from zero.
+            Arm number, counting from zero. A compact layout has one arm, which
+            every index returns.
 
         Returns
         -------
@@ -51,11 +52,7 @@ class _ArmedReadout(SequenceModule):
         return self._arms[index if len(self._arms) > 1 else 0]
 
     def _lay_out_arms(self, n_arms: int, tail: Any = None) -> None:
-        """Split the blocks built so far into one block layout per arm.
-
-        The TR wait cannot be laid out with its arm -- the minimum TR is only
-        known once every arm is -- so it is passed here and closes each one.
-        """
+        """Split the blocks into one layout per arm, each closed by ``tail``, the TR wait."""
         blocks = self.blocks
         if tail is not None:
             blocks = blocks[: len(blocks) - n_arms]
@@ -79,8 +76,59 @@ class _RadialReadout(_ArmedReadout):
     """Radial repetition with spoke, prephaser and rewinder in one waveform.
 
     The ADC samples the plateau. A slice rephaser may share an axis left
-    invariant by the shot rotation. With explicit=True, angles selects
-    materialised spokes; otherwise the loop supplies rotation extensions.
+    invariant by the shot rotation. With ``explicit=True`` the spokes are
+    written out, one per entry of ``angles``; otherwise the caller rotates one
+    base spoke per shot.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        Pulse that opens the repetition.
+    gz : GradEvent, default=None
+        Selection gradient played with ``rf``.
+    gz_reph : GradEvent, default=None
+        Rephaser of ``gz``, left-aligned in the first block after the pulse
+        (the TE wait if there is one, else the prephaser block). Only on an
+        axis the shot rotation leaves unchanged: z for an in-plane acquisition,
+        none for a projection.
+    fov : float
+        Isotropic in-plane field of view (m).
+    matrix : int
+        In-plane matrix size; sets ``kmax = matrix / (2 * fov)``.
+    fov_z, matrix_z : float, int, default=None
+        Partition field of view (m) and count. Stacks only.
+    te : float, default=None
+        Echo time (s), from the RF centre to the centre crossing of the spoke.
+        ``None`` is as short as possible.
+    tr : float, default=None
+        Repetition time (s). ``None`` is as short as possible.
+    oversampling : float, default=1.0
+        Readout oversampling: ADC samples per matrix point along the spoke.
+    readout_bandwidth_hz : float, default=250000.0
+        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate
+        achieved on the ADC raster.
+    spoiling_cycles : float, default=0.0
+        Cycles of dephasing across ``voxel_size_m`` left at the end of the TR.
+        Zero leaves the spoke rewound.
+    voxel_size_m : float, default=None
+        Length the spoiling is counted over (m); ``None`` is ``fov / matrix``.
+    spoiling_axis : {'z', 'x', 'y'}, default='z'
+        Gradient channel of the spoiler.
+    n_echoes : int, default=1
+        Traversals of the spoke per repetition, each retracing the same
+        k-space coordinates with its own ``ECO`` label.
+    explicit : bool, default=False
+        Write out one spoke per entry of ``angles``.
+    angles : array_like, default=None
+        In-plane spoke rotations (rad). Required with ``explicit`` and rejected
+        without it.
+    labels : sequence of str, default=None
+        Labels set to 0 on the acquisition block, to be changed per shot by the
+        caller.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the block that opens the readout.
 
     Attributes
     ----------
@@ -89,81 +137,41 @@ class _RadialReadout(_ArmedReadout):
     gz : GradEvent
         Its selection gradient, if one was given.
     gz_reph : GradEvent
-        Its rephaser, if one was given, left-aligned in whichever block follows
-        the pulse.
+        Its rephaser, if one was given.
     gx, gy : GradEvent
-        The spoke, prephaser through rewinder. ``gy`` is the same waveform at
-        zero amplitude, so a block always has a y slot for a rotation to fill.
-        Lists of one entry per angle when ``explicit``.
+        The spoke from prephaser through rewinder. ``gy`` is the same waveform
+        at zero amplitude, so a rotation always has a y event to fill. Lists
+        with one entry per angle when ``explicit``.
     gz_pre, gz_rew : TrapEvent
         Partition encode and its rewinder. Stacks only.
     gz_spoil : GradEvent
-        End-of-TR spoiler, when ``spoiling_cycles`` is nonzero.
+        End-of-TR spoiler; present when ``spoiling_cycles`` is nonzero.
     adc : AdcEvent
         The acquisition window, delayed onto the readout plateau.
     adc_labels : LabelSetEvent or list of LabelSetEvent
-        One per name in ``labels``; a bare event when there is one.
+        One per name in ``labels``.
     wait_te, wait_tr : DelayEvent
-        Present only when a TE or TR longer than the minimum was asked for.
+        Present only when ``te`` or ``tr`` exceeds the minimum.
+    echo_time : float
+        Echo time from the RF centre to the centre crossing (s).
     echo_spacing : float
-        Time between consecutive echoes (s), zero for a single-echo readout.
-
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    rf : RfEvent
-        The pulse that opens the repetition.
-    gz : GradEvent, default=None
-        A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``. Played left-aligned in the first
-        block after the pulse -- the TE wait when there is one, otherwise
-        alongside the prephaser at the head of the spoke, where it adds no
-        echo time. It is accepted only on an axis that the loop's rotation
-        leaves unchanged, so an in-plane acquisition takes a rephaser on z and
-        a projection takes none.
-    fov : float
-        Isotropic in-plane field of view (m).
-    matrix : int
-        In-plane matrix size. Sets ``kmax = matrix / (2 * fov)``.
-    fov_z, matrix_z : float, int, default=None
-        Partition field of view (m) and count. Stacks only.
-    te, tr : float, default=None
-        Echo time (s) from the RF isodelay to the centre crossing, and
-        repetition time (s). ``None`` is as short as possible.
-    oversampling : float, default=1.0
-        Readout oversampling: more samples along the same spoke.
-    readout_bandwidth_hz : float, default=250000.0
-        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
-        achieved raster-compatible rate.
-    spoiling_cycles : float, default=0.0
-        Dephasing left at the end of the TR, in cycles across
-        ``voxel_size_m``. Zero leaves the spoke rewound.
-    voxel_size_m : float, default=None
-        Length the spoiling is counted over (m); the resolution by default.
-    spoiling_axis : {'z', 'x', 'y'}, default='z'
-        Axis the spoiler is played on.
-    n_echoes : int, default=1
-        Path traversals per repetition, separated by ``echo_spacing``.
-        Each retraces the same k-space coordinates and carries its own ``ECO``
-        label. Non-Cartesian arms use rewinders/prewinders between echoes.
-    explicit : bool, default=False
-        Write out one spoke per entry of ``angles`` instead of one base spoke.
-    angles : array-like, default=None
-        In-plane rotations (rad). Required when ``explicit`` and rejected
-        otherwise; without ``explicit``, the acquisition loop applies the
-        per-shot rotation.
-    labels : sequence of str, default=None
-        Counters emitted on the acquisition block.
-    trigger : event, default=None
-        A trigger or digital output armed on the block that opens the readout.
+        Time between consecutive echoes (s); zero for a single echo.
+    bandwidth_hz : float
+        Achieved ADC sampling rate ``1 / dwell`` (Hz).
+    n_samples : int
+        ADC samples per traversal.
+    center_sample : int
+        Index of the ADC sample at the k-space centre.
+    readout_duration : float
+        Duration of the readout plateau (s).
+    n_arms : int
+        Number of arm layouts: the angles when ``explicit``, else 1.
 
     Raises
     ------
     ValueError
         If a count is out of range, ``angles`` and ``explicit`` disagree, or
-        the requested TE or TR is shorter than the module can achieve.
+        ``te`` or ``tr`` is shorter than the module can achieve.
     """
 
     #: Set by the stack variants to the axis they encode partitions on.
@@ -486,10 +494,55 @@ class RadialProjectionReadout(_RadialReadout):
 class NonCartesianReadout(_ArmedReadout):
     """A solved interleaf with its prewinder, rewinder and repetition-time budget.
 
-    Nonzero k-space endpoints require prewinder or rewinder blocks.
-    ``trajectory`` is any two-channel :class:`NonCartesianGradient`; the
-    spiral and rosette readouts design theirs. The acquisition loop controls
-    per-shot orientation.
+    Nonzero k-space endpoints of the interleaf require prewinder or rewinder
+    blocks. ``trajectory`` is any two-channel :class:`NonCartesianGradient`;
+    the spiral and rosette readouts design theirs. The caller sets the
+    orientation of each shot.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        Pulse that opens the repetition.
+    gz : GradEvent, default=None
+        Selection gradient played with ``rf``.
+    gz_reph : GradEvent, default=None
+        Rephaser of ``gz``, left-aligned in the first block after the pulse.
+        Only on an axis the shot rotation leaves unchanged.
+    trajectory : NonCartesianGradient
+        Interleaf with its ADC, prewinders and rewinders.
+    fov_z : float, default=None
+        Partition field of view (m). Stacks only.
+    matrix_z : int, default=None
+        Partition count. Stacks only.
+    te : float, default=None
+        Echo time (s), from the RF centre to the point of the path nearest
+        k = 0. ``None`` is as short as possible.
+    tr : float, default=None
+        Repetition time (s). ``None`` is as short as possible.
+    spoiling_cycles : float, default=0.0
+        Cycles of dephasing across ``voxel_size_m`` left at the end of the TR.
+        Zero leaves the path rewound.
+    voxel_size_m : float, default=None
+        Length the spoiling is counted over (m); ``None`` is the resolution of
+        the trajectory.
+    spoiling_axis : {'z', 'x', 'y'}, default='z'
+        Gradient channel of the spoiler.
+    n_echoes : int, default=1
+        Traversals of the path per repetition, joined by rewinders and
+        prewinders, each with its own ``ECO`` label.
+    explicit : bool, default=False
+        Write out one interleaf per entry of ``angles``.
+    angles : array_like, default=None
+        In-plane interleaf rotations (rad). Required with ``explicit`` and
+        rejected without it.
+    labels : sequence of str, default=None
+        Labels set to 0 on the acquisition block, to be changed per shot by the
+        caller.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the block that opens the readout.
+
 
     Attributes
     ----------
@@ -498,78 +551,47 @@ class NonCartesianReadout(_ArmedReadout):
     gz : GradEvent
         Its selection gradient, if one was given.
     gz_reph : GradEvent
-        Its rephaser, if one was given, left-aligned in whichever block follows
-        the pulse.
+        Its rephaser, if one was given.
     gx, gy : GradEvent
-        The interleaf. Lists of one entry per angle when ``explicit``.
+        The interleaf. Lists with one entry per angle when ``explicit``.
     gx_pre, gy_pre : GradEvent
-        Prewinding gradients reaching the start of the path, when it is not
-        k = 0.
+        Prewinding gradients to the start of the path; present when it does not
+        start at k = 0.
     gx_rew, gy_rew : GradEvent
-        Rewinding gradients returning to k = 0, when the path does not end
-        there.
+        Rewinding gradients to k = 0; present when the path does not end there.
     gz_pre, gz_rew : TrapEvent
         Partition encode and its rewinder. Stacks only.
     gz_spoil : GradEvent
-        End-of-TR spoiler, when ``spoiling_cycles`` is nonzero.
+        End-of-TR spoiler; present when ``spoiling_cycles`` is nonzero.
     adc : AdcEvent
         The acquisition window.
-    adc_labels : LabelEvent | list[LabelEvent]
-        One per name in ``labels``; a bare event when there is one.
+    adc_labels : LabelSetEvent or list of LabelSetEvent
+        One per name in ``labels``.
     wait_te, wait_tr : DelayEvent
-        Present only when a TE or TR longer than the minimum was asked for.
+        Present only when ``te`` or ``tr`` exceeds the minimum.
     wait_pre, wait_rew : DelayEvent
-        Pads setting the span of the prewinder and rewinder blocks, which can
-        outlast their gradients. Absent when that block is not played.
+        Delays that set the duration of the prewinder and rewinder blocks, which
+        can outlast their gradients; absent when the block is not played.
     trajectory : NonCartesianGradient
-        The designed interleaf, for its ``trajectory`` array and timings.
+        The interleaf, for its k-space path and timings.
+    echo_time : float
+        Echo time from the RF centre to the point of the path nearest k = 0 (s).
     echo_spacing : float
-        Time between consecutive echoes (s), zero for a single-echo readout.
+        Time between consecutive echoes (s); zero for a single echo.
+    bandwidth_hz : float
+        ADC sampling rate ``1 / dwell`` (Hz).
+    n_samples : int
+        ADC samples per traversal.
+    center_sample : int
+        Index of the ADC sample nearest k = 0, clipped to the window.
+    n_arms : int
+        Number of arm layouts: the angles when ``explicit``, else 1.
 
-    Parameters
-    ----------
-    system : Opts
-        System limits.
-    rf : RfEvent
-        The pulse that opens the repetition.
-    gz : GradEvent, default=None
-        A selection gradient played in the same block as ``rf``.
-    gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``, played left-aligned in the first
-        block after the pulse. Accepted only on an axis that the loop's
-        rotation leaves unchanged.
-    trajectory : NonCartesianGradient
-        Solved gradient interleaf with its ADC, prewinder and rewinder.
-    fov_z : float, default=None
-        Partition field of view (m). Stacks only.
-    matrix_z : int, default=None
-        Partition count. Stacks only.
-    te : float, default=None
-        Echo time (s) from the RF isodelay to the path's nearest k = 0
-        crossing. ``None`` is as short as possible.
-    tr : float, default=None
-        Repetition time (s). ``None`` is as short as possible.
-    spoiling_cycles : float, default=0.0
-        Dephasing left at the end of the TR, in cycles across
-        ``voxel_size_m``. Zero leaves the path rewound.
-    voxel_size_m : float, default=None
-        Length the spoiling is counted over (m); the trajectory's resolution
-        by default.
-    spoiling_axis : {'z', 'x', 'y'}, default='z'
-        Axis the spoiler is played on.
-    n_echoes : int, default=1
-        Path traversals per repetition, separated by ``echo_spacing``, each
-        with its own ``ECO`` label and joined by rewinders and prewinders.
-    explicit : bool, default=False
-        Write out one interleaf per entry of ``angles`` instead of one base
-        interleaf.
-    angles : ArrayLike, default=None
-        In-plane rotations (rad). Required when ``explicit`` and rejected
-        otherwise.
-    labels : Sequence[str], default=None
-        Counters emitted on the acquisition block.
-    trigger : TriggerEvent, default=None
-        A trigger or digital output armed on the block that opens the readout.
+    Raises
+    ------
+    ValueError
+        If a count is out of range, ``angles`` and ``explicit`` disagree, or
+        ``te`` or ``tr`` is shorter than the module can achieve.
 
     Examples
     --------
@@ -826,28 +848,32 @@ class _SpiralReadout(NonCartesianReadout):
     matrix : int
         In-plane matrix size.
     design_interleaves : int, default=16
-        Nominal pitch, not the number of arms acquired.
+        Interleaf count the spiral pitch is designed for, not the number of
+        arms acquired.
     direction : {'outward', 'inward', 'in_out'}, default='outward'
-        Centre-to-edge, edge-to-centre, or edge-to-centre-to-edge traversal.
+        Traversal from centre to edge, from edge to centre, or from edge
+        through the centre to edge.
     density : {'constant', 'variable', 'dual'}, default='constant'
-        Constant pitch, a radial power-law transition, or a logistic transition.
-    inner_design_interleaves, outer_design_interleaves : float, default=None
-        Local pitch at the centre and edge. Inner defaults to design_interleaves;
-        outer defaults to twice inner for variable density and is required for dual.
+        Pitch constant, rising as a power of the radius, or changing between
+        two plateaus by a logistic transition.
+    inner_design_interleaves : float, default=None
+        Local interleaf count at the centre; defaults to ``design_interleaves``.
+    outer_design_interleaves : float, default=None
+        Local interleaf count at the edge; defaults to twice the inner count
+        for variable density, and is required for dual density.
     variable_density_power : float, default=2.0
-        Positive exponent of the normalised radius for variable density.
+        Exponent of the normalised radius, for variable density.
     transition_radius : float, default=0.5
-        Normalised transition radius (between 0 and 1) and positive logistic
-        steepness for dual density.
+        Normalised radius, in (0, 1), at which a dual-density spiral changes
+        pitch.
     transition_speed : float, default=12.0
-        Normalised transition radius (between 0 and 1) and positive logistic
-        steepness for dual density.
+        Logistic rate per unit normalised radius of that change.
     oversampling : float, default=1.0
-        ADC oversampling factor, at least one.
+        ADC oversampling, at least 1.
     readout_bandwidth_hz : float, default=250000.0
-        Requested ADC sampling rate (Hz), not bandwidth per pixel.
+        Requested ADC sampling rate (Hz); not the bandwidth per pixel.
     n_points : int, default=1024
-        Geometric path samples supplied to the solver, not ADC samples.
+        Path samples given to the solver, not ADC samples.
     derate : bool, default=True
         Apply the package's system derates before solving.
     """
@@ -898,14 +924,11 @@ class _SpiralReadout(NonCartesianReadout):
 class SpiralReadout2D(_SpiralReadout):
     """One spiral arm in a plane.
 
-    ``direction`` runs the arm centre-to-edge (``'outward'``), edge-to-centre
-    (``'inward'``) or edge-to-centre-to-edge (``'in_out'``); ``density``
-    chooses a constant, variable or dual pitch. ``design_interleaves`` sets
-    that pitch and is **not** how many arms the loop plays.
-
-    ``readout_bandwidth_hz`` is the requested sample spacing along the arm; the
-    solver stretches the waveform to hold it when the time-optimal traversal
-    would sample faster. Read ``bandwidth_hz`` for what was achieved.
+    ``design_interleaves`` sets the pitch of the arm and is not the number of
+    arms the caller plays. Where the time-optimal traversal would space
+    adjacent samples further apart than ``1 / (oversampling * fov)`` at the
+    requested ``readout_bandwidth_hz``, the waveform is stretched; read
+    ``bandwidth_hz`` for the sampling rate achieved.
 
     Examples
     --------
@@ -1031,16 +1054,17 @@ class _RosetteReadout(NonCartesianReadout):
     matrix : int
         In-plane matrix size.
     petals : int, default=5
-        Centre-to-centre radial lobes in one interleaf, not shots.
+        Centre-to-centre lobes in one interleaf, not shots.
     angular_frequency_ratio : float, default=3.0 / 5.0
-        Positive angular-to-radial frequency ratio.
+        Angular over radial frequency, positive.
     echo_spacing_s : float, default=None
-        Requested centre-crossing interval (s). The waveform is stretched when
-        necessary; requests shorter than the time-optimal spacing are rejected.
+        Mean centre-to-centre petal duration (s); the waveform is stretched to
+        it. ``None`` is the minimum the system limits allow, and a shorter
+        request is rejected.
     oversampling : float, default=1.0
-        ADC oversampling factor, at least one.
+        ADC oversampling, at least 1.
     readout_bandwidth_hz : float, default=250000.0
-        Requested ADC sampling rate (Hz), not bandwidth per pixel.
+        Requested ADC sampling rate (Hz); not the bandwidth per pixel.
     derate : bool, default=True
         Apply the package's system derates before solving.
     """

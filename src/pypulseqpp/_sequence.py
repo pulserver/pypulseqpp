@@ -132,7 +132,7 @@ class Sequence:
         System limits and rasters. Defaults to the shared system; rasters
         are recorded in the native sequence.
     use_block_cache : bool, default=True
-        Compatibility flag, retained but not used to cache decoded blocks.
+        Upstream compatibility flag; decoded blocks are never cached.
 
     Attributes
     ----------
@@ -740,24 +740,20 @@ class Sequence:
         axis : {'x', 'y', 'z'}
             Which axis to act on.
         modifier : float
-            What to multiply by. -1 inverts the axis, 0 silences it.
+            Factor applied to the amplitudes; -1 inverts the axis and 0 zeroes it.
 
         Raises
         ------
         ValueError
             If ``axis`` is not one of 'x', 'y' or 'z'.
         RuntimeError
-            If a gradient is played both on ``axis`` and on another, where
-            there is no one answer.
+            If a gradient event is played on ``axis`` and on another axis.
 
         Notes
         -----
-        Only the amplitude moves. The ramps, the delay and the shape stay as
-        they are, so the areas scale with the amplitude and the timing does
-        not change.
-
-        Silencing the phase encoding is ``mod_grad_axis('y', 0.0)``;
-        inverting the readout is ``mod_grad_axis('x', -1.0)``.
+        Only the amplitude is scaled. Rise, flat and fall times, delays and
+        waveform shapes are unchanged, so areas scale with the amplitude and
+        the timing does not change.
 
         Examples
         --------
@@ -814,9 +810,8 @@ class Sequence:
         Parameters
         ----------
         init : dict[str, int], default=None
-            Initial value of each label before evaluation begins. A label named here is
-            reported whether or not the blocks touch it, so that a sequence
-            can be evaluated one range at a time.
+            Value of each label before the first block evaluated. A label
+            named here is reported whether or not the blocks touch it.
         evolution : {'none', 'blocks', 'adc', 'label'}, default='none'
             Where to record a value: at the end, at every block, at every
             block that acquires, or at every block that sets or increments
@@ -1102,10 +1097,10 @@ class Sequence:
         Returns
         -------
         t_adc : NDArray[np.float64]
-            When every sample is taken, in seconds from the start of the scan.
+            Time of each ADC sample, in seconds from the start of the scan.
         fp_adc : NDArray[np.float64]
-            ``(n, 2)``, one row per ADC window rather than per sample:
-            frequency (Hz) and phase (rad) offsets, without ppm corrections.
+            ``(n, 2)``, one row per ADC window: frequency offset (Hz) and
+            phase offset (rad), without ppm terms.
 
         Examples
         --------
@@ -1155,7 +1150,7 @@ class Sequence:
     def calculate_kspace(
         self, trajectory_delay=0.0, gradient_offset=0.0, block_range=None
     ):
-        """Integrate the gradients with excitation resets and refocusing.
+        """Return the k-space trajectory, reset at excitations and inverted at refocusing pulses.
 
         Each block's rotation is applied. K-space coordinates are in 1/m.
 
@@ -1222,14 +1217,10 @@ class Sequence:
         block_range : Sequence[int], default=None
             Two 1-based block indices; only those blocks are followed.
         readouts : Sequence[int], default=None
-            Two 0-based readout indices, ``first`` and ``stop``: only the
-            samples of the readouts from ``first`` to before ``stop``, in the
-            order :meth:`adc_echoes` lists them, each where following the
-            whole sequence puts it. k-space is integrated from the last block
-            before readout ``first`` that plays an excitation, or a pulse with
-            no use recorded, and does not acquire, so a trajectory delay that
-            moves an earlier block's gradient past that pulse's centre is not
-            seen. Not combined with ``block_range``.
+            Half-open range ``(first, stop)`` of 0-based readout indices, in
+            the order of :meth:`adc_echoes`. Only those readouts' samples are
+            returned, at the positions the whole sequence gives them. Not with
+            ``block_range``; see Notes.
 
         Returns
         -------
@@ -1241,6 +1232,14 @@ class Sequence:
         ValueError
             If both ``block_range`` and ``readouts`` are given, or ``readouts``
             is not two indices ``0 <= first <= stop <=`` the number of readouts.
+
+        Notes
+        -----
+        With ``readouts``, k-space is integrated from the last block before
+        readout ``first`` that plays an excitation (or a pulse with no use
+        recorded) and does not acquire. A trajectory delay that moves an
+        earlier block's gradient past that pulse's centre is therefore not
+        seen.
 
         Examples
         --------
@@ -1261,7 +1260,7 @@ class Sequence:
         )
 
     def adc_echoes(self) -> AdcEchoes:
-        """Return, per readout, the axes it moves along and where it passes nearest the centre.
+        """Return, per readout, the axes its k-space moves along and the samples nearest the k-space centre.
 
         One entry per block that acquires, in play order. k-space is integrated
         as :meth:`adc_kspace` integrates it, after each block's rotation:
@@ -1271,20 +1270,12 @@ class Sequence:
         Returns
         -------
         AdcEchoes
-            ``block``, 1-based, and ``num_samples``, each ``(n,)``;
-            ``first_sample``, the column of the readout's first sample in
-            :meth:`adc_kspace`; ``moving``, ``(n, 3)``, whether its k-space
-            spans more than 1e-6 of its widest span along x, y and z; and
-            ``echo``, ``(n, 2)``, the first and last 0-based sample no further
-            from the centre of k-space, over the moving axes, than the nearest
-            sample plus 1% of the larger k step beside it, -1 for a readout
-            that does not move or has fewer than two samples. ``start``,
-            ``path``, ``paths``, ``rotation`` and ``rotations`` give each
-            readout's k-space as its first sample plus one of the distinct
-            paths from there, turned by the block's rotation;
-            None when an RF pulse that excites or refocuses, or has no use
-            recorded, plays in a block that acquires, or when more than one
-            readout in 16 has a path of its own.
+            ``moving`` is true along an axis where the readout's k-space spans
+            more than 1e-6 of its widest span. The fields ``start``, ``path``,
+            ``paths``, ``rotation`` and ``rotations`` are None when an RF pulse
+            that excites or refocuses, or has no use recorded, plays in a block
+            that acquires, or when more than one readout in 16 has a path of
+            its own.
 
         Examples
         --------
@@ -1486,9 +1477,10 @@ class Sequence:
         dict[str, Any]
             ``num_blocks``, ``event_count`` and ``libraries``; ``duration``,
             ``TE`` and ``TR`` in seconds; ``flip_angles_deg``;
-            ``unique_k_positions``; ``max_gradient`` and ``max_slew_rate``,
-            each per axis and as a vector magnitude, in the file's units and
-            in the scanner's; and ``timing_ok`` with ``timing_error_report``.
+            ``unique_k_positions``; ``max_gradient`` (Hz/m and mT/m) and
+            ``max_slew_rate`` (Hz/m/s and T/m/s), each per axis and as a
+            vector magnitude, after each block's rotation; and ``timing_ok``
+            with ``timing_error_report``.
             A sequence whose encoding visits more than one position also
             carries ``dimensions``, ``spatial_resolution_mm``,
             ``repetitions`` and ``is_cartesian``.
@@ -1604,9 +1596,6 @@ class Sequence:
         definition id counted from 1. Events sharing a definition play the
         same thing at different amplitudes, offsets or phases.
 
-        Composed with the block table of :meth:`libraries`, this gives the
-        definitions a block plays without interning them a second time.
-
         Returns
         -------
         EventDefinitions
@@ -1635,16 +1624,13 @@ class Sequence:
 
         Entry ``i`` is block ``i + 1``, and the value is a definition id
         counted from 1. Blocks sharing a definition play the same events for
-        the same time, so an interpreter prepares the position once and each
-        playout only sets what varies.
+        the same duration; the per-playout parameters are what separate them.
 
-        What a block plays and how long it lasts make the definition. The ADC
-        does not, so a preparation shot playing an imaging shot's gradients
-        with the digitiser off shares that shot's definition; neither do
-        labels or a rotation, which are things a playout does. A block that
-        plays nothing at all is one definition whatever it waits for, since an
-        interpreter sets that at run time -- but one carrying a trigger or a
-        digital output plays something, and is not that definition.
+        The events a block plays and its duration make the definition. The ADC
+        does not, so a block playing an imaging block's gradients with the ADC
+        absent shares its definition; neither do labels or a rotation. A block
+        that plays nothing is one definition whatever its duration, but a
+        block carrying a trigger or a digital output is not.
 
         Returns
         -------
@@ -1780,11 +1766,8 @@ class Sequence:
         Returns
         -------
         RfGradients
-            ``block``, 1-based, ``(n,)``; ``steady``, ``(n, 3)``, whether the
-            gradient along x, y and z holds one value across the pulse, an
-            axis without a gradient being steady at zero; and ``gradient``,
-            ``(n, 3)``, the gradient along x, y and z at the pulse's centre, in
-            Hz/m.
+            Block indices, steadiness flags and gradient amplitudes at the
+            pulse centre, in Hz/m.
 
         Examples
         --------
@@ -1808,10 +1791,10 @@ class Sequence:
             gradient=found["gradient"],
         )
 
-    # -- the repeating unit --------------------------------------------
+    # -- repetition ----------------------------------------------------
 
     def repetition(self) -> tuple[int, int]:
-        """Return the repeating unit of the block table.
+        """Return the repetition of the block table: its length in blocks and its first block.
 
         Returns
         -------
@@ -1861,36 +1844,29 @@ class Sequence:
     # -- soft delays ---------------------------------------------------
 
     def apply_soft_delay(self, **kwargs) -> None:
-        """Set each named soft delay to the value given.
+        """Set the duration of every block carrying a named soft delay.
 
-        A soft delay says how long its block lasts in terms of a value the
-        console supplies: ``duration = value / factor + offset``, rounded onto
-        the block duration raster. Naming one here writes that duration into
-        every block that plays it.
+        The duration of a block with a soft delay is
+        ``value / factor + offset``, rounded onto the block duration raster.
 
         Parameters
         ----------
         **kwargs
-            What each delay, by its hint, is to be set to, in seconds. A
-            delay in the sequence that is not named here is left unchanged.
+            Value (s) of each soft delay, by its hint. Soft delays not named
+            are unchanged.
 
         Raises
         ------
         ValueError
-            If a name given is not in the sequence, if a hint and a numeric
-            id do not agree about which delay they name, or if the value
-            asked for would make a block last less than nothing.
+            If a name is not a hint in the sequence, if a hint and a numeric
+            id are inconsistent between blocks, or if a value gives a negative
+            block duration.
 
         Warns
         -----
         UserWarning
-            When a duration had to move more than half a microsecond to
-            reach the raster. Once per delay, not once per block.
-
-        Notes
-        -----
-        Finding the soft delays is a compiled pass over the block table:
-        nothing else in a block is decoded to answer whether it heads one.
+            When rounding onto the raster moves a duration by more than half
+            a microsecond; once per soft delay.
 
         Examples
         --------
@@ -1948,20 +1924,21 @@ class Sequence:
     def get_default_soft_delay_values(self):
         """Return each soft delay's default value.
 
-        A soft delay says how a block's duration follows from a value the
-        console supplies: `duration = value / factor + offset`. Read the other
-        way, the duration a block was built with says what value that is --
-        and every block sharing a numeric id has to agree about it.
+        The default is the value ``(duration - offset) * factor`` that
+        reproduces the duration a block was built with; blocks sharing a
+        numeric id have to agree on it.
 
         Returns
         -------
         defaults : dict[str, float]
-            The default value for each soft delay, by its hint.
+            The default value of each soft delay, by its hint.
         error_report : list[str]
-            One line per disagreement found; empty when they all agree.
+            One line per inconsistency found; empty when there is none.
         limits : list[dict | None]
-            Per numeric id, the default, the hint, the block it came from,
-            and the range of values that keep the block duration positive.
+            Per numeric id, None if unused, else a dict with the default
+            (``'def'``), the hint (``'hint'``), the first block it was derived
+            from (``'blk'``) and the range of values that keep the block
+            duration non-negative (``'min'``, ``'max'``).
 
         Raises
         ------
@@ -2219,9 +2196,8 @@ class Sequence:
         The ids are this sequence's own. :meth:`write` with
         ``remove_duplicates=False`` writes these rows under these ids; by
         default it writes a collapsed copy, whose ids differ wherever two rows
-        were equal. Taking the tables changes nothing, so a shape registered
-        and not yet encoded, which the writer encodes on the way out, comes
-        back as its samples.
+        were equal. A shape registered and not yet encoded is returned as its
+        samples.
 
         Returns
         -------
@@ -2248,31 +2224,30 @@ class Sequence:
         check_timing: bool = False,
         v141_compat: bool = False,
     ) -> str | None:
-        """Write Pulseq text and record its signature metadata.
+        """Write the sequence as a Pulseq text file, 1.5.1 by default.
 
-        With ``v141_compat=True``, metadata is recorded on the written source
-        (the deduplicated copy when requested).
+        ``signature_type``, ``signature_file`` and ``signature_value`` record
+        the signature written.
 
         Parameters
         ----------
         name : str | os.PathLike[str]
             Where to write it.
         create_signature : bool, default=True
-            Sign the file, so a reader can tell it has not been edited.
+            Append an MD5 signature of the file's contents.
         remove_duplicates : bool, default=True
-            Collapse identical library rows first. Write a collapsed
-            copy, leaving this sequence's event libraries unchanged.
+            Write a copy with identical library rows collapsed; this
+            sequence's libraries are unchanged.
         check_timing : bool, default=False
-            Judge the timing first, and warn if anything is wrong.
+            Run :meth:`check_timing` first and warn if it finds anything.
         v141_compat : bool, default=False
-            Write 1.4.1 instead, for an interpreter that predates 1.5.
+            Write Pulseq 1.4.1 as :meth:`write_v141` does.
 
         Returns
         -------
         str | None
-            The signature written, or None if the file is unsigned. It is
-            the signature of what was written, so with ``remove_duplicates``
-            it belongs to the collapsed copy rather than to this sequence.
+            The signature written, or None if the file is unsigned. With
+            ``remove_duplicates`` it is that of the collapsed copy.
 
         Warns
         -----
@@ -2315,8 +2290,7 @@ class Sequence:
         name : str | os.PathLike[str]
             Where to write it.
         create_signature : bool, default=True
-            Append the signature section: an MD5 of everything above it, so a
-            file says whether it is the file that was written.
+            Append a signature section holding the MD5 of the preceding bytes.
 
         Returns
         -------
@@ -2343,20 +2317,23 @@ class Sequence:
     def write_v141(
         self, name, create_signature: bool = True, gamma=None, field=None
     ) -> str | None:
-        """Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.
+        """Write the sequence as a Pulseq 1.4.1 text file.
+
+        Version 1.4.1 has no columns for RF centre and use, gradient endpoints
+        or ppm offsets; ppm offsets are written as absolute offsets.
 
         Parameters
         ----------
         name : str | os.PathLike[str]
             Where to write it.
         create_signature : bool, default=True
-            Sign the file, so a reader can tell it has not been edited.
+            Append an MD5 signature of the file's contents.
         gamma : float, default=None
             Gyromagnetic ratio in Hz/T; the sequence's system's when None.
         field : float, default=None
-            Main field in T; the sequence's system's ``B0`` when None. With
-            ``gamma``, converts ppm offsets, which 1.4.1 has no column for,
-            to absolute offsets, as :func:`pypulseqpp.calc_absolute_offsets` does.
+            Main field strength in T; the sequence's system's ``B0`` when
+            None. With ``gamma``, resolves ppm offsets as
+            :func:`pypulseqpp.calc_absolute_offsets` does.
 
         Returns
         -------
@@ -2422,10 +2399,10 @@ class Sequence:
         remove_duplicates: bool = True,
         verify: bool = False,
     ) -> None:
-        """Replace this sequence with the one in ``file_path``.
+        """Replace this sequence with the one in a Pulseq text or binary file.
 
-        Text or binary, told apart by what is in the bytes. Every revision
-        from 1.2.0 is read, older ones by converting them.
+        The format is detected from the contents. Revisions from 1.2.0 are
+        read; those before 1.5.0 are converted to 1.5.
 
         Parameters
         ----------
@@ -2434,10 +2411,9 @@ class Sequence:
             returns its contents, such as :class:`io.BytesIO` over bytes
             received without a file.
         detect_rf_use : bool, default=False
-            Work out what each unlabelled pulse is for, from what it does.
-            Before revision 1.5.0 the format had nowhere to record it, so a
-            file older than that arrives with its pulses unlabelled. Pulses
-            the file does label are left alone.
+            Assign a use to each RF event without one, as
+            :meth:`detect_rf_use` does. Files before revision 1.5.0 record no
+            use.
         remove_duplicates : bool, default=True
             Collapse identical library rows after reading.
         verify : bool, default=False
@@ -2533,12 +2509,12 @@ class Sequence:
 
     @property
     def version_minor(self) -> int:
-        """Its minor version."""
+        """Minor version of the format this sequence is held as."""
         return self._native.version_minor()
 
     @property
     def version_revision(self) -> int:
-        """Its revision."""
+        """Revision of the format this sequence is held as."""
         return self._native.version_revision()
 
     # -- drawing -------------------------------------------------------
@@ -2669,12 +2645,10 @@ class Sequence:
         """Draw a publication-style diagram of one repetition, using mrsd.
 
         Rows are RF, the gradient axes z, y and x after each block's rotation,
-        and ADC, each drawn from the waveform the sequence plays. Every row
-        carries its own scale, set by the largest magnitude that channel reaches
-        over the repetitions drawn, so heights are comparable within a row and
-        not between rows. The other repetitions are drawn underneath in
-        ``underlay_color``, which shows what changes from one to the next, and
-        a TR interval is marked below.
+        and ADC. Each row is scaled to the largest magnitude its channel
+        reaches over the repetitions drawn, so heights compare within a row
+        and not between rows. The other repetitions are drawn underneath in
+        ``underlay_color``, and the repetition time is marked below.
 
         Parameters
         ----------
@@ -2698,8 +2672,9 @@ class Sequence:
         rf_plot : {'abs', 'real', 'imag'}, default='abs'
             Which part of the RF waveform to draw.
         tr : int, default=None
-            1-based repetition to draw. By default, the one in which an axis
-            reaches its largest magnitude.
+            1-based repetition to draw solid. By default, the one that
+            acquires the most ADC blocks, ties broken by the largest gradient
+            excursion on the axes that differ between repetitions.
         max_underlays : int, default=16
             At most this many repetitions, evenly spaced, are drawn underneath,
             together with those in which each axis reaches its most negative and
@@ -2719,9 +2694,8 @@ class Sequence:
 
         Notes
         -----
-        Repetitions are detected from the block definitions. Choosing them is
-        one compiled pass over the block table, and only the repetitions drawn
-        are expanded, so the cost does not grow with the length of the scan. A
+        Repetitions are those of :meth:`repetition`, or the range declared by
+        the ``PlotTRsize`` and ``PlotTRstart`` definitions when present; a
         sequence that does not repeat is one repetition, drawn whole.
 
         Examples
@@ -2821,36 +2795,35 @@ class Sequence:
     def expand_repeats(
         self, repeats: int, *, label: str = "AVG", strip_once: bool = True
     ) -> dict[str, int]:
-        """Play the scan a number of times, written into the block table, in place.
+        """Repeat the scan in place by extending the block table.
 
-        A block whose ``ONCE`` label is 1 plays on the first repetition only, 2
-        on the last only, and 0 on every one; ``ONCE`` is sticky and is read per
-        block, as an interpreter plays it, a block's ``LABELSET`` directives
-        before its ``LABELINC`` ones. Every repetition starts as the scan
-        starts, with every counter at zero but ``label``, which numbers it: the
-        first block a repetition past the first plays sets back to zero the
-        counters the repetition before left elsewhere, those it sets itself
-        aside, and sets ``label`` to its index, 1 to ``repeats - 1``. A
-        repetition plays the same events, so only the block table grows and
-        no event row is added. A recorded ``TotalDuration`` is replaced by the
-        duration of the expanded scan. One repetition leaves the scan as it is.
+        A block whose ``ONCE`` label is 1 plays in the first repetition only,
+        2 in the last only, and 0 in every one. ``ONCE`` is sticky and is read
+        per block, a block's ``LABELSET`` statements before its ``LABELINC``
+        ones. Each repetition starts with every counter at zero except
+        ``label``, which numbers the repetitions: the first block of each
+        repetition after the first resets the counters left nonzero by the
+        previous one, other than those it sets itself, and sets ``label`` to
+        the repetition's 0-based index.
+
+        No event row is added. A recorded ``TotalDuration`` is replaced by the
+        duration of the expanded scan. ``repeats=1`` leaves the scan as it is.
 
         Parameters
         ----------
         repeats : int
             How many times the scan plays.
         label : str, default="AVG"
-            The counter that numbers the repetitions; empty for none.
+            Label counting the repetitions; empty for none.
         strip_once : bool, default=True
-            Remove the ``ONCE`` labels, which the expanded table no longer
-            needs to be played by.
+            Remove the ``ONCE`` labels from the expanded table.
 
         Returns
         -------
-        dict
-            ``repeats``, ``blocks_before`` and ``blocks_after``, and the blocks
-            of one pass whose ``ONCE`` is 1, 0 and 2: ``prep_blocks``,
-            ``body_blocks`` and ``cooldown_blocks``.
+        dict[str, int]
+            ``repeats``, ``blocks_before`` and ``blocks_after``, and the number
+            of blocks of one pass whose ``ONCE`` is 1, 0 and 2:
+            ``prep_blocks``, ``body_blocks`` and ``cooldown_blocks``.
 
         Raises
         ------
@@ -2895,7 +2868,7 @@ class Sequence:
     # spells a call the other way round still runs.
 
     def write_file(self, filename) -> None:
-        """`write(filename, create_signature=False)`.
+        """Write an unsigned Pulseq text file; ``write(filename, create_signature=False)``.
 
         Parameters
         ----------
@@ -2905,7 +2878,7 @@ class Sequence:
         self.write(filename, create_signature=False)
 
     def read_binary(self, filename) -> None:
-        """`read(filename)`, which distinguishes text from binary itself.
+        """Read a Pulseq text or binary file; ``read(filename)``.
 
         Parameters
         ----------

@@ -50,15 +50,14 @@ def gre_multiecho2d(
 ) -> pp.Sequence:
     """RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo.
 
-    One line per repetition, read at ``n_echoes`` echo times: monopolar, with
-    a flyback rewinder after every echo but the last, or bipolar, with even
-    echoes read backwards. Each acquisition carries its echo index as
-    ``ECO``. Slices one TR cannot hold are dealt round-robin into packets,
-    played one after another; within a packet the even slices are excited
-    before the odd ones. Every packet starts with its own dummy
-    repetitions, and the last slice of a packet waits out the rest of the TR.
-    Under undersampling the calibration lines are acquired first, marked
-    ``IMA``.
+    One line per repetition, read at ``n_echoes`` echo times: monopolar, with a
+    flyback rewinder after every echo but the last, or bipolar, with even
+    echoes read backwards. Each acquisition carries its echo index as ``ECO``.
+    Slices one TR cannot hold are dealt round-robin into packets, played one
+    after another; within a packet the even slices are excited before the odd
+    ones. Every packet starts with its own dummy repetitions, and the last
+    slice of a packet waits out the rest of the TR. Under undersampling the
+    calibration lines are acquired first, marked ``IMA``.
 
     Parameters
     ----------
@@ -100,7 +99,7 @@ def gre_multiecho2d(
     partial_fourier_y : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
         Truncates the lines before the centre.
-    n_dummy : int or None, default=None
+    n_dummy : int | None, default=None
         Non-acquiring repetitions before the first line of each packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0
