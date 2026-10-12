@@ -4,7 +4,7 @@ One excitation and one refocusing pulse per repetition, with the acquisition
 centred on the spin echo. The readout trajectories are those of the gradient
 echoes, with a refocusing pulse between the excitation and the readout.
 
-| Example | Scope |
+| Example | Contents |
 | --- | --- |
 | {doc}`/generated/gallery/11-spin-echo/se2D_sequence` | One phase-encode line per excitation. |
 | {doc}`/generated/gallery/11-spin-echo/se3D_sequence` | One (line, partition) view per excitation. |

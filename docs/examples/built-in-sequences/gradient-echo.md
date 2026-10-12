@@ -4,7 +4,7 @@ Every repetition contains one excitation and no refocusing pulse, and the
 residual transverse magnetisation is spoiled at the end of each repetition.
 The sequences differ in the k-space trajectory acquired in each repetition.
 
-| Example | Scope |
+| Example | Contents |
 | --- | --- |
 | {doc}`/generated/gallery/10-gradient-echo/gre2D_sequence` | One phase-encode line per repetition, RF-spoiled. |
 | {doc}`/generated/gallery/10-gradient-echo/gre3D_sequence` | One (line, partition) view per repetition, RF-spoiled. |
