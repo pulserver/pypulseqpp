@@ -113,18 +113,20 @@ def sim_rf(
     Parameters
     ----------
     rf : SimpleNamespace or RfEvent
-        Its ``freq_ppm`` and ``phase_ppm`` are converted with the default
-        system's gamma and B0, with a warning.
+        The RF event. Its ``freq_ppm`` and ``phase_ppm`` are converted with
+        the default system's gamma and B0, with a warning.
     rephase_factor : float, default=None
         Free precession after the pulse, as a signed fraction of its
         duration. Defaults to zero when ``rf.use == "refocusing"`` and to
         ``-(shape_dur - center) / shape_dur``, the slice-select rephaser,
         otherwise.
     prephase_factor : float, default=0.0
-        The same, before the pulse.
+        Free precession before the pulse, as a signed fraction of its
+        duration.
     df : float, default=1.0
-        In Hz: the axis holds ``round(bandwidth / df)`` points, so their
-        spacing is about ``bandwidth_multiplier * df``.
+        Frequency resolution (Hz) of the unwidened axis: the axis holds
+        ``round(bandwidth / df)`` points, so their spacing is about
+        ``bandwidth_multiplier * df``.
     bandwidth_multiplier : float, default=4.0
         Width of the frequency axis, in bandwidths. The bandwidth is
         :func:`calc_rf_bandwidth` at half maximum plus ``|freq_offset|``;

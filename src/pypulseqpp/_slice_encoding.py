@@ -262,10 +262,8 @@ def make_pins_pulse(
         Small-tip, excitation, spin-echo, inversion or saturation envelope.
     filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'
         FIR design method of the envelope.
-    passband_ripple : float, default=0.01
-        Ripple allowed in the passband.
-    stopband_ripple : float, default=0.01
-        Ripple allowed in the stopband.
+    passband_ripple, stopband_ripple : float, default=0.01
+        Fractional ripple allowed in the passband and the stopband.
     max_b1 : float, default=1.8e-05
         Peak B1, in T; each subpulse is the shortest, on the gradient raster,
         that stays within it.
@@ -284,19 +282,18 @@ def make_pins_pulse(
         System limits.
     use : str, default='excitation'
         Pulseq ``use`` tag.
-    freq_ppm : float, default=0.0
-        Field-strength-relative frequency offset.
-    phase_ppm : float, default=0.0
-        Field-strength-relative phase offset.
+    freq_ppm, phase_ppm : float, default=0.0
+        Frequency and phase offsets in ppm of the Larmor frequency at the
+        system's ``B0``, as in PyPulseq.
 
     Returns
     -------
-    rf : SimpleNamespace
+    rf : RfEvent
         The subpulse train.
-    gz : SimpleNamespace
+    gz : GradEvent
         The blip train, an extended trapezoid with the same delay as ``rf``.
-    gzr : SimpleNamespace
-        Rephaser of minus the blip area after the RF centre.
+    gzr : TrapEvent
+        Rephaser of minus the blip area accrued after the RF centre.
 
     Raises
     ------

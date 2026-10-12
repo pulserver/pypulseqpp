@@ -36,18 +36,22 @@ def traj_to_grad(
     time_optimal : bool, default=True
         Re-parameterise the path within the limits rather than differentiate it.
     system : pypulseqpp.Opts, default=None
-        System limits; supplies ``max_grad``, ``max_slew`` and the raster.
+        System limits; supplies ``max_grad``, ``max_slew`` and, when
+        ``raster_time`` is omitted, the raster. Not limiting when
+        ``time_optimal`` is false.
     oversampling : int, default=8
-        Path-resampling factor the solver works at.
+        Path-resampling factor the solver works at; read only when
+        ``time_optimal``.
     start_at_zero, end_at_zero : bool, default=True
-        Ramp the waveform up from and back down to zero amplitude.
+        Ramp the waveform up from and back down to zero amplitude; read only
+        when ``time_optimal``.
 
     Returns
     -------
     g : numpy.ndarray
-        Gradient waveform (Hz/m), same axis convention as ``k``.
+        Gradient waveform (Hz/m), time last like ``k``.
     slew : numpy.ndarray
-        Slew rate (Hz/m/s), one value per gradient sample.
+        Slew rate (Hz/m/s), one value per gradient sample, shaped like ``g``.
 
     Examples
     --------

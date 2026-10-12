@@ -25,7 +25,7 @@ from ._opts import default_system
 def concatenate_gradients(*grads: Any, system=None):
     """Concatenate gradients on one channel without modifying the inputs.
 
-    Skip None entries. The first gradient keeps its delay; subsequent gradients
+    The first gradient keeps its delay; subsequent gradients
     start when the preceding gradient ends.
 
     Parameters
@@ -159,7 +159,8 @@ def make_phase_blip(
     fov : float
         Field of view along ``channel`` (m).
     steps : float, default=1.0
-        Cells to traverse; non-zero, may be negative.
+        k-space lines the blip advances, in units of ``1 / fov``; non-zero,
+        negative to move backwards.
     system : pypulseqpp.Opts, default=None
         System limits.
     duration : float, default=None
@@ -227,6 +228,7 @@ def make_crusher(
     Returns
     -------
     grad : GradEvent
+        The crusher; an arbitrary gradient when ``convert_to_arbitrary``.
     times : numpy.ndarray
         Vertex times (s).
     amplitudes : numpy.ndarray
@@ -312,9 +314,9 @@ def make_wave_gradients(
         ``system.max_slew`` and ``system.max_grad``. The balancing offset can
         lift a played peak a few percent above the amplitude.
     sine_channel : {"x", "y", "z"} or None, default='y'
-        Channels for the sine and the cosine; ``None`` omits that one.
+        Channel of the sine; ``None`` omits it.
     cosine_channel : {"x", "y", "z"} or None, default='z'
-        Channels for the sine and the cosine; ``None`` omits that one.
+        Channel of the cosine; ``None`` omits it.
     delay : float, default=0.0
         Start of the flat top within the block (s), normally the readout
         lobe's rise time.

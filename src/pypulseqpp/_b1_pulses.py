@@ -123,18 +123,20 @@ def make_b1_selective_pulse(
     of the RF, so the selection is along B1 rather than along space (Grissom,
     Cao and Does, J Magn Reson 242:189, 2014). No gradient is played.
 
-    Parameters not listed below are as in :func:`make_slr_pulse`.
+    ``flip_angle``, ``time_bw_product``, the ripples, ``dwell``, ``delay``,
+    ``system`` and ``use`` are as in :func:`make_slr_pulse`, except the
+    ``dwell`` default of 0.0, which is the system's ``rf_raster_time``.
 
     Parameters
     ----------
     amplitude : float
-        RF amplitude the pulse plays at, in T: where B1 is nominal.
+        RF amplitude the pulse plays at (T): the nominal B1.
     passband_center : float, default=1.0
-        The band of B1 selected, relative to ``amplitude``. The pulse lasts
-        about twice ``time_bw_product`` over the width in Hz.
+        Centre of the selected B1 band, relative to ``amplitude``.
     passband_width : float, default=0.2
-        The band of B1 selected, relative to ``amplitude``. The pulse lasts
-        about twice ``time_bw_product`` over the width in Hz.
+        Width of the selected B1 band, relative to ``amplitude``. The pulse
+        lasts about ``2 * time_bw_product`` over this width in Hz, that is
+        over ``passband_width * amplitude * gamma``.
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
         the flip is ``flip_angle``.
@@ -195,18 +197,20 @@ def make_b1_gslider_pulse(
     into ``num_subslices`` sub-bands of B1, counted from the lowest, and
     ``subslice`` is excited at ``subslice_phase`` relative to the rest.
 
-    Parameters not listed below are as in :func:`make_slr_pulse`.
+    ``flip_angle``, ``time_bw_product``, the ripples, ``dwell``, ``delay``,
+    ``system`` and ``use`` are as in :func:`make_slr_pulse`, except the
+    ``dwell`` default of 0.0, which is the system's ``rf_raster_time``.
 
     Parameters
     ----------
     amplitude : float
-        RF amplitude the pulse plays at, in T: where B1 is nominal.
+        RF amplitude the pulse plays at (T): the nominal B1.
     passband_center : float, default=1.0
-        The band of B1 selected, relative to ``amplitude``. The pulse lasts
-        about twice ``time_bw_product`` over the width in Hz.
+        Centre of the selected B1 band, relative to ``amplitude``.
     passband_width : float, default=0.5
-        The band of B1 selected, relative to ``amplitude``. The pulse lasts
-        about twice ``time_bw_product`` over the width in Hz.
+        Width of the selected B1 band, relative to ``amplitude``. The pulse
+        lasts about ``2 * time_bw_product`` over this width in Hz, that is
+        over ``passband_width * amplitude * gamma``.
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
         the flip is ``flip_angle``.
@@ -278,15 +282,18 @@ def make_b1_hadamard_pulse(
     ``scipy.linalg.hadamard(order)``, sub-bands are counted from the lowest
     B1, and row 0 is the plain band.
 
-    Parameters not listed below are as in :func:`make_slr_pulse`.
+    ``flip_angle``, ``time_bw_product``, the ripples, ``dwell``, ``delay``,
+    ``system`` and ``use`` are as in :func:`make_slr_pulse`, except the
+    ``dwell`` default of 0.0, which is the system's ``rf_raster_time``.
 
     Parameters
     ----------
     amplitude : float
-        RF amplitude the pulse plays at, in T: where B1 is nominal.
+        RF amplitude the pulse plays at (T): the nominal B1.
     passband_center, passband_width : float, default=1.0
-        The band of B1 selected, relative to ``amplitude``. The pulse lasts
-        about twice ``time_bw_product`` over the width in Hz.
+        Centre and width of the selected B1 band, relative to ``amplitude``.
+        The pulse lasts about ``2 * time_bw_product`` over the width in Hz,
+        that is over ``passband_width * amplitude * gamma``.
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
         Only maps the ripples onto the filter, as in :func:`make_slr_pulse`;
         the flip is ``flip_angle``.
@@ -358,7 +365,7 @@ def make_bloch_siegert_pulse(
     amplitude : float
         RF amplitude where B1 is nominal, in T.
     duration : float
-        In s.
+        Pulse duration, in s.
     k : float, default=42.0
         Sweep shape: ``gamma B1 t / k``, with ``gamma B1`` in rad/s, must stay
         below one over half the pulse; a larger ``k`` keeps the sweep further

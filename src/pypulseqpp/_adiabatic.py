@@ -88,7 +88,7 @@ def make_adiabatic_pulse(
     duration : float, default=0.01
         Pulse duration, in s.
     dwell : float, default=None
-        RF raster, in s; the system's by default.
+        RF sample spacing, in s; the system's ``rf_raster_time`` by default.
     freq_offset, phase_offset : float, default=0.0
         Frequency (Hz) and phase (rad) offsets.
     max_grad, max_slew : float, default=None
@@ -108,18 +108,19 @@ def make_adiabatic_pulse(
     use : str, default='inversion'
         What the pulse is for, as Pulseq records it.
     freq_ppm, phase_ppm : float, default=0.0
-        Field-strength-relative offsets.
+        Frequency and phase offsets in ppm of the Larmor frequency at the
+        system's ``B0``, as in PyPulseq.
     flip_angle : float, default=np.pi / 2
         ``"bir4"`` rotation, in rad.
     kappa : float, default=math.atan(20.0)
         ``"bir4"`` frequency-sweep shape: ``tan(kappa * s) / tan(kappa)``
         over each quarter.
-    gradient_modulation : float, int, default=0.9
+    gradient_modulation : float, default=0.9
         ``"goia_wurst"`` gradient modulation depth, in ``[0, 1)``: the gradient
         follows ``(1 - gradient_modulation) + gradient_modulation *
         |cos(pi t / T)|^gradient_order`` of its peak,
         ``bandwidth / slice_thickness``.
-    gradient_order : float, int, default=4
+    gradient_order : float, default=4
         ``"goia_wurst"`` exponent of the gradient modulation.
 
     Returns

@@ -103,7 +103,7 @@ def make_slr_pulse(
     filter_type : {'ls', 'pm', 'min', 'max', 'ms'}, default='ls'
         FIR design method.
     passband_ripple, stopband_ripple : float, default=0.01
-        Ripple allowed in each band.
+        Fractional ripple allowed in the passband and the stopband.
     cancel_alpha_phase : bool, default=False
         Remove the SLR alpha polynomial's phase.
     root_flip : bool, default=False
@@ -120,7 +120,8 @@ def make_slr_pulse(
     use : str, default='undefined'
         Pulseq ``use`` tag.
     freq_ppm, phase_ppm : float, default=0.0
-        Field-strength-relative offsets.
+        Frequency and phase offsets in ppm of the Larmor frequency at the
+        system's ``B0``, as in PyPulseq.
 
     Returns
     -------
@@ -622,7 +623,8 @@ def make_2d_selective_pulse(
         disc.
     n_interleaves : int, default=None
         Spiral arms to play. The default covers excitation k-space at the
-        Nyquist spacing. Fewer arms shorten the pulse and reduce the alias-free excitation FOV.
+        Nyquist spacing; fewer arms shorten the pulse and reduce the
+        alias-free excitation field of view.
     axes : sequence of str, default=('x', 'y')
         The two gradient channels the trajectory runs on.
     b1_maps : array_like, default=None
@@ -855,13 +857,13 @@ def make_half_passages(
     use: str = "preparation",
     system=None,
 ) -> tuple:
-    """Build the adiabatic half-passage pair that tips magnetization down and back.
+    """Make a pair of adiabatic half passages, tipping magnetisation into the transverse plane and back.
 
     ``down`` is the first half of a full adiabatic sweep (far off-resonance to
     on-resonance), taking ``+z`` to the transverse plane independently of B1
     above the adiabatic threshold. ``up`` is ``down`` time-reversed and
-    conjugated, so the phase accrued on the way down unwinds on the way up.
-    Both play at their designed amplitude.
+    conjugated, which returns the magnetisation to ``+z``. Both play at their
+    designed amplitude.
 
     Parameters
     ----------
@@ -882,7 +884,8 @@ def make_half_passages(
 
     Returns
     -------
-    down, up : SimpleNamespace
+    down, up : RfEvent
+        The first and the second half passage.
 
     Examples
     --------
@@ -957,19 +960,18 @@ def make_recursive_slr_pulses(
     n_segments : int
         Pulses in the train.
     duration : float, default=DEFAULT_DURATION
-        Of each pulse, in s. The SLR core, to which ``time_bw_product`` and
-        ``refocusing_tbw`` refer, spans about ``duration / 1.75``; a Blackman taper
-        fills the rest.
+        Duration of each pulse, in s. The SLR core, to which
+        ``time_bw_product`` and ``refocusing_tbw`` refer, spans about
+        ``duration / 1.75``; a Blackman taper fills the rest.
     spin_echo : bool, default=False
         Design for a spin-echo segment, whose refocusing pulse is returned too.
     refocusing_tbw : float, default=8.0
         Time-bandwidth product of that refocusing pulse.
     t1 : float, default=math.inf
-        Longitudinal relaxation time and the time between pulses, in s;
-        ``t1=inf`` is no recovery.
+        Longitudinal relaxation time, in s; ``inf`` is no recovery between
+        pulses.
     segment_tr : float, default=0.06
-        Longitudinal relaxation time and the time between pulses, in s;
-        ``t1=inf`` is no recovery.
+        Time between successive pulses, in s; read only for a finite ``t1``.
     use_mz : bool, default=True
         Design each pulse against the profile the earlier ones left.
     return_gz : bool, default=False

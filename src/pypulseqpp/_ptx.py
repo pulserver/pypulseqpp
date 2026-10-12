@@ -291,7 +291,7 @@ def make_spokes_pulse(
     fov : float or (float, float)
         In-plane extent the maps cover, in m, centred on the isocentre.
     slice_thickness : float
-        In m.
+        Thickness of the excited slice, in m.
     n_spokes : int, default=3
         Number of spokes, one of them at the k-space centre.
     mask : array_like of bool, default=None
@@ -301,11 +301,11 @@ def make_spokes_pulse(
         span ``1 / resolution`` at a pitch of ``1 / fov``. An eighth of the
         smaller field of view by default.
     time_bw_product : float, default=4.0
-        Of each spoke's slice profile.
+        Time-bandwidth product of each spoke's slice profile.
     regularization : float, default=0.0
         Tikhonov weight on the spoke weights.
     axes : (str, str, str), default=('x', 'y', 'z')
-        The two in-plane gradient channels, then the slice-select one.
+        Gradient channels of the two in-plane axes, then of slice selection.
     delay : float, default=0.0
         Delay before the pulse and its gradients, in s; raised to
         ``system.rf_dead_time`` and rounded up to the gradient raster.

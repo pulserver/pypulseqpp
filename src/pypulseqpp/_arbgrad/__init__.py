@@ -227,7 +227,7 @@ def to_gradient_tesla_per_meter(
     n_pix: int,
     gamma: float = DEFAULT_GAMMA_HZ_PER_T,
 ) -> np.ndarray:
-    r"""Convert a native Hz/pix gradient array to SI units (T/m).
+    """Convert a native Hz/pix gradient array to SI units (T/m).
 
     Parameters
     ----------
@@ -240,7 +240,7 @@ def to_gradient_tesla_per_meter(
     n_pix : int
         Matrix size used when designing the waveform, pixels.
     gamma : float, default=DEFAULT_GAMMA_HZ_PER_T
-        Gyromagnetic ratio, Hz/T. Defaults to :sup:`1`\\ H (42.5756e6 Hz/T).
+        Gyromagnetic ratio, Hz/T; the default is that of 1H, 42.5756e6 Hz/T.
 
     Returns
     -------
