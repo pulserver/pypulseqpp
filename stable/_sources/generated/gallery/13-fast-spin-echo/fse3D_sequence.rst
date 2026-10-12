@@ -118,22 +118,23 @@ is the echo assigned to k-space centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-141
+.. GENERATED FROM PYTHON SOURCE LINES 129-142
 
 Refocusing schedule and echo signal
 -----------------------------------
 
 The refocusing schedule has the form of [BUS08a]_: the angle decreases from
-a maximum to a minimum over the first five echoes, increases to the
-prescribed angle at the effective-TE echo and returns to the maximum at the
-end of the train. The minimum and maximum angles, bounded by the prescribed
-angle, are optimized with the extended phase graph (EPG) FSE simulator of ``blochsim`` [HEN88]_ [WEI15]_.
+the prescribed angle to a minimum over the first five echoes, increases to
+the prescribed angle at the effective-TE echo and holds it to the end of the
+train. The prescribed angle is the peak of the schedule. The minimum angle,
+bounded by the prescribed angle, is optimized with the extended phase graph
+(EPG) FSE simulator of ``blochsim`` [HEN88]_ [WEI15]_.
 The cost combines an echo-to-echo signal-variation measure of blurring, the
 contrast between two of the sequence's design tissues at the effective-TE
 echo, and a penalty on RF power above that of the initial schedule. The same
 simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 141-157
+.. GENERATED FROM PYTHON SOURCE LINES 142-158
 
 .. code-block:: Python
 
@@ -156,7 +157,7 @@ simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 158-165
+.. GENERATED FROM PYTHON SOURCE LINES 159-166
 
 Echo and shot order
 -------------------
@@ -166,7 +167,7 @@ effective-TE echo and progressively larger radii to echoes farther from it. Echo
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 165-170
+.. GENERATED FROM PYTHON SOURCE LINES 166-171
 
 
 
@@ -180,7 +181,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 171-178
+.. GENERATED FROM PYTHON SOURCE LINES 172-179
 
 K-space weighting
 -----------------
@@ -190,7 +191,7 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 178-188
+.. GENERATED FROM PYTHON SOURCE LINES 179-189
 
 
 
@@ -204,7 +205,7 @@ image blurring along both phase-encode axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 189-204
+.. GENERATED FROM PYTHON SOURCE LINES 190-205
 
 References
 ----------
@@ -225,7 +226,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.298 seconds)
+   **Total running time of the script:** (0 minutes 2.839 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

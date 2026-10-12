@@ -24,8 +24,8 @@ Individually optimized 3D fast spin echo
 
 Individually parameterized 3D FSE assigns different echo-train lengths and
 repetition times to the shots that acquire central and peripheral k-space
-[BUO25]_. From the central to the peripheral shots, TR and the minimum and
-maximum angles of the refocusing schedule [BUS08b]_ follow a cubic
+[BUO25]_. From the central to the peripheral shots, TR and the minimum
+angle of the refocusing schedule [BUS08b]_ follow a cubic
 smooth-step transition between their two limits; the echo-train length
 follows the same transition, rounded to integer values. The views are
 assigned by an adaptive radial order. Longer trains and a different TR at the
@@ -64,20 +64,29 @@ is set by the parameters of the central shots.
 
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:877: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+    Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+      first = float(value.reshape(-1)[0])
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 58-75
+
+.. GENERATED FROM PYTHON SOURCE LINES 58-76
 
 Train parameters
 ----------------
 
-TR and the schedule's minimum and maximum angles follow a cubic smooth-step
+TR and the schedule's minimum angle follow a cubic smooth-step
 transition, :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central)
 shot to 1 at the last (peripheral) shot [BUO25]_; the echo-train length
-follows the same transition rounded to integers. Every schedule passes
-through the prescribed 120 degrees at the effective-TE echo. The schedules
-of representative shots are plotted up to each shot's own train length:
+follows the same transition rounded to integers. Every schedule peaks at
+the prescribed 120 degrees, which it reaches again at the effective-TE
+echo. The schedules of representative shots are plotted up to each shot's
+own train length:
 the central shots reach lower minimum angles, and the peripheral shots have
 shallower minima and longer trains.
 
@@ -87,7 +96,7 @@ amplitude of the instance, which is zero past the shot's own train length.
 The TR of a shot is the interval from its excitation to the next; the last
 shot's is recorded as ``TRPeriphery``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 75-98
+.. GENERATED FROM PYTHON SOURCE LINES 76-99
 
 .. code-block:: Python
 
@@ -113,7 +122,7 @@ shot's is recorded as ``TRPeriphery``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 99-108
+.. GENERATED FROM PYTHON SOURCE LINES 100-109
 
 Adaptive radial ordering
 ------------------------
@@ -125,7 +134,7 @@ slots nearest the effective-TE echo of the central shots, and within each group 
 are assigned to shots in order of angle. Colour gives the train length and
 TR of the shot that acquired each view.
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-141
+.. GENERATED FROM PYTHON SOURCE LINES 109-142
 
 
 
@@ -139,7 +148,7 @@ TR of the shot that acquired each view.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-152
+.. GENERATED FROM PYTHON SOURCE LINES 143-153
 
 References
 ----------
@@ -155,7 +164,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.821 seconds)
+   **Total running time of the script:** (0 minutes 9.610 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

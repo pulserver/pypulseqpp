@@ -5,8 +5,8 @@ Individually optimized 3D fast spin echo
 
 Individually parameterized 3D FSE assigns different echo-train lengths and
 repetition times to the shots that acquire central and peripheral k-space
-[BUO25]_. From the central to the peripheral shots, TR and the minimum and
-maximum angles of the refocusing schedule [BUS08b]_ follow a cubic
+[BUO25]_. From the central to the peripheral shots, TR and the minimum
+angle of the refocusing schedule [BUS08b]_ follow a cubic
 smooth-step transition between their two limits; the echo-train length
 follows the same transition, rounded to integer values. The views are
 assigned by an adaptive radial order. Longer trains and a different TR at the
@@ -58,12 +58,13 @@ n_shots = int(seq.get_definition("NumShots")[0])
 # Train parameters
 # ----------------
 #
-# TR and the schedule's minimum and maximum angles follow a cubic smooth-step
+# TR and the schedule's minimum angle follow a cubic smooth-step
 # transition, :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central)
 # shot to 1 at the last (peripheral) shot [BUO25]_; the echo-train length
-# follows the same transition rounded to integers. Every schedule passes
-# through the prescribed 120 degrees at the effective-TE echo. The schedules
-# of representative shots are plotted up to each shot's own train length:
+# follows the same transition rounded to integers. Every schedule peaks at
+# the prescribed 120 degrees, which it reaches again at the effective-TE
+# echo. The schedules of representative shots are plotted up to each shot's
+# own train length:
 # the central shots reach lower minimum angles, and the peripheral shots have
 # shallower minima and longer trains.
 #

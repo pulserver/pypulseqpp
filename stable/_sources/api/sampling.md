@@ -21,6 +21,7 @@ disjoint lists: calibration views and the other acquired views.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.make_cartesian_axis_sampling` | Prescription of one axis: matrix size, acceleration, ACS, partial Fourier | `(calibration, imaging)`: encoded view indices `y` | Lines of a 2D acquisition, or partitions of a stack-of-* acquisition. |
 | {obj}`~pypulseqpp.make_cartesian_plane_sampling` | Prescription of a ky-kz plane, with `sampling='lattice'` or `'poisson'` | `(calibration, imaging)`: encoded view indices `(y, z)` | Views of a 3D Cartesian acquisition. |
+| {obj}`~pypulseqpp.count_cartesian_plane_sampling` | The arguments of `make_cartesian_plane_sampling` | `(n_calibration, n_imaging)` | Number of views of a 3D Cartesian acquisition, without listing them. |
 
 ## Boolean sampling masks
 

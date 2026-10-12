@@ -215,6 +215,7 @@ from.
 
    make_cartesian_axis_sampling
    make_cartesian_plane_sampling
+   count_cartesian_plane_sampling
    make_caipirinha_mask
    make_poisson_disc_mask
    make_random_mask

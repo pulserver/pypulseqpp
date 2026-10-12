@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=249fc6a7"></script>
+    <script src="../_static/documentation_options.js?v=9f6344ba"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.38';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.39';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="Timing and rasterization" href="timing.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.38" />
+  <meta name="docsearch:version" content="v0.0.39" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -554,6 +554,11 @@ disjoint lists: calibration views and the other acquired views.</p>
 <td><p>Prescription of a ky-kz plane, with <code class="docutils literal notranslate"><span class="pre">sampling='lattice'</span></code> or <code class="docutils literal notranslate"><span class="pre">'poisson'</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(calibration,</span> <span class="pre">imaging)</span></code>: encoded view indices <code class="docutils literal notranslate"><span class="pre">(y,</span> <span class="pre">z)</span></code></p></td>
 <td><p>Views of a 3D Cartesian acquisition.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.count_cartesian_plane_sampling.html#pypulseqpp.count_cartesian_plane_sampling" title="pypulseqpp.count_cartesian_plane_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_cartesian_plane_sampling</span></code></a></p></td>
+<td><p>The arguments of <code class="docutils literal notranslate"><span class="pre">make_cartesian_plane_sampling</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(n_calibration,</span> <span class="pre">n_imaging)</span></code></p></td>
+<td><p>Number of views of a 3D Cartesian acquisition, without listing them.</p></td>
 </tr>
 </tbody>
 </table>
