@@ -1,0 +1,798 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sequence-analysis computations &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../_static/documentation_options.js?v=249fc6a7"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developer-guide/internals/sequence-analysis';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.38';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/developer-guide/internals/sequence-analysis.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Safety-check computations" href="safety-checks.html" />
+    <link rel="prev" title="Sampling and ordering internals" href="sampling-and-ordering.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="v0.0.38" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Homepage
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/safety-checks.html">Safety checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/io.html">Reading and writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/events.html">Events and blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/gradients.html">Gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sequence-functions.html">Sequence functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/developer-guide/internals/sequence-analysis.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fdeveloper-guide/internals/sequence-analysis.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/developer-guide/internals/sequence-analysis.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Sequence-analysis computations</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveforms-and-times">Waveforms and times</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#k-space">k-space</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repetition">Repetition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rf-power">RF power</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-of-view-transform">Field-of-view transform</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="sequence-analysis-computations">
+<h1>Sequence-analysis computations<a class="headerlink" href="#sequence-analysis-computations" title="Link to this heading">#</a></h1>
+<p>What the analysis functions of <a class="reference internal" href="../../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Sequence</span></code></a> and
+<a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> compute, in which frame and units, and what a
+caller can rely on. The concepts are in
+<a class="reference internal" href="../../explanations/sequence-analysis.html"><span class="doc">Sequence analysis</span></a>.</p>
+<figure class="align-default" id="id1">
+<img alt="../../_images/kspace_reset_and_unbroken.png" src="../../_images/kspace_reset_and_unbroken.png" />
+<figcaption>
+<p><span class="caption-text">One gradient, two integrals: the unbroken area that shift phases use and the
+trajectory that echo anchoring uses.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<section id="waveforms-and-times">
+<h2>Waveforms and times<a class="headerlink" href="#waveforms-and-times" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../generated/pypulseqpp.Sequence.waveforms_and_times.html#pypulseqpp.Sequence.waveforms_and_times" title="pypulseqpp.Sequence.waveforms_and_times"><code class="xref py py-meth docutils literal notranslate"><span class="pre">waveforms_and_times()</span></code></a> returns gradient channels as
+<code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">n)</span></code> arrays of time (s) and amplitude (Hz/m), and an optional complex RF
+channel in Hz. Each block’s rotation is applied, so the channels are the
+logical axes. A trapezoid is its corner points. A time range keeps times
+measured from the start of the scan; a block range restarts them at its first
+block, and the two are not given together.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">compat=True</span></code> the five values are upstream’s: <code class="docutils literal notranslate"><span class="pre">wave_data</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tfp_excitation</span></code>, <code class="docutils literal notranslate"><span class="pre">tfp_refocusing</span></code>, <code class="docutils literal notranslate"><span class="pre">t_adc</span></code>, <code class="docutils literal notranslate"><span class="pre">fp_adc</span></code>. With <code class="docutils literal notranslate"><span class="pre">compat=False</span></code> a
+named result carries all seven Pulseq RF uses, per-sample ADC phases and the
+1-based block each pulse and sample belongs to; the five values cannot hold
+the uses other than excitation and refocusing.</p>
+</section>
+<section id="k-space">
+<h2>k-space<a class="headerlink" href="#k-space" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../generated/pypulseqpp.Sequence.calculate_kspace.html#pypulseqpp.Sequence.calculate_kspace" title="pypulseqpp.Sequence.calculate_kspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calculate_kspace()</span></code></a> returns, in order, the k-space
+location of each ADC sample <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">n)</span></code> in 1/m, the full trajectory sampled
+through ramps and at event times, the centres of the excitation and refocusing
+pulses and the ADC sample times, all in seconds from the start of the selected
+range. <code class="docutils literal notranslate"><span class="pre">trajectory_delay</span></code> is a per-axis timing correction in seconds, positive
+advancing the gradient; <code class="docutils literal notranslate"><span class="pre">gradient_offset</span></code> is a background gradient in Hz/m.
+<code class="docutils literal notranslate"><span class="pre">calculate_kspacePP</span></code> is the same calculation under upstream’s second spelling.</p>
+<p>The trajectory restarts at the centre of an excitation pulse, or of a pulse
+with no use recorded, and is inverted at the centre of a refocusing pulse.
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.adc_kspace.html#pypulseqpp.Sequence.adc_kspace" title="pypulseqpp.Sequence.adc_kspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_kspace()</span></code></a> returns the first result alone, with
+the trajectory between the samples left unbuilt; it integrates identically and
+accepts the same options. With <code class="docutils literal notranslate"><span class="pre">readouts=(first,</span> <span class="pre">stop)</span></code>, two 0-based indices in
+the order <a class="reference internal" href="../../generated/pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_echoes()</span></code></a> lists them, it returns the
+samples of those readouts, each where the whole sequence puts it. The
+integration starts at the last block before readout <code class="docutils literal notranslate"><span class="pre">first</span></code> that plays an
+excitation, or a pulse with no use recorded, and does not acquire, so a
+trajectory delay that moves an earlier block’s gradient past that pulse’s
+centre is not seen. <code class="docutils literal notranslate"><span class="pre">readouts</span></code> is not combined with <code class="docutils literal notranslate"><span class="pre">block_range</span></code>.</p>
+<p><a class="reference internal" href="../../generated/pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes" title="pypulseqpp.Sequence.adc_echoes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">adc_echoes()</span></code></a> returns one entry per block that
+acquires: the 1-based <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">num_samples</span></code>, <code class="docutils literal notranslate"><span class="pre">first_sample</span></code> (the column in
+<code class="docutils literal notranslate"><span class="pre">adc_kspace</span></code>), <code class="docutils literal notranslate"><span class="pre">moving</span></code> (whether the readout’s k-space spans more than 1e-6 of
+its widest span along x, y and z) and <code class="docutils literal notranslate"><span class="pre">echo</span></code>, the first and last 0-based
+sample no further from the centre of k-space, over the moving axes, than the
+nearest sample plus 1 % of the larger k step beside it; -1 for a readout that
+does not move or has fewer than two samples. <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">path</span></code>, <code class="docutils literal notranslate"><span class="pre">paths</span></code>,
+<code class="docutils literal notranslate"><span class="pre">rotation</span></code> and <code class="docutils literal notranslate"><span class="pre">rotations</span></code> give each readout’s k-space as its first sample plus
+one of the distinct paths from there, turned by the block’s rotation. They are
+None when an RF pulse that excites or refocuses, or has no use recorded, plays
+in a block that acquires, or when more than one readout in 16 has a path of its
+own.</p>
+<p>Two integrals of the gradients are kept distinct. The unbroken integral is
+the cumulative gradient area without RF resets and is the reference of the
+RF and ADC shift phases. The excitation- and refocusing-aware k-space is the
+one that anchors echoes. <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> stores them as
+<code class="docutils literal notranslate"><span class="pre">swept_k</span></code> and <code class="docutils literal notranslate"><span class="pre">block_k_origin</span></code>, both in 1/m in the frame of the translation,
+and preserves both across consecutive ranges.</p>
+</section>
+<section id="repetition">
+<h2>Repetition<a class="headerlink" href="#repetition" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a> returns <code class="docutils literal notranslate"><span class="pre">(size,</span> <span class="pre">start)</span></code>: blocks per
+repetition, and the 1-based first block, always 1. The size is, in order of
+preference:</p>
+<ol class="arabic simple">
+<li><p>the shortest period of the block-definition stream from the first block
+that every later block repeats, the last copy possibly cut short;</p></li>
+<li><p>the shortest period dividing the table over which blocks match in duration
+and in the channels they play;</p></li>
+<li><p>the whole sequence.</p></li>
+</ol>
+<p>A slice acquired with its own preparation and dummy shots is one repetition,
+and a block played once makes the whole sequence one. A sequence with no
+blocks has size zero. A <code class="docutils literal notranslate"><span class="pre">TRSize</span></code> definition shorter than the sequence, dividing
+it and repeated by the blocks is taken instead, so a longer hyper-TR can be
+declared; one the blocks contradict is ignored. Nothing is written into the
+sequence, and the answer is recomputed after a native mutation (a block added,
+a block retimed, duplicates collapsed).</p>
+<p>Because the stream is of definitions, shots that differ only in amplitudes,
+rotations, shifted gradient waveforms or phase-encode steps repeat, and a
+phase-encode table is one definition at many amplitudes. Labelling a pulse
+splits the definition it shared.</p>
+</section>
+<section id="rf-power">
+<h2>RF power<a class="headerlink" href="#rf-power" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> returns one event’s energy (Hz² s), peak
+power (Hz²) and RMS amplitude (Hz), as MATLAB Pulseq’s <code class="docutils literal notranslate"><span class="pre">calcRfPower</span></code>, resampled
+at <code class="docutils literal notranslate"><span class="pre">dt</span></code>; the energy does not depend on <code class="docutils literal notranslate"><span class="pre">dt</span></code>.
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.calc_rf_power.html#pypulseqpp.Sequence.calc_rf_power" title="pypulseqpp.Sequence.calc_rf_power"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> returns mean power, peak power, RMS
+and energy over all blocks or a 1-based inclusive <code class="docutils literal notranslate"><span class="pre">block_range</span></code>; with
+<code class="docutils literal notranslate"><span class="pre">window_duration</span></code> the energy, mean power and RMS are the largest over runs of
+whole blocks no longer than the window, each divided by it. A dynamic pTx
+pulse is read as the root-sum-square of its channels, so channel powers add and
+never cancel. The values are relative: divide the RMS by gamma for tesla and
+the powers by gamma squared. SAR is <a class="reference internal" href="../../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a>.</p>
+</section>
+<section id="field-of-view-transform">
+<h2>Field-of-view transform<a class="headerlink" href="#field-of-view-transform" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> takes at least one of <code class="docutils literal notranslate"><span class="pre">rotation</span></code>,
+<code class="docutils literal notranslate"><span class="pre">translation</span></code>, <code class="docutils literal notranslate"><span class="pre">scale</span></code> or a 4-by-4 <code class="docutils literal notranslate"><span class="pre">transform</span></code>, which excludes the other two;
+its translation is stated in the output frame and is converted to the frame of
+<code class="docutils literal notranslate"><span class="pre">translation</span></code> with the transpose of its rotation. <a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.apply_to_sequence.html#pypulseqpp.TransformFOV.apply_to_sequence" title="pypulseqpp.TransformFOV.apply_to_sequence"><code class="xref py py-meth docutils literal notranslate"><span class="pre">apply_to_sequence()</span></code></a>
+applies scaling, then translation, then rotation, to a copy unless
+<code class="docutils literal notranslate"><span class="pre">in_place=True</span></code>, over <code class="docutils literal notranslate"><span class="pre">block_range</span></code> (1-based, inclusive) or <code class="docutils literal notranslate"><span class="pre">time_range</span></code>,
+not both.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Frame and units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>scale</p></td>
+<td><p>multipliers on the channel axes; field of view scales inversely, zero disables encoding on an axis</p></td>
+</tr>
+<tr class="row-odd"><td><p>translation</p></td>
+<td><p>metres, along the channel axes; along the logical axes with <code class="docutils literal notranslate"><span class="pre">through_rotation</span></code>, where a block with rotation <span class="math notranslate nohighlight">\(R\)</span> is moved by the gradients it plays, <span class="math notranslate nohighlight">\(R g\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>rotation</p></td>
+<td><p>3-by-3 matrix or SciPy rotation, composed after the rotation each block holds; stored as a scalar-first quaternion</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Translation moves RF and ADC by a phase from the unbroken gradient area: a
+steady gradient under a pulse or readout costs two numbers, a moving one a
+phase shape, and a readout is referenced to its window centre. Repeated
+readouts share one reference and register one modulation shape. A rotation
+given with a translation does not turn it. RF phase shapes store cycles; ADC
+modulation and phase offsets are in radians.</p>
+<p>A matrix of determinant -1 is played as <code class="docutils literal notranslate"><span class="pre">rotation</span> <span class="pre">&#64;</span> <span class="pre">diag(1,</span> <span class="pre">1,</span> <span class="pre">-1)</span></code> after
+negating the gradient on channel axis z, each block’s own rotation conjugated
+by that reflection (<code class="docutils literal notranslate"><span class="pre">reflected_axis</span></code> is 2). A rotation is always an
+annotation; <code class="docutils literal notranslate"><span class="pre">use_rotation_extension=False</span></code>, which would bake it into new
+waveforms, is refused.</p>
+<p><code class="docutils literal notranslate"><span class="pre">NOSCL</span></code>, <code class="docutils literal notranslate"><span class="pre">NOROT</span></code> and <code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> labels exempt blocks from scaling, rotation and
+translation, evaluated from the selected range’s start without inheriting
+earlier values. A nonzero translation still integrates exempt blocks, because
+where k stands depends on everything played before it. A nonzero translation
+updates <code class="docutils literal notranslate"><span class="pre">swept_k</span></code> and <code class="docutils literal notranslate"><span class="pre">block_k_origin</span></code>; reuse them only for consecutive
+ranges, initialised to the state entering the first selected block. A block
+range does not integrate the blocks before it.
+<a class="reference internal" href="../../generated/pypulseqpp.TransformFOV.trajectories.html#pypulseqpp.TransformFOV.trajectories" title="pypulseqpp.TransformFOV.trajectories"><code class="xref py py-meth docutils literal notranslate"><span class="pre">trajectories()</span></code></a> returns <code class="docutils literal notranslate"><span class="pre">(block,</span> <span class="pre">(3,</span> <span class="pre">n))</span></code> ADC
+trajectories on the channel axes from <code class="docutils literal notranslate"><span class="pre">block_k_origin</span></code>, without updating it and
+without applying rotation extensions.</p>
+</section>
+<section id="plotting">
+<h2>Plotting<a class="headerlink" href="#plotting" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../generated/pypulseqpp.plot.plot.html#pypulseqpp.plot.plot" title="pypulseqpp.plot.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> needs the optional SeqEyes viewer
+(<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'pypulseqpp[plot]'</span></code>) and is also <code class="docutils literal notranslate"><span class="pre">Sequence.plot</span></code>.
+<a class="reference internal" href="../../generated/pypulseqpp.plot.paper_plot.html#pypulseqpp.plot.paper_plot" title="pypulseqpp.plot.paper_plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">paper_plot()</span></code></a> draws one repetition over the others, up to
+<code class="docutils literal notranslate"><span class="pre">max_underlays</span></code>, as <code class="docutils literal notranslate"><span class="pre">Sequence.paper_plot</span></code>.
+<a class="reference internal" href="../../generated/pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_kspace()</span></code></a> draws the ADC locations in 1/m after each
+block’s rotation.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="sampling-and-ordering.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Sampling and ordering internals</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="safety-checks.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Safety-check computations</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#waveforms-and-times">Waveforms and times</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#k-space">k-space</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#repetition">Repetition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rf-power">RF power</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#field-of-view-transform">Field-of-view transform</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting">Plotting</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

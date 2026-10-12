@@ -37,7 +37,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=fddf5300" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=6e394759"></script>
+    <script src="../../_static/documentation_options.js?v=249fc6a7"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.37';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.38';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.37" />
+  <meta name="docsearch:version" content="v0.0.38" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -196,71 +196,61 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pre-commit.html">Pre-commit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guide/internals/safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/pulseq-representation.html">Pulseq representation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/shapes-and-storage.html">Storage, deduplication and file revisions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/timing-and-rasters.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-design.html">Sequence design in pypulseqpp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/constraint-checks.html">Constraint checks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/gradient-constraints.html">Gradient amplitude, slew rate and continuity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/pns.html">Peripheral nerve stimulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/mechanical-resonance.html">Mechanical resonance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../explanations/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/safety-checks.html">Safety checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/pulseq-basics.html">Pulseq basics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-pulseq-basics/01_fid.html">Free induction decay</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-pulseq-basics/02_spin_echo.html">Spin echo</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-pulseq-basics/03_gradient_echo.html">Gradient echo</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-spoiling/01_spoiling.html">Spoiling</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/gre-to-epi.html">Echo planar imaging</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/03-gre-to-epi/03_epi.html">Echo planar imaging</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/non-cartesian.html">Radial sampling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/04-non-cartesian/01_radial.html">Radial sampling</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/01_sequence_modules.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/05-sequence-modules/03_sequence_function.html">A sequence function</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/06-checks/01_constraint_checks.html">Sequence constraint checks</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/08-tours/01_multi_echo.html">Multi-echo readouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/08-tours/02_segmented_epi.html">Segmented echo planar</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/08-tours/03_spiral.html">Spiral readout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/08-tours/04_ramp_sampled_readout.html">A ramp-sampled readout module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/08-tours/05_twisting_radial_readout.html">A twisting radial readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -588,7 +578,7 @@
 <span class="sd">        System limits and rasters. Defaults to the shared system; rasters</span>
 <span class="sd">        are recorded in the native sequence.</span>
 <span class="sd">    use_block_cache : bool, default=True</span>
-<span class="sd">        Compatibility flag, retained but not used to cache decoded blocks.</span>
+<span class="sd">        Upstream compatibility flag; decoded blocks are never cached.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -1231,24 +1221,20 @@
 <span class="sd">        axis : {'x', 'y', 'z'}</span>
 <span class="sd">            Which axis to act on.</span>
 <span class="sd">        modifier : float</span>
-<span class="sd">            What to multiply by. -1 inverts the axis, 0 silences it.</span>
+<span class="sd">            Factor applied to the amplitudes; -1 inverts the axis and 0 zeroes it.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            If ``axis`` is not one of 'x', 'y' or 'z'.</span>
 <span class="sd">        RuntimeError</span>
-<span class="sd">            If a gradient is played both on ``axis`` and on another, where</span>
-<span class="sd">            there is no one answer.</span>
+<span class="sd">            If a gradient event is played on ``axis`` and on another axis.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        Only the amplitude moves. The ramps, the delay and the shape stay as</span>
-<span class="sd">        they are, so the areas scale with the amplitude and the timing does</span>
-<span class="sd">        not change.</span>
-
-<span class="sd">        Silencing the phase encoding is ``mod_grad_axis('y', 0.0)``;</span>
-<span class="sd">        inverting the readout is ``mod_grad_axis('x', -1.0)``.</span>
+<span class="sd">        Only the amplitude is scaled. Rise, flat and fall times, delays and</span>
+<span class="sd">        waveform shapes are unchanged, so areas scale with the amplitude and</span>
+<span class="sd">        the timing does not change.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1311,9 +1297,8 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        init : dict[str, int], default=None</span>
-<span class="sd">            Initial value of each label before evaluation begins. A label named here is</span>
-<span class="sd">            reported whether or not the blocks touch it, so that a sequence</span>
-<span class="sd">            can be evaluated one range at a time.</span>
+<span class="sd">            Value of each label before the first block evaluated. A label</span>
+<span class="sd">            named here is reported whether or not the blocks touch it.</span>
 <span class="sd">        evolution : {'none', 'blocks', 'adc', 'label'}, default='none'</span>
 <span class="sd">            Where to record a value: at the end, at every block, at every</span>
 <span class="sd">            block that acquires, or at every block that sets or increments</span>
@@ -1614,10 +1599,10 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        t_adc : NDArray[np.float64]</span>
-<span class="sd">            When every sample is taken, in seconds from the start of the scan.</span>
+<span class="sd">            Time of each ADC sample, in seconds from the start of the scan.</span>
 <span class="sd">        fp_adc : NDArray[np.float64]</span>
-<span class="sd">            ``(n, 2)``, one row per ADC window rather than per sample:</span>
-<span class="sd">            frequency (Hz) and phase (rad) offsets, without ppm corrections.</span>
+<span class="sd">            ``(n, 2)``, one row per ADC window: frequency offset (Hz) and</span>
+<span class="sd">            phase offset (rad), without ppm terms.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1673,7 +1658,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_kspace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_delay</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">gradient_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">block_range</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Integrate the gradients with excitation resets and refocusing.</span>
+<span class="w">        </span><span class="sd">"""Return the k-space trajectory, reset at excitations and inverted at refocusing pulses.</span>
 
 <span class="sd">        Each block's rotation is applied. K-space coordinates are in 1/m.</span>
 
@@ -1743,14 +1728,10 @@
 <span class="sd">        block_range : Sequence[int], default=None</span>
 <span class="sd">            Two 1-based block indices; only those blocks are followed.</span>
 <span class="sd">        readouts : Sequence[int], default=None</span>
-<span class="sd">            Two 0-based readout indices, ``first`` and ``stop``: only the</span>
-<span class="sd">            samples of the readouts from ``first`` to before ``stop``, in the</span>
-<span class="sd">            order :meth:`adc_echoes` lists them, each where following the</span>
-<span class="sd">            whole sequence puts it. k-space is integrated from the last block</span>
-<span class="sd">            before readout ``first`` that plays an excitation, or a pulse with</span>
-<span class="sd">            no use recorded, and does not acquire, so a trajectory delay that</span>
-<span class="sd">            moves an earlier block's gradient past that pulse's centre is not</span>
-<span class="sd">            seen. Not combined with ``block_range``.</span>
+<span class="sd">            Half-open range ``(first, stop)`` of 0-based readout indices, in</span>
+<span class="sd">            the order of :meth:`adc_echoes`. Only those readouts' samples are</span>
+<span class="sd">            returned, at the positions the whole sequence gives them. Not with</span>
+<span class="sd">            ``block_range``; see Notes.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1762,6 +1743,14 @@
 <span class="sd">        ValueError</span>
 <span class="sd">            If both ``block_range`` and ``readouts`` are given, or ``readouts``</span>
 <span class="sd">            is not two indices ``0 &lt;= first &lt;= stop &lt;=`` the number of readouts.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        With ``readouts``, k-space is integrated from the last block before</span>
+<span class="sd">        readout ``first`` that plays an excitation (or a pulse with no use</span>
+<span class="sd">        recorded) and does not acquire. A trajectory delay that moves an</span>
+<span class="sd">        earlier block's gradient past that pulse's centre is therefore not</span>
+<span class="sd">        seen.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -1785,7 +1774,7 @@
 <div class="viewcode-block" id="Sequence.adc_echoes">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.adc_echoes.html#pypulseqpp.Sequence.adc_echoes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">adc_echoes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AdcEchoes</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Return, per readout, the axes it moves along and where it passes nearest the centre.</span>
+<span class="w">        </span><span class="sd">"""Return, per readout, the axes its k-space moves along and the samples nearest the k-space centre.</span>
 
 <span class="sd">        One entry per block that acquires, in play order. k-space is integrated</span>
 <span class="sd">        as :meth:`adc_kspace` integrates it, after each block's rotation:</span>
@@ -1795,20 +1784,12 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AdcEchoes</span>
-<span class="sd">            ``block``, 1-based, and ``num_samples``, each ``(n,)``;</span>
-<span class="sd">            ``first_sample``, the column of the readout's first sample in</span>
-<span class="sd">            :meth:`adc_kspace`; ``moving``, ``(n, 3)``, whether its k-space</span>
-<span class="sd">            spans more than 1e-6 of its widest span along x, y and z; and</span>
-<span class="sd">            ``echo``, ``(n, 2)``, the first and last 0-based sample no further</span>
-<span class="sd">            from the centre of k-space, over the moving axes, than the nearest</span>
-<span class="sd">            sample plus 1% of the larger k step beside it, -1 for a readout</span>
-<span class="sd">            that does not move or has fewer than two samples. ``start``,</span>
-<span class="sd">            ``path``, ``paths``, ``rotation`` and ``rotations`` give each</span>
-<span class="sd">            readout's k-space as its first sample plus one of the distinct</span>
-<span class="sd">            paths from there, turned by the block's rotation;</span>
-<span class="sd">            None when an RF pulse that excites or refocuses, or has no use</span>
-<span class="sd">            recorded, plays in a block that acquires, or when more than one</span>
-<span class="sd">            readout in 16 has a path of its own.</span>
+<span class="sd">            ``moving`` is true along an axis where the readout's k-space spans</span>
+<span class="sd">            more than 1e-6 of its widest span. The fields ``start``, ``path``,</span>
+<span class="sd">            ``paths``, ``rotation`` and ``rotations`` are None when an RF pulse</span>
+<span class="sd">            that excites or refocuses, or has no use recorded, plays in a block</span>
+<span class="sd">            that acquires, or when more than one readout in 16 has a path of</span>
+<span class="sd">            its own.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2022,9 +2003,10 @@
 <span class="sd">        dict[str, Any]</span>
 <span class="sd">            ``num_blocks``, ``event_count`` and ``libraries``; ``duration``,</span>
 <span class="sd">            ``TE`` and ``TR`` in seconds; ``flip_angles_deg``;</span>
-<span class="sd">            ``unique_k_positions``; ``max_gradient`` and ``max_slew_rate``,</span>
-<span class="sd">            each per axis and as a vector magnitude, in the file's units and</span>
-<span class="sd">            in the scanner's; and ``timing_ok`` with ``timing_error_report``.</span>
+<span class="sd">            ``unique_k_positions``; ``max_gradient`` (Hz/m and mT/m) and</span>
+<span class="sd">            ``max_slew_rate`` (Hz/m/s and T/m/s), each per axis and as a</span>
+<span class="sd">            vector magnitude, after each block's rotation; and ``timing_ok``</span>
+<span class="sd">            with ``timing_error_report``.</span>
 <span class="sd">            A sequence whose encoding visits more than one position also</span>
 <span class="sd">            carries ``dimensions``, ``spatial_resolution_mm``,</span>
 <span class="sd">            ``repetitions`` and ``is_cartesian``.</span>
@@ -2155,9 +2137,6 @@
 <span class="sd">        definition id counted from 1. Events sharing a definition play the</span>
 <span class="sd">        same thing at different amplitudes, offsets or phases.</span>
 
-<span class="sd">        Composed with the block table of :meth:`libraries`, this gives the</span>
-<span class="sd">        definitions a block plays without interning them a second time.</span>
-
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        EventDefinitions</span>
@@ -2189,16 +2168,13 @@
 
 <span class="sd">        Entry ``i`` is block ``i + 1``, and the value is a definition id</span>
 <span class="sd">        counted from 1. Blocks sharing a definition play the same events for</span>
-<span class="sd">        the same time, so an interpreter prepares the position once and each</span>
-<span class="sd">        playout only sets what varies.</span>
+<span class="sd">        the same duration; the per-playout parameters are what separate them.</span>
 
-<span class="sd">        What a block plays and how long it lasts make the definition. The ADC</span>
-<span class="sd">        does not, so a preparation shot playing an imaging shot's gradients</span>
-<span class="sd">        with the digitiser off shares that shot's definition; neither do</span>
-<span class="sd">        labels or a rotation, which are things a playout does. A block that</span>
-<span class="sd">        plays nothing at all is one definition whatever it waits for, since an</span>
-<span class="sd">        interpreter sets that at run time -- but one carrying a trigger or a</span>
-<span class="sd">        digital output plays something, and is not that definition.</span>
+<span class="sd">        The events a block plays and its duration make the definition. The ADC</span>
+<span class="sd">        does not, so a block playing an imaging block's gradients with the ADC</span>
+<span class="sd">        absent shares its definition; neither do labels or a rotation. A block</span>
+<span class="sd">        that plays nothing is one definition whatever its duration, but a</span>
+<span class="sd">        block carrying a trigger or a digital output is not.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2343,11 +2319,8 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        RfGradients</span>
-<span class="sd">            ``block``, 1-based, ``(n,)``; ``steady``, ``(n, 3)``, whether the</span>
-<span class="sd">            gradient along x, y and z holds one value across the pulse, an</span>
-<span class="sd">            axis without a gradient being steady at zero; and ``gradient``,</span>
-<span class="sd">            ``(n, 3)``, the gradient along x, y and z at the pulse's centre, in</span>
-<span class="sd">            Hz/m.</span>
+<span class="sd">            Block indices, steadiness flags and gradient amplitudes at the</span>
+<span class="sd">            pulse centre, in Hz/m.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2372,12 +2345,12 @@
         <span class="p">)</span></div>
 
 
-    <span class="c1"># -- the repeating unit --------------------------------------------</span>
+    <span class="c1"># -- repetition ----------------------------------------------------</span>
 
 <div class="viewcode-block" id="Sequence.repetition">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">repetition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Return the repeating unit of the block table.</span>
+<span class="w">        </span><span class="sd">"""Return the repetition of the block table: its length in blocks and its first block.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2430,36 +2403,29 @@
 <div class="viewcode-block" id="Sequence.apply_soft_delay">
 <a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.apply_soft_delay.html#pypulseqpp.Sequence.apply_soft_delay">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_soft_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Set each named soft delay to the value given.</span>
+<span class="w">        </span><span class="sd">"""Set the duration of every block carrying a named soft delay.</span>
 
-<span class="sd">        A soft delay says how long its block lasts in terms of a value the</span>
-<span class="sd">        console supplies: ``duration = value / factor + offset``, rounded onto</span>
-<span class="sd">        the block duration raster. Naming one here writes that duration into</span>
-<span class="sd">        every block that plays it.</span>
+<span class="sd">        The duration of a block with a soft delay is</span>
+<span class="sd">        ``value / factor + offset``, rounded onto the block duration raster.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">            What each delay, by its hint, is to be set to, in seconds. A</span>
-<span class="sd">            delay in the sequence that is not named here is left unchanged.</span>
+<span class="sd">            Value (s) of each soft delay, by its hint. Soft delays not named</span>
+<span class="sd">            are unchanged.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If a name given is not in the sequence, if a hint and a numeric</span>
-<span class="sd">            id do not agree about which delay they name, or if the value</span>
-<span class="sd">            asked for would make a block last less than nothing.</span>
+<span class="sd">            If a name is not a hint in the sequence, if a hint and a numeric</span>
+<span class="sd">            id are inconsistent between blocks, or if a value gives a negative</span>
+<span class="sd">            block duration.</span>
 
 <span class="sd">        Warns</span>
 <span class="sd">        -----</span>
 <span class="sd">        UserWarning</span>
-<span class="sd">            When a duration had to move more than half a microsecond to</span>
-<span class="sd">            reach the raster. Once per delay, not once per block.</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -----</span>
-<span class="sd">        Finding the soft delays is a compiled pass over the block table:</span>
-<span class="sd">        nothing else in a block is decoded to answer whether it heads one.</span>
+<span class="sd">            When rounding onto the raster moves a duration by more than half</span>
+<span class="sd">            a microsecond; once per soft delay.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -2520,20 +2486,21 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_default_soft_delay_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return each soft delay's default value.</span>
 
-<span class="sd">        A soft delay says how a block's duration follows from a value the</span>
-<span class="sd">        console supplies: `duration = value / factor + offset`. Read the other</span>
-<span class="sd">        way, the duration a block was built with says what value that is --</span>
-<span class="sd">        and every block sharing a numeric id has to agree about it.</span>
+<span class="sd">        The default is the value ``(duration - offset) * factor`` that</span>
+<span class="sd">        reproduces the duration a block was built with; blocks sharing a</span>
+<span class="sd">        numeric id have to agree on it.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        defaults : dict[str, float]</span>
-<span class="sd">            The default value for each soft delay, by its hint.</span>
+<span class="sd">            The default value of each soft delay, by its hint.</span>
 <span class="sd">        error_report : list[str]</span>
-<span class="sd">            One line per disagreement found; empty when they all agree.</span>
+<span class="sd">            One line per inconsistency found; empty when there is none.</span>
 <span class="sd">        limits : list[dict | None]</span>
-<span class="sd">            Per numeric id, the default, the hint, the block it came from,</span>
-<span class="sd">            and the range of values that keep the block duration positive.</span>
+<span class="sd">            Per numeric id, None if unused, else a dict with the default</span>
+<span class="sd">            (``'def'``), the hint (``'hint'``), the first block it was derived</span>
+<span class="sd">            from (``'blk'``) and the range of values that keep the block</span>
+<span class="sd">            duration non-negative (``'min'``, ``'max'``).</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -2794,9 +2761,8 @@
 <span class="sd">        The ids are this sequence's own. :meth:`write` with</span>
 <span class="sd">        ``remove_duplicates=False`` writes these rows under these ids; by</span>
 <span class="sd">        default it writes a collapsed copy, whose ids differ wherever two rows</span>
-<span class="sd">        were equal. Taking the tables changes nothing, so a shape registered</span>
-<span class="sd">        and not yet encoded, which the writer encodes on the way out, comes</span>
-<span class="sd">        back as its samples.</span>
+<span class="sd">        were equal. A shape registered and not yet encoded is returned as its</span>
+<span class="sd">        samples.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2826,31 +2792,30 @@
         <span class="n">check_timing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">v141_compat</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Write Pulseq text and record its signature metadata.</span>
+<span class="w">        </span><span class="sd">"""Write the sequence as a Pulseq text file, 1.5.1 by default.</span>
 
-<span class="sd">        With ``v141_compat=True``, metadata is recorded on the written source</span>
-<span class="sd">        (the deduplicated copy when requested).</span>
+<span class="sd">        ``signature_type``, ``signature_file`` and ``signature_value`` record</span>
+<span class="sd">        the signature written.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        name : str | os.PathLike[str]</span>
 <span class="sd">            Where to write it.</span>
 <span class="sd">        create_signature : bool, default=True</span>
-<span class="sd">            Sign the file, so a reader can tell it has not been edited.</span>
+<span class="sd">            Append an MD5 signature of the file's contents.</span>
 <span class="sd">        remove_duplicates : bool, default=True</span>
-<span class="sd">            Collapse identical library rows first. Write a collapsed</span>
-<span class="sd">            copy, leaving this sequence's event libraries unchanged.</span>
+<span class="sd">            Write a copy with identical library rows collapsed; this</span>
+<span class="sd">            sequence's libraries are unchanged.</span>
 <span class="sd">        check_timing : bool, default=False</span>
-<span class="sd">            Judge the timing first, and warn if anything is wrong.</span>
+<span class="sd">            Run :meth:`check_timing` first and warn if it finds anything.</span>
 <span class="sd">        v141_compat : bool, default=False</span>
-<span class="sd">            Write 1.4.1 instead, for an interpreter that predates 1.5.</span>
+<span class="sd">            Write Pulseq 1.4.1 as :meth:`write_v141` does.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str | None</span>
-<span class="sd">            The signature written, or None if the file is unsigned. It is</span>
-<span class="sd">            the signature of what was written, so with ``remove_duplicates``</span>
-<span class="sd">            it belongs to the collapsed copy rather than to this sequence.</span>
+<span class="sd">            The signature written, or None if the file is unsigned. With</span>
+<span class="sd">            ``remove_duplicates`` it is that of the collapsed copy.</span>
 
 <span class="sd">        Warns</span>
 <span class="sd">        -----</span>
@@ -2896,8 +2861,7 @@
 <span class="sd">        name : str | os.PathLike[str]</span>
 <span class="sd">            Where to write it.</span>
 <span class="sd">        create_signature : bool, default=True</span>
-<span class="sd">            Append the signature section: an MD5 of everything above it, so a</span>
-<span class="sd">            file says whether it is the file that was written.</span>
+<span class="sd">            Append a signature section holding the MD5 of the preceding bytes.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2927,20 +2891,23 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">write_v141</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">create_signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Write Pulseq 1.4.1 text, for an interpreter predating Pulseq 1.5.</span>
+<span class="w">        </span><span class="sd">"""Write the sequence as a Pulseq 1.4.1 text file.</span>
+
+<span class="sd">        Version 1.4.1 has no columns for RF centre and use, gradient endpoints</span>
+<span class="sd">        or ppm offsets; ppm offsets are written as absolute offsets.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        name : str | os.PathLike[str]</span>
 <span class="sd">            Where to write it.</span>
 <span class="sd">        create_signature : bool, default=True</span>
-<span class="sd">            Sign the file, so a reader can tell it has not been edited.</span>
+<span class="sd">            Append an MD5 signature of the file's contents.</span>
 <span class="sd">        gamma : float, default=None</span>
 <span class="sd">            Gyromagnetic ratio in Hz/T; the sequence's system's when None.</span>
 <span class="sd">        field : float, default=None</span>
-<span class="sd">            Main field in T; the sequence's system's ``B0`` when None. With</span>
-<span class="sd">            ``gamma``, converts ppm offsets, which 1.4.1 has no column for,</span>
-<span class="sd">            to absolute offsets, as :func:`pypulseqpp.calc_absolute_offsets` does.</span>
+<span class="sd">            Main field strength in T; the sequence's system's ``B0`` when</span>
+<span class="sd">            None. With ``gamma``, resolves ppm offsets as</span>
+<span class="sd">            :func:`pypulseqpp.calc_absolute_offsets` does.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3009,10 +2976,10 @@
         <span class="n">remove_duplicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">verify</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Replace this sequence with the one in ``file_path``.</span>
+<span class="w">        </span><span class="sd">"""Replace this sequence with the one in a Pulseq text or binary file.</span>
 
-<span class="sd">        Text or binary, told apart by what is in the bytes. Every revision</span>
-<span class="sd">        from 1.2.0 is read, older ones by converting them.</span>
+<span class="sd">        The format is detected from the contents. Revisions from 1.2.0 are</span>
+<span class="sd">        read; those before 1.5.0 are converted to 1.5.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -3021,10 +2988,9 @@
 <span class="sd">            returns its contents, such as :class:`io.BytesIO` over bytes</span>
 <span class="sd">            received without a file.</span>
 <span class="sd">        detect_rf_use : bool, default=False</span>
-<span class="sd">            Work out what each unlabelled pulse is for, from what it does.</span>
-<span class="sd">            Before revision 1.5.0 the format had nowhere to record it, so a</span>
-<span class="sd">            file older than that arrives with its pulses unlabelled. Pulses</span>
-<span class="sd">            the file does label are left alone.</span>
+<span class="sd">            Assign a use to each RF event without one, as</span>
+<span class="sd">            :meth:`detect_rf_use` does. Files before revision 1.5.0 record no</span>
+<span class="sd">            use.</span>
 <span class="sd">        remove_duplicates : bool, default=True</span>
 <span class="sd">            Collapse identical library rows after reading.</span>
 <span class="sd">        verify : bool, default=False</span>
@@ -3121,12 +3087,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">version_minor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Its minor version."""</span>
+<span class="w">        </span><span class="sd">"""Minor version of the format this sequence is held as."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">version_minor</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">version_revision</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Its revision."""</span>
+<span class="w">        </span><span class="sd">"""Revision of the format this sequence is held as."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">version_revision</span><span class="p">()</span>
 
     <span class="c1"># -- drawing -------------------------------------------------------</span>
@@ -3262,12 +3228,10 @@
 <span class="w">        </span><span class="sd">"""Draw a publication-style diagram of one repetition, using mrsd.</span>
 
 <span class="sd">        Rows are RF, the gradient axes z, y and x after each block's rotation,</span>
-<span class="sd">        and ADC, each drawn from the waveform the sequence plays. Every row</span>
-<span class="sd">        carries its own scale, set by the largest magnitude that channel reaches</span>
-<span class="sd">        over the repetitions drawn, so heights are comparable within a row and</span>
-<span class="sd">        not between rows. The other repetitions are drawn underneath in</span>
-<span class="sd">        ``underlay_color``, which shows what changes from one to the next, and</span>
-<span class="sd">        a TR interval is marked below.</span>
+<span class="sd">        and ADC. Each row is scaled to the largest magnitude its channel</span>
+<span class="sd">        reaches over the repetitions drawn, so heights compare within a row</span>
+<span class="sd">        and not between rows. The other repetitions are drawn underneath in</span>
+<span class="sd">        ``underlay_color``, and the repetition time is marked below.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -3291,8 +3255,9 @@
 <span class="sd">        rf_plot : {'abs', 'real', 'imag'}, default='abs'</span>
 <span class="sd">            Which part of the RF waveform to draw.</span>
 <span class="sd">        tr : int, default=None</span>
-<span class="sd">            1-based repetition to draw. By default, the one in which an axis</span>
-<span class="sd">            reaches its largest magnitude.</span>
+<span class="sd">            1-based repetition to draw solid. By default, the one that</span>
+<span class="sd">            acquires the most ADC blocks, ties broken by the largest gradient</span>
+<span class="sd">            excursion on the axes that differ between repetitions.</span>
 <span class="sd">        max_underlays : int, default=16</span>
 <span class="sd">            At most this many repetitions, evenly spaced, are drawn underneath,</span>
 <span class="sd">            together with those in which each axis reaches its most negative and</span>
@@ -3312,9 +3277,8 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        Repetitions are detected from the block definitions. Choosing them is</span>
-<span class="sd">        one compiled pass over the block table, and only the repetitions drawn</span>
-<span class="sd">        are expanded, so the cost does not grow with the length of the scan. A</span>
+<span class="sd">        Repetitions are those of :meth:`repetition`, or the range declared by</span>
+<span class="sd">        the ``PlotTRsize`` and ``PlotTRstart`` definitions when present; a</span>
 <span class="sd">        sequence that does not repeat is one repetition, drawn whole.</span>
 
 <span class="sd">        Examples</span>
@@ -3423,36 +3387,35 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">expand_repeats</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">repeats</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"AVG"</span><span class="p">,</span> <span class="n">strip_once</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Play the scan a number of times, written into the block table, in place.</span>
+<span class="w">        </span><span class="sd">"""Repeat the scan in place by extending the block table.</span>
 
-<span class="sd">        A block whose ``ONCE`` label is 1 plays on the first repetition only, 2</span>
-<span class="sd">        on the last only, and 0 on every one; ``ONCE`` is sticky and is read per</span>
-<span class="sd">        block, as an interpreter plays it, a block's ``LABELSET`` directives</span>
-<span class="sd">        before its ``LABELINC`` ones. Every repetition starts as the scan</span>
-<span class="sd">        starts, with every counter at zero but ``label``, which numbers it: the</span>
-<span class="sd">        first block a repetition past the first plays sets back to zero the</span>
-<span class="sd">        counters the repetition before left elsewhere, those it sets itself</span>
-<span class="sd">        aside, and sets ``label`` to its index, 1 to ``repeats - 1``. A</span>
-<span class="sd">        repetition plays the same events, so only the block table grows and</span>
-<span class="sd">        no event row is added. A recorded ``TotalDuration`` is replaced by the</span>
-<span class="sd">        duration of the expanded scan. One repetition leaves the scan as it is.</span>
+<span class="sd">        A block whose ``ONCE`` label is 1 plays in the first repetition only,</span>
+<span class="sd">        2 in the last only, and 0 in every one. ``ONCE`` is sticky and is read</span>
+<span class="sd">        per block, a block's ``LABELSET`` statements before its ``LABELINC``</span>
+<span class="sd">        ones. Each repetition starts with every counter at zero except</span>
+<span class="sd">        ``label``, which numbers the repetitions: the first block of each</span>
+<span class="sd">        repetition after the first resets the counters left nonzero by the</span>
+<span class="sd">        previous one, other than those it sets itself, and sets ``label`` to</span>
+<span class="sd">        the repetition's 0-based index.</span>
+
+<span class="sd">        No event row is added. A recorded ``TotalDuration`` is replaced by the</span>
+<span class="sd">        duration of the expanded scan. ``repeats=1`` leaves the scan as it is.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        repeats : int</span>
 <span class="sd">            How many times the scan plays.</span>
 <span class="sd">        label : str, default="AVG"</span>
-<span class="sd">            The counter that numbers the repetitions; empty for none.</span>
+<span class="sd">            Label counting the repetitions; empty for none.</span>
 <span class="sd">        strip_once : bool, default=True</span>
-<span class="sd">            Remove the ``ONCE`` labels, which the expanded table no longer</span>
-<span class="sd">            needs to be played by.</span>
+<span class="sd">            Remove the ``ONCE`` labels from the expanded table.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            ``repeats``, ``blocks_before`` and ``blocks_after``, and the blocks</span>
-<span class="sd">            of one pass whose ``ONCE`` is 1, 0 and 2: ``prep_blocks``,</span>
-<span class="sd">            ``body_blocks`` and ``cooldown_blocks``.</span>
+<span class="sd">        dict[str, int]</span>
+<span class="sd">            ``repeats``, ``blocks_before`` and ``blocks_after``, and the number</span>
+<span class="sd">            of blocks of one pass whose ``ONCE`` is 1, 0 and 2:</span>
+<span class="sd">            ``prep_blocks``, ``body_blocks`` and ``cooldown_blocks``.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -3498,7 +3461,7 @@
     <span class="c1"># spells a call the other way round still runs.</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">write_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""`write(filename, create_signature=False)`.</span>
+<span class="w">        </span><span class="sd">"""Write an unsigned Pulseq text file; ``write(filename, create_signature=False)``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -3508,7 +3471,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">create_signature</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">read_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""`read(filename)`, which distinguishes text from binary itself.</span>
+<span class="w">        </span><span class="sd">"""Read a Pulseq text or binary file; ``read(filename)``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

@@ -22,7 +22,7 @@ label. A reader then has to reconstruct the standard concept from a
 description of it. Repeating the correct technical term is always preferable
 to varying the wording.
 
-## 1. Terminology is the substance
+## 1. Terminology
 
 Use the established term. Do not explain around it.
 
@@ -53,7 +53,7 @@ Use the established term. Do not explain around it.
 `moment` is reserved for a gradient moment, the integral of a gradient
 waveform over time. Never use it for a point in time.
 
-### Distinctions that must not be blurred
+### Distinct quantities
 
 These are separate concepts with separate names. Documentation that conflates
 them is wrong, not merely informal.
@@ -133,7 +133,11 @@ another.
 
 ## 2. Register
 
-Write dry, declarative technical prose.
+Write dry, declarative technical prose in the API reference, the body of the
+explanations and the developer guide. The README, the user guide, the Course,
+the Tours and the opening paragraph of each explanation page talk to the
+reader as "you" and give the mental model before the code; the rules below
+other than the one on tutorial voice apply to them too.
 
 **No personification.** A shot does not walk, a gradient does not ask for
 anything, a limit does not judge, a window is not still there, an encode does
@@ -151,8 +155,8 @@ trapezoidal gradient event", not "the workhorse gradient builder".
 
 **No metaphor for mechanism.** Describe the mechanism.
 
-**No conversational or tutorial voice.** No second person, no "simply", "just",
-"note that", "under the hood", "powerful", "handy", "seamless". No rhetorical
+**No conversational or tutorial voice** outside the README, the user guide,
+the Course, the Tours and the explanation openings. Nowhere "simply", "just", "note that", "under the hood", "powerful", "handy", "seamless". No rhetorical
 questions, no scene-setting.
 
 **No history.** Describe the code as it is. No "used to", "previously", "this
@@ -185,7 +189,7 @@ The first line is one sentence, on one line, ending in a period.
 
 Do not restate the signature, the annotations or the parameter names in prose.
 
-## 4. Units, frames and rasters are API semantics
+## 4. Units, frames and rasters
 
 Every documented quantity carries its unit. The package conventions are:
 
@@ -222,7 +226,7 @@ or block duration. A function that rounds must say which direction it rounds
 and how ties are broken. Do not present a raster value as a default that
 tracks `Opts` unless it actually does.
 
-## 5. Checking and safety language
+## 5. Safety language
 
 This package computes timing, gradient amplitude, slew rate, gradient
 continuity, mechanical-resonance, PNS and SAR **checks and estimates**. It
@@ -280,7 +284,7 @@ section whose doctest runs under `pytest tests/test_docstrings.py`. Write
 examples that demonstrate the contract — a unit, a shape, an invariant — not
 that a call succeeds.
 
-## 7. What to document, and what not to
+## 7. Documentation scope
 
 Document, when it is not obvious from the name, signature or annotation:
 externally visible behavior; units; coordinate frames; composition and
@@ -315,7 +319,7 @@ precisely.
 - Use equations only after verifying the convention they express, and define
   every symbol.
 
-## 9. Do not churn
+## 9. Revision discipline
 
 Much of this repository's documentation is already correct. Rewriting correct
 technical prose for stylistic preference wastes review effort and risks

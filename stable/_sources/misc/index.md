@@ -1,10 +1,10 @@
 # Miscellaneous
 
-| Page | Scope |
+| Page | Contents |
 | --- | --- |
-| {doc}`license` | MIT licence, third-party notices and the separately distributed viewer. |
-| {doc}`related` | Projects with a direct technical relationship to pypulseqpp. |
-| {doc}`contributors` | Maintainers, contributors and contribution links. |
+| {doc}`license` | MIT license, third-party notices and the separately distributed viewer |
+| {doc}`related` | Projects technically related to pypulseqpp |
+| {doc}`contributors` | Maintainers and contributors |
 
 ```{toctree}
 :hidden:

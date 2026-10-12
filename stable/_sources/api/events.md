@@ -4,7 +4,7 @@ The block events other than RF and gradients, and the operations on blocks and
 events. Every factory returns a compiled event that
 {meth}`Sequence.add_block` accepts; the RF and gradient factories are on
 {doc}`rf` and {doc}`gradients`. Times are in s, frequency offsets in Hz and
-phase offsets in rad; {doc}`../explanations/pulseq-representation`
+phase offsets in rad; {doc}`../explanations/pulseq-file`
 describes the block and extension structure.
 
 ```{eval-rst}

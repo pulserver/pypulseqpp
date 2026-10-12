@@ -6,37 +6,37 @@ Concepts are in {doc}`../explanations/index` and complete workflows in the
 
 ## Sequence representation
 
-| Page | Module | What it documents |
+| Page | Module | Contents |
 | --- | --- | --- |
-| {doc}`sequence` | `pypulseqpp` | The sequence container, the system limits a sequence is designed under, and the transforms applied to a finished one. |
-| {doc}`io` | `pypulseqpp.io` | Reading a file into a sequence that carries the system it describes, and writing one out in either form. |
-| {doc}`events` | `pypulseqpp` | ADC, delay, trigger, label, rotation and RF-shim events, the operations that act on a block, and the conversions an upstream PyPulseq function is called through. |
+| {doc}`sequence` | `pypulseqpp` | Sequence container, system limits and transforms of a finished sequence |
+| {doc}`io` | `pypulseqpp.io` | Reading and writing `.seq` files, text and binary |
+| {doc}`events` | `pypulseqpp` | ADC, delay, trigger, label, rotation and RF-shim events; block operations; PyPulseq interoperability |
 
 ## Event design
 
-| Page | Module | What it documents |
+| Page | Module | Contents |
 | --- | --- | --- |
-| {doc}`gradients` | `pypulseqpp` | Gradient events on one channel axis, from trapezoids and phase encodes to arbitrary and wave-encoding waveforms, the operations that scale, split and combine them, and the audio of the waveforms a sequence plays. |
-| {doc}`rf` | `pypulseqpp` | RF events, from the basic factories to SLR, slice-encoding, B1-selective, multidimensional and parallel-transmit designs, and the analysis and Bloch simulation of what they produce. |
-| {doc}`trajectories` | `pypulseqpp` | Radial, spiral and rosette k-space trajectories, and the gradient waveforms that trace them. |
-| {doc}`timing` | `pypulseqpp` | ADC dwell times and acquisition durations solved against both the ADC and the gradient raster, and the quantization of a time to a raster. |
+| {doc}`gradients` | `pypulseqpp` | Trapezoid, arbitrary and wave-encoding gradients; scaling, splitting and combining; gradient audio |
+| {doc}`rf` | `pypulseqpp` | RF pulses from basic to SLR, B1-selective, multidimensional and pTx designs; RF analysis and Bloch simulation |
+| {doc}`trajectories` | `pypulseqpp` | Radial, spiral and rosette trajectories and their gradient waveforms |
+| {doc}`timing` | `pypulseqpp` | ADC dwell times and durations on the ADC and gradient rasters; raster rounding |
 
 ## Sequence construction
 
-| Page | Module | What it documents |
+| Page | Module | Contents |
 | --- | --- | --- |
-| {doc}`sampling` | `pypulseqpp` | Cartesian sampling support, the ordering of a selected set into loop, shot and echo positions, EPI shot offsets, non-Cartesian orientations, and per-repetition RF schedules. |
-| {doc}`modules` | `pypulseqpp.sequences` | The excitation, preparation and readout modules, and the non-Cartesian interleaves a readout plays. |
-| {doc}`sequence-functions` | `pypulseqpp.sequences` | The functions that read the protocol of a sequence function, label its blocks, write the sequences it returns and time them, and the excitation choice of a volumetric prescription. |
-| {doc}`../sequences` | `pypulseqpp.sequences` | Every complete sequence the package ships, grouped by family, each with its own reference page. |
+| {doc}`sampling` | `pypulseqpp` | Cartesian masks, view ordering, EPI shot offsets, non-Cartesian orientations and RF schedules |
+| {doc}`modules` | `pypulseqpp.sequences` | Excitation, preparation and readout modules; non-Cartesian interleaves |
+| {doc}`sequence-functions` | `pypulseqpp.sequences` | Protocol parsing, labels, writing and timing of sequence functions |
+| {doc}`../sequences` | `pypulseqpp.sequences` | Every shipped sequence, by family, with its reference page |
 
 ## Analysis and tools
 
-| Page | Module | What it documents |
+| Page | Module | Contents |
 | --- | --- | --- |
-| {doc}`safety` | `pypulseqpp.safety` | The gradient amplitude, slew-rate, continuity, mechanical-resonance, nerve-stimulation and SAR checks, and the readings they return beside a verdict. |
-| {doc}`plotting` | `pypulseqpp.plot` | The SeqEyes view, the publication diagram, and the k-space and RF-profile figures. |
-| {doc}`cli` | `pypulseqpp.cli` | Running a sequence function or a sequence script from the shell, and writing the files it produces. |
+| {doc}`safety` | `pypulseqpp.safety` | Gradient, slew-rate, continuity, mechanical-resonance, PNS and SAR checks |
+| {doc}`plotting` | `pypulseqpp.plot` | SeqEyes view, publication diagram, k-space and RF-profile figures |
+| {doc}`cli` | `pypulseqpp.cli` | Running sequence functions and scripts from the shell |
 
 ```{toctree}
 :hidden:

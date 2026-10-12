@@ -6,15 +6,15 @@ resulting timing, sequence diagram, sampling geometry and acquisition order.
 The prescription each sequence accepts, parameter by parameter, is on its
 reference page in the {doc}`catalogue </sequences>`.
 
-| Family | Acquisition |
+| Family | Contents |
 | --- | --- |
-| {doc}`/examples/built-in-sequences/gradient-echo` | One excitation, no refocusing pulse, spoiled between repetitions. |
-| {doc}`/examples/built-in-sequences/spin-echo` | One excitation and one refocusing pulse, acquired at the refocused echo. |
-| {doc}`/examples/built-in-sequences/fast-spin-echo` | One excitation and a CPMG train, one view per echo. |
-| {doc}`/examples/built-in-sequences/mprage` | An inversion, an inversion time, and a spoiled gradient-echo train over one partition. |
-| {doc}`/examples/built-in-sequences/bssfp` | One excitation with every gradient axis balanced across the repetition. |
-| {doc}`/examples/built-in-sequences/epi` | One excitation and a train of readout lobes of alternating polarity. |
-| {doc}`/examples/built-in-sequences/zte` | A hard pulse transmitted with the readout gradient already at amplitude. |
+| {doc}`/examples/built-in-sequences/gradient-echo` | Excitation and readout, spoiled between repetitions |
+| {doc}`/examples/built-in-sequences/spin-echo` | Excitation and one refocusing pulse; readout at the spin echo |
+| {doc}`/examples/built-in-sequences/fast-spin-echo` | Excitation and a CPMG refocusing train, one view per echo |
+| {doc}`/examples/built-in-sequences/mprage` | Inversion, inversion time and a spoiled gradient-echo train per partition |
+| {doc}`/examples/built-in-sequences/bssfp` | Excitation with all gradient axes balanced in each TR |
+| {doc}`/examples/built-in-sequences/epi` | Excitation and a train of readout lobes of alternating polarity |
+| {doc}`/examples/built-in-sequences/zte` | Hard pulse played with the readout gradient already on |
 
 ```{toctree}
 :hidden:

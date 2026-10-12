@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=6e394759"></script>
+    <script src="../_static/documentation_options.js?v=249fc6a7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.37';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.38';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.37" />
+  <meta name="docsearch:version" content="v0.0.38" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -195,71 +195,61 @@
         </ul>
         <ul class="nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pre-commit.html">Pre-commit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../developer-guide/code-of-conduct.html">Code of conduct</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/pulseq-representation.html">Pulseq representation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/shapes-and-storage.html">Storage, deduplication and file revisions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/timing-and-rasters.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/sequence-design.html">Sequence design in pypulseqpp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/constraint-checks.html">Constraint checks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/gradient-constraints.html">Gradient amplitude, slew rate and continuity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/pns.html">Peripheral nerve stimulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/mechanical-resonance.html">Mechanical resonance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/safety-checks.html">Safety checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/pulseq-basics.html">Pulseq basics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/01-pulseq-basics/01_fid.html">Free induction decay</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/01-pulseq-basics/02_spin_echo.html">Spin echo</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/01-pulseq-basics/03_gradient_echo.html">Gradient echo</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/02-spoiling/01_spoiling.html">Spoiling</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/gre-to-epi.html">Echo planar imaging</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/03-gre-to-epi/03_epi.html">Echo planar imaging</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/non-cartesian.html">Radial sampling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/04-non-cartesian/01_radial.html">Radial sampling</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/01_sequence_modules.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/05-sequence-modules/03_sequence_function.html">A sequence function</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/06-checks/01_constraint_checks.html">Sequence constraint checks</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="gallery/08-tours/01_multi_echo.html">Multi-echo readouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/08-tours/02_segmented_epi.html">Segmented echo planar</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/08-tours/03_spiral.html">Spiral readout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/08-tours/04_ramp_sampled_readout.html">A ramp-sampled readout module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gallery/08-tours/05_twisting_radial_readout.html">A twisting radial readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -531,48 +521,44 @@
 <dt class="sig sig-object py" id="pypulseqpp.io.read">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.io.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/io.html#read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.io.read" title="Link to this definition">#</a></dt>
 <dd><p>Read a Pulseq file into a sequence whose system describes what is in it.</p>
-<p><a class="reference internal" href="pypulseqpp.Sequence.read.html#pypulseqpp.Sequence.read" title="pypulseqpp.Sequence.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a> replaces a sequence’s contents and takes
-its rasters from the file, but leaves the sequence on whatever system it
-was constructed with. The limits and rasters of that system are what the
-design helpers solve against and what the checks in
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code> compare a waveform with, so a file read onto the
-shared default system is measured against limits that have nothing to do
-with it. This builds the system from the file instead.</p>
-<p>The rasters always come from the file. A limit or a field strength comes
-from the file when it states one, as <code class="xref py py-data docutils literal notranslate"><span class="pre">_LIMITS</span></code> names the
-definitions, and from the argument here when one is given, which wins. A
-gradient limit that neither supplies is the larger of the
-<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> default and the largest amplitude the file
-actually reaches, so that the sequence read back satisfies the checks it
-was written under. Dead times are not recorded in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file and stay
-at their defaults.</p>
-<p>Text and binary are told apart by what is in the bytes.</p>
+<p>Unlike <a class="reference internal" href="pypulseqpp.Sequence.read.html#pypulseqpp.Sequence.read" title="pypulseqpp.Sequence.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a>, which keeps the system the
+sequence was constructed with, this builds the system from the file, so
+that the checks of <code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.safety</span></code> compare the sequence with its
+own limits. Text and binary files are detected from their contents.</p>
+<p>The rasters come from the file. The gradient limit, slew-rate limit and
+<code class="docutils literal notranslate"><span class="pre">B0</span></code> come from the <code class="docutils literal notranslate"><span class="pre">MaxGrad</span></code>, <code class="docutils literal notranslate"><span class="pre">MaxSlew</span></code> and <code class="docutils literal notranslate"><span class="pre">B0</span></code> definitions when
+the file states them, and from <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> when given,
+which take precedence. A limit that neither supplies is the larger of the
+<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> default and the largest value the file reaches.
+Dead times are not recorded in a <code class="docutils literal notranslate"><span class="pre">.seq</span></code> file and keep their defaults.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.BinaryIO" title="(in Python v3.14)"><em>BinaryIO</em></a>) – The file to read, or a binary file object whose <code class="docutils literal notranslate"><span class="pre">read()</span></code> returns its
+<li><p><strong>file_path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>] </em><em>| </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.BinaryIO" title="(in Python v3.15)"><em>BinaryIO</em></a>) – The file to read, or a binary file object whose <code class="docutils literal notranslate"><span class="pre">read()</span></code> returns its
 contents.</p></li>
-<li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Gradient amplitude limit (Hz/m) for the system built. <code class="docutils literal notranslate"><span class="pre">None</span></code> takes
+<li><p><strong>max_grad</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Gradient amplitude limit (Hz/m) for the system built. <code class="docutils literal notranslate"><span class="pre">None</span></code> takes
 the file’s own, or the larger of the default and what the file reaches.</p></li>
-<li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>default=None</em>) – Slew-rate limit (Hz/m/s), resolved the same way.</p></li>
-<li><p><strong>detect_rf_use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Work out what each unlabelled pulse is for, from what it does. A file
-written before revision 1.5.0 has nowhere to record it.</p></li>
-<li><p><strong>remove_duplicates</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=True</em>) – Collapse identical library rows after reading.</p></li>
-<li><p><strong>verify</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>default=False</em>) – Check the file against the signature it carries.</p></li>
+<li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Slew-rate limit (Hz/m/s), resolved the same way.</p></li>
+<li><p><strong>detect_rf_use</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Assign a use to each RF event without one, as
+<a class="reference internal" href="pypulseqpp.Sequence.detect_rf_use.html#pypulseqpp.Sequence.detect_rf_use" title="pypulseqpp.Sequence.detect_rf_use"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detect_rf_use()</span></code></a> does. Files before revision
+1.5.0 record no use.</p></li>
+<li><p><strong>remove_duplicates</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Collapse identical library rows after reading.</p></li>
+<li><p><strong>verify</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Check the file against the signature it carries; a file without one
+is refused.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The sequence, on a system built from the file.</p>
+<dd class="field-even"><p>The sequence, with <code class="docutils literal notranslate"><span class="pre">system</span></code> built from the file.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#FileNotFoundError" title="(in Python v3.14)"><strong>FileNotFoundError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">file_path</span></code> does not exist.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – If the file cannot be parsed, or <code class="docutils literal notranslate"><span class="pre">verify</span></code> is set and the signature
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#FileNotFoundError" title="(in Python v3.15)"><strong>FileNotFoundError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">file_path</span></code> does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><strong>RuntimeError</strong></a> – If the file cannot be parsed, or <code class="docutils literal notranslate"><span class="pre">verify</span></code> is set and the signature
     does not match.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.14)"><strong>TypeError</strong></a> – If a file object returns text, as one opened in text mode does.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.15)"><strong>TypeError</strong></a> – If a file object returns text, as one opened in text mode does.</p></li>
 </ul>
 </dd>
 </dl>

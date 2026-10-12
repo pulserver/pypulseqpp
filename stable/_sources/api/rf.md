@@ -4,7 +4,7 @@ RF events, from the basic factories to designed pulses, and their analysis.
 Flip angles are in rad, RF amplitudes and frequency offsets in Hz, phase
 offsets in rad and durations in s. With `return_gz`, a slice-selective design
 also returns its slice-selection and rephasing gradients;
-{doc}`../explanations/pulseq-representation` describes the RF event.
+{doc}`../explanations/pulseq-file` describes the RF event.
 
 ```{eval-rst}
 .. currentmodule:: pypulseqpp

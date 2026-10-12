@@ -38,7 +38,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=fddf5300" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=6e394759"></script>
+    <script src="../_static/documentation_options.js?v=249fc6a7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.37';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.38';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -65,11 +65,11 @@
     <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/developer-guide/terminology.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Pre-commit" href="pre-commit.html" />
+    <link rel="next" title="Internals" href="internals/index.html" />
     <link rel="prev" title="Documentation" href="documentation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.37" />
+  <meta name="docsearch:version" content="v0.0.38" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -197,71 +197,61 @@
         </ul>
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">From a PyPulseq script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="prerequisites.html">Development prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html">Editable installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflow.html">Development workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="style.html">Coding style</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation.html">Documentation</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Terminology and conventions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pre-commit.html">Pre-commit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pull-requests.html">Pull requests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="code-of-conduct.html">Code of conduct</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="internals/pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="internals/cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="internals/rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="internals/sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="internals/sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="internals/sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="internals/safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/pulseq-representation.html">Pulseq representation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/shapes-and-storage.html">Storage, deduplication and file revisions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/timing-and-rasters.html">Timing and rasterization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/sequence-design.html">Sequence design in pypulseqpp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/constraint-checks.html">Constraint checks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/gradient-constraints.html">Gradient amplitude, slew rate and continuity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/pns.html">Peripheral nerve stimulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/mechanical-resonance.html">Mechanical resonance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/sar.html">Specific absorption rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/safety-checks.html">Safety checks</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/pulseq-basics.html">Pulseq basics</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-pulseq-basics/01_fid.html">Free induction decay</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-pulseq-basics/02_spin_echo.html">Spin echo</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-pulseq-basics/03_gradient_echo.html">Gradient echo</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/spoiling.html">Spoiling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-spoiling/01_spoiling.html">Spoiling</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/gre-to-epi.html">Echo planar imaging</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/03-gre-to-epi/03_epi.html">Echo planar imaging</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/non-cartesian.html">Radial sampling</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/04-non-cartesian/01_radial.html">Radial sampling</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/sequence-modules.html">Sequence modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/01_sequence_modules.html">Sequence modules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/05-sequence-modules/03_sequence_function.html">A sequence function</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/checks.html">Constraint checks</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/06-checks/01_constraint_checks.html">Sequence constraint checks</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/custom-modules.html">Custom modules</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/07-custom-modules/01_excitation_module.html">A minimum-phase excitation module</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/01_multi_echo.html">Multi-echo readouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/02_segmented_epi.html">Segmented echo planar</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/03_spiral.html">Spiral readout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/04_ramp_sampled_readout.html">A ramp-sampled readout module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/08-tours/05_twisting_radial_readout.html">A twisting radial readout module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -515,19 +505,19 @@
             </div>
             <nav aria-label="Page">
                 <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#terminology-is-the-substance">1. Terminology is the substance</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distinctions-that-must-not-be-blurred">Distinctions that must not be blurred</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#terminology">1. Terminology</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distinct-quantities">Distinct quantities</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed-vocabulary">Fixed vocabulary</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#register">2. Register</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-lines">3. Summary lines</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units-frames-and-rasters-are-api-semantics">4. Units, frames and rasters are API semantics</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-and-safety-language">5. Checking and safety language</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units-frames-and-rasters">4. Units, frames and rasters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-language">5. Safety language</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#source-of-truth">6. Source of truth</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-to-document-and-what-not-to">7. What to document, and what not to</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-scope">7. Documentation scope</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format">8. Format</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#do-not-churn">9. Do not churn</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#revision-discipline">9. Revision discipline</a></li>
 </ul>
             </nav>
         </div>
@@ -560,8 +550,8 @@ thing does — a relative clause, a personification, or an invented informal
 label. A reader then has to reconstruct the standard concept from a
 description of it. Repeating the correct technical term is always preferable
 to varying the wording.</p>
-<section id="terminology-is-the-substance">
-<h2>1. Terminology is the substance<a class="headerlink" href="#terminology-is-the-substance" title="Link to this heading">#</a></h2>
+<section id="terminology">
+<h2>1. Terminology<a class="headerlink" href="#terminology" title="Link to this heading">#</a></h2>
 <p>Use the established term. Do not explain around it.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -638,8 +628,8 @@ to varying the wording.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">moment</span></code> is reserved for a gradient moment, the integral of a gradient
 waveform over time. Never use it for a point in time.</p>
-<section id="distinctions-that-must-not-be-blurred">
-<h3>Distinctions that must not be blurred<a class="headerlink" href="#distinctions-that-must-not-be-blurred" title="Link to this heading">#</a></h3>
+<section id="distinct-quantities">
+<h3>Distinct quantities<a class="headerlink" href="#distinct-quantities" title="Link to this heading">#</a></h3>
 <p>These are separate concepts with separate names. Documentation that conflates
 them is wrong, not merely informal.</p>
 <p><strong>Gradients.</strong> <em>Amplitude</em> (Hz/m or mT/m) is the instantaneous value.
@@ -714,7 +704,11 @@ that this is cycles per metre; do not alternate between the two spellings.</p></
 </section>
 <section id="register">
 <h2>2. Register<a class="headerlink" href="#register" title="Link to this heading">#</a></h2>
-<p>Write dry, declarative technical prose.</p>
+<p>Write dry, declarative technical prose in the API reference, the body of the
+explanations and the developer guide. The README, the user guide, the Course,
+the Tours and the opening paragraph of each explanation page talk to the
+reader as “you” and give the mental model before the code; the rules below
+other than the one on tutorial voice apply to them too.</p>
 <p><strong>No personification.</strong> A shot does not walk, a gradient does not ask for
 anything, a limit does not judge, a window is not still there, an encode does
 not ride alongside another. Objects have properties and functions have
@@ -727,8 +721,8 @@ sequence asks of the scanner and of the subject” but the names of the checks.<
 <p><strong>No taglines.</strong> An API summary classifies its object. Write “Construct a
 trapezoidal gradient event”, not “the workhorse gradient builder”.</p>
 <p><strong>No metaphor for mechanism.</strong> Describe the mechanism.</p>
-<p><strong>No conversational or tutorial voice.</strong> No second person, no “simply”, “just”,
-“note that”, “under the hood”, “powerful”, “handy”, “seamless”. No rhetorical
+<p><strong>No conversational or tutorial voice</strong> outside the README, the user guide,
+the Course, the Tours and the explanation openings. Nowhere “simply”, “just”, “note that”, “under the hood”, “powerful”, “handy”, “seamless”. No rhetorical
 questions, no scene-setting.</p>
 <p><strong>No history.</strong> Describe the code as it is. No “used to”, “previously”, “this
 replaces”, no named fixed bugs, no comparison with removed designs.</p>
@@ -758,8 +752,8 @@ those belong in <code class="docutils literal notranslate"><span class="pre">doc
 </ul>
 <p>Do not restate the signature, the annotations or the parameter names in prose.</p>
 </section>
-<section id="units-frames-and-rasters-are-api-semantics">
-<h2>4. Units, frames and rasters are API semantics<a class="headerlink" href="#units-frames-and-rasters-are-api-semantics" title="Link to this heading">#</a></h2>
+<section id="units-frames-and-rasters">
+<h2>4. Units, frames and rasters<a class="headerlink" href="#units-frames-and-rasters" title="Link to this heading">#</a></h2>
 <p>Every documented quantity carries its unit. The package conventions are:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -826,8 +820,8 @@ or block duration. A function that rounds must say which direction it rounds
 and how ties are broken. Do not present a raster value as a default that
 tracks <code class="docutils literal notranslate"><span class="pre">Opts</span></code> unless it actually does.</p>
 </section>
-<section id="checking-and-safety-language">
-<h2>5. Checking and safety language<a class="headerlink" href="#checking-and-safety-language" title="Link to this heading">#</a></h2>
+<section id="safety-language">
+<h2>5. Safety language<a class="headerlink" href="#safety-language" title="Link to this heading">#</a></h2>
 <p>This package computes timing, gradient amplitude, slew rate, gradient
 continuity, mechanical-resonance, PNS and SAR <strong>checks and estimates</strong>. It
 does not establish that a sequence is safe to run on a scanner or on a
@@ -880,8 +874,8 @@ section whose doctest runs under <code class="docutils literal notranslate"><spa
 examples that demonstrate the contract — a unit, a shape, an invariant — not
 that a call succeeds.</p>
 </section>
-<section id="what-to-document-and-what-not-to">
-<h2>7. What to document, and what not to<a class="headerlink" href="#what-to-document-and-what-not-to" title="Link to this heading">#</a></h2>
+<section id="documentation-scope">
+<h2>7. Documentation scope<a class="headerlink" href="#documentation-scope" title="Link to this heading">#</a></h2>
 <p>Document, when it is not obvious from the name, signature or annotation:
 externally visible behavior; units; coordinate frames; composition and
 transformation order; invariants and state transitions; side effects;
@@ -914,8 +908,8 @@ terminology and register rules in full.</p></li>
 every symbol.</p></li>
 </ul>
 </section>
-<section id="do-not-churn">
-<h2>9. Do not churn<a class="headerlink" href="#do-not-churn" title="Link to this heading">#</a></h2>
+<section id="revision-discipline">
+<h2>9. Revision discipline<a class="headerlink" href="#revision-discipline" title="Link to this heading">#</a></h2>
 <p>Much of this repository’s documentation is already correct. Rewriting correct
 technical prose for stylistic preference wastes review effort and risks
 introducing errors.</p>
@@ -959,11 +953,11 @@ documentation rewrite unless that is the task.</p>
       </div>
     </a>
     <a class="right-next"
-       href="pre-commit.html"
+       href="internals/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Pre-commit</p>
+        <p class="prev-next-title">Internals</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -985,19 +979,19 @@ documentation rewrite unless that is the task.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#terminology-is-the-substance">1. Terminology is the substance</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distinctions-that-must-not-be-blurred">Distinctions that must not be blurred</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#terminology">1. Terminology</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distinct-quantities">Distinct quantities</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed-vocabulary">Fixed vocabulary</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#register">2. Register</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-lines">3. Summary lines</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units-frames-and-rasters-are-api-semantics">4. Units, frames and rasters are API semantics</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-and-safety-language">5. Checking and safety language</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units-frames-and-rasters">4. Units, frames and rasters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#safety-language">5. Safety language</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#source-of-truth">6. Source of truth</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-to-document-and-what-not-to">7. What to document, and what not to</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-scope">7. Documentation scope</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format">8. Format</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#do-not-churn">9. Do not churn</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#revision-discipline">9. Revision discipline</a></li>
 </ul>
   </nav></div>
 
