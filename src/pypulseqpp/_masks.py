@@ -266,6 +266,34 @@ def make_cartesian_plane_sampling(
            [1, 1, 1, 0],
            [0, 0, 0, 0]])
     """
+    return tuple(
+        _views(mask)
+        for mask in _plane_masks(
+            shape,
+            acceleration,
+            n_acs,
+            caipi_shift,
+            partial_fourier,
+            elliptical,
+            elliptical_acs,
+            sampling,
+            seed,
+        )
+    )
+
+
+def _plane_masks(
+    shape: tuple[int, int],
+    acceleration: tuple[int, int],
+    n_acs: tuple[int, int],
+    caipi_shift: int,
+    partial_fourier: tuple[float, float],
+    elliptical: bool,
+    elliptical_acs: bool,
+    sampling: str,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the calibration and imaging masks :func:`make_cartesian_plane_sampling` lists."""
     (n_y, n_z), (r_y, r_z) = shape, acceleration
     if r_y < 1 or r_z < 1:
         raise ValueError(
@@ -319,7 +347,50 @@ def make_cartesian_plane_sampling(
     imaging[:, :first_z] = False
     if elliptical:
         imaging &= inside(n_y, n_z)
-    return _views(calibrating), _views(imaging)
+    return calibrating, imaging
+
+
+def count_cartesian_plane_sampling(
+    shape: tuple[int, int],
+    acceleration: tuple[int, int] = (1, 1),
+    n_acs: tuple[int, int] = (0, 0),
+    *,
+    caipi_shift: int = 0,
+    partial_fourier: tuple[float, float] = (1.0, 1.0),
+    elliptical: bool = False,
+    elliptical_acs: bool = False,
+    sampling: str = "lattice",
+    seed: int = 0,
+) -> tuple[int, int]:
+    """Count the views :func:`make_cartesian_plane_sampling` returns, without listing them.
+
+    The arguments are those of :func:`make_cartesian_plane_sampling`.
+
+    Returns
+    -------
+    n_calibration : int
+        Number of calibration views.
+    n_imaging : int
+        Number of the other acquired views.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> pp.count_cartesian_plane_sampling((4, 4), acceleration=(2, 2), n_acs=(2, 2))
+    (4, 3)
+    """
+    calibrating, imaging = _plane_masks(
+        shape,
+        acceleration,
+        n_acs,
+        caipi_shift,
+        partial_fourier,
+        elliptical,
+        elliptical_acs,
+        sampling,
+        seed,
+    )
+    return int(np.count_nonzero(calibrating)), int(np.count_nonzero(imaging))
 
 
 def _views(mask: np.ndarray) -> list[tuple[int, int]]:

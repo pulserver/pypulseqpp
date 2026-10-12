@@ -130,10 +130,11 @@ diagram.paper_plot()
 # -----------------------------------
 #
 # The refocusing schedule has the form of [BUS08a]_: the angle decreases from
-# a maximum to a minimum over the first five echoes, increases to the
-# prescribed angle at the effective-TE echo and returns to the maximum at the
-# end of the train. The minimum and maximum angles, bounded by the prescribed
-# angle, are optimized with the extended phase graph (EPG) FSE simulator of ``blochsim`` [HEN88]_ [WEI15]_.
+# the prescribed angle to a minimum over the first five echoes, increases to
+# the prescribed angle at the effective-TE echo and holds it to the end of the
+# train. The prescribed angle is the peak of the schedule. The minimum angle,
+# bounded by the prescribed angle, is optimized with the extended phase graph
+# (EPG) FSE simulator of ``blochsim`` [HEN88]_ [WEI15]_.
 # The cost combines an echo-to-echo signal-variation measure of blurring, the
 # contrast between two of the sequence's design tissues at the effective-TE
 # echo, and a penalty on RF power above that of the initial schedule. The same

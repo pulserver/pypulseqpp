@@ -195,24 +195,26 @@ def design_trains(
 ) -> np.ndarray:
     """Design the refocusing angles (degrees) of every shot, ``(shots, etl_max)``.
 
-    A train falls from its maximum angle to its minimum over the first five
-    echoes, rises to the prescribed angle at the TE echo and returns to the
-    maximum at its end (Busse et al., Magn Reson Med 2008;60:640); a TE echo
-    among the first five holds the prescribed angle up to it and falls to the
-    minimum after. The minimum and maximum are designed with blochsim against
+    A train falls from the prescribed angle to its minimum over the first five
+    echoes, rises to the prescribed angle at the TE echo and holds it to its
+    end (Busse et al., Magn Reson Med 2008;60:640); a TE echo among the first
+    five holds the prescribed angle up to it and falls to the minimum after.
+    The prescribed angle is the train's peak, so a constant train at that
+    angle bounds its RF power. The minimum is designed with blochsim against
     the sharpness of the periphery of k-space, the contrast at the centre
     between the tissues ``DESIGN_CONTRAST`` names, and the RF power of the
-    starting trains. Individually parameterized trains have a minimum and a
-    maximum at each end, and every shot takes them a cubic step of the way
-    along its transition. Angles past a shot's own train length are zero.
+    starting trains. Individually parameterized trains have a minimum at each
+    end, and every shot takes it a cubic step of the way along its
+    transition. Angles past a shot's own train length are zero.
 
     Parameters
     ----------
     refocusing_angle_deg : float
-        The refocusing angle at the TE echo (degrees).
+        The refocusing angle at the TE echo and the peak of every train
+        (degrees).
     individual : bool
         Whether the trains are individually parameterized, which gives each
-        end of k-space its own minimum and maximum angles.
+        end of k-space its own minimum angle.
     lengths : list of int
         Each shot's train length.
     times : list of float
@@ -303,7 +305,7 @@ def design_trains(
     # Each control angle moves between its limits, the midpoint to start; one
     # with no room to move is held at its limit.
     lowest = min(DESIGN_MIN_DEG, 0.5 * angle)
-    limits = {"low": (lowest, angle), "high": (angle, 180.0)}
+    limits = {"low": (lowest, angle), "high": (angle, angle)}
     free, fixed = {}, {}
     for end in ("centre", "edge") if individual else ("centre",):
         for kind, (lower, upper) in limits.items():
@@ -429,7 +431,8 @@ def fse3d(
         individually parameterized.
     refocusing_angle_deg : float, default=180.0
         Refocusing flip angle (degrees): of every pulse under
-        ``constant``, at the TE echo under ``optimized``.
+        ``constant``; at the TE echo, and the peak of the train, under
+        ``optimized``.
     readout_bandwidth_hz : float, default=250000.0
         Requested receiver bandwidth (Hz).
     ry, rz : int, default=1
