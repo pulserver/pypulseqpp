@@ -1,6 +1,6 @@
 # User guide
 
-These pages get pypulseqpp onto your machine and a sequence out of it. If you
+Installation, a first sequence and getting help. If you
 are new to Pulseq, the {doc}`Course <../examples/course>` is the place to start;
 if you already have PyPulseq scripts, {doc}`from-pypulseq` shows what changes.
 

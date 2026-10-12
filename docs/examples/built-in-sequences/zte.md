@@ -5,7 +5,7 @@ acquisition begins after the transmit/receive switching dead time.
 
 | Example | Contents |
 | --- | --- |
-| {doc}`/generated/gallery/16-zte/zte3D_sequence` | A hard pulse under a readout gradient at amplitude, one radial half-spoke per view. |
+| {doc}`/generated/gallery/16-zte/zte3D_sequence` | A hard pulse under a readout gradient at amplitude, one radial half-spoke per view |
 
 ```{toctree}
 :hidden:

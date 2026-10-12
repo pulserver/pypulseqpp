@@ -1,12 +1,8 @@
 # Sequence catalogue
 
-Complete sequences shipped with the package, grouped by sequence family. Each
-is a sequence function in its own module of `pypulseqpp.sequences`, with a
-reference page giving the prescription it accepts; {doc}`user-guide/index`
-shows how to run one from Python or the command line. Within a family, the
-variants differ in dimensionality and sampling. Each sequence is designed and drawn at a representative prescription
-under {doc}`examples/built-in-sequences/index`; the contract the modules
-implement is in {doc}`api/sequence-functions`.
+Shipped sequences by family, each a sequence function with a reference page.
+Executed designs are under {doc}`examples/built-in-sequences/index`; the module
+contract is in {doc}`api/sequence-functions`.
 
 ## Gradient echo
 

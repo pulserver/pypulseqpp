@@ -6,8 +6,8 @@ excitation and off-resonance phase accumulates along the phase-encode axis.
 
 | Example | Contents |
 | --- | --- |
-| {doc}`/generated/gallery/15-epi/epi2D_sequence` | One blipped echo train per excitation, with segmentation and in-plane acceleration compared by echo-train length and distortion. |
-| {doc}`/generated/gallery/15-epi/epi3D_sequence` | The CAIPIRINHA lattice and its skipped-CAIPI traversal, single-shot and segmented. |
+| {doc}`/generated/gallery/15-epi/epi2D_sequence` | One blipped echo train per excitation, with segmentation and in-plane acceleration compared by echo-train length and distortion |
+| {doc}`/generated/gallery/15-epi/epi3D_sequence` | The CAIPIRINHA lattice and its skipped-CAIPI traversal, single-shot and segmented |
 
 ```{toctree}
 :hidden:
