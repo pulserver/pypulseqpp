@@ -1,4 +1,4 @@
-"""T2 and joint T1/T2 preparation: weight the magnetization, then store it."""
+"""T2 and joint T1/T2 preparation: weight the magnetisation, then store it."""
 
 from __future__ import annotations
 
@@ -86,7 +86,7 @@ class T2Preparation(RfModule):
     49.99
 
     Tip-down, two refocusing pulses and storage. Over the band the
-    refocusing pulses cover, the module returns the magnetization to ``+z``;
+    refocusing pulses cover, the module returns the magnetisation to ``+z``;
     what it lost on the way is the T2 weighting:
 
     .. plot::

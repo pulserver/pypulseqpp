@@ -273,7 +273,7 @@ def plot_rf(
     Returns
     -------
     matplotlib.figure.Figure
-        The envelope panel (|B1| in microtesla against time in ms) and the
+        The envelope panel (``|B1|`` in microtesla against time in ms) and the
         profile, or the two heatmaps for a plane.
 
     Raises

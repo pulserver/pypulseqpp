@@ -719,9 +719,11 @@ class Spiral(NonCartesianGradient):
     density : {'constant', 'variable', 'dual'}, default='constant'
         Pitch constant, rising as a power of the radius, or changing between
         two plateaus by a logistic transition.
-    inner_design_interleaves, outer_design_interleaves : float, default=None
-        Local interleaf count at the centre and at the edge; see
-        :func:`pypulseqpp.calc_spiral_trajectory` for the defaults.
+    inner_design_interleaves : float, default=None
+        Local interleaf count at the centre; defaults to ``design_interleaves``.
+    outer_design_interleaves : float, default=None
+        Local interleaf count at the edge; defaults to twice the inner count
+        for variable density, and is required for dual density.
     variable_density_power : float, default=2.0
         Exponent of the normalised radius, for variable density.
     transition_radius : float, default=0.5

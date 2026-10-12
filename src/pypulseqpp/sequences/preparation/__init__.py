@@ -1,4 +1,4 @@
-"""Magnetization-preparation modules."""
+"""Magnetisation-preparation modules."""
 
 from __future__ import annotations
 

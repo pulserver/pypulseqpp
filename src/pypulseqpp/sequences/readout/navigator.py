@@ -33,7 +33,7 @@ class SpiralNavigator(SequenceModule):
     One excitation and readout are played under axial, sagittal and coronal
     rotations. The blocks that acquire set the ``NAV`` label to 1, and a final
     block sets it to 0. The navigator excitations perturb the longitudinal
-    magnetization of the host sequence.
+    magnetisation of the host sequence.
 
     Parameters
     ----------

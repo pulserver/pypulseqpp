@@ -120,7 +120,7 @@ class FatSaturation(RfModule):
     >>> [event.type for event in fatsat.blocks[0]]
     ['rf']
 
-    The pulse with its spoiler, and the longitudinal magnetization left
+    The pulse with its spoiler, and the longitudinal magnetisation left
     across the spectrum. The band sits at the fat resonance for the field
     the module was designed at, and water at zero offset is untouched:
 

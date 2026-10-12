@@ -70,7 +70,7 @@ class OffResonanceSaturation(RfModule):
     >>> prep.blocks[0] == prep.blocks[1] == prep.blocks[2]
     True
 
-    Three pulses back to back, and the longitudinal magnetization they
+    Three pulses back to back, and the longitudinal magnetisation they
     leave across the spectrum:
 
     .. plot::

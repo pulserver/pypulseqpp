@@ -80,7 +80,7 @@ class SpatialSelective2DExcitation(RfModule):
     (True, ())
 
     The subpulse train under the spiral gradients, and the transverse
-    magnetization over the selected plane:
+    magnetisation over the selected plane:
 
     .. plot::
        :include-source: false

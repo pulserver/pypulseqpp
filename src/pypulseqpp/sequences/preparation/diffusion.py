@@ -1,4 +1,4 @@
-"""Diffusion preparation: weight the magnetization, then store it on z."""
+"""Diffusion preparation: weight the magnetisation, then store it on z."""
 
 from __future__ import annotations
 
@@ -149,7 +149,7 @@ class DiffusionPreparation(RfModule):
             system=system,
         )
         # Half a turn from the tip-down: the refocusing pulse is about the
-        # perpendicular axis, which leaves the tipped magnetization where it is,
+        # perpendicular axis, which leaves the tipped magnetisation where it is,
         # so undoing the first rotation is what carries it back to +z.
         rf_store = pp.make_block_pulse(
             flip_angle=np.pi / 2.0,

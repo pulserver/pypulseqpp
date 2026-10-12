@@ -67,7 +67,7 @@ class FrequencySelectiveExcitation(RfModule):
     >>> narrow.duration_s == 2 * water.duration_s
     True
 
-    The envelope and the band it tips. Magnetization outside the passband
+    The envelope and the band it tips. Magnetisation outside the passband
     stays longitudinal:
 
     .. plot::
@@ -198,7 +198,7 @@ class SpspExcitation(RfModule):
     'grad'
 
     The subpulse train under its alternating gradient, and the transverse
-    magnetization over position and frequency together. The spectral
+    magnetisation over position and frequency together. The spectral
     passband repeats at the subpulse rate, which ``n_subpulses`` sets:
 
     .. plot::
