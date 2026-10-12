@@ -16,39 +16,69 @@ _AXES = ("x", "y", "z")
 class FrequencySelectiveExcitation(RfModule):
     """SLR excitation of a spectral band without spatial selection.
 
-    Duration is time_bw_product / bandwidth_hz, rounded up to the RF raster.
-    Absolute-Hz and field-relative ppm offsets are additive.
+    The duration is ``time_bw_product / bandwidth_hz`` rounded up to the RF
+    raster. The offsets in Hz and in ppm add.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     flip_angle_deg : float
-        Nominal flip angle (degrees).
+        Flip angle (degrees).
     bandwidth_hz : float
         Spectral passband (Hz).
     freq_offset_ppm : float, default=0.0
-        Centre of the band, relative to water (ppm). Water itself by default.
+        Centre of the band relative to water (ppm).
     freq_offset_hz : float, default=0.0
-        Centre of the band as a frequency offset (Hz), added to the offset
-        ``freq_offset_ppm`` specifies.
+        Centre of the band (Hz), added to ``freq_offset_ppm``.
     time_bw_product : float, default=4.0
-        Time-bandwidth product. Higher is a squarer band and a longer pulse.
+        Time-bandwidth product; a higher value gives a squarer band and a
+        longer pulse.
     pulse_type : {'st', 'ex', 'se', 'inv', 'sat'}, default='st'
-        SLR design family.
+        SLR design: small-tip, excitation, spin-echo, inversion or saturation.
     use : str, default='excitation'
-        Pulseq RF-use tag, used by trajectory integration.
+        Pulseq RF use tag.
     passband_ripple, stopband_ripple : float, default=0.01
         Ripple allowed in each band of the spectral profile.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    flip_angle_deg : float
+        Flip angle (degrees).
+    thickness_m : float
+        Slice or slab thickness (m).
+    spectral_bandwidth_hz : float
+        Spectral passband (Hz); with ``spectral_time_bw_product`` it sets the
+        total duration.
+    freq_offset_hz : float, default=0.0
+        Centre of the spectral band (Hz).
+    is_slab : bool, default=False
+        Merge the rephaser into the selection gradient instead of playing it in
+        a second block.
+    rephase : bool, default=True
+        Include the slice rephaser, if the design requires one.
+    spatial_time_bw_product : float, default=4.0
+        Time-bandwidth product of each spatial subpulse.
+    spectral_time_bw_product : float, default=3.0
+        Time-bandwidth product of the spectral envelope.
+    n_subpulses : int, default=10
+        Subpulses in the train.
+    axis : {'z', 'x', 'y'}, default='z'
+        Selection axis.
+    use : str, default='excitation'
+        Pulseq RF use tag.
+
 
     Attributes
     ----------
     rf : RfEvent
         The pulse.
     duration_s : float
-        Its length (s), which the passband fixed.
+        Pulse length (s), set by the passband.
     bandwidth_hz : float
-        The passband asked for.
+        Requested passband (Hz).
 
     Raises
     ------
@@ -129,41 +159,13 @@ class FrequencySelectiveExcitation(RfModule):
 
 
 class SpspExcitation(RfModule):
-    """Spectral-spatial excitation using SLR subpulses on an alternating gradient.
+    """Spectral-spatial excitation of SLR subpulses on an alternating gradient.
 
-    The spectral time-bandwidth product and bandwidth set total duration.
-    Subpulse count controls spectral repetition spacing. The subpulses play
-    under alternating gradient lobes, so a slice offset is a phase that
-    follows the gradient's area rather than a frequency: move the slice with
+    The spectral bandwidth and time-bandwidth product set the total duration,
+    and the subpulse count sets the spacing of the spectral repetitions. Under
+    alternating gradient lobes a slice offset is a phase that follows the
+    gradient's area, not a frequency offset: move the slice with
     :meth:`shift`.
-
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    flip_angle_deg : float
-        Nominal flip angle (degrees).
-    thickness_m : float
-        Slice thickness (m).
-    spectral_bandwidth_hz : float
-        Spectral passband (Hz). With ``spectral_time_bw_product`` it fixes the
-        total duration.
-    freq_offset_hz : float, default=0.0
-        Centre of the spectral band (Hz).
-    is_slab : bool, default=False
-        Merge any rephaser into the selection gradient rather than a second block.
-    rephase : bool, default=True
-        Include a slice rephaser.
-    spatial_time_bw_product : float, default=4.0
-        Time-bandwidth product of each spatial subpulse.
-    spectral_time_bw_product : float, default=3.0
-        Time-bandwidth product of the spectral envelope.
-    n_subpulses : int, default=10
-        Subpulses in the train.
-    axis : {'z', 'x', 'y'}, default='z'
-        Selection axis.
-    use : str, default='excitation'
-        Pulseq RF-use tag, used by trajectory integration.
 
     Attributes
     ----------
@@ -172,7 +174,8 @@ class SpspExcitation(RfModule):
     gz : GradEvent
         The alternating selection gradient.
     gz_reph : TrapEvent
-        Its rephaser, only when needed, rephase=True and is_slab=False.
+        The rephaser; present only when the design requires one,
+        ``rephase`` is true and ``is_slab`` is false.
 
     Raises
     ------
@@ -304,15 +307,14 @@ class SpspExcitation(RfModule):
         Parameters
         ----------
         position : float
-            Where the selected slice is to sit, in m along the selection
-            axis.
+            Slice position along the selection axis (m).
         phase : float, default=0.0
-            Phase at the pulse centre, in radians.
+            Phase at the pulse centre (rad).
 
         Returns
         -------
-        object
-            The module's RF event, modulated in place.
+        RfEvent
+            The module's ``rf``, modulated in place.
         """
         self.rf.signal = self._signal * np.exp(2j * np.pi * position * self._area)
         self.rf.phase_offset = phase

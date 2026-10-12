@@ -55,9 +55,14 @@ def use_of(code: str) -> str:
 class Waveforms:
     """Gradient corner waveforms and an optional complex RF envelope.
 
-    Each channel has shape ``(2, n)``: time in seconds, then amplitude.
-    Gradient amplitudes are in Hz/m; RF amplitudes are in Hz.
-    ``rf`` is None unless RF expansion was requested.
+    Attributes
+    ----------
+    gx, gy, gz : numpy.ndarray
+        ``(2, n)``: time (s), then gradient amplitude (Hz/m), after each
+        block's rotation.
+    rf : numpy.ndarray or None
+        ``(2, n)``: time (s), then complex RF amplitude (Hz); None unless RF
+        expansion was requested.
     """
 
     gx: np.ndarray
@@ -82,11 +87,22 @@ class Waveforms:
 
 @dataclass(frozen=True)
 class RfTimes:
-    """RF centres in play order, including all Pulseq use tags.
+    """RF pulse centre times in play order, for all Pulseq RF uses.
 
-    ``t`` is in seconds; ``block`` contains 1-based indices. Frequency
-    offsets are in Hz and phase offsets in radians, including ppm terms.
-    Phase includes ``2*pi*frequency*centre`` relative to the RF event.
+    Attributes
+    ----------
+    t : numpy.ndarray
+        Centre time of each pulse (s).
+    freq_offset : numpy.ndarray
+        Frequency offset (Hz), ppm offset included.
+    phase_offset : numpy.ndarray
+        Phase offset (rad), ppm offset included, plus
+        ``2*pi*freq_offset*centre`` where ``centre`` is the pulse centre
+        relative to the start of the RF event.
+    use : tuple[str, ...]
+        RF use of each pulse, one of `RF_USES`.
+    block : numpy.ndarray
+        1-based block of each pulse.
     """
 
     t: np.ndarray
@@ -141,16 +157,26 @@ class RfTimes:
 
 @dataclass(frozen=True)
 class AdcTimes:
-    """ADC sampling times and offsets at window and sample resolution.
+    """ADC sampling times and offsets, per window and per sample.
 
-    Per window, ``freq_offset`` (Hz) and ``phase_offset`` (rad) are stored
-    offsets without ppm corrections; ``block`` is 1-based and
-    ``num_samples`` gives the window length.
-
-    Per sample, ``t`` is in seconds, ``phase_modulation`` and
-    ``sample_phase`` are in radians, and ``sample_frequency`` is in Hz.
-    Sample phase includes ppm terms, modulation and accumulated
-    ``2*pi*frequency*time`` within the ADC event.
+    Attributes
+    ----------
+    t : numpy.ndarray
+        Per sample: time (s) from the start of the scan.
+    freq_offset, phase_offset : numpy.ndarray
+        Per window: the stored frequency offset (Hz) and phase offset (rad),
+        without ppm terms.
+    phase_modulation : numpy.ndarray
+        Per sample: phase modulation (rad).
+    sample_phase : numpy.ndarray
+        Per sample: phase (rad), including ppm terms, phase modulation and
+        ``2*pi*frequency*time`` accumulated within the ADC event.
+    sample_frequency : numpy.ndarray
+        Per sample: frequency (Hz).
+    block : numpy.ndarray
+        Per window: 1-based block.
+    num_samples : numpy.ndarray
+        Per window: number of samples.
     """
 
     t: np.ndarray

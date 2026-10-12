@@ -94,7 +94,7 @@ def write(
 
 
 def duration(result: pp.Sequence | list[pp.Sequence]) -> float:
-    """Return the time a sequence, or a chain of sequences, plays, in seconds.
+    """Return the play time (s) of a sequence or a chain of sequences.
 
     Parameters
     ----------

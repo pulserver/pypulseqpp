@@ -17,37 +17,39 @@ _FINAL_TIPS = ("up", "down")
 class T2Preparation(RfModule):
     """Adiabatic T2 preparation with tip-down, refocusing and storage pulses.
 
-    Refocusing pulses must occur in pairs to cancel their B1-dependent phase.
-    The final half passage is time-reversed and conjugated relative to the
-    first; final_tip selects storage on +z or -z.
+    The refocusing pulses come in pairs, which cancels their B1-dependent
+    phase. The storing half passage is the time-reversed, conjugated tip-down
+    half passage.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     echo_time_s : float
-        Preparation echo time (s), first pulse centre to last.
+        Preparation echo time (s), from the centre of the tip-down pulse to
+        that of the storing pulse.
     final_tip : {'up', 'down'}, default='up'
         Store on ``+z`` (pure T2 weighting) or ``-z``, which starts a T1
         recovery as well -- see :class:`T1T2Preparation`.
     n_refocus : int, default=2
-        Adiabatic refocusing pulses, spread evenly through the echo time. Must
-        be even; see above.
+        Adiabatic refocusing pulses, spaced evenly through the echo time; even
+        and at least 2.
     half_passage_duration_s : float, default=0.004
         Duration of each half passage (s).
     refocusing_duration_s : float, default=0.01024
         Duration of each refocusing pulse (s).
     adiabaticity : int, default=8
-        Sweep-rate margin over the adiabatic condition, for every pulse.
+        Sweep-rate margin over the adiabatic condition, of every pulse.
     dwell_s : float, default=1e-05
         RF raster (s).
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``
-        on each axis. Zero omits the spoiler block.
+        Cycles of dephasing of the closing spoiler on each axis across
+        ``voxel_size_m``. Zero omits the spoiler block.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
     labels : sequence of str, default=None
-        Counters set to 0 on the first pulse's block.
+        Labels set to 0 on the first pulse's block, to be changed per shot by
+        the caller.
 
     Attributes
     ----------
@@ -59,14 +61,14 @@ class T2Preparation(RfModule):
         The reverse half passage that stores what is left.
     wait_first, wait_inner, wait_last : DelayEvent
         The gaps before the first refocusing pulse, between refocusing
-        pulses, and before ``rf_store``. Each is absent when its gap is
-        zero, and ``wait_inner`` when there is one refocusing pulse.
+        pulses, and before ``rf_store``. Each is absent when its gap is zero.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
-        The closing spoiler.
+        Spoiler gradient of each axis; absent when ``spoiling_cycles`` is zero.
     prep_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``.
     echo_time : float
-        The preparation echo time achieved on the block raster (s).
+        Achieved preparation echo time (s), after rounding the gaps to the
+        block raster.
 
     Raises
     ------
@@ -218,8 +220,8 @@ class T2Preparation(RfModule):
 class T1T2Preparation(T2Preparation):
     """T2 preparation with storage on -z to initiate T1 recovery.
 
-    ``final_tip`` is fixed to ``'down'``, and passing it raises
-    ``ValueError``. The acquisition loop supplies the recovery interval.
+    ``final_tip`` is fixed to ``'down'``; passing it raises ``ValueError``.
+    The module contains no recovery delay; the caller adds it.
 
     Examples
     --------

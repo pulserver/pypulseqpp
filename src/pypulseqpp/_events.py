@@ -379,25 +379,27 @@ def make_arbitrary_grad(
     system=None,
     oversampling: bool = False,
 ):
-    """Create a gradient from amplitudes sampled at raster centres.
+    """Construct an arbitrary gradient event from amplitudes sampled at raster centres.
 
-    Matches upstream's fields and errors. A 1-D array of at least two samples
+    Fields and errors match upstream's. A 1-D array of at least two samples
     is built and checked in one compiled call unless PyPulseq tracing is on;
     other inputs take upstream's path and are converted.
 
     Parameters
     ----------
-    channel : str
-        One of ``x``, ``y``, ``z``.
+    channel : {'x', 'y', 'z'}
+        Gradient channel.
     waveform : numpy.ndarray
-        Amplitudes at raster centres, Hz/m.
+        Amplitudes at gradient raster centres (Hz/m); at half-raster spacing
+        with ``oversampling``.
     first, last : float, default=None
         Amplitudes at the waveform's outer edges (Hz/m); linearly extrapolated
         from the two end samples when omitted.
     delay : float, default=0.0
-        Seconds before the waveform starts.
+        Delay of the event within its block (s).
     max_grad, max_slew : float, default=None
-        Limits; ``system``'s when omitted or zero.
+        Amplitude (Hz/m) and slew-rate (Hz/m/s) limits; ``system``'s when
+        omitted or zero.
     system : Opts, default=None
         ``Opts.default`` when omitted.
     oversampling : bool, default=False
@@ -406,6 +408,7 @@ def make_arbitrary_grad(
     Returns
     -------
     GradEvent
+        The compiled arbitrary gradient event.
 
     Raises
     ------

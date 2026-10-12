@@ -60,9 +60,12 @@ def _matrix(rotation) -> _np.ndarray:
 
 
 def rotate_3d(rotation, *args, system=None) -> list:
-    """Rotate and sum gradient projections onto the output axes.
+    """Rotate a block's gradient events by explicit projection onto the rotated axes.
 
-    Non-gradient events are returned unchanged, before the rotated gradients.
+    The output gradient on axis ``i`` is the sum over ``j`` of
+    ``rotation[i, j]`` times the input gradient on axis ``j``; projections
+    below 1e-6 of the strongest input are dropped. Non-gradient events are
+    returned unchanged, before the rotated gradients.
 
     Parameters
     ----------

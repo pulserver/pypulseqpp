@@ -23,50 +23,62 @@ FOV_EXEMPT_FLAGS = ("NOPOS", "NOROT")
 class SpatialSaturation(RfModule):
     """Slab-selective saturation pulse in the physical frame, followed by a three-axis spoiler.
 
-    The selection gradient points along ``normal`` and is played on the
+    The selection gradient points along ``normal`` and is split over the
     gradient channels in proportion to its components. The slab is centred
     ``position`` from the isocentre along ``normal``. ``NOPOS`` and ``NOROT``
     are set on the pulse block and cleared on the spoiler block, so neither a
-    :class:`~pypulseqpp.TransformFOV` offset nor the interpreter's prescription
-    rotation moves the band: it stays where it was placed in the physical
-    frame, whatever the field of view.
+    :class:`~pypulseqpp.TransformFOV` offset nor the prescription rotation
+    moves the band, which stays where it is placed in the physical frame.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     normal : array_like of float
-        Slab normal as ``(x, y, z)`` along the physical gradient axes.
-        Normalised by the module; not the zero vector.
+        Slab normal ``(x, y, z)`` along the physical gradient axes; nonzero,
+        normalised by the module.
     position : float
         Centre of the slab along ``normal`` from the isocentre (m).
     thickness : float
         Slab thickness along ``normal`` (m).
     flip_angle_deg : float, default=90.0
-        Saturation flip angle (degrees).
+        Flip angle (degrees).
     duration_s : float, default=0.003
         Pulse duration (s).
     time_bw_product : float, default=4.0
-        Time-bandwidth product. With the duration it fixes the selection
-        amplitude ``time_bw_product / (duration_s * thickness)`` (Hz/m).
+        Time-bandwidth product; with the duration and thickness it sets the
+        selection amplitude ``time_bw_product / (duration_s * thickness)``
+        (Hz/m).
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing each spoiler axis winds across ``voxel_size_m``.
+        Cycles of dephasing of each spoiler across ``voxel_size_m``.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
     labels : sequence of str, default=None
-        Counters set to zero on the pulse block.
+        Labels set to 0 on the pulse block, to be changed per shot by the
+        caller.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    bands : iterable of tuple
+        ``(normal, position, thickness)`` per band, as :class:`SpatialSaturation`
+        takes them (m for position and thickness).
+    **kwargs
+        Passed to every :class:`SpatialSaturation`.
+
 
     Attributes
     ----------
     rf_prep : RfEvent
         The saturation pulse. Its frequency offset is the selection amplitude
-        times ``position`` (Hz) and its phase offset references the phase to
+        times ``position`` (Hz), and its phase offset makes the phase zero at
         the pulse centre.
     gx_sel, gy_sel, gz_sel : GradEvent
         Selection gradient on each channel, ``gz.amplitude * normal`` as
         stored (Hz/m); absent for a channel whose component is zero.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
-        Closing spoiler on all three axes.
+        Spoiler gradient of each axis.
     prep_labels : list of LabelSetEvent
         ``NOPOS`` and ``NOROT`` set, then one per name in ``labels``, on the
         pulse block.
@@ -164,10 +176,14 @@ def spatial_saturations(
     bands: Iterable[tuple[Any, float, float]],
     **kwargs: Any,
 ) -> list[SpatialSaturation]:
-    """Return the :class:`SpatialSaturation` of each ``(normal, position, thickness)`` band with a thickness.
+    """Return a :class:`SpatialSaturation` for each band of nonzero thickness.
 
-    A band of zero thickness is not played, which is how a sequence function
-    leaves one of its bands off. ``kwargs`` go to every module.
+    A band of zero thickness is skipped.
+
+    Returns
+    -------
+    list of SpatialSaturation
+        One per band with a thickness, in the order given.
 
     Raises
     ------

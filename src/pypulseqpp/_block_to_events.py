@@ -8,13 +8,12 @@ from typing import Any
 
 
 def block_to_events(*args: Any) -> tuple:
-    """Split a block into its events, or pass events through unchanged.
+    """Return the events of a block, or of a list of events, as a tuple.
 
-    A block is a namespace with an ``rf`` field, and its events are its
-    fields in the order they are stored -- a field holding several, as a
-    label chain does, contributing each of them. Anything else is already a
-    list of events and comes back as a tuple of the same events, so a caller
-    may hand over either without knowing which it has.
+    A block is a namespace with an ``rf`` field; its events are its non-None
+    fields in storage order, a field holding a list, such as a label chain,
+    contributing each element. A list of events is returned as a tuple of the
+    same events.
 
     Parameters
     ----------

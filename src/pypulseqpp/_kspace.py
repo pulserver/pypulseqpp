@@ -44,13 +44,16 @@ def calculate_kspace(
     k_traj_adc : np.ndarray
         ``(3, n)``: the k-space location of each ADC sample, in 1/m.
     k_traj : np.ndarray
-        3-by-m trajectory in 1/m, sampled through ramps and at event times.
+        ``(3, m)``: the trajectory in 1/m, sampled through ramps and at event
+        times.
     t_excitation : np.ndarray
-        RF centres in seconds relative to the selected range.
+        RF pulse centre times of the excitation pulses, in seconds from the
+        start of the selected range.
     t_refocusing : np.ndarray
-        RF centres in seconds relative to the selected range.
+        RF pulse centre times of the refocusing pulses, in seconds from the
+        same origin.
     t_adc : np.ndarray
-        ADC times in seconds relative to the selected range.
+        ADC sample times, in seconds from the same origin.
 
     Notes
     -----

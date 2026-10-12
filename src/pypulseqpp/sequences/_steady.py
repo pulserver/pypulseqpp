@@ -18,8 +18,10 @@ def steady_state_dummies(
     t1_s: float = STEADY_STATE_T1_S,
     tolerance: float = 0.01,
 ) -> int:
-    """Return the repetitions to play before acquiring, so the longitudinal magnetization is within ``tolerance`` of its spoiled steady state.
+    """Return the dummy repetitions that bring a spoiled steady state within ``tolerance``.
 
+    The count is of repetitions played before acquiring, so that the
+    longitudinal magnetization is within ``tolerance`` of its steady state.
     From equilibrium, the distance to the steady state shrinks by
     ``exp(-repetition_s / t1_s) * cos(flip)`` each repetition. A flip of 90
     degrees or more reaches it after one; at least one is always played.

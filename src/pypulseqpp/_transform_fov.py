@@ -85,9 +85,9 @@ class TransformFOV:
     Scales gradient amplitudes per channel axis, translates the field of view
     in metres along the channel axes, or the logical axes with
     ``through_rotation``, and composes a rotation after each block's own
-    rotation; a rotation given with a translation does not turn it. Field of
-    view scales inversely with gradient amplitude, so halving an axis's scale
-    doubles the field of view along it.
+    rotation. A rotation given with a translation does not turn the
+    translation. The field of view scales inversely with gradient amplitude,
+    so halving an axis's scale doubles the field of view along it.
 
     Parameters
     ----------
@@ -112,11 +112,11 @@ class TransformFOV:
     use_rotation_extension : bool, default=True
         Must be True; waveform-baked rotation is not implemented.
     through_rotation : bool, default=False
-        Translate along the logical axes: a block that carries a rotation ``R``
-        is translated by the gradients it plays, ``R g``, rather than by those
-        on its channel axes, ``g``. The first suits a design whose rotations
-        are its own, such as the spokes of a radial readout; the second, a
-        sequence whose rotations are a prescription composed onto it.
+        Translate along the logical axes: a block carrying rotation ``R`` is
+        translated by the rotated gradients ``R g`` instead of its channel-axis
+        gradients ``g``. Suited to designs whose rotations are part of the
+        encoding, such as radial spokes; leave False for a sequence whose
+        rotations are a prescription composed onto it.
     system : Opts, default=None
         Stored for compatibility; not used to validate transformed events.
 
@@ -137,9 +137,10 @@ class TransformFOV:
 
     Notes
     -----
-    A nonzero translation updates both state vectors. Reuse them only for consecutive
-    ranges; initialise them to the state entering the first selected block.
-    Block ranges do not automatically integrate preceding blocks.
+    A nonzero translation updates ``block_k_origin`` and ``swept_k`` on each
+    application. A block range does not integrate the blocks before it, so
+    ranges must be applied consecutively with the same object, or the two
+    attributes set to the state entering the first block of the range.
 
     Examples
     --------
@@ -214,7 +215,7 @@ class TransformFOV:
     def apply_to_sequence(
         self, seq, *, time_range=None, block_range=None, in_place: bool = False
     ):
-        """Apply scaling, translation, then rotation.
+        """Apply the scaling, translation and rotation, in that order, and return the sequence.
 
         ``NOSCL``, ``NOROT`` and ``NOPOS`` labels exempt blocks from the
         respective operations. Labels are evaluated from the selected range's

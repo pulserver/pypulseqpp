@@ -139,10 +139,9 @@ def apply_system_derates(
     opts : Opts
         System limits. Not modified.
     grad_derate : float, default=MAX_GRAD_DERATE
-        Fraction of the base ``max_grad`` / ``max_slew`` to allow.
-
+        Fraction of the base ``max_grad`` to allow.
     slew_derate : float, default=MAX_SLEW_DERATE
-        Fraction of the base ``max_grad`` / ``max_slew`` to allow.
+        Fraction of the base ``max_slew`` to allow.
 
     Returns
     -------
@@ -156,9 +155,9 @@ def apply_system_derates(
     Notes
     -----
     The default fractions, :data:`MAX_GRAD_DERATE` and
-    :data:`MAX_SLEW_DERATE`, leave a margin below the gradient amplitude and
-    slew-rate limits for a waveform designed on one axis at a time and played
-    while other axes are active.
+    :data:`MAX_SLEW_DERATE`, leave a margin below the amplitude and slew-rate
+    limits for waveforms designed on one axis at a time and played while
+    other axes are active.
 
     Examples
     --------
@@ -201,14 +200,14 @@ def cap_system(
     opts : Opts
         System limits. Not modified.
     max_grad : float, default=None
-        Amplitude ceiling, in ``grad_unit``.
+        Gradient amplitude ceiling, in ``grad_unit``; the limit is unchanged
+        when None or already lower.
     max_slew : float, default=None
-        Slew ceiling, in ``slew_unit``.
+        Slew-rate ceiling, in ``slew_unit``; as ``max_grad``.
     grad_unit : str, default='mT/m'
-        The units those two are given in.
-
+        Unit of ``max_grad``.
     slew_unit : str, default='T/m/s'
-        The units those two are given in.
+        Unit of ``max_slew``.
 
     Returns
     -------

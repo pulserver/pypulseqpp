@@ -11,28 +11,29 @@ _KINDS = {"SET": "labelset", "INC": "labelinc"}
 
 
 def make_label(label: str, type: str, value):  # noqa: A002
-    """Create a label event.
+    """Construct a label event.
 
     Parameters
     ----------
     label : str
-        The label's name, in any spelling. Pulseq's own names keep their
-        numbering; anything else is minted on first use.
+        Label name. Pulseq's builtin names keep their reference numbering;
+        any other name is registered as a custom label on first use.
     type : {'SET', 'INC'}
-        ``'SET'`` assigns ``value``, ``'INC'`` adds it to the running counter.
+        ``'SET'`` assigns ``value`` to the label, ``'INC'`` adds it to the
+        label's running value.
     value : int or bool or float
-        The counter or flag value, taken as an integer.
+        Value to assign or add, converted to an integer.
 
     Returns
     -------
     LabelEvent
-        The event, with its fields in slots.
+        The compiled label event.
 
     Raises
     ------
     ValueError
-        If ``type`` is neither ``'SET'`` nor ``'INC'``. The name is not
-        checked, which is the point.
+        If ``type`` is neither ``'SET'`` nor ``'INC'``, or ``label`` is empty.
+        The name is not checked against Pulseq's builtin labels.
 
     Examples
     --------
@@ -41,7 +42,7 @@ def make_label(label: str, type: str, value):  # noqa: A002
     >>> event.type, event.label, event.value
     ('labelset', 'LIN', 12)
 
-    A name Pulseq does not define is accepted and is carried by name:
+    A name Pulseq does not define is a custom label, carried by name:
 
     >>> pp.make_label("SPARKLE", "INC", 1).label
     'SPARKLE'

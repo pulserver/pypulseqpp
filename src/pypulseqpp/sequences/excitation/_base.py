@@ -14,7 +14,9 @@ from .._module import SequenceModule
 
 
 def rf_reference(rf: Any) -> float:
-    """Return the RF pulse centre relative to its block start, in seconds: delay + center.
+    """Return the RF pulse centre from the start of its block (s).
+
+    This is ``delay + center``.
 
     Parameters
     ----------
@@ -24,13 +26,13 @@ def rf_reference(rf: Any) -> float:
     Returns
     -------
     float
-        Its centre from the start of the block that plays it, in seconds.
+        Delay plus centre time of the pulse (s).
     """
     return float(rf.delay) + float(rf.center)
 
 
 def selective_slr(flip_angle_deg: float, thickness_m: float, **design: Any) -> tuple:
-    """Design an SLR pulse with the selection gradient and rephaser that select ``thickness_m``.
+    """Design an SLR pulse and the gradients that select ``thickness_m``.
 
     The thickness a pulse selects is its measured bandwidth,
     :func:`pypulseqpp.calc_rf_bandwidth`, over the selection plateau.
@@ -42,9 +44,9 @@ def selective_slr(flip_angle_deg: float, thickness_m: float, **design: Any) -> t
     Parameters
     ----------
     flip_angle_deg : float
-        Nominal flip angle (degrees).
+        Flip angle (degrees).
     thickness_m : float
-        Thickness to select (m).
+        Thickness to select, from the pulse's measured bandwidth (m).
     **design
         The rest of :func:`pypulseqpp.make_slr_pulse`'s arguments, without
         ``slice_thickness`` and ``return_gz``.
@@ -70,11 +72,9 @@ def selective_slr(flip_angle_deg: float, thickness_m: float, **design: Any) -> t
 
 
 class RfModule(SequenceModule):
-    """Sequence module with off-resonance simulation of an individual RF pulse.
+    """Sequence module whose RF pulse can be simulated across off-resonance.
 
-    Every excitation and preparation module the package ships is an
-    ``RfModule``, so the off-resonance response of its pulse is available from
-    the module itself.
+    Base class of the excitation and preparation modules the package ships.
 
     Examples
     --------
@@ -94,7 +94,8 @@ class RfModule(SequenceModule):
         Parameters
         ----------
         pulse : RfEvent, default=None
-            Pulse to simulate; defaults to the first RF event in block order.
+            Pulse to simulate; ``None`` takes the first RF event in block
+            order.
         **kwargs
             Forwarded to :func:`pypulseqpp.sim_rf` (``rephase_factor``,
             ``df``, ``bandwidth_multiplier``, ``dt``).

@@ -30,33 +30,33 @@ _TURNS = {
 class SpiralNavigator(SequenceModule):
     """Three orthogonal thick-slab spiral navigators.
 
-    Reuses one excitation and readout under axial, sagittal and coronal
-    rotations. ADC blocks carry NAV labels. Navigator excitations perturb
-    the host sequence's longitudinal magnetisation; choose flip angle and
-    repetition count accordingly.
+    One excitation and readout are played under axial, sagittal and coronal
+    rotations. The blocks that acquire set the ``NAV`` label to 1, and a final
+    block sets it to 0. The navigator excitations perturb the longitudinal
+    magnetization of the host sequence.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     fov : float, default=0.32
-        In-plane field of view (m). Wide enough to contain the head.
+        In-plane field of view (m).
     matrix : int, default=32
-        Acquired in-plane matrix. Coarse on purpose.
+        In-plane matrix size, at least 8.
     thickness_m : float, default=0.01
         Slab thickness (m).
     flip_angle_deg : float, default=8.0
-        Nominal flip angle (degrees). See above.
+        Flip angle (degrees).
     duration_s : float, default=0.001
         Excitation pulse duration (s).
     readout_bandwidth_hz : float, default=250000.0
-        Requested sample spacing along the arm.
+        Requested ADC sampling rate (Hz).
     navigator_tr : float, default=None
-        Repetition time of one three-plane navigator (s). ``None`` packs the
-        planes back to back. A longer one leaves room for the reconstruction
-        and the pose estimate to come back before the next navigator.
+        Repetition time of one three-plane navigator (s). ``None`` plays the
+        planes back to back; otherwise each plane is padded to a third of it.
     spoiling_cycles : float, default=4.0
-        Spoiler moment at the end of each plane, in cycles across the slab.
+        Cycles of spoiler dephasing at the end of each plane, across the
+        spiral's resolution.
 
     Attributes
     ----------
@@ -65,9 +65,10 @@ class SpiralNavigator(SequenceModule):
     readout : SpiralReadout2D
         The designed interleaf every plane plays.
     rotations : dict
-        The rotation carried by each plane's blocks, keyed by plane name.
+        Rotation applied to the blocks of each plane (``None`` for axial),
+        keyed by plane name.
     plane_duration : float
-        Length of one plane (s).
+        Duration of one plane (s).
 
     Examples
     --------
@@ -175,12 +176,12 @@ class SpiralNavigator(SequenceModule):
     def fit(
         self, window: float, requested: int | str = "auto", *, limit: int | None = None
     ) -> int:
-        """Return the navigator count that fits a time window.
+        """Return the number of navigators that fit in a time window.
 
         Parameters
         ----------
         window : float
-            Dead time available (s).
+            Available dead time (s).
         requested : int or str, default='auto'
             ``"auto"`` takes as many as fit, up to ``limit``; an integer
             requests exactly that many and raises if they do not fit.

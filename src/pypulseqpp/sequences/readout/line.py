@@ -29,16 +29,84 @@ _SPOILING_POSITIONS = ("pre", "post")
 
 
 class _LineReadout(SequenceModule):
-    """Cartesian line readout from the supplied RF event to the end of TR.
+    """Cartesian line readout from the supplied RF event to the end of the TR.
 
     An excitation gives a gradient echo; a refocusing pulse gives the readout
-    half of a spin echo. Phase encodes are templates at their largest step,
-    for the loop to scale per shot.
+    half of a spin echo. The phase encodes are templates at their largest step,
+    which the caller scales per shot.
 
     Zero spoiling balances every axis. Positive spoiling after the acquisition
-    gives SSFP-FID, before it SSFP-Echo. In the latter case the FID trajectory
-    reported by ``calculate_kspace`` need not cross k = 0; ``echo_time`` is
-    still the timing interval.
+    gives SSFP-FID, before it SSFP-Echo; in the latter case the FID trajectory
+    of ``calculate_kspace`` need not cross k = 0, and ``echo_time`` is still
+    the timing interval.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    rf : RfEvent
+        Pulse that opens the repetition.
+    gz : GradEvent, default=None
+        Selection gradient played with ``rf``; ``None`` for a hard pulse.
+    gz_reph : GradEvent, default=None
+        Rephaser of ``gz``, left-aligned in the first block after the pulse
+        (the TE wait if there is one, else the prewinder block). ``None`` for
+        a slab excitation (``is_slab=True``), which carries it in ``gz``.
+    fov : float or sequence of float
+        Field of view per encoded axis, readout first (m).
+    matrix : int or sequence of int
+        Matrix size per encoded axis, readout first. The caller sets the number
+        and order of acquired lines.
+    te : float, default=None
+        Echo time (s), from the RF centre to the first echo. ``None`` is as
+        short as possible.
+    tr : float, default=None
+        Repetition time (s) of the whole module. ``None`` is as short as
+        possible.
+    partial_echo : float, default=1.0
+        Fraction of the full echo acquired, in (0.5, 1]. The samples before the
+        echo are omitted, which shortens TE.
+    oversampling : float, default=1.0
+        Readout oversampling: the sample spacing in k-space is
+        ``1 / (oversampling * fov)``.
+    readout_bandwidth_hz : float, default=250000.0
+        Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
+        on the ADC and gradient rasters.
+    spoiling_cycles : float, default=0.0
+        Cycles of dephasing across ``voxel_size_m`` left at the end of the TR.
+        Zero balances the TR.
+    voxel_size_m : float, default=None
+        Length the spoiling is counted over (m); ``None`` is the readout
+        resolution ``fov[0] / matrix[0]``.
+    spoiling_position : {'post', 'pre'}, default='post'
+        Side of the acquisition on which the spoiler is played.
+    n_echoes : int, default=1
+        Echoes per repetition.
+    flyback : bool, default=True
+        With several echoes, rewind between them so that all are read in the
+        same direction (monopolar), or alternate the readout sign (bipolar).
+        A bipolar train reads even echoes backwards, so a gradient delay error
+        becomes a phase difference between echoes, and it needs as many
+        samples before the echo as after it: ``partial_echo < 1`` and an odd
+        sample count are rejected.
+    echo_spacing : float, default=None
+        Echo spacing (s); ``None`` is as short as possible. Ignored with one
+        echo.
+    wave : {'phase', 'partition', 'both'}, default=None
+        Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
+        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude`` is
+        zero, which builds no wave gradients.
+    wave_cycles : int, default=8
+        Wave periods across the sampling window.
+    wave_amplitude : float, default=0.008
+        Upper bound of the wave gradient amplitude (T/m, not Hz/m); the slew
+        rate may lower it. The module's ``wave_amplitude`` attribute is the
+        amplitude built.
+    labels : sequence of str, default=None
+        Labels set to 0 on the acquisition block, to be changed per shot by the
+        caller.
+    trigger : TriggerEvent or DigitalOutputEvent, default=None
+        Event armed on the prewinder block.
 
     Attributes
     ----------
@@ -47,139 +115,73 @@ class _LineReadout(SequenceModule):
     gz : GradEvent
         Its selection gradient, if one was given.
     gz_reph : GradEvent
-        Its rephaser, if one was given, left-aligned in whichever block follows
-        the pulse.
+        Its rephaser, if one was given.
     gx_pre : GradEvent
-        Readout prephaser, right-aligned in the prewinder block. Includes the
+        Readout prephaser, right-aligned in the prewinder block; includes the
         spoiler area under ``spoiling_position='pre'``.
     gx : GradEvent
-        Readout lobe. A spoiler is bridged onto it when there is one echo: the
-        lobe then lacks the ramp on the spoiler's side, which ``gx_pre`` or
-        ``gx_spoil`` plays instead. Where the spoiler is bridged onto the end,
-        the plateau is held to the end of the acquisition block, past the last
-        sample by the ADC dead time, so that the spoiler starts at the plateau
-        amplitude; ``gx_spoil`` has correspondingly less area.
+        Readout lobe. With a single echo and a spoiler, the spoiler is joined
+        to the lobe, which then lacks the ramp on that side. A spoiler joined
+        at the end leaves from a plateau held to the end of the acquisition
+        block, past the last sample by the ADC dead time, and ``gx_spoil`` has
+        correspondingly less area.
     gx_spoil : GradEvent
-        Last read-axis gradient of the TR: rewinds the part of the line after the
-        echo and, under ``spoiling_position='post'``, adds the spoiler.
-        Left-aligned with ``gy_rew``.
+        Last read-axis gradient of the TR, left-aligned with ``gy_rew``:
+        rewinds the part of the line after the echo and, under
+        ``spoiling_position='post'``, adds the spoiler.
     gy_pre, gz_pre : TrapEvent
         Phase encodes at their largest step, to be scaled per shot. ``gz_pre``
         is 3D only.
     gy_rew, gz_rew : TrapEvent
-        The negated encodes that unwind them, for a balanced TR.
+        The negated encodes that unwind them.
     gx_flyback : TrapEvent
         Rewinder played after every echo but the last of a monopolar train.
     gx_rev : GradEvent
-        The negated lobe that reads the even echoes of a bipolar train.
+        Negated lobe that reads the even echoes of a bipolar train.
     gy_wave, gz_wave : GradEvent
-        Wave-encoding gradients played under the readout flat top, each
-        self-balanced so scaling one to zero changes nothing else. Only the
-        channels ``wave`` drives.
+        Wave gradients under the readout flat top, each self-balanced so that
+        scaling one to zero changes nothing else. Only the channels driven by
+        ``wave``.
     adc : AdcEvent
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
-        One per name in ``labels``, in order. Absent when ``labels`` is empty,
-        and a bare event rather than a list when there is one.
+        One per name in ``labels``; absent when ``labels`` is empty.
     wait_te : DelayEvent
-        Present only when a TE longer than the minimum was asked for and the
-        wait can hold ``gz_reph``; otherwise the prewinder block starts later.
+        Present only when ``te`` exceeds the minimum and the wait can hold
+        ``gz_reph``; otherwise the prewinder block starts later.
     wait_esp : DelayEvent
-        Present only when an echo spacing longer than the minimum was asked
-        for. Played after every echo but the last: after the readout lobe of a
-        bipolar train, after the rewinder of a monopolar one.
+        Present only when ``echo_spacing`` exceeds the minimum; played after
+        every echo but the last (after the readout lobe of a bipolar train,
+        after the rewinder of a monopolar one).
     wait_tr : DelayEvent
-        Present only when a TR longer than the minimum was asked for.
+        Present only when ``tr`` exceeds the minimum.
     echo_time : float
-        From the RF isodelay to the first echo (s), on the block raster.
+        Time from the RF centre to the first echo (s), on the block raster.
     echo_spacing : float
-        Between successive echoes (s), on the block raster; zero with one
+        Time between successive echoes (s), on the block raster; zero with one
         echo.
+    bandwidth_hz : float
+        Achieved ADC sampling rate ``1 / dwell`` (Hz).
+    n_samples : int
+        ADC samples per echo.
     center_sample : int
-        Index of the sample at the echo; partial echo moves it toward the
+        Index of the sample at the echo; ``partial_echo`` moves it toward the
         start.
+    delta_kx : float
+        K-space sample spacing along the readout (1/m).
+    readout_duration : float
+        Duration of the sampled flat top (s).
     wave_amplitude : float
-        Peak wave-encoding gradient amplitude built, in T/m, below the
-        requested one where the slew rate binds; zero without ``wave``.
-
-    Parameters
-    ----------
-    system : pypulseqpp.Opts
-        System limits.
-    rf : RfEvent
-        The pulse that opens the repetition.
-    gz : GradEvent, default=None
-        A selection gradient played in the same block as ``rf``. Pass an
-        excitation's ``gz``, or nothing for a hard pulse.
-    gz_reph : GradEvent, default=None
-        The rephaser that unwinds ``gz``, left-aligned in the first block
-        after the pulse: the TE wait when there is one, the prewinder block
-        otherwise. A slab excitation (``is_slab=True``) has already merged it
-        into ``gz`` and passes nothing.
-    fov : float or sequence of float
-        Field of view (m), per encoded axis, readout first.
-    matrix : int or sequence of int
-        Matrix size per encoded axis, used to set gradient areas. The scan
-        loop controls the number and order of acquired lines.
-    te : float, default=None
-        Echo time (s), from the RF isodelay to the first echo. ``None`` is as
-        short as possible.
-    tr : float, default=None
-        Repetition time (s), over the whole module. ``None`` is as short as
-        possible.
-    partial_echo : float, default=1.0
-        Fraction of the full echo acquired, in ``(0.5, 1]``. Truncates the
-        samples *before* the echo, so it shortens TE.
-    oversampling : float, default=1.0
-        Readout oversampling: ``delta_kx`` shrinks and the sampled field of
-        view grows, while resolution is fixed by ``fov`` and ``matrix``.
-    readout_bandwidth_hz : float, default=250000.0
-        Requested ADC sampling rate (Hz). ``bandwidth_hz`` reports the
-        achieved rate, subject to both ADC and gradient raster constraints.
-    spoiling_cycles : float, default=0.0
-        Residual dephasing left at the end of the TR, in cycles across
-        ``voxel_size_m``. Zero is balanced.
-    voxel_size_m : float, default=None
-        Length the spoiling is counted over (m). Defaults to the readout
-        resolution.
-    spoiling_position : {'post', 'pre'}, default='post'
-        Side of the acquisition on which the dephasing lobe is played.
-    n_echoes : int, default=1
-        Echoes per repetition.
-    flyback : bool, default=True
-        With more than one echo: rewind between echoes so every one is read in
-        the same direction (monopolar, the default), or alternate the readout
-        sign (bipolar), which is faster but reads even echoes backwards and
-        puts any gradient-delay error into a phase difference between them.
-        A bipolar train needs as many samples before the echo as after it, so
-        partial echo and an odd sample count are rejected.
-    echo_spacing : float, default=None
-        Echo spacing (s). ``None`` is as short as possible: the readout lobe
-        of a bipolar train, the lobe and its rewinder for a monopolar one.
-        Ignored with one echo.
-    wave : {'phase', 'partition', 'both'}, default=None
-        Wave-CAIPI encoding under the readout flat top: a sine on y, a cosine
-        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude``
-        is zero, which builds no wave-encoding gradients.
-    wave_cycles : int, default=8
-        Wave periods across the sampling window.
-    wave_amplitude : float, default=0.008
-        Requested peak wave-encoding gradient amplitude, in T/m rather than the
-        Hz/m used elsewhere. A ceiling: the slew rate may lower it, and the
-        module's ``wave_amplitude`` attribute reports the amplitude built.
-    labels : sequence of str, default=None
-        Counters emitted on the acquisition block. The acquisition loop
-        assigns their values.
-    trigger : event, default=None
-        A trigger or digital output armed on the prewinder block.
+        Peak wave gradient amplitude built (T/m), below the requested one where
+        the slew rate binds; zero without ``wave``.
 
     Raises
     ------
     ValueError
-        If a count or a fraction is out of range, ``wave`` names no wave
-        mode or would build wave-encoding gradients on a 2D readout, ``gz_reph`` shares a channel with an encoded axis, or the
-        requested TE, TR or echo spacing is shorter than the module can
-        achieve.
+        If a count or a fraction is out of range, ``wave`` is not a wave mode
+        or would build wave gradients on a 2D readout, ``gz_reph`` shares a
+        channel with an encoded axis, or ``te``, ``tr`` or ``echo_spacing`` is
+        shorter than the module can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped line readouts.
@@ -506,11 +508,10 @@ def _area(event) -> float:
 def _reshape_readout(
     system, gx, bridged_start: bool, bridged_end: bool, hold: float = 0.0
 ):
-    """Drop whichever ramp a bridged spoiler has already provided.
+    """Return the readout lobe without the ramp on each side a joined spoiler provides.
 
-    ``hold`` extends the plateau past the last sample, in seconds, so that a
-    lobe bridged onto the end has a plateau to leave from at the boundary of a
-    block the receiver's dead time runs past.
+    ``hold`` (s) extends the plateau past the last sample, so that a spoiler
+    joined at the end leaves from the plateau at the block boundary.
     """
     amplitude = gx.amplitude
     spans = [
@@ -537,7 +538,7 @@ def _reshape_readout(
 class LineReadout2D(_LineReadout):
     """One Cartesian line, frequency-encoded along x and phase-encoded along y.
 
-    ``fov`` and ``matrix`` take two values here, readout first.
+    ``fov`` and ``matrix`` take two values, readout first.
 
     Examples
     --------

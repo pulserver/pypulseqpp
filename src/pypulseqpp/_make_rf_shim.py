@@ -10,18 +10,20 @@ __all__ = ["make_rf_shim"]
 
 
 def make_rf_shim(shim_vector) -> SimpleNamespace:
-    """Create complex per-transmit-channel weights for a block's RF envelope.
+    """Construct an RF shim extension event.
+
+    The weights multiply the block's RF waveform per transmit channel.
 
     Parameters
     ----------
     shim_vector : array_like
-        Complex per-channel weights, one per transmit channel.
+        Complex weight of each transmit channel (dimensionless).
 
     Returns
     -------
     types.SimpleNamespace
-        RF shim extension event (``type == 'rf_shim'``) with the weights
-        stored as ``complex128``.
+        Event with ``type == 'rf_shim'`` and ``shim_vector`` as
+        ``complex128``.
 
     Examples
     --------
@@ -31,7 +33,7 @@ def make_rf_shim(shim_vector) -> SimpleNamespace:
     >>> event.type, event.shim_vector.dtype
     ('rf_shim', dtype('complex128'))
 
-    Attach it alongside the RF event of a block::
+    Played in the block of the RF event it weights::
 
         seq.add_block(pulse.rf, pp.make_rf_shim(weights))
     """

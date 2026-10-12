@@ -14,23 +14,23 @@ _AXES = ("x", "y", "z")
 class InversionPreparation(RfModule):
     """Non-selective adiabatic inversion, followed by an optional crusher.
 
-    The acquisition loop supplies the inversion-time delay.
+    The module contains no inversion-time delay; the caller adds it.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     duration_s : float, default=0.01
-        Inversion pulse duration (s). Shorter durations increase the required
-        sweep rate and may violate the adiabatic condition.
+        Inversion pulse duration (s); a shorter pulse needs a faster sweep,
+        which may violate the adiabatic condition.
     spoiling_cycles : float, default=4.0
-        Dephasing of the crusher, in cycles across ``voxel_size_m``. Zero
-        omits the crusher.
+        Cycles of dephasing of the crusher across ``voxel_size_m``. Zero omits
+        the crusher.
     voxel_size_m : float, default=0.001
-        Length the dephasing is counted over (m) — the smallest voxel
-        dimension, since that is the one that has to be spoiled.
+        Length the dephasing is counted over (m); the smallest voxel
+        dimension.
     axis : {'z', 'x', 'y'}, default='z'
-        Crusher axis.
+        Gradient channel of the crusher.
     pulse_type : str, default='hypsec'
         Adiabatic sweep family.
     bandwidth_hz : float, default=40000.0
@@ -38,9 +38,8 @@ class InversionPreparation(RfModule):
     adiabaticity : int, default=4
         Sweep-rate margin over the adiabatic condition.
     labels : sequence of str, default=None
-        Counters emitted on the inversion block, which starts each shot. The
-        module creates the label events; the acquisition loop assigns their
-        per-shot values.
+        Labels the inversion block sets to 0, to be changed per shot by the
+        caller.
 
     Attributes
     ----------

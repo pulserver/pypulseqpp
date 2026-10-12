@@ -17,57 +17,60 @@ from ._common import spoiler_gradients
 class DiffusionPreparation(RfModule):
     """Non-selective diffusion preparation with hard tip-down and storage pulses.
 
-    A matched gradient pair surrounds one refocusing pulse. Design one axis
-    at b_value, then scale the pair for lower b-values and rotate it per
-    direction. The closing spoiler is separate from the diffusion pair.
+    A pair of identical diffusion lobes surrounds one refocusing pulse. The
+    pair is designed on one axis at ``b_value``; scale it for lower b-values
+    (:meth:`scale_for`) and rotate it per direction. The closing spoiler is
+    separate from the pair.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     b_value : float
-        Design b-value (s/mm^2). This is the largest the module can produce;
-        everything else is reached by scaling down.
+        Design b-value (s/mm^2), the largest the module plays; lower values are
+        reached by scaling the lobes.
     gradient_duration_s : float, default=0.02
         Duration of each diffusion lobe (s).
     gradient_separation_s : float, default=0.03
-        Onset-to-onset separation of the two lobes (s). Must exceed
-        ``gradient_duration_s`` by enough to hold the refocusing pulse.
+        Onset-to-onset separation of the two lobes (s); the gap between them
+        holds the refocusing pulse.
     pulse_duration_s : float, default=0.0005
-        Duration of each 90 (s).
+        Duration of each 90 degree pulse (s).
     refocusing_duration_s : float, default=0.001
-        Duration of the 180 (s).
+        Duration of the 180 degree pulse (s).
     axis : {'z', 'x', 'y'}, default='z'
-        Axis the canonical pair is designed on.
+        Gradient channel the pair is designed on.
     spoiling_cycles : float, default=4.0
-        Cycles of dephasing the closing spoiler winds across ``voxel_size_m``.
+        Cycles of dephasing of the closing spoiler across ``voxel_size_m``.
+        Zero omits the spoiler.
     voxel_size_m : float, default=0.001
         Length the dephasing is counted over (m).
     labels : sequence of str, default=None
-        Counters emitted on the first pulse's block.
+        Labels set to 0 on the first pulse's block, to be changed per shot by
+        the caller.
 
     Attributes
     ----------
     rf_prep : RfEvent
-        The 90 that tips down.
+        The 90 degree tip-down pulse.
     rf_ref : RfEvent
-        The 180 between the lobes.
+        The 180 degree refocusing pulse between the lobes.
     rf_store : RfEvent
-        The 90 that stores what is left.
+        The 90 degree storage pulse.
     g_diff : TrapEvent
-        The diffusion lobe, published once because both sides play the same
-        event. Scale it per b-value, rotate it per direction.
+        The diffusion lobe at the design b-value, played identically on both
+        sides of the refocusing pulse.
     wait_first, wait_last : DelayEvent
-        The gaps before and after the refocusing pulse, each absent when the
-        timing leaves none.
+        The gaps before and after the refocusing pulse; each is absent when
+        zero.
     gx_spoil, gy_spoil, gz_spoil : GradEvent
-        The closing spoiler.
+        Spoiler gradient of each axis; absent when ``spoiling_cycles`` is zero.
     prep_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``.
     b_value : float
-        The design b-value achieved (s/mm^2).
+        Design b-value of the lobes as played (s/mm^2).
     max_b_value : float
-        What this timing could reach at full gradient amplitude (s/mm^2).
+        b-value this timing reaches at ``system.max_grad`` (s/mm^2).
 
     Raises
     ------
@@ -222,18 +225,18 @@ class DiffusionPreparation(RfModule):
         Parameters
         ----------
         b_value : float
-            Wanted b-value (s/mm^2), between zero and the design value.
+            Wanted b-value (s/mm^2), from zero to the design value.
 
         Returns
         -------
         float
-            Factor to pass to :func:`pypulseq.scale_grad`.
+            Amplitude factor for :func:`pypulseqpp.scale_grad` applied to
+            ``g_diff``.
 
         Raises
         ------
         ValueError
-            If ``b_value`` is negative or above the design value, which the
-            module cannot reach by scaling down.
+            If ``b_value`` is negative or above the design value.
         """
         if not 0.0 <= b_value <= self.b_value:
             raise ValueError(
@@ -244,9 +247,9 @@ class DiffusionPreparation(RfModule):
 
 
 def _pair_b_value(lobe, middle_duration: float, raster: float) -> float:
-    """Integrate b in s/mm^2 for a rasterised pair of identical trapezoids.
+    """Return b (s/mm^2) of two identical lobes around a refocusing pulse.
 
-    Negate the second lobe in the effective gradient to account for refocusing.
+    The second lobe is negated in the effective gradient.
     """
     count = round(pp.calc_duration(lobe) / raster)
     times = (np.arange(count) + 0.5) * raster

@@ -194,17 +194,16 @@ class SequenceModule(ABC):
     """A reusable block layout with named, mutable event templates.
 
     Subclasses assign ``self.seq`` and add blocks in ``init_module``. Events
-    are published from constructor locals onto ``events`` and onto the module
-    itself.
-    Repeated references are deduplicated by identity: one distinct object
-    becomes a scalar event, several become a list in first-seen order.
-    Explicit register calls preserve the supplied structure, including
-    one-element lists.
+    are published from the constructor's locals onto ``events`` and onto the
+    module itself. Repeated references are deduplicated by identity: one
+    distinct object becomes a scalar event, several become a list in
+    first-seen order. :meth:`register` preserves the supplied structure,
+    including one-element lists.
 
     Parameters
     ----------
     *args, **kwargs
-        Forwarded to init_module.
+        Forwarded to :meth:`init_module`.
 
     Attributes
     ----------
@@ -212,15 +211,16 @@ class SequenceModule(ABC):
         Published events. Use this namespace when a name conflicts with a
         module attribute; publication warns about conflicts.
     center : float
-        Timing reference in seconds from the module start, set by the
-        subclass: typically an RF centre or an echo.
+        Timing reference (s) from the module start, set by the subclass:
+        typically an RF centre or an echo.
 
     Notes
     -----
-    blocks retains the original event objects for replay. Mutating those
-    objects does not rewrite the stored sequence used for analysis.
-    Only calculate_kspace, check_timing, test_report and waveforms_and_times
-    are forwarded to seq.
+    ``blocks`` retains the original event objects for replay. Mutating
+    those objects does not rewrite the stored sequence used for analysis.
+    Of the sequence's methods, only ``calculate_kspace``, ``check_timing``,
+    ``paper_plot``, ``test_report`` and ``waveforms_and_times`` are forwarded
+    to ``seq``.
 
     Examples
     --------
@@ -269,7 +269,7 @@ class SequenceModule(ABC):
     def init_module(self, *args: Any, **kwargs: Any) -> None:
         """Build the module's block layout; implemented by the subclass.
 
-        Assign ``self.seq``, add blocks to it, and set :attr:`center` if the
+        Assign ``self.seq``, add blocks to it, and set ``center`` if the
         module is timed against something other than its own start. Events are
         published automatically; nothing has to be returned.
 
@@ -288,8 +288,9 @@ class SequenceModule(ABC):
     def seq(self):
         """Sequence holding the module's construction-time block layout.
 
-        Assigning a Sequence enables block recording. Later event-template
-        changes affect replay through blocks, not this stored sequence.
+        Assigning a ``Sequence`` enables block recording. Later changes to the
+        event templates affect replay through ``blocks``, not this stored
+        sequence.
         """
         return self._seq
 
@@ -307,10 +308,10 @@ class SequenceModule(ABC):
         self._seq = sequence
 
     def _find_init_frame(self) -> None:
-        """Return the active ``init_module`` frames for this instance.
+        """Retain the active ``init_module`` frames of this instance.
 
-        Final locals from both subclass and base constructors are needed for
-        event publication. Release the retained frames during finalisation.
+        Their final locals, from the subclass and its bases, are published
+        by :meth:`_finalize`, which releases the frames.
         """
         targets = {
             getattr(init, "__code__", None)
@@ -363,7 +364,7 @@ class SequenceModule(ABC):
     def publish(self, **named: Any) -> None:
         """Publish events from the caller's locals and register keyword aliases.
 
-        Use in construction helpers whose locals are not captured automatically.
+        For construction helpers whose locals are not captured automatically.
         Keyword aliases take precedence over automatic names.
 
         Parameters
@@ -376,10 +377,10 @@ class SequenceModule(ABC):
         self.register(**named)
 
     def register(self, **events: Any) -> None:
-        """Publish named events without requiring prior block registration.
+        """Publish named events, whether or not they were added to a block.
 
-        Preserve the supplied container structure and override automatic
-        publication for these names.
+        The supplied container structure is preserved, and the names override
+        automatic publication.
 
         Parameters
         ----------
@@ -445,15 +446,16 @@ class SequenceModule(ABC):
 
     @property
     def blocks(self) -> list[tuple]:
-        """Return block tuples in play order, retaining the original event objects.
+        """Block tuples in play order, holding the original event objects.
 
-        The list is a copy; event mutations are shared with published templates.
+        The list is a copy; the events in it are shared with the published
+        templates.
         """
         return list(self._blocks)
 
     @property
     def duration(self) -> float:
-        """Duration of the module in seconds.
+        """Duration of the module (s).
 
         Summed from the blocks, unless the module derived its timing
         analytically and assigned the answer.

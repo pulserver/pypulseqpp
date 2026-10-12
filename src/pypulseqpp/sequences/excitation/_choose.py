@@ -27,11 +27,10 @@ def make_excitation(
     hard_duration_s: float = 0.5e-3,
     fat_shift_ppm: float = -3.4,
 ) -> Any:
-    """Build the excitation ``kind`` names, from one prescription of a slab.
+    """Build the excitation module named by ``kind`` for a slab prescription.
 
-    A volumetric sequence is prescribed with a slab and then excites it one of
-    three ways, and which one it is does not change anything else about the
-    sequence. This is that choice.
+    The three kinds share one prescription, so a volumetric sequence selects
+    among them by ``kind`` alone.
 
     Parameters
     ----------
@@ -46,16 +45,16 @@ def make_excitation(
     thickness_m : float
         Slab thickness (m). A hard pulse excites everything and ignores it.
     duration_s : float, default=0.003
-        Duration of the selective pulse (s).
+        Duration of the ``'slab'`` pulse (s).
     time_bw_product : float, default=4.0
-        Time-bandwidth product of the SLR design.
+        Time-bandwidth product of the ``'slab'`` SLR pulse.
     hard_duration_s : float, default=0.0005
         Duration of the hard pulse (s), rounded up to an even number of block
         rasters so that its centre lands on the raster, which a spin echo
         needs in order to place its refocusing pulse midway.
     fat_shift_ppm : float, default=-3.4
-        Methylene shift from water (ppm), converted against ``system.gamma``
-        and ``system.B0`` into the spectral band the ``'spsp'`` pulse rejects.
+        Methylene shift from water (ppm), converted with ``system.gamma`` and
+        ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.
 
     Returns
     -------
