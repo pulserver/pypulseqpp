@@ -87,9 +87,11 @@ namespace pulseq
      * narrower than a bin is read at the bin nearest its centre.
      *
      * The bins a band reads are summed directly rather than transformed.
-     * Waveforms whose first samples sit within 1e-4 raster of each other are
-     * summed once, which on a long sequence leaves amplitudes within about
-     * 1e-6 of a sample-by-sample reading.
+     * A channel's sums are remembered from the second block that plays its
+     * waveform and reused by every later block that plays it over as many
+     * samples, its first sample at the same time from the block's start;
+     * block start times are summed in whole picoseconds, so that time is
+     * exact anywhere in the sequence.
      */
     ResonanceReport mech_resonance(
         const Sequence& seq,

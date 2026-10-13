@@ -45,7 +45,11 @@ def played(system, *blocks):
 
 
 def windows_the_long_way(sequence, dt, bands, window, stride, oversampling):
-    """Per band, the largest amplitude and its window, from the expanded waveforms."""
+    """Per band, the largest amplitude and the windows reading it, from the expanded waveforms.
+
+    Windows holding the same samples read the same amplitude to rounding, so
+    every window within 1e-9 of the largest is one the check may name.
+    """
     total = round(sequence.duration()[0] / dt)
     t = (np.arange(total) + 0.5) * dt
     samples = [
@@ -69,14 +73,13 @@ def windows_the_long_way(sequence, dt, bands, window, stride, oversampling):
     for axis, f_min, f_max in bands:
         lo = math.ceil(f_min / bin_width - 1e-9)
         hi = math.floor(f_max / bin_width + 1e-9)
-        best, where = 0.0, 0
+        amplitudes = np.empty(count)
         for k in range(count):
             x = padded[axis][k * step : k * step + width]
             spectrum = np.abs(np.fft.rfft((x - x.mean()) * taper, length))
-            amplitude = 2 * spectrum[lo : hi + 1].max() / taper.sum()
-            if amplitude > best:
-                best, where = amplitude, k
-        found.append((best, where))
+            amplitudes[k] = 2 * spectrum[lo : hi + 1].max() / taper.sum()
+        best = amplitudes.max()
+        found.append((best, set(np.flatnonzero(amplitudes >= best * (1 - 1e-9)))))
     return found
 
 
@@ -323,9 +326,9 @@ def test_the_native_windows_are_the_plain_windows(system):
         3,
     )
     to_hz = 1e-3 * system.gamma
-    for entry, (peak, window) in zip(report.bands, expected, strict=True):
+    for entry, (peak, windows) in zip(report.bands, expected, strict=True):
         assert entry.peak * to_hz == pytest.approx(peak, rel=1e-9)
-        assert entry.window == window
+        assert entry.window in windows
 
 
 def test_repeated_blocks_cut_anywhere_by_window_edges_read_as_the_plain_windows(system):
@@ -367,9 +370,9 @@ def test_repeated_blocks_cut_anywhere_by_window_edges_read_as_the_plain_windows(
         3,
     )
     to_hz = 1e-3 * system.gamma
-    for entry, (peak, window) in zip(report.bands, expected, strict=True):
+    for entry, (peak, windows) in zip(report.bands, expected, strict=True):
         assert entry.peak * to_hz == pytest.approx(peak, rel=1e-9)
-        assert entry.window == window
+        assert entry.window in windows
 
 
 def test_a_scan_summed_over_many_passes_and_threads_reads_as_the_plain_windows(system):
@@ -405,9 +408,42 @@ def test_a_scan_summed_over_many_passes_and_threads_reads_as_the_plain_windows(s
     )
     assert report.windows > 4096
     to_hz = 1e-3 * system.gamma
-    for entry, (peak, window) in zip(report.bands, expected, strict=True):
+    for entry, (peak, windows) in zip(report.bands, expected, strict=True):
         assert entry.peak * to_hz == pytest.approx(peak, rel=1e-9)
-        assert entry.window == window
+        assert entry.window in windows
+
+
+@pytest.mark.parametrize("raster", [10e-6, 4e-6])
+def test_a_block_after_200000_delays_reads_the_spectrum_it_has_alone(raster):
+    """The delays, 1.23 ms each, are durations no double holds exactly."""
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=200,
+        slew_unit="T/m/s",
+        grad_raster_time=raster,
+        block_duration_raster=10e-6,
+    )
+    block = [
+        sinusoid(system, "x", 5.0, 600.0, 10e-3),
+        pp.make_trapezoid("y", area=1000, duration=3e-3, system=system),
+    ]
+    delays = 200_000
+    deep = pp.Sequence(system)
+    delay = pp.make_delay(1.23e-3)
+    for _ in range(delays):
+        deep.add_block(delay)
+    deep.add_block(*block)
+    # The last window holds 20 ms of silence, then the block.
+    lead = played(system, [pp.make_delay(20e-3)], block)
+    last = round(delays * 1.23e-3 / 20e-3) - 1
+
+    first = safety.mech_resonance_spectrum(lead, window=0)
+    later = safety.mech_resonance_spectrum(deep, window=last)
+
+    assert later.window_start == pytest.approx(delays * 1.23e-3 - 20e-3)
+    assert first.amplitude.max() > 1.0
+    np.testing.assert_array_equal(later.amplitude, first.amplitude)
 
 
 @pytest.mark.skipif(not _mkl_runtime(), reason="no MKL runtime installed")

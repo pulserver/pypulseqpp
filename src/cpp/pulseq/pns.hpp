@@ -91,10 +91,10 @@ namespace pulseq
      * largest slew's response, and a block that repeats one already
      * evaluated is answered by linearity in the filter state it carries in,
      * unless the response could pass the peak found by more than 1e-9 of it.
-     * Blocks whose first samples sit within 1e-4 raster of each other are
-     * one block to this, which on a long sequence leaves the peak within
-     * about 1e-7 of a sample-by-sample evaluation, the size of the rounding
-     * in summed block start times.
+     * A block repeats an earlier one when it plays the same gradients and
+     * rotation over as many samples, its first sample at the same time from
+     * its start; block start times are summed in whole picoseconds, so that
+     * time is exact anywhere in the sequence.
      * Both models are evaluated in one pass with the filter's own memory
      * carried along, which is the whole-timeline answer.
      */
