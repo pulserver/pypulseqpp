@@ -20,6 +20,7 @@ Blocks
    ~Sequence.event_definitions
    ~Sequence.block_definitions
    ~Sequence.repetition
+   ~Sequence.loops
    ~Sequence.block_rotations
    ~Sequence.block_shims
 
