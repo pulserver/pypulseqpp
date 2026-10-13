@@ -2398,6 +2398,72 @@
         <span class="k">return</span> <span class="n">size</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span></div>
 
 
+<div class="viewcode-block" id="Sequence.loops">
+<a class="viewcode-back" href="../../generated/pypulseqpp.Sequence.loops.html#pypulseqpp.Sequence.loops">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">loops</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the block definitions folded into nested loops.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            The scan in play order. Each item is a block definition id, as</span>
+<span class="sd">            :meth:`block_definitions` numbers it, or a loop: a pair</span>
+<span class="sd">            ``(body, count)`` whose ``body`` is a list of the same form,</span>
+<span class="sd">            played ``count`` times. Empty when the sequence has no blocks.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The outer loop is the repetition (:meth:`repetition`) when the block</span>
+<span class="sd">        definitions repeat it block for block, so that it starts where the</span>
+<span class="sd">        repetition does. Within it, and over the whole table when there is no</span>
+<span class="sd">        such repetition, every repeat of a run of up to 64 items becomes a</span>
+<span class="sd">        loop, shortest runs first, and repeats of loops become loops in turn,</span>
+<span class="sd">        so the loops nest as deep as the scan does and blocks played once,</span>
+<span class="sd">        such as a preparation before the loop, stay outside them. No loop</span>
+<span class="sd">        starts with a pure delay: a wait ends the iteration it follows, so a</span>
+<span class="sd">        run of waits plays as one longer wait rather than a loop. What makes two blocks differ is their</span>
+<span class="sd">        definition: amplitudes, phase and frequency offsets, the ADC and the</span>
+<span class="sd">        length of a pure delay vary from one iteration to the next. The loops</span>
+<span class="sd">        are checked to play the block definitions back. Nothing is written</span>
+<span class="sd">        into the sequence.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        An inversion, an inversion time, a train of four excitations and a</span>
+<span class="sd">        recovery, three times:</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; seq = pp.Sequence(pp.Opts())</span>
+<span class="sd">        &gt;&gt;&gt; inversion = pp.make_block_pulse(np.pi, duration=2e-3)</span>
+<span class="sd">        &gt;&gt;&gt; excitation = pp.make_block_pulse(np.pi / 18, duration=0.5e-3)</span>
+<span class="sd">        &gt;&gt;&gt; for _ in range(3):</span>
+<span class="sd">        ...     _ = seq.add_block(inversion)</span>
+<span class="sd">        ...     _ = seq.add_block(pp.make_delay(0.5))</span>
+<span class="sd">        ...     for _ in range(4):</span>
+<span class="sd">        ...         _ = seq.add_block(excitation)</span>
+<span class="sd">        ...     _ = seq.add_block(pp.make_delay(1.0))</span>
+<span class="sd">        &gt;&gt;&gt; seq.loops()</span>
+<span class="sd">        [([1, 2, ([3], 4), 2], 3)]</span>
+<span class="sd">        """</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bodies</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">loops</span><span class="p">()</span>
+        <span class="n">built</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">nest</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">token</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="o">-</span><span class="n">token</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">built</span><span class="p">:</span>
+                    <span class="n">built</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">nest</span><span class="p">(</span><span class="n">bodies</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span> <span class="n">counts</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">built</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">items</span>
+
+        <span class="k">return</span> <span class="n">nest</span><span class="p">(</span><span class="n">top</span><span class="p">)</span></div>
+
+
     <span class="c1"># -- soft delays ---------------------------------------------------</span>
 
 <div class="viewcode-block" id="Sequence.apply_soft_delay">
