@@ -201,7 +201,8 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
     SimpleNamespace
         ``model``, a :class:`VopModel` in W/kg per V^2; ``drive_per_hz``, the
         drive in volts per channel that gives 1 Hz of B1+ at the centre in
-        circular polarisation; and ``cp_shim``, that polarisation's weights.
+        circular polarisation; and ``cp_shim``, that polarisation's weights,
+        of magnitude ``1 / sqrt(num_channels)`` so that their squares sum to 1.
     """
     mu0, gamma = 4e-7 * np.pi, 42.576e6
     omega = 2 * np.pi * 128e6
@@ -260,6 +261,7 @@ def example_vops(num_channels: int = 8) -> SimpleNamespace:
     per_channel = b1_plus(plus, 1.0) + b1_plus(minus, -1.0)
     candidates = [np.exp(1j * angles), np.exp(-1j * angles)]
     cp_shim = max(candidates, key=lambda shim: abs(np.sum(shim * per_channel)))
+    cp_shim = cp_shim / np.sqrt(num_channels)
     b1_per_volt = abs(np.sum(cp_shim * per_channel))
 
     return SimpleNamespace(
@@ -364,7 +366,8 @@ def check_sar(
         head limit.
     default_shim : array_like, default=None
         Complex channel weights applied to a single-channel pulse in a block
-        without an RF shim; ones when ``None``.
+        without an RF shim; when ``None``, equal weights of magnitude
+        ``1 / sqrt(channels)``, whose squares sum to 1 as an RF shim's do.
     reference : Sequence or report, default=None
         What to compare with, in the same model and calibration: a sequence,
         such as a CP-mode FID, evaluated here with the same drive and default
@@ -420,7 +423,7 @@ def check_sar(
     ``drive_c * s_c * b_c(t)``: ``b`` its waveform in Hz, resampled every
     microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform
     on every channel for a single-channel pulse), and ``s`` its block's RF shim,
-    ``default_shim`` or ones.
+    ``default_shim`` or equal weights whose squares sum to 1.
 
     A window's local SAR is the largest over the VOPs, an upper bound on its
     peak local SAR, times the safety factor. Where the reference is played at
@@ -437,7 +440,7 @@ def check_sar(
     channels = model.vops.shape[1]
     drive = np.broadcast_to(np.asarray(drive_per_hz, dtype=float), (channels,))
     shim = (
-        np.ones(channels, dtype=complex)
+        np.full(channels, 1.0 / np.sqrt(channels), dtype=complex)
         if default_shim is None
         else np.asarray(default_shim, dtype=complex).ravel()
     )

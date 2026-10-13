@@ -356,6 +356,34 @@ def test_the_example_vops_are_positive_semidefinite():
     assert np.linalg.eigvalsh(example.model.global_matrix).min() > -1e-12
 
 
+def test_the_example_cp_shim_has_weights_whose_squares_sum_to_one():
+    example = safety.example_vops(8)
+
+    assert np.sum(np.abs(example.cp_shim) ** 2) == pytest.approx(1.0, rel=1e-12)
+    np.testing.assert_allclose(np.abs(example.cp_shim), 1.0 / np.sqrt(8.0))
+
+
+def test_an_unshimmed_pulse_is_weighed_by_equal_weights_whose_squares_sum_to_one(
+    system,
+):
+    example = safety.example_vops(8)
+    seq = pp.Sequence(system)
+    seq.add_block(pp.make_block_pulse(math.pi / 2, duration=1e-3, system=system))
+    seq.add_block(pp.make_delay(9e-3))
+
+    _, implicit = safety.check_sar(seq, example.model, drive_per_hz=1.0)
+    _, explicit = safety.check_sar(
+        seq, example.model, drive_per_hz=1.0, default_shim=np.full(8, 1 / np.sqrt(8))
+    )
+
+    assert implicit.worst_local.sar == pytest.approx(
+        explicit.worst_local.sar, rel=1e-12
+    )
+    assert implicit.worst_global.sar == pytest.approx(
+        explicit.worst_global.sar, rel=1e-12
+    )
+
+
 def test_the_example_global_sar_is_below_its_worst_local_sar(system):
     example = safety.example_vops(8)
     seq = pp.Sequence(system)
@@ -424,6 +452,10 @@ def test_a_cp_only_sequence_scales_by_its_rf_energy_whatever_the_vops(system, mo
     )
 
 
+# The reference's weights in the two-body tests: both channels at 1.
+UNIT = np.ones(2, dtype=complex)
+
+
 def two_body_targeting(system):
     """Two channels, two body models, and a pulse on channel 0 alone.
 
@@ -446,8 +478,10 @@ def test_the_local_term_is_over_the_reference_s_smallest_global_sar(system):
     two, targeted = two_body_targeting(system)
     fid = cp_fid(system)
 
-    _, reference = safety.check_sar(fid, two, drive_per_hz=1.0)
-    _, report = safety.check_sar(targeted, two, drive_per_hz=1.0, reference=fid)
+    _, reference = safety.check_sar(fid, two, drive_per_hz=1.0, default_shim=UNIT)
+    _, report = safety.check_sar(
+        targeted, two, drive_per_hz=1.0, default_shim=UNIT, reference=fid
+    )
 
     first = reference.worst_global.per_body[0]
     assert reference.worst_global.per_body == pytest.approx([first, 4.0 * first])
@@ -461,10 +495,12 @@ def test_the_global_ratio_is_taken_body_by_body(system):
     two, targeted = two_body_targeting(system)
     fid = cp_fid(system)
 
-    _, from_sequence = safety.check_sar(targeted, two, drive_per_hz=1.0, reference=fid)
-    _, earlier = safety.check_sar(fid, two, drive_per_hz=1.0)
+    _, from_sequence = safety.check_sar(
+        targeted, two, drive_per_hz=1.0, default_shim=UNIT, reference=fid
+    )
+    _, earlier = safety.check_sar(fid, two, drive_per_hz=1.0, default_shim=UNIT)
     _, from_report = safety.check_sar(
-        targeted, two, drive_per_hz=1.0, reference=earlier
+        targeted, two, drive_per_hz=1.0, default_shim=UNIT, reference=earlier
     )
 
     assert from_sequence.reference.global_sar_ratio == pytest.approx(1.0)
