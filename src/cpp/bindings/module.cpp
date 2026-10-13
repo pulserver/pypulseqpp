@@ -848,6 +848,18 @@ PYBIND11_MODULE(_ext, module)
             "diagram draws when a preparation or a rewind keeps the scan from "
             "repeating as a whole.")
         .def(
+            "loops",
+            [](Sequence& self) {
+                const pulseq::Loops found = self.loops();
+                py::list bodies;
+                for (const auto& body : found.bodies)
+                    bodies.append(py::cast(body));
+                return py::make_tuple(py::cast(found.top), bodies, py::cast(found.counts));
+            },
+            "The block definitions folded into nested loops as (top, bodies, "
+            "counts): a token above zero is a definition id, and -(k + 1) is "
+            "loop k, bodies[k] played counts[k] times.")
+        .def(
             "locate_repetition",
             [](const Sequence& self, int size) {
                 const pulseq::Repetition found = self.locate_repetition(size);

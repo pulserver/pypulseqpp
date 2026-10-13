@@ -1841,6 +1841,69 @@ class Sequence:
         size, start = self._native.repetition()
         return size, start + 1
 
+    def loops(self) -> list:
+        """Return the block definitions folded into nested loops.
+
+        Returns
+        -------
+        list
+            The scan in play order. Each item is a block definition id, as
+            :meth:`block_definitions` numbers it, or a loop: a pair
+            ``(body, count)`` whose ``body`` is a list of the same form,
+            played ``count`` times. Empty when the sequence has no blocks.
+
+        Notes
+        -----
+        The outer loop is the repetition (:meth:`repetition`) when the block
+        definitions repeat it block for block, so that it starts where the
+        repetition does. Within it, and over the whole table when there is no
+        such repetition, every repeat of a run of up to 64 items becomes a
+        loop, shortest runs first, and repeats of loops become loops in turn,
+        so the loops nest as deep as the scan does and blocks played once,
+        such as a preparation before the loop, stay outside them. No loop
+        starts with a pure delay: a wait ends the iteration it follows, so a
+        run of waits plays as one longer wait rather than a loop. What makes two blocks differ is their
+        definition: amplitudes, phase and frequency offsets, the ADC and the
+        length of a pure delay vary from one iteration to the next. The loops
+        are checked to play the block definitions back. Nothing is written
+        into the sequence.
+
+        Examples
+        --------
+        An inversion, an inversion time, a train of four excitations and a
+        recovery, three times:
+
+        >>> import numpy as np
+        >>> import pypulseqpp as pp
+        >>> seq = pp.Sequence(pp.Opts())
+        >>> inversion = pp.make_block_pulse(np.pi, duration=2e-3)
+        >>> excitation = pp.make_block_pulse(np.pi / 18, duration=0.5e-3)
+        >>> for _ in range(3):
+        ...     _ = seq.add_block(inversion)
+        ...     _ = seq.add_block(pp.make_delay(0.5))
+        ...     for _ in range(4):
+        ...         _ = seq.add_block(excitation)
+        ...     _ = seq.add_block(pp.make_delay(1.0))
+        >>> seq.loops()
+        [([1, 2, ([3], 4), 2], 3)]
+        """
+        top, bodies, counts = self._native.loops()
+        built: dict[int, tuple[list, int]] = {}
+
+        def nest(tokens):
+            items = []
+            for token in tokens:
+                if token > 0:
+                    items.append(token)
+                    continue
+                k = -token - 1
+                if k not in built:
+                    built[k] = (nest(bodies[k]), counts[k])
+                items.append(built[k])
+            return items
+
+        return nest(top)
+
     # -- soft delays ---------------------------------------------------
 
     def apply_soft_delay(self, **kwargs) -> None:

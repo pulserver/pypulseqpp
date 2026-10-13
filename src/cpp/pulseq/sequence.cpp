@@ -1038,6 +1038,16 @@ namespace pulseq
         return whole;
     }
 
+    Loops Sequence::loops()
+    {
+        const int blocks = static_cast<int>(instance_def_.size());
+        const int32_t wait = block_defs_.find(delay_key());
+        const Repetition anchor = repetition();
+        if (anchor.size >= blocks || !repeats_with(instance_def_, anchor.size))
+            return fold_loops(instance_def_, 0, 0, wait);
+        return fold_loops(instance_def_, anchor.size, anchor.start, wait);
+    }
+
     int Sequence::detect_rf_uses(double b0, double gamma)
     {
         /** One shape, as the samples it stands for. */

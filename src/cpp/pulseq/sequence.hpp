@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include "pulseq/write.hpp"
 
+#include "pulseq/loops.hpp"
 #include "pulseq/shape.hpp"
 
 namespace pulseq
@@ -925,6 +926,12 @@ namespace pulseq
             slot.id = id;
             return id;
         }
+        /** The id of @p key, or 0 if no block has it. */
+        int32_t find(const DefKey& key) const
+        {
+            const auto found = index_.find(key);
+            return found == index_.end() ? 0 : found->second;
+        }
         int size() const
         {
             return static_cast<int>(index_.size());
@@ -1177,6 +1184,15 @@ namespace pulseq
          * a diagram draws; it never disagrees when the scan does repeat.
          */
         Repetition repeating_part();
+
+        /**
+         * The block definitions folded into nested loops (see fold_loops).
+         *
+         * The outer loop is the repetition when the definitions repeat it
+         * block for block; otherwise the whole table is folded. Nothing is
+         * written into the sequence, and repetition() is unchanged.
+         */
+        Loops loops();
 
         /**
          * A known period, verified: @p size, if it is shorter than the
