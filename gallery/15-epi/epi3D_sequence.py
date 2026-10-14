@@ -68,13 +68,13 @@ def traversal_figure(seq, ry, rz, n_shots, n_y, n_z, cells=3, ax=None):
         edgecolor=FAINT,
         lw=0.6,
     )
-    for shot, (_, lin, par) in enumerate(paths[:shots]):
+    # The first train of every shot; a volume plays shots outer, shells inner.
+    firsts = [next(path for path in paths if path[0] == shot) for shot in range(shots)]
+    for shot, (_, lin, par) in enumerate(firsts):
         keep = (lin >= y0 - ry * rz) & (lin < y0 + width + ry * rz)
         y = lin[keep] - y0 + 0.5
-        # Fold equivalent shells onto one lattice cell in kz. The labels retain
-        # the acquired partition and the path remains separated by shot.
+        # Fold equivalent shells onto one lattice cell in kz.
         z = (par[keep] - z0) % rz + 0.5
-        z = z + 0.06 * (shot - (shots - 1) / 2)
         leading = shot == 0
         colour = "C7" if leading else SAMPLING(0.2 + 0.5 * shot / shots)
         ax.plot(
@@ -180,8 +180,9 @@ baseline.paper_plot()
 # are the CAIPI blips: they alternate between amplitudes
 # :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
 # :math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z` partitions, and the pattern
-# repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
-# vertical display offset separates coincident paths from different shots.
+# repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice
+# cell. The shots start on successive sampled lines, so together they visit
+# every shaded cell once.
 
 # sphinx_gallery_start_ignore
 figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 2.4))
