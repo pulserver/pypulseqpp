@@ -39,17 +39,23 @@ def _views(seq, n_y):
     return out
 
 
-def traversal_figure(designs, n_y):
-    """Line read against echo index, one panel per design."""
+def traversal_figure(designs, n_y, echoes=8):
+    """Line read against echo index over the first ``echoes`` echoes, one panel per design."""
     figure, axes = plt.subplots(1, len(designs), figsize=(PAGE_WIDTH, 3.0), sharey=True)
     for axis, (title, seq) in zip(np.atleast_1d(axes), designs.items(), strict=True):
         trains = _views(seq, n_y)
         colours = SAMPLING(
             np.linspace(0.1, 0.9, max(len({shot for shot, _, _ in trains}), 2))
         )
+        # The first train of every shot; slices repeat the same lines.
+        firsts = {}
         for shot, echo, line in trains:
+            firsts.setdefault(shot, (echo[:echoes], line[:echoes]))
+        for shot, (echo, line) in firsts.items():
             axis.plot(echo, line, "-", lw=0.8, color=colours[shot], alpha=0.8)
-            axis.plot(echo, line, ".", ms=4, color=colours[shot])
+            axis.plot(echo, line, ".", ms=6, color=colours[shot], label=f"shot {shot}")
+        if len(firsts) > 1:
+            axis.legend(frameon=False, fontsize="small")
         axis.set_xlabel("echo index in train")
         axis.set_title(title)
         axis.grid(alpha=0.25, lw=0.4)
@@ -59,17 +65,15 @@ def traversal_figure(designs, n_y):
 
 
 def coverage_figure(designs, n_y):
-    """Which lines each design acquires, as a row per design."""
+    """Which lines each design acquires, as a row per design coloured by shot."""
     figure, axis = plt.subplots(figsize=(PAGE_WIDTH, 1.1 + 0.4 * len(designs)))
     for row, seq in enumerate(designs.values()):
-        lines = np.concatenate([line for _, _, line in _views(seq, n_y)])
-        axis.plot(
-            np.sort(lines),
-            np.full(lines.size, row),
-            "|",
-            ms=9,
-            color=SAMPLING(0.15 + 0.35 * row),
-        )
+        trains = _views(seq, n_y)
+        shots = sorted({shot for shot, _, _ in trains})
+        colours = SAMPLING(np.linspace(0.1, 0.9, max(len(shots), 2)))
+        for shot in shots:
+            lines = np.concatenate([line for s, _, line in trains if s == shot])
+            axis.plot(lines, np.full(lines.size, row), "|", ms=9, color=colours[shot])
     axis.set_yticks(range(len(designs)), list(designs))
     axis.set_xlabel("$k_y$ (lines from centre)")
     axis.set_ylim(-0.6, len(designs) - 0.4)
@@ -157,10 +161,10 @@ for title, seq in designs.items():
 # Echo traversal
 # --------------
 #
-# The ordinate gives the phase-encode line acquired at each echo index. A
-# single shot traverses the axis one line at a time. A segmented acquisition
-# traverses it in steps of ``n_shots``, each shot starting one line further
-# on. An accelerated acquisition traverses it once in steps of ``ry``.
+# The ordinate gives the phase-encode line acquired at each of the first eight
+# echoes. A single shot traverses the axis one line at a time. A segmented
+# acquisition traverses it in steps of ``n_shots``, each shot starting one line
+# further on. An accelerated acquisition traverses it once in steps of ``ry``.
 
 # sphinx_gallery_start_ignore
 traversal_figure(designs, 96)
@@ -171,8 +175,8 @@ traversal_figure(designs, 96)
 # ------------------------
 #
 # Segmentation and acceleration produce the same train length from different
-# sets of lines: the segmented acquisition acquires every line, the accelerated
-# acquisition one line in three.
+# sets of lines: the shots of the segmented acquisition interleave to acquire
+# every line, the accelerated acquisition one line in three.
 
 # sphinx_gallery_start_ignore
 coverage_figure(designs, 96)
