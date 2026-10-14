@@ -248,7 +248,7 @@ has to wind through it at the Nyquist pitch.
 
  .. code-block:: none
 
-    twisting radial    968 samples, readout  3.88 ms, interleaf  4.60 ms
+    twisting radial    968 samples, readout  3.88 ms, interleaf  4.62 ms
     spiral            1100 samples, readout  4.42 ms, interleaf  5.04 ms
     transition radius 11.6 of 290.9 1/m
 
@@ -412,7 +412,7 @@ What this Tour built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.282 seconds)
+   **Total running time of the script:** (0 minutes 0.288 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-tours_08_twisting_radial_readout.py:

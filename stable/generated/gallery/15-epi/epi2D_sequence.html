@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=a6e53033"></script>
+    <script src="../../../_static/documentation_options.js?v=1d19b22e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.42';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.43';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Echo-planar imaging" href="../../../examples/built-in-sequences/epi.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.42" />
+  <meta name="docsearch:version" content="v0.0.43" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -531,7 +531,7 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="d-echo-planar-imaging">
 <span id="sphx-glr-generated-gallery-15-epi-epi2d-sequence-py"></span><h1>2D echo-planar imaging<a class="headerlink" href="#d-echo-planar-imaging" title="Link to this heading">#</a></h1>
-<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.42/_colab/15-epi/epi2D_sequence.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.43/_colab/15-epi/epi2D_sequence.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>A slice-selective excitation is followed by alternating readout gradients and
 phase-encode blips that acquire multiple Cartesian lines in one echo train.
@@ -598,16 +598,16 @@ ry = 3          32       1       32.0     23.44       43.1      0.035
 </section>
 <section id="echo-traversal">
 <h2>Echo traversal<a class="headerlink" href="#echo-traversal" title="Link to this heading">#</a></h2>
-<p>The ordinate gives the phase-encode line acquired at each echo index. A
-single shot traverses the axis one line at a time. A segmented acquisition
-traverses it in steps of <code class="docutils literal notranslate"><span class="pre">n_shots</span></code>, each shot starting one line further
-on. An accelerated acquisition traverses it once in steps of <code class="docutils literal notranslate"><span class="pre">ry</span></code>.</p>
+<p>The ordinate gives the phase-encode line acquired at each of the first eight
+echoes. A single shot traverses the axis one line at a time. A segmented
+acquisition traverses it in steps of <code class="docutils literal notranslate"><span class="pre">n_shots</span></code>, each shot starting one line
+further on. An accelerated acquisition traverses it once in steps of <code class="docutils literal notranslate"><span class="pre">ry</span></code>.</p>
 <img src="../../../_images/sphx_glr_epi2D_sequence_002.png" srcset="../../../_images/sphx_glr_epi2D_sequence_002.png" alt="1 shot, 3 shots, ry = 3" class = "sphx-glr-single-img"/></section>
 <section id="which-lines-are-acquired">
 <h2>Which lines are acquired<a class="headerlink" href="#which-lines-are-acquired" title="Link to this heading">#</a></h2>
 <p>Segmentation and acceleration produce the same train length from different
-sets of lines: the segmented acquisition acquires every line, the accelerated
-acquisition one line in three.</p>
+sets of lines: the shots of the segmented acquisition interleave to acquire
+every line, the accelerated acquisition one line in three.</p>
 <img src="../../../_images/sphx_glr_epi2D_sequence_003.png" srcset="../../../_images/sphx_glr_epi2D_sequence_003.png" alt="epi2D sequence" class = "sphx-glr-single-img"/></section>
 <section id="functional-mri-time-series">
 <h2>Functional MRI time series<a class="headerlink" href="#functional-mri-time-series" title="Link to this heading">#</a></h2>
@@ -628,7 +628,7 @@ blocks in the sequence.</p>
 </span><span class="p">)</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w">
 </span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="dict"><span class="n">labels</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><span class="n">fmri</span><span class="o">.</span><span class="n">evaluate_labels</span></a><span class="p">(</span><span class="n">evolution</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">adc</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_epi2D_sequence_004.png" srcset="../../../_images/sphx_glr_epi2D_sequence_004.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.904 seconds)</p>
+<img src="../../../_images/sphx_glr_epi2D_sequence_004.png" srcset="../../../_images/sphx_glr_epi2D_sequence_004.png" alt="epi2D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.957 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-15-epi-epi2d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/c9e8aa9b184b941e594f4acea72303f7/epi2D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">epi2D_sequence.ipynb</span></code></a></p>
