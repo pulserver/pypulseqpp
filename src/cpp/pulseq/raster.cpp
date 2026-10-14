@@ -17,12 +17,6 @@ namespace pulseq
         /* Fraction of a raster interval a time may miss a sample centre by. */
         constexpr double kRasterEps = 1e-9;
 
-        /** First sample whose centre (n + 1/2) dt is not before @p time. */
-        int64_t first_sample_from(double time, double dt)
-        {
-            return static_cast<int64_t>(std::ceil(time / dt - 0.5 - kRasterEps));
-        }
-
     } // namespace
 
     double PhysicalRaster::Played::value(double t)
@@ -40,11 +34,22 @@ namespace pulseq
     }
 
     PhysicalRaster::PhysicalRaster(const Sequence& seq, const double rotation[3][3])
-        : seq_(seq), dt_(seq.grad_raster_time()), corners_(seq, seq.grad_raster_time())
+        : seq_(seq), dt_(seq.grad_raster_time()), dt_ps_(to_picoseconds(seq.grad_raster_time())),
+          corners_(seq, seq.grad_raster_time())
     {
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < 3; ++j)
                 prescription_[i][j] = rotation[i][j];
+    }
+
+    int64_t PhysicalRaster::first_sample_from(int64_t time) const
+    {
+        /* The least n with (2 n + 1) dt >= 2 time: a division rounded up,
+         * which C++ rounds toward zero. */
+        const int64_t numerator = 2 * time - dt_ps_;
+        const int64_t denominator = 2 * dt_ps_;
+        const int64_t quotient = numerator / denominator;
+        return numerator % denominator > 0 ? quotient + 1 : quotient;
     }
 
     bool PhysicalRaster::enter_next_block()
@@ -55,9 +60,9 @@ namespace pulseq
         const int32_t* row = seq_.block_events() + static_cast<size_t>(index) * BLOCK_WIDTH;
         block_ = index + 1;
         block_first_ = position_;
-        starts_ = ends_;
-        ends_ = starts_ + seq_.block_durations()[index];
-        block_end_ = std::max(position_, first_sample_from(ends_, dt_));
+        starts_ps_ = ends_ps_;
+        ends_ps_ = starts_ps_ + to_picoseconds(seq_.block_durations()[index]);
+        block_end_ = std::max(position_, first_sample_from(ends_ps_));
 
         any_ = false;
         for (int axis = 0; axis < 3; ++axis)
@@ -104,18 +109,18 @@ namespace pulseq
         if (block_ > 0 && position_ < block_end_)
         {
             next_block_ = block_ - 1;
-            ends_ = starts_;
+            ends_ps_ = starts_ps_;
             position_ = block_first_;
             block_end_ = position_;
         }
         const double* durations = seq_.block_durations();
         while (next_block_ < seq_.num_blocks())
         {
-            const double ends = ends_ + durations[next_block_];
-            const int64_t end = std::max(position_, first_sample_from(ends, dt_));
+            const int64_t ends = ends_ps_ + to_picoseconds(durations[next_block_]);
+            const int64_t end = std::max(position_, first_sample_from(ends));
             if (end > sample)
                 break;
-            ends_ = ends;
+            ends_ps_ = ends;
             position_ = end;
             block_end_ = end;
             block_ = ++next_block_;
@@ -135,11 +140,7 @@ namespace pulseq
     BlockKey PhysicalRaster::block_key(int64_t count) const
     {
         const int32_t* row = seq_.block_events() + static_cast<size_t>(block_ - 1) * BLOCK_WIDTH;
-        const double offset = (static_cast<double>(position_) + 0.5) * dt_ - starts_;
-        return {{row[1], row[2], row[3]},
-                row[BLOCK_ROTATION_COLUMN],
-                count,
-                static_cast<int64_t>(std::llround(offset / (dt_ * kOffsetStep)))};
+        return {{row[1], row[2], row[3]}, row[BLOCK_ROTATION_COLUMN], count, offset_of(position_)};
     }
 
     int64_t PhysicalRaster::run(bool* steady)
@@ -149,8 +150,8 @@ namespace pulseq
             if (!enter_next_block())
                 return 0;
         }
-        const double t = (static_cast<double>(position_) + 0.5) * dt_ - starts_;
-        double next = ends_ - starts_;
+        const double t = time_in_block(0);
+        double next = static_cast<double>(ends_ps_ - starts_ps_) * 1e-12;
         *steady = true;
         for (Played& p : played_)
         {
@@ -176,15 +177,17 @@ namespace pulseq
             if (p.values[p.at] != p.values[p.at + 1])
                 *steady = false;
         }
-        const int64_t until = std::min(block_end_, first_sample_from(next + starts_, dt_));
-        return std::max<int64_t>(1, until - position_);
+        /* Samples from this one to the first whose centre is not before next. */
+        const double ahead = std::ceil((next - t) / dt_ - kRasterEps);
+        const int64_t until = std::min(block_end_ - position_, static_cast<int64_t>(ahead));
+        return std::max<int64_t>(1, until);
     }
 
     void PhysicalRaster::sample_channel(int axis, int64_t from, int64_t count, double* out) const
     {
         Played p = played_[axis];
         for (int64_t i = 0; i < count; ++i)
-            out[i] = p.value((static_cast<double>(position_ + from + i) + 0.5) * dt_ - starts_);
+            out[i] = p.value(time_in_block(from + i));
     }
 
     int64_t PhysicalRaster::read(int64_t count, double* x, double* y, double* z)
@@ -205,7 +208,7 @@ namespace pulseq
         {
             for (int64_t i = 0; i < got; ++i)
             {
-                const double t = (static_cast<double>(position_ + i) + 0.5) * dt_ - starts_;
+                const double t = time_in_block(i);
                 double logical[3];
                 for (int axis = 0; axis < 3; ++axis)
                     logical[axis] = played_[axis].value(t);

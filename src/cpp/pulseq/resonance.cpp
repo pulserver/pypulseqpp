@@ -210,8 +210,9 @@ namespace pulseq
 
         /**
          * What makes one logical channel play one waveform, up to its amplitude,
-         * over a block's samples: a trapezoid's timing, or an arbitrary
-         * gradient's id, with the samples and their offset as in BlockKey.
+         * over a block's samples: a trapezoid's timing in picoseconds, or an
+         * arbitrary gradient's id, with the samples and their offset as in
+         * BlockKey.
          */
         struct ChannelKey
         {
@@ -817,8 +818,7 @@ namespace pulseq
                 channel_spectra.add(out, 0, n, x);
                 return;
             }
-            const double t0 =
-                (static_cast<double>(raster.position() + from) + 0.5) * dt - raster.block_start();
+            const double t0 = raster.time_in_block(from);
             const auto first_at = [&](double when) {
                 const double j = std::ceil((when + corners.offset - t0) / dt - kRasterEps);
                 return static_cast<int64_t>(std::clamp(j, 0.0, static_cast<double>(n)));
@@ -855,10 +855,9 @@ namespace pulseq
                               block.samples, block.offset};
             if (corners.trapezoid)
             {
-                const double unit = dt * kOffsetStep;
-                key.timing[0] = std::llround(corners.delay / unit);
+                key.timing[0] = to_picoseconds(corners.delay);
                 for (int i = 0; i < 3; ++i)
-                    key.timing[1 + i] = std::llround(corners.ramps[i] / unit);
+                    key.timing[1 + i] = to_picoseconds(corners.ramps[i]);
             }
             auto found = memory.find(key);
             if (found != memory.end() && found->second)

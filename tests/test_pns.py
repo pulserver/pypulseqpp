@@ -150,6 +150,33 @@ def test_skipping_and_repeated_blocks_find_the_peak_the_full_trace_holds(system)
         assert (peak["time"], peak["block"]) == (full["time"], full["block"])
 
 
+@pytest.mark.parametrize("raster", [10e-6, 4e-6])
+def test_a_block_after_200000_delays_responds_as_it_does_alone(raster):
+    """The delays, 1.23 ms each, are durations no double holds exactly."""
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=200,
+        slew_unit="T/m/s",
+        grad_raster_time=raster,
+        block_duration_raster=10e-6,
+    )
+    block = [ramp(system, 20.0, 240e-6)]
+    delays = 200_000
+    deep = pp.Sequence(system)
+    delay = pp.make_delay(1.23e-3)
+    for _ in range(delays):
+        deep.add_block(delay)
+    deep.add_block(*block)
+
+    _, alone = safety.check_pns(played(system, block), CHRONAXIE)
+    _, after = safety.check_pns(deep, CHRONAXIE)
+
+    assert after.peak.block == delays + 1
+    assert after.peak.value == alone.peak.value
+    assert [axis.value for axis in after.axes] == [axis.value for axis in alone.axes]
+
+
 def test_a_rectangular_slew_follows_the_strength_duration_curve(system):
     amplitude, rise = 20.0, 200e-6
     sequence = played(system, [ramp(system, amplitude, rise)])

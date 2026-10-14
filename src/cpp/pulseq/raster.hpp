@@ -6,6 +6,7 @@
 #ifndef PULSEQ_RASTER_HPP
 #define PULSEQ_RASTER_HPP
 
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -16,11 +17,14 @@ namespace pulseq
 {
 
     /**
-     * Resolution, in rasters, at which two blocks' sample offsets are told
-     * apart. Blocks closer than this are answered as one: their samples sit
-     * within it of each other on the same waveform.
+     * @p seconds as whole picoseconds, halves to even: the resolution the
+     * binary format writes times at, and the one block start times are summed
+     * at.
      */
-    constexpr double kOffsetStep = 1e-4;
+    inline int64_t to_picoseconds(double seconds)
+    {
+        return static_cast<int64_t>(std::nearbyint(seconds * 1e12));
+    }
 
     /** What makes two blocks play one physical gradient over their samples. */
     struct BlockKey
@@ -29,9 +33,9 @@ namespace pulseq
         int32_t rotation;
         int64_t samples;
         /**
-         * Time from the block's start to its first sample centre, in units of
-         * kOffsetStep rasters: coarse enough that the rounding of block start
-         * times summed over a long sequence does not split a key.
+         * Time from the block's start to its first sample centre, in half
+         * picoseconds. It is exact, so the same block at the same place on
+         * the raster has the same offset however far into the sequence it is.
          */
         int64_t offset;
 
@@ -66,6 +70,11 @@ namespace pulseq
      * the start of the first block to the end of the last. Each block's own
      * rotation is applied and then the prescription rotation. Samples are
      * produced on demand, so a reader never holds the timeline.
+     *
+     * The raster and each block's duration are taken in whole picoseconds
+     * and block start times summed in them, so a sample's time from its
+     * block's start is exact and does not depend on how far into the
+     * sequence the block is.
      */
     class PhysicalRaster
     {
@@ -104,10 +113,13 @@ namespace pulseq
          */
         int64_t enter_block();
 
-        /** Start of the current block, in s from the start of the first. */
-        double block_start() const
+        /**
+         * Time of the centre of sample position() + @p from, in s from the
+         * start of the current block.
+         */
+        double time_in_block(int64_t from) const
         {
-            return starts_;
+            return static_cast<double>(offset_of(position_ + from)) * 0.5e-12;
         }
 
         /**
@@ -183,16 +195,27 @@ namespace pulseq
 
         bool enter_next_block();
 
+        /** Time from the current block's start to the centre of sample @p n, in half picoseconds. */
+        int64_t offset_of(int64_t n) const
+        {
+            return (2 * n + 1) * dt_ps_ - 2 * starts_ps_;
+        }
+
+        /** First sample whose centre is not before @p time, in ps from the first block's start. */
+        int64_t first_sample_from(int64_t time) const;
+
         const Sequence& seq_;
         double dt_;
+        int64_t dt_ps_;
         double prescription_[3][3];
         CornerCache corners_;
         std::vector<double> trapezoid_times_[3];
 
         int next_block_ = 0;
         int block_ = 0;
-        double starts_ = 0.0;
-        double ends_ = 0.0;
+        /* Start and end of the current block, in ps from the first block's start. */
+        int64_t starts_ps_ = 0;
+        int64_t ends_ps_ = 0;
         int64_t position_ = 0;
         int64_t block_first_ = 0;
         int64_t block_end_ = 0;
