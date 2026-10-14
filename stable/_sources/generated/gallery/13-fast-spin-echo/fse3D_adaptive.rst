@@ -68,7 +68,7 @@ is set by the parameters of the central shots.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:877: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+    /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:875: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
     Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
       first = float(value.reshape(-1)[0])
 
@@ -164,7 +164,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.734 seconds)
+   **Total running time of the script:** (0 minutes 9.650 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

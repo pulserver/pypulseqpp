@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=b191b055"></script>
+    <script src="../_static/documentation_options.js?v=a6e53033"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.42';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.41" />
+  <meta name="docsearch:version" content="v0.0.42" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -535,7 +535,8 @@ head limit.</p></li>
 <li><p><strong>global_limit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=3.2</em>) – Global SAR limit (W/kg); the default is the IEC 60601-2-33 normal-mode
 head limit.</p></li>
 <li><p><strong>default_shim</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – Complex channel weights applied to a single-channel pulse in a block
-without an RF shim; ones when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+without an RF shim; when <code class="docutils literal notranslate"><span class="pre">None</span></code>, equal weights of magnitude
+<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">sqrt(channels)</span></code>, whose squares sum to 1 as an RF shim’s do.</p></li>
 <li><p><strong>reference</strong> (<a class="reference internal" href="pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><em>Sequence</em></a><em> or </em><em>report</em><em>, </em><em>default=None</em>) – What to compare with, in the same model and calibration: a sequence,
 such as a CP-mode FID, evaluated here with the same drive and default
 shim; or the report of an earlier call. Its window of largest global
@@ -588,7 +589,7 @@ Every window is compared with the limits. A pulse drives channel <code class="do
 <code class="docutils literal notranslate"><span class="pre">drive_c</span> <span class="pre">*</span> <span class="pre">s_c</span> <span class="pre">*</span> <span class="pre">b_c(t)</span></code>: <code class="docutils literal notranslate"><span class="pre">b</span></code> its waveform in Hz, resampled every
 microsecond as <a class="reference internal" href="pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.calc_rf_power()</span></code></a> does (one channel’s waveform
 on every channel for a single-channel pulse), and <code class="docutils literal notranslate"><span class="pre">s</span></code> its block’s RF shim,
-<code class="docutils literal notranslate"><span class="pre">default_shim</span></code> or ones.</p>
+<code class="docutils literal notranslate"><span class="pre">default_shim</span></code> or equal weights whose squares sum to 1.</p>
 <p>A window’s local SAR is the largest over the VOPs, an upper bound on its
 peak local SAR, times the safety factor. Where the reference is played at
 the global limit, <code class="docutils literal notranslate"><span class="pre">local_to_head</span></code> times that limit is the sequence’s

@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=b191b055"></script>
+    <script src="../../../_static/documentation_options.js?v=a6e53033"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.42';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.41" />
+  <meta name="docsearch:version" content="v0.0.42" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -653,7 +653,8 @@
 <span class="sd">    SimpleNamespace</span>
 <span class="sd">        ``model``, a :class:`VopModel` in W/kg per V^2; ``drive_per_hz``, the</span>
 <span class="sd">        drive in volts per channel that gives 1 Hz of B1+ at the centre in</span>
-<span class="sd">        circular polarisation; and ``cp_shim``, that polarisation's weights.</span>
+<span class="sd">        circular polarisation; and ``cp_shim``, that polarisation's weights,</span>
+<span class="sd">        of magnitude ``1 / sqrt(num_channels)`` so that their squares sum to 1.</span>
 <span class="sd">    """</span>
     <span class="n">mu0</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">4e-7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mf">42.576e6</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">128e6</span>
@@ -712,6 +713,7 @@
     <span class="n">per_channel</span> <span class="o">=</span> <span class="n">b1_plus</span><span class="p">(</span><span class="n">plus</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">b1_plus</span><span class="p">(</span><span class="n">minus</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">angles</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">angles</span><span class="p">)]</span>
     <span class="n">cp_shim</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">shim</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shim</span> <span class="o">*</span> <span class="n">per_channel</span><span class="p">)))</span>
+    <span class="n">cp_shim</span> <span class="o">=</span> <span class="n">cp_shim</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">num_channels</span><span class="p">)</span>
     <span class="n">b1_per_volt</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp_shim</span> <span class="o">*</span> <span class="n">per_channel</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
@@ -819,7 +821,8 @@
 <span class="sd">        head limit.</span>
 <span class="sd">    default_shim : array_like, default=None</span>
 <span class="sd">        Complex channel weights applied to a single-channel pulse in a block</span>
-<span class="sd">        without an RF shim; ones when ``None``.</span>
+<span class="sd">        without an RF shim; when ``None``, equal weights of magnitude</span>
+<span class="sd">        ``1 / sqrt(channels)``, whose squares sum to 1 as an RF shim's do.</span>
 <span class="sd">    reference : Sequence or report, default=None</span>
 <span class="sd">        What to compare with, in the same model and calibration: a sequence,</span>
 <span class="sd">        such as a CP-mode FID, evaluated here with the same drive and default</span>
@@ -875,7 +878,7 @@
 <span class="sd">    ``drive_c * s_c * b_c(t)``: ``b`` its waveform in Hz, resampled every</span>
 <span class="sd">    microsecond as :func:`pypulseqpp.calc_rf_power` does (one channel's waveform</span>
 <span class="sd">    on every channel for a single-channel pulse), and ``s`` its block's RF shim,</span>
-<span class="sd">    ``default_shim`` or ones.</span>
+<span class="sd">    ``default_shim`` or equal weights whose squares sum to 1.</span>
 
 <span class="sd">    A window's local SAR is the largest over the VOPs, an upper bound on its</span>
 <span class="sd">    peak local SAR, times the safety factor. Where the reference is played at</span>
@@ -892,7 +895,7 @@
     <span class="n">channels</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">vops</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">drive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">drive_per_hz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="p">(</span><span class="n">channels</span><span class="p">,))</span>
     <span class="n">shim</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">channels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">default_shim</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">default_shim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
     <span class="p">)</span>

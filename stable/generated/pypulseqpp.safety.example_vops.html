@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=b191b055"></script>
+    <script src="../_static/documentation_options.js?v=a6e53033"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.41';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.42';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.41" />
+  <meta name="docsearch:version" content="v0.0.42" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -535,7 +535,8 @@ numbers are plausible in scale and nothing more.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">model</span></code>, a <a class="reference internal" href="pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> in W/kg per V^2; <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, the
 drive in volts per channel that gives 1 Hz of B1+ at the centre in
-circular polarisation; and <code class="docutils literal notranslate"><span class="pre">cp_shim</span></code>, that polarisation’s weights.</p>
+circular polarisation; and <code class="docutils literal notranslate"><span class="pre">cp_shim</span></code>, that polarisation’s weights,
+of magnitude <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">sqrt(num_channels)</span></code> so that their squares sum to 1.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>SimpleNamespace</p>
