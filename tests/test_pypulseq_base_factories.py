@@ -268,7 +268,7 @@ def test_a_spiral_on_a_4us_raster_passes_the_event_slew_check():
         grad_raster_time=4e-6,
     )
     g, _ = pp.traj_to_grad(_spiral(), system=system)
-    for axis, waveform in zip("xy", g):
+    for axis, waveform in zip("xy", g, strict=True):
         pp.make_arbitrary_grad(axis, waveform, system=system)
 
 
