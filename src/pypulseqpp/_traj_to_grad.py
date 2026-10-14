@@ -8,6 +8,11 @@ import numpy as np
 
 from ._opts import default_system
 
+#: Fraction of the slew-rate limit the solver is held under. MRArbGrad
+#: returns waveforms up to 0.03 % past the limit it is given, on a 4 us
+#: raster, which make_arbitrary_grad's check then refuses.
+_SOLVER_SLEW_MARGIN = 1e-3
+
 
 def traj_to_grad(
     k: np.ndarray,
@@ -96,7 +101,7 @@ def traj_to_grad(
     solved = flat if flat.shape[0] >= 2 else np.vstack([flat, np.zeros_like(flat)])
     gradient = _arbgrad.traj2grad(
         solved.T,
-        max_slew=system.max_slew,
+        max_slew=system.max_slew * (1 - _SOLVER_SLEW_MARGIN),
         max_grad=system.max_grad,
         dt=raster_time,
         oversampling=oversampling,

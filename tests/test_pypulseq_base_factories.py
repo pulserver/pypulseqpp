@@ -258,6 +258,20 @@ def test_the_time_optimal_gradient_obeys_both_limits_everywhere(system):
     assert np.linalg.norm(slew, axis=0).max() <= system.max_slew * 1.05
 
 
+def test_a_spiral_on_a_4us_raster_passes_the_event_slew_check():
+    """The solver's waveform can round past its limit; the margin keeps it under."""
+    system = pp.Opts(
+        max_grad=20,
+        grad_unit="mT/m",
+        max_slew=40,
+        slew_unit="T/m/s",
+        grad_raster_time=4e-6,
+    )
+    g, _ = pp.traj_to_grad(_spiral(), system=system)
+    for axis, waveform in zip("xy", g):
+        pp.make_arbitrary_grad(axis, waveform, system=system)
+
+
 def test_resampling_the_same_path_does_not_change_the_gradient(system):
     """Under ``time_optimal`` the samples carry geometry, not timing."""
     coarse, _ = pp.traj_to_grad(_spiral(points=1000), system=system)
