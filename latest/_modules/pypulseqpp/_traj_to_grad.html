@@ -452,6 +452,11 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_system</span>
 
+<span class="c1">#: Fraction of the slew-rate limit the solver is held under. MRArbGrad</span>
+<span class="c1">#: returns waveforms up to 0.03 % past the limit it is given, on a 4 us</span>
+<span class="c1">#: raster, which make_arbitrary_grad's check then refuses.</span>
+<span class="n">_SOLVER_SLEW_MARGIN</span> <span class="o">=</span> <span class="mf">1e-3</span>
+
 
 <div class="viewcode-block" id="traj_to_grad">
 <a class="viewcode-back" href="../../generated/pypulseqpp.traj_to_grad.html#pypulseqpp.traj_to_grad">[docs]</a>
@@ -542,7 +547,7 @@
     <span class="n">solved</span> <span class="o">=</span> <span class="n">flat</span> <span class="k">if</span> <span class="n">flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">flat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">flat</span><span class="p">)])</span>
     <span class="n">gradient</span> <span class="o">=</span> <span class="n">_arbgrad</span><span class="o">.</span><span class="n">traj2grad</span><span class="p">(</span>
         <span class="n">solved</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
-        <span class="n">max_slew</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">,</span>
+        <span class="n">max_slew</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">max_slew</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">_SOLVER_SLEW_MARGIN</span><span class="p">),</span>
         <span class="n">max_grad</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">,</span>
         <span class="n">dt</span><span class="o">=</span><span class="n">raster_time</span><span class="p">,</span>
         <span class="n">oversampling</span><span class="o">=</span><span class="n">oversampling</span><span class="p">,</span>

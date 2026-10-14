@@ -215,13 +215,13 @@ gradient amplitude limit to above it.
  .. code-block:: none
 
       slew         100 kHz         250 kHz         600 kHz
-        40    10.96 ms band     7.49 ms slew     7.50 ms slew
-        60    10.96 ms band     6.11 ms slew     6.12 ms slew
-        80    10.96 ms band     5.30 ms slew     5.30 ms slew
-       100    10.96 ms band     4.74 ms slew     4.74 ms slew
-       120    11.00 ms band     4.40 ms band     4.34 ms slew
+        40    10.96 ms band     7.52 ms slew     7.52 ms slew
+        60    10.96 ms band     6.13 ms slew     6.14 ms slew
+        80    11.00 ms band     5.31 ms slew     5.32 ms slew
+       100    11.00 ms band     4.75 ms slew     4.76 ms slew
+       120    10.96 ms band     4.37 ms band     4.34 ms slew
        150    11.00 ms band     4.40 ms band     3.88 ms slew
-       180    11.00 ms band     4.40 ms band     3.54 ms slew
+       180    10.96 ms band     4.37 ms band     3.54 ms slew
        210    10.92 ms band     4.35 ms band     3.26 ms ampl
 
 
@@ -321,7 +321,7 @@ longer to play.
 
 
       arms      readout      per arm     full set
-         4     17.15 ms     20.96 ms     0.084 s
+         4     17.15 ms     20.94 ms     0.084 s
          8      8.61 ms     12.42 ms     0.099 s
         16      4.40 ms      8.20 ms     0.131 s
         32      2.27 ms      6.08 ms     0.195 s
@@ -359,7 +359,7 @@ What this Tour built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.747 seconds)
+   **Total running time of the script:** (0 minutes 1.214 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-tours_06_spiral.py:
