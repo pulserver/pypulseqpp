@@ -112,7 +112,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 171-185
+.. GENERATED FROM PYTHON SOURCE LINES 171-186
 
 Skipped-CAIPI traversal
 -----------------------
@@ -126,10 +126,11 @@ and CAIPI shift :math:`\Delta z` as defined in [STI21]_. The partition jumps bet
 are the CAIPI blips: they alternate between amplitudes
 :math:`b^{(1)} = (S \cdot \Delta z) \bmod R_z` and
 :math:`b^{(2)} = (R_z - b^{(1)}) \bmod R_z` partitions, and the pattern
-repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice cell; a small
-vertical display offset separates coincident paths from different shots.
+repeats every :math:`n` echoes. Equivalent shells are folded onto one lattice
+cell. The shots start on successive sampled lines, so together they visit
+every shaded cell once.
 
-.. GENERATED FROM PYTHON SOURCE LINES 185-192
+.. GENERATED FROM PYTHON SOURCE LINES 186-193
 
 
 
@@ -143,7 +144,7 @@ vertical display offset separates coincident paths from different shots.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 193-201
+.. GENERATED FROM PYTHON SOURCE LINES 194-202
 
 Single-shot comparison
 ----------------------
@@ -154,7 +155,7 @@ distortion along the phase-encode axis. The phase-encode step between
 consecutive echoes of a segmented train spans three sampled lattice lines,
 so its blips are larger than those of the single-shot train.
 
-.. GENERATED FROM PYTHON SOURCE LINES 201-238
+.. GENERATED FROM PYTHON SOURCE LINES 202-239
 
 .. code-block:: Python
 
@@ -191,7 +192,7 @@ so its blips are larger than those of the single-shot train.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 239-246
+.. GENERATED FROM PYTHON SOURCE LINES 240-247
 
 In-plane acceleration
 ---------------------
@@ -201,7 +202,7 @@ increasing lattice spacing along :math:`k_y`. The sampled views remain on a
 single CAIPIRINHA lattice, whose CAIPI shift determines the positions of the
 aliases [BRE06]_.
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-267
+.. GENERATED FROM PYTHON SOURCE LINES 247-268
 
 .. code-block:: Python
 
@@ -239,7 +240,7 @@ aliases [BRE06]_.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 268-280
+.. GENERATED FROM PYTHON SOURCE LINES 269-281
 
 References
 ----------
@@ -257,7 +258,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.644 seconds)
+   **Total running time of the script:** (0 minutes 0.338 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

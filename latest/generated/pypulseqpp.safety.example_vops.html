@@ -535,7 +535,8 @@ numbers are plausible in scale and nothing more.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">model</span></code>, a <a class="reference internal" href="pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> in W/kg per V^2; <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, the
 drive in volts per channel that gives 1 Hz of B1+ at the centre in
-circular polarisation; and <code class="docutils literal notranslate"><span class="pre">cp_shim</span></code>, that polarisation’s weights.</p>
+circular polarisation; and <code class="docutils literal notranslate"><span class="pre">cp_shim</span></code>, that polarisation’s weights,
+of magnitude <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">sqrt(num_channels)</span></code> so that their squares sum to 1.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>SimpleNamespace</p>
