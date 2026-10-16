@@ -62,6 +62,18 @@ as bring its spoiled steady state within 1 % for a T1 of
 | {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), tolerance | Repetitions | The repetitions to play before acquiring. |
 | {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 1.5 s | T1 the dummies are counted for: grey matter at 3 T. |
 
+## Receive-gain prescan
+
+A receive-gain prescan plays a sequence from its first block and stops after
+the readouts its `NumGainCalibrationReadouts` definition states. Every
+sequence function with a readout states the readouts through the end of its
+first imaging repetition, the dummies before it included, so the gain is set
+on the signal the scan acquires.
+
+| Object | Input | Returns | Purpose |
+| --- | --- | --- | --- |
+| {obj}`~pypulseqpp.sequences.gain_calibration_readouts` | Sequence, imaging repetitions | Readouts | The `NumGainCalibrationReadouts` of whole repetitions. |
+
 ## Fat saturation timing
 
 | Object | Input | Returns | Purpose |

@@ -281,6 +281,10 @@ def bssfp3d(
             PhaseCycle=k,
             PhaseIncrement=float(np.rad2deg(increment)),
         )
+        seq.set_definition(
+            key="NumGainCalibrationReadouts",
+            value=sequences.gain_calibration_readouts(seq),
+        )
         return seq
 
     # Each cycle's file follows its catalyst's, and the last cycle is the main

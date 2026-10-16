@@ -356,6 +356,10 @@ def se_stack_of_spirals3d(
     }
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    seq.set_definition(
+        key="NumGainCalibrationReadouts",
+        value=sequences.gain_calibration_readouts(seq),
+    )
     return seq
 
 

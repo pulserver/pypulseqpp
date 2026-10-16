@@ -34,7 +34,7 @@ def se_epi_propeller2d(
     readout_bandwidth_hz: float = 250e3,
     crusher_cycles: float = 4.0,
     n_dummy: int | None = None,
-    n_gain_calibration_readouts: int | None = None,
+    n_gain_calibration_repetitions: int = 1,
 ) -> pp.Sequence:
     """Multi-slice 2D PROPELLER spin echo: one EPI blade per excitation.
 
@@ -87,9 +87,11 @@ def se_epi_propeller2d(
         Non-acquiring blades, at the first blade's angle, before the first
         acquired blade of each pass.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
-    n_gain_calibration_readouts : int | None, default=None
-        Written as the ``NumGainCalibrationReadouts`` definition. ``None``
-        is one per slice.
+    n_gain_calibration_repetitions : int, default=1
+        Imaging repetitions a receive-gain prescan plays, written as the
+        readouts they acquire in the ``NumGainCalibrationReadouts``
+        definition, as :func:`~pypulseqpp.sequences.gain_calibration_readouts`
+        counts them.
 
     Returns
     -------
@@ -116,8 +118,6 @@ def se_epi_propeller2d(
         max_grad=MAX_GRAD,
         max_slew=MAX_SLEW,
     )
-    if n_gain_calibration_readouts is None:
-        n_gain_calibration_readouts = n_slices
     exc = sequences.SpatialSelectiveExcitation(
         system,
         90.0,
@@ -286,10 +286,13 @@ def se_epi_propeller2d(
         "Trajectory": "propeller",
         "BladeWidth": blade.blade_width,
         "NumBlades": blade.n_blades,
-        "NumGainCalibrationReadouts": n_gain_calibration_readouts,
     }
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    seq.set_definition(
+        key="NumGainCalibrationReadouts",
+        value=sequences.gain_calibration_readouts(seq, n_gain_calibration_repetitions),
+    )
     return seq
 
 

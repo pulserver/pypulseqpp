@@ -475,6 +475,10 @@ def epi2d(
             **definitions,
         }.items():
             seq.set_definition(key=key, value=value)
+        seq.set_definition(
+            key="NumGainCalibrationReadouts",
+            value=sequences.gain_calibration_readouts(seq),
+        )
 
     def calibration_kernel(
         seq: pp.Sequence, labels: sequences.Labels, s: int, line: int
@@ -677,6 +681,10 @@ def epi2d(
         definitions["SliceTiming"] = [when[s % n_groups] for s in range(n_slices)]
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    seq.set_definition(
+        key="NumGainCalibrationReadouts",
+        value=sequences.gain_calibration_readouts(seq),
+    )
     return [*prescans, seq]
 
 
