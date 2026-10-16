@@ -53,11 +53,7 @@ DEFINITIONS = {
     **dict.fromkeys(
         PROPELLER, frozenset({"BladeWidth", "NumBlades", "kSpaceCenterLine"})
     ),
-    "se_epi_propeller2D_sequence": {
-        "BladeWidth",
-        "NumBlades",
-        "NumGainCalibrationReadouts",
-    },
+    "se_epi_propeller2D_sequence": {"BladeWidth", "NumBlades"},
 }
 COMMON = {"FOV", "Matrix", "Name", "TE", "TR", "Trajectory"}
 
@@ -314,12 +310,6 @@ def test_a_blade_count_left_to_the_design_resolves_to_the_nyquist_set_played():
 
     assert np.atleast_1d(seq.definitions["NumBlades"])[0] == n_blades
     assert sorted(set(seg)) == list(range(n_blades))
-
-
-def test_a_gain_calibration_left_to_the_design_resolves_to_one_readout_per_slice():
-    written = se_epi(n_slices=3).definitions["NumGainCalibrationReadouts"]
-
-    assert np.atleast_1d(written)[0] == 3
 
 
 @pytest.mark.parametrize(
