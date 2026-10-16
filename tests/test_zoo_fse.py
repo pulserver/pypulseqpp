@@ -453,3 +453,25 @@ def test_a_flag_is_named_and_described_by_the_function_it_runs(capsys):
 
     assert "--etl-periphery" in printed
     assert "Echo train length at the periphery of k-space." in printed
+
+
+def _navigating(seq):
+    found = pulses(seq)
+    train = found[0][2]
+    return [t for t, use, a in found if use == "excitation" and a != train]
+
+
+def test_the_shortest_tr_of_a_navigated_scan_holds_one_navigator():
+    plain = built(tr=None)
+    navigated = built(tr=None, navigator=True)
+    tr = np.atleast_1d(navigated.definitions["TR"])[0]
+
+    assert _navigating(navigated)
+    assert tr > np.atleast_1d(plain.definitions["TR"])[0]
+
+
+def test_a_tr_with_no_room_for_a_navigator_is_refused():
+    shortest = np.atleast_1d(built(tr=None).definitions["TR"])[0]
+
+    with pytest.raises(ValueError, match=r"no room .* for the .* navigator"):
+        built(tr=shortest + 1e-3, navigator=True)
