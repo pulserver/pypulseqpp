@@ -428,6 +428,10 @@ def epi3d(
             **definitions,
         }.items():
             seq.set_definition(key=key, value=value)
+        seq.set_definition(
+            key="NumGainCalibrationReadouts",
+            value=sequences.gain_calibration_readouts(seq),
+        )
 
     def calibration_kernel(
         seq: pp.Sequence, labels: sequences.Labels, view: tuple[int, int]
@@ -588,6 +592,10 @@ def epi3d(
     }
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    seq.set_definition(
+        key="NumGainCalibrationReadouts",
+        value=sequences.gain_calibration_readouts(seq),
+    )
     return [*prescans, seq]
 
 

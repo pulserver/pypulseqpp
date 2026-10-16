@@ -135,7 +135,6 @@ RECORDED = {
     "tr_periphery": "TRPeriphery",
     "etl_periphery": "EchoTrainLengthPeriphery",
     "n_blades": "NumBlades",
-    "n_gain_calibration_readouts": "NumGainCalibrationReadouts",
 }
 
 
