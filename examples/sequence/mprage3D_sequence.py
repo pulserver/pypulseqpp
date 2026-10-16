@@ -199,7 +199,8 @@ def mprage3d(
         default, plays no wave. The slew rate may lower it.
     navigator : bool, default=False
         Play three-plane spiral navigators in the recovery after each
-        shot, as many as it holds up to ``NAVIGATOR_COUNT``.
+        shot, as many as it holds up to ``NAVIGATOR_COUNT`` and at least
+        one, which the shortest TR holds.
 
     Returns
     -------
@@ -333,8 +334,14 @@ def mprage3d(
     inversion_time = ti_floor + wait_ti.delay
 
     body = inv.duration + wait_ti.delay + n_readouts * spacing
+    spiral_navigator = (
+        sequences.SpiralNavigator(system, navigator_tr=NAVIGATOR_TR)
+        if navigator
+        else None
+    )
     if tr is None:
-        tr = body + raster
+        # The shortest TR holds the shot and, where asked, one navigator.
+        tr = body + (spiral_navigator.duration if navigator else 0.0) + raster
     recovery = tr - body
     if recovery < raster - 1e-9:
         raise ValueError(
@@ -342,12 +349,17 @@ def mprage3d(
             f"{(body + raster) * 1e3:.3f} ms one shot takes"
         )
     # Navigators ride in the recovery, where they cost no scan time.
-    spiral_navigator, n_navigators, navigating = None, 0, 0.0
+    n_navigators, navigating = 0, 0.0
     if navigator:
-        spiral_navigator = sequences.SpiralNavigator(system, navigator_tr=NAVIGATOR_TR)
         n_navigators = spiral_navigator.fit(
-            recovery - raster, "auto", limit=NAVIGATOR_COUNT
+            recovery - raster + 1e-9, "auto", limit=NAVIGATOR_COUNT
         )
+        if n_navigators == 0:
+            raise ValueError(
+                f"the requested TR of {tr * 1e3:.3f} ms leaves no room after "
+                f"the {body * 1e3:.3f} ms shot for the "
+                f"{spiral_navigator.duration * 1e3:.3f} ms navigator"
+            )
         navigating = n_navigators * spiral_navigator.duration
     wait_recovery = pp.make_delay(pp.round_to_raster(recovery - navigating, raster))
     repetition_time = body + navigating + wait_recovery.delay
