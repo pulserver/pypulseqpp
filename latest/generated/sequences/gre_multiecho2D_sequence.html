@@ -545,7 +545,9 @@
 <dd><p>RF-spoiled, multi-slice multi-echo 2D Cartesian gradient echo.</p>
 <p>One line per repetition, read at <code class="docutils literal notranslate"><span class="pre">n_echoes</span></code> echo times: monopolar, with a
 flyback rewinder after every echo but the last, or bipolar, with even
-echoes read backwards. Each acquisition carries its echo index as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>.
+echoes read backwards. Each acquisition carries its echo index as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>,
+and every echo but the first <code class="docutils literal notranslate"><span class="pre">NOPRESCAN</span></code>: the receive-gain prescan
+calibrates on the first, the strongest.
 Slices one TR cannot hold are dealt round-robin into packets, played one
 after another; within a packet the even slices are excited before the odd
 ones. Every packet starts with its own dummy repetitions, and the last

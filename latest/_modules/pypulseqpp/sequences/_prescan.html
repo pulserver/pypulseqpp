@@ -474,7 +474,9 @@
 <span class="sd">    written, its duplicate events merged, sets the gain on the signal the</span>
 <span class="sd">    scan acquires. An imaging repetition is one that acquires a readout not</span>
 <span class="sd">    flagged ``NAV``; the dummy repetitions before it play and their readouts,</span>
-<span class="sd">    navigators included, are counted with it. The prescan plays the fewest</span>
+<span class="sd">    navigators included, are counted with it. A readout flagged</span>
+<span class="sd">    ``NOPRESCAN`` plays in the prescan without being acquired, and is not</span>
+<span class="sd">    counted. The prescan plays the fewest</span>
 <span class="sd">    imaging repetitions that last ``duration`` together, or all of a shorter</span>
 <span class="sd">    scan's, unless ``repetitions`` names how many.</span>
 
@@ -533,7 +535,9 @@
             <span class="sa">f</span><span class="s2">"blocks, fewer than the </span><span class="si">{</span><span class="n">repetitions</span><span class="si">}</span><span class="s2"> a prescan plays"</span>
         <span class="p">)</span>
     <span class="n">end</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">imaging</span><span class="p">[</span><span class="n">repetitions</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">size</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">acquires</span><span class="p">[:</span><span class="n">end</span><span class="p">]))</span></div>
+    <span class="n">exempt</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">evaluate_labels</span><span class="p">(</span><span class="n">evolution</span><span class="o">=</span><span class="s2">"blocks"</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NOPRESCAN"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">exempt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">exempt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">acquires</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">acquires</span><span class="p">[:</span><span class="n">end</span><span class="p">]</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">exempt</span><span class="p">[:</span><span class="n">end</span><span class="p">]))</span></div>
 
 </pre></div>
 

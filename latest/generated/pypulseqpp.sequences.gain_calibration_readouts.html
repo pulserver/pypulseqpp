@@ -528,7 +528,9 @@ so a count it plays through whole repetitions of
 written, its duplicate events merged, sets the gain on the signal the
 scan acquires. An imaging repetition is one that acquires a readout not
 flagged <code class="docutils literal notranslate"><span class="pre">NAV</span></code>; the dummy repetitions before it play and their readouts,
-navigators included, are counted with it. The prescan plays the fewest
+navigators included, are counted with it. A readout flagged
+<code class="docutils literal notranslate"><span class="pre">NOPRESCAN</span></code> plays in the prescan without being acquired, and is not
+counted. The prescan plays the fewest
 imaging repetitions that last <code class="docutils literal notranslate"><span class="pre">duration</span></code> together, or all of a shorter
 scan’s, unless <code class="docutils literal notranslate"><span class="pre">repetitions</span></code> names how many.</p>
 <dl class="field-list simple">

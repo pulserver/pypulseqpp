@@ -545,7 +545,9 @@
 <dd><p>RF-spoiled multi-echo 3D Cartesian gradient echo.</p>
 <p>One line per repetition, read at <code class="docutils literal notranslate"><span class="pre">n_echoes</span></code> echo times: monopolar, with a
 flyback rewinder after every echo but the last, or bipolar, with even
-echoes read backwards. Each acquisition carries its echo index as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>.
+echoes read backwards. Each acquisition carries its echo index as <code class="docutils literal notranslate"><span class="pre">ECO</span></code>,
+and every echo but the first <code class="docutils literal notranslate"><span class="pre">NOPRESCAN</span></code>: the receive-gain prescan
+calibrates on the first, the strongest.
 Lines are phase-encoded along y and z over a CAIPIRINHA lattice that always
 holds the centre of k-space, optionally cropped to an ellipse. Under
 undersampling the fully sampled calibration region, a rectangle or an
