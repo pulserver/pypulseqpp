@@ -52,7 +52,9 @@ def gre_multiecho2d(
 
     One line per repetition, read at ``n_echoes`` echo times: monopolar, with a
     flyback rewinder after every echo but the last, or bipolar, with even
-    echoes read backwards. Each acquisition carries its echo index as ``ECO``.
+    echoes read backwards. Each acquisition carries its echo index as ``ECO``,
+    and every echo but the first ``NOPRESCAN``: the receive-gain prescan
+    calibrates on the first, the strongest.
     Slices one TR cannot hold are dealt round-robin into packets, played one
     after another; within a packet the even slices are excited before the odd
     ones. Every packet starts with its own dummy repetitions, and the last
@@ -260,7 +262,7 @@ def gre_multiecho2d(
             if line is None:
                 seq.add_block(lobe)
             else:
-                seq.add_block(lobe, ro.adc, *labels(ECO=echo))
+                seq.add_block(lobe, ro.adc, *labels(ECO=echo, NOPRESCAN=int(echo > 0)))
         seq.add_block(ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky))
         seq.add_block(pp.make_delay(pad))
 

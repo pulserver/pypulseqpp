@@ -31,11 +31,13 @@ CASES = {
 
 
 def repetition_ends(seq):
-    """Per repetition of the written file: readouts from the first block to its end, whether it images, and its duration."""
+    """Per repetition of the written file: readouts the prescan acquires from the first block to its end, whether it images, and its duration."""
     seq = seq.remove_duplicates()
     size, start = seq.repetition()
     assert start == 1
     acquires = np.asarray(seq._native.block_events())[:, 4] > 0
+    exempt = seq.evaluate_labels(evolution="blocks").get("NOPRESCAN", 0)
+    calibrates = acquires & ~np.broadcast_to(np.asarray(exempt) != 0, acquires.shape)
     navigator = np.broadcast_to(
         np.asarray(seq.evaluate_labels(evolution="adc").get("NAV", 0)) != 0,
         (int(acquires.sum()),),
@@ -43,7 +45,7 @@ def repetition_ends(seq):
     imaging = np.zeros(acquires.size, dtype=bool)
     imaging[np.flatnonzero(acquires)[~navigator]] = True
     count = -(-acquires.size // size)
-    ends = [int(acquires[: (r + 1) * size].sum()) for r in range(count)]
+    ends = [int(calibrates[: (r + 1) * size].sum()) for r in range(count)]
     images = [bool(imaging[r * size : (r + 1) * size].any()) for r in range(count)]
     durations = np.asarray(seq._native.block_durations())
     lasts = [float(durations[r * size : (r + 1) * size].sum()) for r in range(count)]
@@ -109,6 +111,20 @@ def test_a_shot_that_acquires_only_navigators_is_not_an_imaging_repetition():
 
     assert dummy > 0
     assert sequences.gain_calibration_readouts(seq, repetitions=1) == dummy + first
+
+
+@pytest.mark.parametrize(
+    "name", ["gre_multiecho2D_sequence", "gre_multiecho3D_sequence"]
+)
+def test_a_multi_echo_prescan_calibrates_on_the_first_echo_alone(name):
+    seq = getattr(sequences, name)(**{**SMALL[name], "n_dummy": 0})
+    adc = seq.evaluate_labels(evolution="adc")
+    echoes = np.asarray(adc["ECO"])
+    exempt = np.broadcast_to(np.asarray(adc.get("NOPRESCAN", 0)) != 0, echoes.shape)
+
+    assert echoes.max() > 0
+    np.testing.assert_array_equal(exempt, echoes > 0)
+    assert sequences.gain_calibration_readouts(seq, repetitions=2) == 2
 
 
 def test_a_prescan_of_no_repetition_is_refused():
