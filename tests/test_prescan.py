@@ -1,4 +1,4 @@
-"""The receive-gain prescan every shipped sequence states, as whole repetitions."""
+"""The receive-gain prescan every shipped sequence states: whole repetitions lasting the calibration duration."""
 
 import numpy as np
 import pytest
@@ -31,7 +31,7 @@ CASES = {
 
 
 def repetition_ends(seq):
-    """Readouts acquired from the first block to the end of each repetition of the written file, and whether it images."""
+    """Per repetition of the written file: readouts from the first block to its end, whether it images, and its duration."""
     seq = seq.remove_duplicates()
     size, start = seq.repetition()
     assert start == 1
@@ -44,30 +44,60 @@ def repetition_ends(seq):
     imaging[np.flatnonzero(acquires)[~navigator]] = True
     count = -(-acquires.size // size)
     ends = [int(acquires[: (r + 1) * size].sum()) for r in range(count)]
-    images = [bool(imaging[: (r + 1) * size].any()) for r in range(count)]
-    return ends, images
+    images = [bool(imaging[r * size : (r + 1) * size].any()) for r in range(count)]
+    durations = np.asarray(seq._native.block_durations())
+    lasts = [float(durations[r * size : (r + 1) * size].sum()) for r in range(count)]
+    return ends, images, lasts
+
+
+def expected_count(ends, images, lasts):
+    """Readouts through the fewest imaging repetitions lasting the calibration duration, or all of them."""
+    total = 0.0
+    last = None
+    for end, images_here, lasting in zip(ends, images, lasts, strict=True):
+        if not images_here:
+            continue
+        total += lasting
+        last = end
+        if total >= sequences.GAIN_CALIBRATION_DURATION * (1 - 1e-9):
+            break
+    return last
 
 
 @pytest.mark.parametrize("case", CASES)
-def test_every_file_with_a_readout_states_its_prescan_through_its_first_imaging_repetition(
+def test_every_file_with_a_readout_states_whole_repetitions_lasting_the_calibration_duration(
     case,
 ):
     name, prescription = CASES[case]
     for seq in chain(getattr(sequences, name)(**prescription)):
         stated = seq.definitions.get("NumGainCalibrationReadouts")
-        ends, images = repetition_ends(seq)
+        ends, images, lasts = repetition_ends(seq)
         if not ends or ends[-1] == 0:
             assert stated is None
             continue
         count = int(np.atleast_1d(stated)[0])
-        assert count == ends[images.index(True)], (count, sorted(set(ends))[:8])
+        assert count in ends, (count, sorted(set(ends))[:8])
+        assert count == expected_count(ends, images, lasts), (
+            count,
+            ends[:8],
+            lasts[:4],
+        )
 
 
 def test_a_prescan_counts_the_dummies_before_the_first_imaging_repetition():
     seq = sequences.gre2D_sequence(**{**SMALL["gre2D_sequence"], "n_dummy": 3})
 
-    assert sequences.gain_calibration_readouts(seq) == 1
+    assert sequences.gain_calibration_readouts(seq, repetitions=1) == 1
     assert sequences.gain_calibration_readouts(seq, repetitions=4) == 4
+
+
+def test_a_prescan_plays_as_many_repetitions_as_last_the_calibration_duration():
+    seq = sequences.gre2D_sequence(**{**SMALL["gre2D_sequence"], "n_dummy": 3})
+    tr = float(np.atleast_1d(seq.definitions["TR"])[0])
+    needed = int(np.ceil(sequences.GAIN_CALIBRATION_DURATION / tr - 1e-9))
+
+    assert sequences.gain_calibration_readouts(seq) == needed
+    assert sequences.gain_calibration_readouts(seq, duration=3.5 * tr) == 4
 
 
 def test_a_shot_that_acquires_only_navigators_is_not_an_imaging_repetition():
@@ -78,7 +108,7 @@ def test_a_shot_that_acquires_only_navigators_is_not_an_imaging_repetition():
     dummy, first = acquires[:size].sum(), acquires[size : 2 * size].sum()
 
     assert dummy > 0
-    assert sequences.gain_calibration_readouts(seq) == dummy + first
+    assert sequences.gain_calibration_readouts(seq, repetitions=1) == dummy + first
 
 
 def test_a_prescan_of_no_repetition_is_refused():

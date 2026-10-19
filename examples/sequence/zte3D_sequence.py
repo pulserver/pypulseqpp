@@ -34,7 +34,7 @@ def zte3d(
     scheme: str = "spiral",
     n_dummy: int = 2,
     readout_oversampling: float = 2.0,
-    n_gain_calibration_repetitions: int = 1,
+    n_gain_calibration_repetitions: int | None = None,
 ) -> pp.Sequence:
     """3D zero echo time: hard pulses on a readout gradient held on across each shell.
 
@@ -79,11 +79,12 @@ def zte3d(
         Whole shells played without acquiring before the first shot.
     readout_oversampling : float, default=2.0
         Radial oversampling: a finer ``delta_k`` along the same spoke.
-    n_gain_calibration_repetitions : int, default=1
-        Imaging repetitions a receive-gain prescan plays, written as the
+    n_gain_calibration_repetitions : int, default=None
+        Imaging repetitions the receive-gain prescan plays, written as the
         readouts they acquire in the ``NumGainCalibrationReadouts``
         definition, as :func:`~pypulseqpp.sequences.gain_calibration_readouts`
-        counts them.
+        counts them; ``None`` plays as many as last
+        :data:`~pypulseqpp.sequences.GAIN_CALIBRATION_DURATION`.
 
     Returns
     -------

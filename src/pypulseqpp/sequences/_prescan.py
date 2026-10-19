@@ -2,15 +2,24 @@
 
 from __future__ import annotations
 
-__all__ = ["gain_calibration_readouts"]
+__all__ = ["GAIN_CALIBRATION_DURATION", "gain_calibration_readouts"]
 
 import numpy as np
 
 import pypulseqpp as pp
 
+#: Shortest receive-gain calibration (s): the imaging repetitions a prescan
+#: plays last at least this long, so a short repetition is played many times
+#: and a long one once.
+GAIN_CALIBRATION_DURATION = 0.5
 
-def gain_calibration_readouts(seq: pp.Sequence, repetitions: int = 1) -> int:
-    """Return the readouts from the first block to the end of the ``repetitions``-th imaging repetition.
+
+def gain_calibration_readouts(
+    seq: pp.Sequence,
+    repetitions: int | None = None,
+    duration: float = GAIN_CALIBRATION_DURATION,
+) -> int:
+    """Return the readouts from the first block to the end of the prescan's last imaging repetition.
 
     A receive-gain prescan plays the sequence from its first block and stops
     after the ``NumGainCalibrationReadouts`` definition's count of readouts,
@@ -19,14 +28,19 @@ def gain_calibration_readouts(seq: pp.Sequence, repetitions: int = 1) -> int:
     written, its duplicate events merged, sets the gain on the signal the
     scan acquires. An imaging repetition is one that acquires a readout not
     flagged ``NAV``; the dummy repetitions before it play and their readouts,
-    navigators included, are counted with it.
+    navigators included, are counted with it. The prescan plays the fewest
+    imaging repetitions that last ``duration`` together, or all of a shorter
+    scan's, unless ``repetitions`` names how many.
 
     Parameters
     ----------
     seq : pypulseqpp.Sequence
         The designed sequence, its definitions set.
-    repetitions : int, default=1
-        Imaging repetitions the prescan plays, at least one.
+    repetitions : int, default=None
+        Imaging repetitions the prescan plays, at least one; ``None`` takes
+        as many as ``duration`` asks.
+    duration : float, default=GAIN_CALIBRATION_DURATION
+        Shortest time (s) the imaging repetitions of the prescan last.
 
     Returns
     -------
@@ -37,7 +51,7 @@ def gain_calibration_readouts(seq: pp.Sequence, repetitions: int = 1) -> int:
     ------
     ValueError
         If ``repetitions`` is below one, or the sequence has fewer imaging
-        repetitions.
+        repetitions than it names.
 
     Examples
     --------
@@ -47,7 +61,7 @@ def gain_calibration_readouts(seq: pp.Sequence, repetitions: int = 1) -> int:
     >>> sequences.gain_calibration_readouts(seq, repetitions=3)
     3
     """
-    if repetitions < 1:
+    if repetitions is not None and repetitions < 1:
         raise ValueError(f"a prescan plays at least one repetition, not {repetitions}")
     # The repetition of the file the sequence is written as, its events merged.
     seq = seq.remove_duplicates()
@@ -57,6 +71,16 @@ def gain_calibration_readouts(seq: pp.Sequence, repetitions: int = 1) -> int:
     navigator = seq.evaluate_labels(evolution="adc").get("NAV", 0)
     navigator = np.broadcast_to(np.asarray(navigator) != 0, readouts.shape)
     imaging = np.unique(readouts[~navigator] // size) if size else np.array([], int)
+    if repetitions is None:
+        # The fewest imaging repetitions that last `duration` together.
+        durations = np.asarray(seq._native.block_durations())
+        lasting = np.cumsum(
+            [durations[r * size : (r + 1) * size].sum() for r in imaging]
+        )
+        repetitions = max(
+            1,
+            min(int(np.searchsorted(lasting, duration * (1 - 1e-9))) + 1, imaging.size),
+        )
     if imaging.size < repetitions:
         raise ValueError(
             f"the sequence has {imaging.size} imaging repetitions of {size} "
