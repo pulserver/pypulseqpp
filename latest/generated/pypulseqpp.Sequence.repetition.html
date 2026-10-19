@@ -536,7 +536,12 @@ repeat, and zero when it has no blocks.</p></li>
 from the first block that every later block repeats, the last copy
 possibly cut short; failing that, the shortest period dividing the
 table over which blocks match in duration and in the channels they
-play; failing both, the whole sequence. A slice acquired with its own
+play, and, for a multichannel (dynamic pTx) or shimmed pulse, in its
+RF definition and shim; failing both, the whole sequence. A pulse per
+shot is therefore one repetition per shot when it is single-channel
+and unshimmed, while shots that play different pTx pulses join into
+one repetition holding each of them, since the pulse decides which
+transmit channels are driven. A slice acquired with its own
 preparation and dummy shots is therefore one repetition, and a block
 played once makes the whole sequence one. A <code class="docutils literal notranslate"><span class="pre">TRSize</span></code> definition
 shorter than the sequence, dividing it and repeated by the blocks, is
