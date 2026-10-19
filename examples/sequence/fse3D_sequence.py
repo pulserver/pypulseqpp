@@ -494,7 +494,8 @@ def fse3d(
         default, plays no wave. The slew rate may lower it.
     navigator : bool, default=False
         Play three-plane spiral navigators after each train, as many as
-        the shortest TR holds up to ``NAVIGATOR_COUNT``.
+        the shortest TR holds up to ``NAVIGATOR_COUNT`` and at least one,
+        which the shortest TR holds.
 
     Returns
     -------
@@ -616,7 +617,17 @@ def fse3d(
             f"{te_echo + 1}, which the TE of {te * 1e3:.1f} ms falls on"
         )
 
-    minimum_tr = fse.duration + system.block_duration_raster
+    spiral_navigator = (
+        sequences.SpiralNavigator(system, navigator_tr=NAVIGATOR_TR)
+        if navigator
+        else None
+    )
+    # The shortest TR holds the train and, where asked, one navigator.
+    minimum_tr = (
+        fse.duration
+        + (spiral_navigator.duration if navigator else 0.0)
+        + system.block_duration_raster
+    )
     tr = minimum_tr if tr is None else tr
     tr_periphery = tr if tr_periphery is None else tr_periphery
     individual = tr_periphery != tr or etl_periphery != etl
@@ -711,12 +722,17 @@ def fse3d(
             f"the TR of {shortest * 1e3:.1f} ms is shorter than the "
             f"{(fse.duration + raster) * 1e3:.1f} ms the longest train takes"
         )
-    spiral_navigator, n_navigators, navigating = None, 0, 0.0
+    n_navigators, navigating = 0, 0.0
     if navigator:
-        spiral_navigator = sequences.SpiralNavigator(system, navigator_tr=NAVIGATOR_TR)
         n_navigators = spiral_navigator.fit(
-            shortest - fse.duration - raster, "auto", limit=NAVIGATOR_COUNT
+            shortest - fse.duration - raster + 1e-9, "auto", limit=NAVIGATOR_COUNT
         )
+        if n_navigators == 0:
+            raise ValueError(
+                f"the TR of {shortest * 1e3:.1f} ms leaves no room after the "
+                f"{fse.duration * 1e3:.1f} ms train for the "
+                f"{spiral_navigator.duration * 1e3:.1f} ms navigator"
+            )
         navigating = n_navigators * spiral_navigator.duration
     closings = [
         pp.round_to_raster(time - fse.duration - navigating, raster) for time in times

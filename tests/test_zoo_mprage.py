@@ -410,3 +410,23 @@ def test_a_flag_is_named_and_described_by_the_function_it_runs(
 
     assert flag in printed
     assert help_text in printed
+
+
+@pytest.mark.parametrize("name", SMALL)
+def test_the_shortest_tr_of_a_navigated_scan_holds_one_navigator(name):
+    plain = built(name, tr=None)
+    navigated = built(name, tr=None, navigator=True)
+    inversions = pulse_times(navigated, "inversion")
+
+    assert len(pulse_times(navigated, "excitation")) > len(inversions) * shots_of(
+        navigated
+    )
+    assert definition(navigated, "TR") > definition(plain, "TR")
+
+
+@pytest.mark.parametrize("name", SMALL)
+def test_a_tr_with_no_room_for_a_navigator_is_refused(name):
+    shortest = definition(built(name, tr=None), "TR")
+
+    with pytest.raises(ValueError, match=r"no room .* for the .* navigator"):
+        built(name, tr=shortest + 1e-3, navigator=True)
