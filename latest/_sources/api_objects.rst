@@ -253,6 +253,7 @@ from.
    spatial_saturations
    steady_state_dummies
    STEADY_STATE_T1_S
+   gain_calibration_readouts
    fat_null_flip_deg
    FAT_T1_S
 

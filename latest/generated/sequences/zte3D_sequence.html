@@ -573,8 +573,11 @@ spacing between them.</p></li>
 <li><p><strong>scheme</strong> (<em>{'spiral'</em><em>, </em><em>'meridian'}</em><em>, </em><em>default='spiral'</em>) – Shape of the shell, as <code class="xref py py-data docutils literal notranslate"><span class="pre">SCHEMES</span></code> names them.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=2</em>) – Whole shells played without acquiring before the first shot.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Radial oversampling: a finer <code class="docutils literal notranslate"><span class="pre">delta_k</span></code> along the same spoke.</p></li>
-<li><p><strong>n_gain_calibration_readouts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Written as the <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code> definition, for the
-reconstruction to scale the gap at the centre against.</p></li>
+<li><p><strong>n_gain_calibration_repetitions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=None</em>) – Imaging repetitions the receive-gain prescan plays, written as the
+readouts they acquire in the <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code>
+definition, as <a class="reference internal" href="../pypulseqpp.sequences.gain_calibration_readouts.html#pypulseqpp.sequences.gain_calibration_readouts" title="pypulseqpp.sequences.gain_calibration_readouts"><code class="xref py py-func docutils literal notranslate"><span class="pre">gain_calibration_readouts()</span></code></a>
+counts them; <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as last
+<code class="xref py py-data docutils literal notranslate"><span class="pre">GAIN_CALIBRATION_DURATION</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

@@ -509,6 +509,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation-choice">Excitation choice</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dummy-repetitions">Dummy repetitions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#receive-gain-prescan">Receive-gain prescan</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fat-saturation-timing">Fat saturation timing</a></li>
 </ul>
             </nav>
@@ -656,6 +657,31 @@ as bring its spoiled steady state within 1 % for a T1 of
 </table>
 </div>
 </section>
+<section id="receive-gain-prescan">
+<h2>Receive-gain prescan<a class="headerlink" href="#receive-gain-prescan" title="Link to this heading">#</a></h2>
+<p>A receive-gain prescan plays a sequence from its first block and stops after
+the readouts its <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code> definition states. Every
+sequence function with a readout states the readouts through the end of its
+first imaging repetition, the dummies before it included, so the gain is set
+on the signal the scan acquires.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.gain_calibration_readouts.html#pypulseqpp.sequences.gain_calibration_readouts" title="pypulseqpp.sequences.gain_calibration_readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gain_calibration_readouts</span></code></a></p></td>
+<td><p>Sequence, imaging repetitions</p></td>
+<td><p>Readouts</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code> of whole repetitions.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="fat-saturation-timing">
 <h2>Fat saturation timing<a class="headerlink" href="#fat-saturation-timing" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -734,6 +760,7 @@ as bring its spoiled steady state within 1 % for a T1 of
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#excitation-choice">Excitation choice</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dummy-repetitions">Dummy repetitions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#receive-gain-prescan">Receive-gain prescan</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fat-saturation-timing">Fat saturation timing</a></li>
 </ul>
   </nav></div>
