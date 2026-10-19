@@ -64,7 +64,9 @@ def gre_multiecho3d(
 
     One line per repetition, read at ``n_echoes`` echo times: monopolar, with a
     flyback rewinder after every echo but the last, or bipolar, with even
-    echoes read backwards. Each acquisition carries its echo index as ``ECO``.
+    echoes read backwards. Each acquisition carries its echo index as ``ECO``,
+    and every echo but the first ``NOPRESCAN``: the receive-gain prescan
+    calibrates on the first, the strongest.
     Lines are phase-encoded along y and z over a CAIPIRINHA lattice that always
     holds the centre of k-space, optionally cropped to an ellipse. Under
     undersampling the fully sampled calibration region, a rectangle or an
@@ -302,7 +304,12 @@ def gre_multiecho3d(
             if view is None:
                 seq.add_block(lobe, *played_waves)
             else:
-                seq.add_block(lobe, *played_waves, ro.adc, *labels(ECO=echo))
+                seq.add_block(
+                    lobe,
+                    *played_waves,
+                    ro.adc,
+                    *labels(ECO=echo, NOPRESCAN=int(echo > 0)),
+                )
         seq.add_block(
             ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), pp.scale_grad(ro.gz_rew, kz)
         )

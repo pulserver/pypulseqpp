@@ -28,7 +28,9 @@ def gain_calibration_readouts(
     written, its duplicate events merged, sets the gain on the signal the
     scan acquires. An imaging repetition is one that acquires a readout not
     flagged ``NAV``; the dummy repetitions before it play and their readouts,
-    navigators included, are counted with it. The prescan plays the fewest
+    navigators included, are counted with it. A readout flagged
+    ``NOPRESCAN`` plays in the prescan without being acquired, and is not
+    counted. The prescan plays the fewest
     imaging repetitions that last ``duration`` together, or all of a shorter
     scan's, unless ``repetitions`` names how many.
 
@@ -87,4 +89,6 @@ def gain_calibration_readouts(
             f"blocks, fewer than the {repetitions} a prescan plays"
         )
     end = (int(imaging[repetitions - 1]) + 1) * size
-    return int(np.count_nonzero(acquires[:end]))
+    exempt = seq.evaluate_labels(evolution="blocks").get("NOPRESCAN", 0)
+    exempt = np.broadcast_to(np.asarray(exempt) != 0, acquires.shape)
+    return int(np.count_nonzero(acquires[:end] & ~exempt[:end]))
