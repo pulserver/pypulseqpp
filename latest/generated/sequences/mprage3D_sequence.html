@@ -619,7 +619,8 @@ marked <code class="docutils literal notranslate"><span class="pre">IMA</span></
 <li><p><strong>wave_amplitude</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Requested peak wave-encoding gradient amplitude (T/m); zero, the
 default, plays no wave. The slew rate may lower it.</p></li>
 <li><p><strong>navigator</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play three-plane spiral navigators in the recovery after each
-shot, as many as it holds up to <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_COUNT</span></code>.</p></li>
+shot, as many as it holds up to <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_COUNT</span></code> and at least
+one, which the shortest TR holds.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
