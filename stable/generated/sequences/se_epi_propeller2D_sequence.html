@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=1d19b22e"></script>
+    <script src="../../_static/documentation_options.js?v=880c30ff"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.43';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.44';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.43" />
+  <meta name="docsearch:version" content="v0.0.44" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -577,8 +577,11 @@ pass.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring blades, at the first blade’s angle, before the first
 acquired blade of each pass.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
-<li><p><strong>n_gain_calibration_readouts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Written as the <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code> definition. <code class="docutils literal notranslate"><span class="pre">None</span></code>
-is one per slice.</p></li>
+<li><p><strong>n_gain_calibration_repetitions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=None</em>) – Imaging repetitions the receive-gain prescan plays, written as the
+readouts they acquire in the <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code>
+definition, as <a class="reference internal" href="../pypulseqpp.sequences.gain_calibration_readouts.html#pypulseqpp.sequences.gain_calibration_readouts" title="pypulseqpp.sequences.gain_calibration_readouts"><code class="xref py py-func docutils literal notranslate"><span class="pre">gain_calibration_readouts()</span></code></a>
+counts them; <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as last
+<code class="xref py py-data docutils literal notranslate"><span class="pre">GAIN_CALIBRATION_DURATION</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
