@@ -951,7 +951,8 @@ namespace pulseq
     Repetition Sequence::locate_repetition(int size) const
     {
         Repetition found;
-        if (size < static_cast<int>(instance_def_.size()) && period_holds(instance_def_, size))
+        if (size < static_cast<int>(instance_def_.size()) && period_holds(instance_def_, size) &&
+            shims_repeat_with(size))
             found.size = size;
         return found;
     }
@@ -959,7 +960,23 @@ namespace pulseq
     std::vector<int32_t> Sequence::structure_stream() const
     {
         const int blocks = static_cast<int>(instance_def_.size());
-        std::map<std::array<int64_t, 2>, int32_t> seen;
+        std::map<int, bool> multichannel_by_time_shape;
+        const auto multichannel = [&](int rf) {
+            const int time_shape = static_cast<int>(rf_.row(rf)[3]);
+            if (time_shape < 1 || time_shape > shapes_.size())
+                return false;
+            const auto found = multichannel_by_time_shape.find(time_shape);
+            if (found != multichannel_by_time_shape.end())
+                return found->second;
+            const bool many = rf_channels(decompress_shape(
+                                  shapes_.samples(time_shape),
+                                  shapes_.num_compressed(time_shape),
+                                  shapes_.num_uncompressed(time_shape))) > 1;
+            multichannel_by_time_shape.emplace(time_shape, many);
+            return many;
+        };
+
+        std::map<std::array<int64_t, 4>, int32_t> seen;
         std::vector<int32_t> structure(static_cast<size_t>(blocks));
         for (int i = 0; i < blocks; ++i)
         {
@@ -969,11 +986,35 @@ namespace pulseq
                 plays |= static_cast<int64_t>(row[column] > 0) << column;
             const int64_t duration =
                 plays ? std::llround(durations_->data()[i] * 1e9) : -1;
+            /* A pTx pulse decides which channels are driven, so local SAR:
+             * a repetition stands for another only if it plays the same
+             * pTx definitions through the same shims. */
+            int64_t pulse = -1;
+            int64_t shim = -1;
+            const int rf = row[0];
+            const int32_t shim_row = row[BLOCK_SHIM_COLUMN];
+            if (rf > 0 && (shim_row > 0 || multichannel(rf)))
+            {
+                pulse = rf_def_[static_cast<size_t>(rf) - 1];
+                shim = shim_row;
+            }
             const auto found = seen.emplace(
-                std::array<int64_t, 2>{duration, plays}, static_cast<int32_t>(seen.size()));
+                std::array<int64_t, 4>{duration, plays, pulse, shim},
+                static_cast<int32_t>(seen.size()));
             structure[static_cast<size_t>(i)] = found.first->second;
         }
         return structure;
+    }
+
+    bool Sequence::shims_repeat_with(int period) const
+    {
+        const int blocks = static_cast<int>(instance_def_.size());
+        const int32_t* table = blocks_->data();
+        for (int i = period; i < blocks; ++i)
+            if (table[static_cast<size_t>(i) * BLOCK_WIDTH + BLOCK_SHIM_COLUMN] !=
+                table[static_cast<size_t>(i - period) * BLOCK_WIDTH + BLOCK_SHIM_COLUMN])
+                return false;
+        return true;
     }
 
     Repetition Sequence::repetition()
@@ -994,7 +1035,7 @@ namespace pulseq
         /* The shortest period of the definition stream from its first block,
          * as long as every block repeats the one a period before it. */
         const int period = first_repeat(instance_def_);
-        if (period < blocks && repeats_with(instance_def_, period))
+        if (period < blocks && repeats_with(instance_def_, period) && shims_repeat_with(period))
         {
             repetition_.size = period;
             return repetition_;
@@ -1002,7 +1043,10 @@ namespace pulseq
 
         /* Shots whose events differ in shape but not in timing -- a pulse
          * per shot -- repeat by their structure: duration, and which of RF,
-         * Gx, Gy, Gz and ADC they play. A pure delay is any pure delay. */
+         * Gx, Gy, Gz and ADC they play. A pure delay is any pure delay. A
+         * multichannel or shimmed pulse also keys on its RF definition and
+         * shim row, so repetitions playing different pTx pulses join into
+         * one longer repetition. */
         const std::vector<int32_t> structure = structure_stream();
         for (int candidate = 1; candidate <= blocks / 2; ++candidate)
         {

@@ -1735,8 +1735,10 @@ namespace pulseq
         std::vector<int32_t> adc_def_;          /**< by ADC id - 1 */
         std::vector<int32_t> instance_def_;     /**< by block - 1 */
         /** The repeating unit, once someone has asked for it. */
-        /** Per-block key of duration and which channels play, for detection. */
+        /** Per-block key of duration, which channels play and any pTx pulse and shim, for detection. */
         std::vector<int32_t> structure_stream() const;
+        /** Whether every block plays the RF shim row of the block @p period before it. */
+        bool shims_repeat_with(int period) const;
 
         Repetition repetition_;
         bool repetition_known_ = false;

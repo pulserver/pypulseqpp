@@ -2,6 +2,7 @@
 
 import math
 
+import numpy as np
 import pytest
 from scipy.spatial.transform import Rotation
 
@@ -404,3 +405,54 @@ def test_declared_tr_size_is_read_under_the_files_own_spelling(tmp_path):
     loaded.read(path)
     assert loaded.repetition() == (2, 1)
     assert loaded.get_definition("TRsize") == ""
+
+
+def _ptx_pulse(channel, system):
+    signal = np.zeros((2, 100), complex)
+    signal[channel] = np.hanning(100) * 200.0
+    return pp.make_ptx_pulse(
+        signal, dwell=system.rf_raster_time, system=system, use="excitation"
+    )
+
+
+def test_shots_that_play_different_ptx_pulses_are_one_longer_repetition():
+    """The pulse decides which transmit channels a shot drives, so local SAR.
+
+    Shot by shot, the two pulses match in timing and in the channels they
+    play, and by structure alone each shot would stand for the other; keyed
+    on the pulse, the repetition holds both.
+    """
+    system = pp.Opts()
+    first, second = _ptx_pulse(0, system), _ptx_pulse(1, system)
+    sequence = pp.Sequence(system)
+    for _ in range(3):
+        for pulse in (first, second):
+            sequence.add_block(pulse)
+            sequence.add_block(pp.make_delay(5e-3))
+
+    assert sequence.repetition() == (4, 1)
+
+
+def test_shots_that_play_one_pulse_through_different_shims_are_one_longer_repetition():
+    system = pp.Opts()
+    pulse = pp.make_block_pulse(math.pi / 6, duration=1e-3, system=system)
+    shims = [pp.make_rf_shim([1.0, 1.0]), pp.make_rf_shim([1.0, -1.0])]
+    sequence = pp.Sequence(system)
+    for _ in range(3):
+        for shim in shims:
+            sequence.add_block(pulse, shim)
+            sequence.add_block(pp.make_delay(5e-3))
+    # A shim row is shared once equal shims are collapsed, as writing does.
+    sequence.remove_duplicates(in_place=True)
+
+    assert sequence.repetition() == (4, 1)
+
+
+def test_ptx_pulses_that_never_repeat_make_the_whole_sequence_one_repetition():
+    system = pp.Opts()
+    sequence = pp.Sequence(system)
+    for channel in (0, 1):
+        sequence.add_block(_ptx_pulse(channel, system))
+        sequence.add_block(pp.make_delay(5e-3))
+
+    assert sequence.repetition() == (4, 1)
