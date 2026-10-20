@@ -29,6 +29,11 @@ def _peak(rf):
     return float(np.abs(np.asarray(rf.signal)).max())
 
 
+def _design_limit(system):
+    """The peak a fitted pulse may reach (Hz): the derated ``max_b1``."""
+    return pp.MAX_B1_DERATE * system.max_b1
+
+
 def _refocusing_thickness(module):
     return pp.calc_rf_bandwidth(module.rf_ref) / abs(module.selection_amplitude)
 
@@ -89,6 +94,36 @@ def test_cap_system_takes_a_plain_pypulseq_system():
     assert not hasattr(plain, "max_b1")
 
 
+# --- Derate ---------------------------------------------------------------------
+
+
+def test_derating_scales_the_limit_once_and_leaves_the_scanners():
+    system = pp.Opts(max_b1=11.2)
+    once = pp.apply_system_derates(system)
+    assert once.max_b1 == pytest.approx(pp.MAX_B1_DERATE * system.max_b1)
+    assert pp.apply_system_derates(once).max_b1 == pytest.approx(once.max_b1)
+    assert system.max_b1 == pytest.approx(11.2e-6 * system.gamma)
+    half = pp.apply_system_derates(system, b1_derate=0.5)
+    assert half.max_b1 == pytest.approx(0.5 * system.max_b1)
+
+
+def test_derating_a_system_without_a_limit_sets_none():
+    assert pp.apply_system_derates(pp.Opts()).max_b1 is None
+    assert not hasattr(pp.apply_system_derates(upstream.Opts()), "max_b1")
+
+
+def test_a_pulse_is_fitted_to_the_margin_whether_or_not_the_system_was_derated():
+    system = _limits(max_b1=11.2)
+    raw = design.SpatialSelectiveRefocusing(system, 5e-3)
+    derated = design.SpatialSelectiveRefocusing(pp.apply_system_derates(system), 5e-3)
+    assert raw.pulse_duration == derated.pulse_duration
+    np.testing.assert_array_equal(raw.rf_ref.signal, derated.rf_ref.signal)
+    custom = pp.apply_system_derates(system, b1_derate=0.5)
+    assert design.SpatialSelectiveRefocusing(custom, 5e-3).pulse_duration > (
+        raw.pulse_duration
+    )
+
+
 # --- b1_fitted ------------------------------------------------------------------
 
 
@@ -104,18 +139,18 @@ def test_a_pulse_within_the_limit_is_designed_as_given():
 
 
 def test_a_pulse_above_the_limit_is_lengthened_by_the_ratio():
-    """A 180 hard pulse peaks at 1/(2 duration): 2.349 ms at 5 uT, 2.36 ms on the raster."""
+    """A 180 hard pulse peaks at 1/(2 duration): 2.610 ms at 0.9 of 5 uT, 2.62 ms on the raster."""
     system = pp.Opts(max_b1=5.0)
     duration, rf = b1_fitted(system, 1e-3, _block(system))
-    assert duration == pytest.approx(2.36e-3)
-    assert _peak(rf) <= system.max_b1
-    assert duration - system.grad_raster_time < 1 / (2 * system.max_b1)
+    assert duration == pytest.approx(2.62e-3)
+    assert _peak(rf) <= _design_limit(system)
+    assert duration - system.grad_raster_time < 1 / (2 * _design_limit(system))
 
 
 def test_a_pulse_that_cannot_fit_is_refused():
     system = pp.Opts(max_b1=5.0)
     fixed = pp.make_block_pulse(np.pi, duration=1e-3, system=system)
-    with pytest.raises(ValueError, match="allows"):
+    with pytest.raises(ValueError, match="designed to"):
         b1_fitted(system, 1e-3, lambda _: fixed)
 
 
@@ -158,10 +193,10 @@ def test_a_selective_excitation_is_lengthened_and_keeps_its_slice():
     free = design.SpatialSelectiveExcitation(_limits(), 90.0, 5e-3)
     system = _limits(max_b1=5.0)
     held = design.SpatialSelectiveExcitation(system, 90.0, 5e-3)
-    assert _peak(free.rf) > system.max_b1
+    assert _peak(free.rf) > _design_limit(system)
     assert held.pulse_duration > free.pulse_duration
     assert held.rf.shape_dur == pytest.approx(held.pulse_duration)
-    assert _peak(held.rf) <= system.max_b1
+    assert _peak(held.rf) <= _design_limit(system)
     assert held.slice_thickness == pytest.approx(5e-3, rel=1e-3)
     # The time-bandwidth product is held, so the selection plateau is lower.
     ratio = held.pulse_duration / free.pulse_duration
@@ -171,13 +206,13 @@ def test_a_selective_excitation_is_lengthened_and_keeps_its_slice():
 
 
 def test_a_selective_refocusing_is_lengthened_and_keeps_its_slice():
-    """The 7 T case: a 3 ms 180 of 30 uT, held to 11.2 uT, is about 8 ms."""
+    """The 7 T case: a 3 ms 180 of 30 uT, under 11.2 uT held to 10.08 uT, is about 8.9 ms."""
     free = design.SpatialSelectiveRefocusing(_limits(), 5e-3)
     system = _limits(max_b1=11.2)
     held = design.SpatialSelectiveRefocusing(system, 5e-3)
     assert _peak(free.rf_ref) / GAMMA * 1e6 == pytest.approx(29.9, abs=0.1)
-    assert held.pulse_duration == pytest.approx(8e-3, abs=0.1e-3)
-    assert _peak(held.rf_ref) <= system.max_b1
+    assert held.pulse_duration == pytest.approx(8.9e-3, abs=0.1e-3)
+    assert _peak(held.rf_ref) <= _design_limit(system)
     assert _refocusing_thickness(held) == pytest.approx(
         _refocusing_thickness(free), rel=1e-2
     )
@@ -193,7 +228,7 @@ def test_a_nonselective_pulse_is_lengthened_with_its_centre_on_the_raster(refocu
         module = design.NonSelectiveExcitation(system, 90.0, 0.2e-3)
         rf = module.rf
     assert module.pulse_duration > 0.2e-3
-    assert _peak(rf) <= system.max_b1
+    assert _peak(rf) <= _design_limit(system)
     raster = system.block_duration_raster
     assert module.center / raster == pytest.approx(round(module.center / raster))
 
@@ -205,7 +240,7 @@ def test_a_hard_pulse_off_the_block_raster_is_lengthened_on_the_rf_raster():
     assert 10e-6 < module.pulse_duration < 2 * system.block_duration_raster
     samples = module.pulse_duration / system.rf_raster_time
     assert samples == pytest.approx(round(samples))
-    assert _peak(module.rf) <= system.max_b1
+    assert _peak(module.rf) <= _design_limit(system)
 
 
 # --- Sequences ------------------------------------------------------------------
@@ -226,7 +261,7 @@ def test_a_spin_echo_designs_under_the_7t_limit():
     system = pp.Opts(max_b1=11.2)
     held = se2D.se2d(system, **SMALL)
     assert held.check_timing()[0]
-    assert max(_rf_peaks(held)) <= system.max_b1
+    assert max(_rf_peaks(held)) <= _design_limit(system)
     assert max(_rf_peaks(free)) > system.max_b1
     durations = sorted(
         block.rf.shape_dur
@@ -238,9 +273,12 @@ def test_a_spin_echo_designs_under_the_7t_limit():
     assert held.get_definition("TE")[0] > free.get_definition("TE")[0]
 
 
-def test_a_zte_designs_under_the_7t_limit():
+def test_a_zte_designs_under_the_7t_limit_at_a_flip_its_dwell_admits():
+    """At 3 degrees the 10 us pulse needs 20 us under 10.08 uT, two dwells; 2.5 fits in 18."""
     system = pp.Opts(max_b1=11.2)
-    held = zte3D.main(system, n=32, n_shots=2, n_dummy=0)
+    with pytest.raises(ValueError, match="dwell"):
+        zte3D.main(system, n=32, n_shots=2, n_dummy=0)
+    held = zte3D.main(system, n=32, n_shots=2, n_dummy=0, flip_angle_deg=2.5)
     seq = held[-1] if isinstance(held, list) else held
     assert seq.check_timing()[0]
-    assert max(_rf_peaks(seq)) <= system.max_b1
+    assert max(_rf_peaks(seq)) <= _design_limit(system)

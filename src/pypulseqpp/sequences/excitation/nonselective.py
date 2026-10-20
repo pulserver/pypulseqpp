@@ -36,7 +36,7 @@ class NonSelectiveExcitation(RfModule):
         Flip angle (degrees).
     duration_s : float, default=0.001
         Pulse duration (s); spectral width scales inversely with duration.
-        Lengthened when the pulse would peak above ``system.max_b1``: to a
+        Lengthened when the pulse would peak above the derated ``system.max_b1``: to a
         whole number of two block rasters when ``duration_s`` is one, else to
         the RF raster.
     use : str, default='excitation'
@@ -121,8 +121,8 @@ class NonSelectiveRefocusing(RfModule):
     flip_angle_deg : float, default=180.0
         Flip angle (degrees).
     duration_s : float, default=0.001
-        Pulse duration (s). Lengthened when the pulse would peak above
-        ``system.max_b1``: to a whole number of two block rasters when
+        Pulse duration (s). Lengthened when the pulse would peak above the
+        derated ``system.max_b1``: to a whole number of two block rasters when
         ``duration_s`` is one, else to the RF raster.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing each crusher produces across ``voxel_size_m``.

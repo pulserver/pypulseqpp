@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 __all__ = [
+    "MAX_B1_DERATE",
     "MAX_GRAD_DERATE",
     "MAX_SLEW_DERATE",
     "Opts",
@@ -45,7 +46,8 @@ class Opts(_pp.Opts):
     ``B0`` in T. ``max_b1``, the peak B1 the transmit chain allows, is stored in
     Hz (gamma B1) after conversion from ``b1_unit``, one of ``Hz``, ``T``,
     ``mT``, ``uT`` (the default) and ``G``; ``None`` sets no limit. The
-    excitation and refocusing modules lengthen a pulse that would exceed it.
+    excitation and refocusing modules lengthen a pulse that would exceed
+    :data:`MAX_B1_DERATE` of it.
 
     Importing pypulseqpp installs these defaults for PyPulseq factories.
     Constructing Opts alone does not change the shared default; use
@@ -145,6 +147,8 @@ def default_system(system: _pp.Opts | None) -> _pp.Opts:
 MAX_GRAD_DERATE = 0.9
 #: Fraction of the slew-rate limit a designed waveform may reach.
 MAX_SLEW_DERATE = 0.9
+#: Fraction of the peak-B1 limit a designed pulse may reach.
+MAX_B1_DERATE = 0.9
 
 
 def apply_system_derates(
@@ -152,8 +156,9 @@ def apply_system_derates(
     *,
     grad_derate: float = MAX_GRAD_DERATE,
     slew_derate: float = MAX_SLEW_DERATE,
+    b1_derate: float = MAX_B1_DERATE,
 ) -> _pp.Opts:
-    """Return a copy with gradient and slew limits scaled from their base values.
+    """Return a copy with gradient, slew and peak-B1 limits scaled from their base values.
 
     Base limits are retained on the copy, so repeated derating does not compound.
 
@@ -165,6 +170,9 @@ def apply_system_derates(
         Fraction of the base ``max_grad`` to allow.
     slew_derate : float, default=MAX_SLEW_DERATE
         Fraction of the base ``max_slew`` to allow.
+    b1_derate : float, default=MAX_B1_DERATE
+        Fraction of the base ``max_b1`` to allow; a system without a
+        ``max_b1`` keeps none.
 
     Returns
     -------
@@ -180,7 +188,9 @@ def apply_system_derates(
     The default fractions, :data:`MAX_GRAD_DERATE` and
     :data:`MAX_SLEW_DERATE`, leave a margin below the amplitude and slew-rate
     limits for waveforms designed on one axis at a time and played while
-    other axes are active.
+    other axes are active. :data:`MAX_B1_DERATE` keeps a designed pulse's
+    peak below the transmit chain's limit; the excitation and refocusing
+    modules fit their pulses to it whether or not the system was derated.
 
     Examples
     --------
@@ -196,6 +206,9 @@ def apply_system_derates(
 
     >>> pp.apply_system_derates(derated).max_grad == derated.max_grad
     True
+    >>> b1 = pp.apply_system_derates(pp.Opts(max_b1=11.2))
+    >>> round(b1.max_b1 / b1.gamma * 1e6, 2), pp.apply_system_derates(b1).max_b1 == b1.max_b1
+    (10.08, True)
     """
     derated = _copy.copy(opts)
     if not hasattr(derated, "_base_max_grad"):
@@ -205,7 +218,46 @@ def apply_system_derates(
 
     derated.max_grad = derated._base_max_grad * float(grad_derate)
     derated.max_slew = derated._base_max_slew * float(slew_derate)
+    if getattr(opts, "max_b1", None) is not None:
+        if not hasattr(derated, "_base_max_b1"):
+            derated._base_max_b1 = float(opts.max_b1)
+        derated.max_b1 = derated._base_max_b1 * float(b1_derate)
     return derated
+
+
+def b1_design_limit(opts: _pp.Opts) -> float | None:
+    """Return the peak B1 a pulse is designed to (Hz), with the B1 derate applied once.
+
+    A system :func:`apply_system_derates` has derated already gives its
+    ``max_b1``; any other gives :data:`MAX_B1_DERATE` of it. ``None`` when
+    the system has no ``max_b1``, a plain ``pypulseq.Opts`` among them.
+
+    Parameters
+    ----------
+    opts : Opts
+        System limits.
+
+    Returns
+    -------
+    float or None
+        The peak a designed pulse may reach (Hz), or ``None`` for no limit.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_b1=11.2)
+    >>> from pypulseqpp._opts import b1_design_limit
+    >>> b1_design_limit(system) == b1_design_limit(pp.apply_system_derates(system))
+    True
+    >>> round(b1_design_limit(system) / system.gamma * 1e6, 2)
+    10.08
+    """
+    limit = getattr(opts, "max_b1", None)
+    if limit is None:
+        return None
+    if hasattr(opts, "_base_max_b1"):
+        return float(limit)
+    return MAX_B1_DERATE * float(limit)
 
 
 def cap_system(

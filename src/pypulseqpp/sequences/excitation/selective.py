@@ -31,7 +31,7 @@ class SpatialSelectiveExcitation(RfModule):
         against the pulse's measured bandwidth.
     duration_s : float, default=0.003
         Pulse duration (s); lengthened, flip angle and time-bandwidth product
-        held, when the pulse would peak above ``system.max_b1``.
+        held, when the pulse would peak above the derated ``system.max_b1``.
     is_slab : bool, default=False
         Merge the rephaser into the selection gradient.
     rephase : bool, default=True
@@ -180,7 +180,7 @@ class SpatialSelectiveRefocusing(RfModule):
         Flip angle (degrees).
     duration_s : float, default=0.003
         Pulse duration (s); lengthened, flip angle and time-bandwidth product
-        held, when the pulse would peak above ``system.max_b1``.
+        held, when the pulse would peak above the derated ``system.max_b1``.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing each crusher produces across ``voxel_size_m``.
         Zero leaves the bare selection lobe.

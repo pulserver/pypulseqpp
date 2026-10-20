@@ -44,7 +44,8 @@ modify their argument.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.Opts` | Gradient and slew limits with units, peak B1 `max_b1` with its unit, rasters, dead times, `gamma`, `B0` | `Opts` holding limits in Hz/m, Hz/m/s, `max_b1` in Hz and rasters in s | System limits and rasters. |
 | {obj}`~pypulseqpp.default_system` | `Opts` or `None` | The argument, or the shared default `Opts` | Default-system resolution. |
-| {obj}`~pypulseqpp.apply_system_derates` | `Opts`, gradient and slew fractions | `Opts` copy, limits scaled from base values | Derated design limits. |
+| {obj}`~pypulseqpp.apply_system_derates` | `Opts`, gradient, slew and peak-B1 fractions | `Opts` copy, limits scaled from base values | Derated design limits. |
 | {obj}`~pypulseqpp.cap_system` | `Opts`, gradient, slew and peak-B1 ceilings with their units | `Opts` copy, limits lowered to the ceilings | Capped design limits. |
 | {obj}`~pypulseqpp.MAX_GRAD_DERATE` | — | `float` | Default `grad_derate` of `apply_system_derates`. |
 | {obj}`~pypulseqpp.MAX_SLEW_DERATE` | — | `float` | Default `slew_derate` of `apply_system_derates`. |
+| {obj}`~pypulseqpp.MAX_B1_DERATE` | — | `float` | Default `b1_derate` of `apply_system_derates`, and the fraction of `max_b1` the excitation and refocusing modules fit their pulses to. |
