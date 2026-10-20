@@ -108,6 +108,15 @@ constants `MAX_GRAD` (mT/m) and `MAX_SLEW` (T/m/s). Changing one redesigns the
 gradient waveforms and may alter echo spacing, acquisition duration and the
 constraint estimates.
 
+A pulse duration constant, such as `PULSE_DURATION`, is the duration a pulse is
+designed at while its peak is within `system.max_b1`, the peak B1 the transmit
+chain allows. Above it, the selective and non-selective excitation and
+refocusing modules lengthen the pulse, flip angle and time-bandwidth product
+held, until its peak fits; the module's `pulse_duration`, blocks and centre
+carry the lengthened pulse, and a sequence solves its TE and TR from them.
+Spectral, adiabatic, two-dimensional and multiband pulses are designed as
+given, since their duration sets what they select.
+
 ### Protocol
 
 A parameter's type and default come from its annotation and default value, and

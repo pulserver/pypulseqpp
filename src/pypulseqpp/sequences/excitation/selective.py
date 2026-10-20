@@ -8,7 +8,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ._base import RfModule, rf_reference, selective_slr
+from ._base import RfModule, b1_fitted, rf_reference, selective_slr
 
 _AXES = ("x", "y", "z")
 
@@ -30,7 +30,8 @@ class SpatialSelectiveExcitation(RfModule):
         Slice or slab thickness (m), set by the selection gradient plateau
         against the pulse's measured bandwidth.
     duration_s : float, default=0.003
-        Pulse duration (s).
+        Pulse duration (s); lengthened, flip angle and time-bandwidth product
+        held, when the pulse would peak above ``system.max_b1``.
     is_slab : bool, default=False
         Merge the rephaser into the selection gradient.
     rephase : bool, default=True
@@ -61,6 +62,9 @@ class SpatialSelectiveExcitation(RfModule):
     slice_thickness : float
         The thickness selected (m), the pulse's measured bandwidth over
         ``selection_amplitude``: ``thickness_m`` to rounding.
+    pulse_duration : float
+        Duration the pulse is designed at (s): ``duration_s``, or longer where
+        ``system.max_b1`` requires.
 
     Raises
     ------
@@ -120,16 +124,20 @@ class SpatialSelectiveExcitation(RfModule):
         if axis not in _AXES:
             raise ValueError(f"axis must be one of {_AXES}, got {axis!r}")
 
-        rf, gz, gz_reph = selective_slr(
-            flip_angle_deg,
-            thickness_m,
-            duration=duration_s,
-            time_bw_product=time_bw_product,
-            pulse_type=pulse_type,
-            passband_ripple=passband_ripple,
-            stopband_ripple=stopband_ripple,
-            use=use,
-            system=system,
+        self.pulse_duration, (rf, gz, gz_reph) = b1_fitted(
+            system,
+            duration_s,
+            lambda duration: selective_slr(
+                flip_angle_deg,
+                thickness_m,
+                duration=duration,
+                time_bw_product=time_bw_product,
+                pulse_type=pulse_type,
+                passband_ripple=passband_ripple,
+                stopband_ripple=stopband_ripple,
+                use=use,
+                system=system,
+            ),
         )
         gz.channel = axis
         gz_reph.channel = axis
@@ -171,7 +179,8 @@ class SpatialSelectiveRefocusing(RfModule):
     flip_angle_deg : float, default=180.0
         Flip angle (degrees).
     duration_s : float, default=0.003
-        Pulse duration (s).
+        Pulse duration (s); lengthened, flip angle and time-bandwidth product
+        held, when the pulse would peak above ``system.max_b1``.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing each crusher produces across ``voxel_size_m``.
         Zero leaves the bare selection lobe.
@@ -201,6 +210,9 @@ class SpatialSelectiveRefocusing(RfModule):
     selection_amplitude : float
         Plateau amplitude of the selection lobe (Hz/m), which a slice offset
         is converted against; ``gz.amplitude`` is the crushers' peak.
+    pulse_duration : float
+        Duration the pulse is designed at (s): ``duration_s``, or longer where
+        ``system.max_b1`` requires.
 
     Raises
     ------
@@ -261,19 +273,23 @@ class SpatialSelectiveRefocusing(RfModule):
         if axis not in _AXES:
             raise ValueError(f"axis must be one of {_AXES}, got {axis!r}")
 
-        rf_ref, gz, _ = pp.make_slr_pulse(
-            np.deg2rad(flip_angle_deg),
-            duration=duration_s,
-            slice_thickness=thickness_m,
-            time_bw_product=time_bw_product,
-            pulse_type="se",
-            phase_offset=phase_offset_rad,
-            passband_ripple=passband_ripple,
-            stopband_ripple=stopband_ripple,
-            return_gz=True,
-            delay=system.rf_dead_time,
-            use=use,
-            system=system,
+        self.pulse_duration, (rf_ref, gz, _) = b1_fitted(
+            system,
+            duration_s,
+            lambda duration: pp.make_slr_pulse(
+                np.deg2rad(flip_angle_deg),
+                duration=duration,
+                slice_thickness=thickness_m,
+                time_bw_product=time_bw_product,
+                pulse_type="se",
+                phase_offset=phase_offset_rad,
+                passband_ripple=passband_ripple,
+                stopband_ripple=stopband_ripple,
+                return_gz=True,
+                delay=system.rf_dead_time,
+                use=use,
+                system=system,
+            ),
         )
         gz.channel = axis
         self.selection_amplitude = float(gz.amplitude)

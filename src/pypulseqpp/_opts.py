@@ -16,6 +16,21 @@ import copy as _copy
 import pypulseq as _pp
 from pypulseq.convert import convert as _convert
 
+_B1_PER_UNIT_T = {"T": 1.0, "mT": 1e-3, "uT": 1e-6, "G": 1e-4}
+
+
+def _b1_to_hz(value: float, unit: str, gamma: float) -> float:
+    """Return a positive B1 amplitude ``value`` in ``unit`` as gamma B1 in Hz."""
+    if unit != "Hz" and unit not in _B1_PER_UNIT_T:
+        raise ValueError(
+            f"b1_unit must be Hz or one of {sorted(_B1_PER_UNIT_T)}, got {unit!r}"
+        )
+    if not float(value) > 0.0:
+        raise ValueError(f"max_b1 must be positive, got {value}")
+    if unit == "Hz":
+        return float(value)
+    return float(value) * _B1_PER_UNIT_T[unit] * float(gamma)
+
 
 class Opts(_pp.Opts):
     """PyPulseq system limits with shared raster defaults.
@@ -27,7 +42,10 @@ class Opts(_pp.Opts):
 
     Gradient amplitude and slew-rate limits are stored in Hz/m and Hz/m/s after
     conversion from ``grad_unit`` and ``slew_unit``; ``gamma`` is in Hz/T and
-    ``B0`` in T.
+    ``B0`` in T. ``max_b1``, the peak B1 the transmit chain allows, is stored in
+    Hz (gamma B1) after conversion from ``b1_unit``, one of ``Hz``, ``T``,
+    ``mT``, ``uT`` (the default) and ``G``; ``None`` sets no limit. The
+    excitation and refocusing modules lengthen a pulse that would exceed it.
 
     Importing pypulseqpp installs these defaults for PyPulseq factories.
     Constructing Opts alone does not change the shared default; use
@@ -41,6 +59,8 @@ class Opts(_pp.Opts):
     1703040.0
     >>> system.grad_raster_time, system.rf_raster_time
     (2e-05, 2e-06)
+    >>> round(pp.Opts(max_b1=11.2).max_b1, 1), pp.Opts().max_b1
+    (476.9, None)
     """
 
     def __init__(
@@ -61,6 +81,8 @@ class Opts(_pp.Opts):
         rise_time: float | None = None,
         slew_unit: str = "Hz/m/s",
         B0: float | None = None,
+        max_b1: float | None = None,
+        b1_unit: str = "uT",
     ) -> None:
         # Every raster is passed on explicitly rather than left None, which
         # upstream would fill from the shared default -- and the shared
@@ -83,6 +105,7 @@ class Opts(_pp.Opts):
             slew_unit=slew_unit,
             B0=B0,
         )
+        self.max_b1 = None if max_b1 is None else _b1_to_hz(max_b1, b1_unit, self.gamma)
 
     @classmethod
     def reset_default(cls) -> None:
@@ -192,8 +215,10 @@ def cap_system(
     max_slew: float | None = None,
     grad_unit: str = "mT/m",
     slew_unit: str = "T/m/s",
+    max_b1: float | None = None,
+    b1_unit: str = "uT",
 ) -> _pp.Opts:
-    """Return a copy with gradient and slew limits lowered to the specified ceilings.
+    """Return a copy with gradient, slew and RF limits lowered to the specified ceilings.
 
     Parameters
     ----------
@@ -208,6 +233,11 @@ def cap_system(
         Unit of ``max_grad``.
     slew_unit : str, default='T/m/s'
         Unit of ``max_slew``.
+    max_b1 : float, default=None
+        Peak RF amplitude ceiling, in ``b1_unit``; as ``max_grad``. A system
+        with no RF limit takes it.
+    b1_unit : str, default='uT'
+        Unit of ``max_b1``: ``Hz`` (gamma B1), ``T``, ``mT``, ``uT`` or ``G``.
 
     Returns
     -------
@@ -242,4 +272,8 @@ def cap_system(
             gamma=opts.gamma,
         )
         capped.max_slew = min(float(opts.max_slew), ceiling)
+    if max_b1 is not None:
+        ceiling = _b1_to_hz(max_b1, b1_unit, opts.gamma)
+        held = getattr(opts, "max_b1", None)
+        capped.max_b1 = ceiling if held is None else min(float(held), ceiling)
     return capped
