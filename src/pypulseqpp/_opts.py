@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 __all__ = [
+    "MAX_B1_DERATE",
     "MAX_GRAD_DERATE",
     "MAX_SLEW_DERATE",
     "Opts",
@@ -16,6 +17,21 @@ import copy as _copy
 import pypulseq as _pp
 from pypulseq.convert import convert as _convert
 
+_B1_PER_UNIT_T = {"T": 1.0, "mT": 1e-3, "uT": 1e-6, "G": 1e-4}
+
+
+def _b1_to_hz(value: float, unit: str, gamma: float) -> float:
+    """Return a positive B1 amplitude ``value`` in ``unit`` as gamma B1 in Hz."""
+    if unit != "Hz" and unit not in _B1_PER_UNIT_T:
+        raise ValueError(
+            f"b1_unit must be Hz or one of {sorted(_B1_PER_UNIT_T)}, got {unit!r}"
+        )
+    if not float(value) > 0.0:
+        raise ValueError(f"max_b1 must be positive, got {value}")
+    if unit == "Hz":
+        return float(value)
+    return float(value) * _B1_PER_UNIT_T[unit] * float(gamma)
+
 
 class Opts(_pp.Opts):
     """PyPulseq system limits with shared raster defaults.
@@ -27,7 +43,11 @@ class Opts(_pp.Opts):
 
     Gradient amplitude and slew-rate limits are stored in Hz/m and Hz/m/s after
     conversion from ``grad_unit`` and ``slew_unit``; ``gamma`` is in Hz/T and
-    ``B0`` in T.
+    ``B0`` in T. ``max_b1``, the peak B1 the transmit chain allows, is stored in
+    Hz (gamma B1) after conversion from ``b1_unit``, one of ``Hz``, ``T``,
+    ``mT``, ``uT`` (the default) and ``G``; ``None`` sets no limit. The
+    excitation and refocusing modules lengthen a pulse that would exceed
+    :data:`MAX_B1_DERATE` of it.
 
     Importing pypulseqpp installs these defaults for PyPulseq factories.
     Constructing Opts alone does not change the shared default; use
@@ -41,6 +61,8 @@ class Opts(_pp.Opts):
     1703040.0
     >>> system.grad_raster_time, system.rf_raster_time
     (2e-05, 2e-06)
+    >>> round(pp.Opts(max_b1=11.2).max_b1, 1), pp.Opts().max_b1
+    (476.9, None)
     """
 
     def __init__(
@@ -61,6 +83,8 @@ class Opts(_pp.Opts):
         rise_time: float | None = None,
         slew_unit: str = "Hz/m/s",
         B0: float | None = None,
+        max_b1: float | None = None,
+        b1_unit: str = "uT",
     ) -> None:
         # Every raster is passed on explicitly rather than left None, which
         # upstream would fill from the shared default -- and the shared
@@ -83,6 +107,7 @@ class Opts(_pp.Opts):
             slew_unit=slew_unit,
             B0=B0,
         )
+        self.max_b1 = None if max_b1 is None else _b1_to_hz(max_b1, b1_unit, self.gamma)
 
     @classmethod
     def reset_default(cls) -> None:
@@ -122,6 +147,8 @@ def default_system(system: _pp.Opts | None) -> _pp.Opts:
 MAX_GRAD_DERATE = 0.9
 #: Fraction of the slew-rate limit a designed waveform may reach.
 MAX_SLEW_DERATE = 0.9
+#: Fraction of the peak-B1 limit a designed pulse may reach.
+MAX_B1_DERATE = 0.9
 
 
 def apply_system_derates(
@@ -129,10 +156,13 @@ def apply_system_derates(
     *,
     grad_derate: float = MAX_GRAD_DERATE,
     slew_derate: float = MAX_SLEW_DERATE,
+    b1_derate: float = MAX_B1_DERATE,
 ) -> _pp.Opts:
-    """Return a copy with gradient and slew limits scaled from their base values.
+    """Return a copy with gradient, slew and peak-B1 limits scaled from their base values.
 
-    Base limits are retained on the copy, so repeated derating does not compound.
+    Base limits are retained on the copy, so repeated derating does not compound,
+    and a ceiling :func:`cap_system` puts on a derated copy holds when it is
+    derated again.
 
     Parameters
     ----------
@@ -142,6 +172,9 @@ def apply_system_derates(
         Fraction of the base ``max_grad`` to allow.
     slew_derate : float, default=MAX_SLEW_DERATE
         Fraction of the base ``max_slew`` to allow.
+    b1_derate : float, default=MAX_B1_DERATE
+        Fraction of the base ``max_b1`` to allow; a system without a
+        ``max_b1`` keeps none.
 
     Returns
     -------
@@ -157,7 +190,9 @@ def apply_system_derates(
     The default fractions, :data:`MAX_GRAD_DERATE` and
     :data:`MAX_SLEW_DERATE`, leave a margin below the amplitude and slew-rate
     limits for waveforms designed on one axis at a time and played while
-    other axes are active.
+    other axes are active. :data:`MAX_B1_DERATE` keeps a designed pulse's
+    peak below the transmit chain's limit; the excitation and refocusing
+    modules fit their pulses to it whether or not the system was derated.
 
     Examples
     --------
@@ -173,16 +208,62 @@ def apply_system_derates(
 
     >>> pp.apply_system_derates(derated).max_grad == derated.max_grad
     True
+    >>> b1 = pp.apply_system_derates(pp.Opts(max_b1=11.2))
+    >>> round(b1.max_b1 / b1.gamma * 1e6, 2), pp.apply_system_derates(b1).max_b1 == b1.max_b1
+    (10.08, True)
+
+    A ceiling below the derated limit survives a second derate:
+
+    >>> capped = pp.cap_system(derated, max_grad=30)
+    >>> pp.apply_system_derates(capped).max_grad == capped.max_grad
+    True
     """
     derated = _copy.copy(opts)
-    if not hasattr(derated, "_base_max_grad"):
-        derated._base_max_grad = float(opts.max_grad)
-    if not hasattr(derated, "_base_max_slew"):
-        derated._base_max_slew = float(opts.max_slew)
-
-    derated.max_grad = derated._base_max_grad * float(grad_derate)
-    derated.max_slew = derated._base_max_slew * float(slew_derate)
+    fractions = {"max_grad": grad_derate, "max_slew": slew_derate}
+    if getattr(opts, "max_b1", None) is not None:
+        fractions["max_b1"] = b1_derate
+    for name, fraction in fractions.items():
+        base = f"_base_{name}"
+        if not hasattr(derated, base):
+            setattr(derated, base, float(getattr(opts, name)))
+        value = getattr(derated, base) * float(fraction)
+        setattr(derated, name, min(value, getattr(derated, f"_ceiling_{name}", value)))
     return derated
+
+
+def b1_design_limit(opts: _pp.Opts) -> float | None:
+    """Return the peak B1 a pulse is designed to (Hz), with the B1 derate applied once.
+
+    A system :func:`apply_system_derates` has derated already gives its
+    ``max_b1``; any other gives :data:`MAX_B1_DERATE` of it. ``None`` when
+    the system has no ``max_b1``, a plain ``pypulseq.Opts`` among them.
+
+    Parameters
+    ----------
+    opts : Opts
+        System limits.
+
+    Returns
+    -------
+    float or None
+        The peak a designed pulse may reach (Hz), or ``None`` for no limit.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> system = pp.Opts(max_b1=11.2)
+    >>> from pypulseqpp._opts import b1_design_limit
+    >>> b1_design_limit(system) == b1_design_limit(pp.apply_system_derates(system))
+    True
+    >>> round(b1_design_limit(system) / system.gamma * 1e6, 2)
+    10.08
+    """
+    limit = getattr(opts, "max_b1", None)
+    if limit is None:
+        return None
+    if hasattr(opts, "_base_max_b1"):
+        return float(limit)
+    return MAX_B1_DERATE * float(limit)
 
 
 def cap_system(
@@ -192,8 +273,10 @@ def cap_system(
     max_slew: float | None = None,
     grad_unit: str = "mT/m",
     slew_unit: str = "T/m/s",
+    max_b1: float | None = None,
+    b1_unit: str = "uT",
 ) -> _pp.Opts:
-    """Return a copy with gradient and slew limits lowered to the specified ceilings.
+    """Return a copy with gradient, slew and RF limits lowered to the specified ceilings.
 
     Parameters
     ----------
@@ -208,11 +291,23 @@ def cap_system(
         Unit of ``max_grad``.
     slew_unit : str, default='T/m/s'
         Unit of ``max_slew``.
+    max_b1 : float, default=None
+        Peak RF amplitude ceiling, in ``b1_unit``; as ``max_grad``. A system
+        with no RF limit takes it.
+    b1_unit : str, default='uT'
+        Unit of ``max_b1``: ``Hz`` (gamma B1), ``T``, ``mT``, ``uT`` or ``G``.
 
     Returns
     -------
     Opts
         The capped copy.
+
+    Notes
+    -----
+    On a system :func:`apply_system_derates` has derated, a limit becomes the
+    lower of the derated limit and the ceiling, and stays so when the copy is
+    derated again: the margin is taken from the system's limit, not from the
+    ceiling.
 
     Examples
     --------
@@ -226,20 +321,29 @@ def cap_system(
     40
     """
     capped = _copy.copy(opts)
+    ceilings = {}
     if max_grad is not None:
-        ceiling = _convert(
+        ceilings["max_grad"] = _convert(
             from_value=float(max_grad),
             from_unit=grad_unit,
             to_unit="Hz/m",
             gamma=opts.gamma,
         )
-        capped.max_grad = min(float(opts.max_grad), ceiling)
     if max_slew is not None:
-        ceiling = _convert(
+        ceilings["max_slew"] = _convert(
             from_value=float(max_slew),
             from_unit=slew_unit,
             to_unit="Hz/m/s",
             gamma=opts.gamma,
         )
-        capped.max_slew = min(float(opts.max_slew), ceiling)
+    if max_b1 is not None:
+        ceilings["max_b1"] = _b1_to_hz(max_b1, b1_unit, opts.gamma)
+    for name, ceiling in ceilings.items():
+        held = getattr(opts, name, None)
+        setattr(capped, name, ceiling if held is None else min(float(held), ceiling))
+        # A derated limit keeps its base; the ceiling is kept beside it, so
+        # derating again leaves the cap in place.
+        if hasattr(capped, f"_base_{name}"):
+            kept = getattr(capped, f"_ceiling_{name}", ceiling)
+            setattr(capped, f"_ceiling_{name}", min(kept, ceiling))
     return capped

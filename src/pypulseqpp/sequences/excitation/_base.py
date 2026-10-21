@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["RfModule", "rf_reference", "selective_slr"]
+__all__ = ["RfModule", "b1_fitted", "rf_reference", "selective_slr"]
 
 from typing import Any
 
@@ -10,7 +10,86 @@ import numpy as np
 
 import pypulseqpp as pp
 
+from ..._opts import b1_design_limit
 from .._module import SequenceModule
+
+
+def b1_fitted(
+    system: Any, duration_s: float, make: Any, *, raster: float | None = None
+) -> tuple[float, Any]:
+    """Return a duration from ``duration_s`` up at which a pulse fits the derated ``system.max_b1``, and the pulse.
+
+    The pulse is held to :data:`~pypulseqpp.MAX_B1_DERATE` of ``max_b1``, or
+    to ``max_b1`` itself on a system :func:`~pypulseqpp.apply_system_derates`
+    has derated, so the margin is taken once. The flip angle and
+    time-bandwidth product are ``make``'s, so the envelope keeps its shape and
+    its peak falls as the duration grows. A pulse whose peak exceeds the limit
+    is designed again at its duration times the ratio of its peak to the
+    limit, rounded up to ``raster``, until it fits. A system without a
+    ``max_b1``, a plain ``pypulseq.Opts`` among them, or with the pulse
+    already within the limit, takes ``duration_s`` and the pulse as designed.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits; ``max_b1`` is the transmit chain's peak RF amplitude
+        (Hz), ``None`` or absent for none.
+    duration_s : float
+        Duration the pulse is designed at when it fits (s).
+    make : callable
+        ``make(duration)`` designs the events at ``duration`` (s), the RF event
+        alone or first in a tuple.
+    raster : float, default=None
+        Raster a lengthened duration is rounded up to (s);
+        ``system.grad_raster_time`` when ``None``.
+
+    Returns
+    -------
+    tuple
+        ``(duration, events)``: the duration designed at (s) and what
+        ``make`` returned for it.
+
+    Raises
+    ------
+    ValueError
+        If the pulse still exceeds the limit after four redesigns.
+
+    Examples
+    --------
+    A 180 degree hard pulse of 1 ms peaks at 500 Hz, 11.7 uT; under a 5 uT
+    limit it is held to 4.5 uT, lengthened by the ratio to the next gradient
+    raster:
+
+    >>> import pypulseqpp as pp
+    >>> from pypulseqpp.sequences.excitation._base import b1_fitted
+    >>> system = pp.Opts(max_b1=5.0)
+    >>> make = lambda d: pp.make_block_pulse(3.14159, duration=d, system=system)
+    >>> duration, rf = b1_fitted(system, 1e-3, make)
+    >>> peak_ut = float(abs(rf.signal).max()) / system.gamma * 1e6
+    >>> round(duration * 1e3, 2), round(peak_ut, 2)
+    (2.62, 4.48)
+    >>> b1_fitted(pp.Opts(), 1e-3, make)[0]
+    0.001
+    """
+    limit = b1_design_limit(system)
+    events = make(duration_s)
+    if limit is None:
+        return duration_s, events
+    step = float(system.grad_raster_time if raster is None else raster)
+    duration = duration_s
+    for attempt in range(5):
+        rf = events[0] if isinstance(events, tuple) else events
+        peak = float(np.abs(np.asarray(rf.signal)).max())
+        if peak <= limit * (1.0 + 1e-6):
+            return duration, events
+        if attempt == 4:
+            break
+        duration = float(np.ceil(duration * peak / limit / step - 1e-9) * step)
+        events = make(duration)
+    raise ValueError(
+        f"the pulse peaks at {peak:.0f} Hz at {duration * 1e3:.2f} ms, above the "
+        f"{limit:.0f} Hz a pulse is designed to"
+    )
 
 
 def rf_reference(rf: Any) -> float:

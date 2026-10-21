@@ -35,6 +35,7 @@ from ._make_rf_shim import make_rf_shim as _make_rf_shim
 from ._make_rotation import make_rotation as _make_rotation
 from ._offsets import calc_absolute_offsets
 from ._opts import (
+    MAX_B1_DERATE,
     MAX_GRAD_DERATE,
     MAX_SLEW_DERATE,
     apply_system_derates,

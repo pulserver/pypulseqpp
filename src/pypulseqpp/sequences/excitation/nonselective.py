@@ -8,9 +8,21 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ._base import RfModule, rf_reference
+from ._base import RfModule, b1_fitted, rf_reference
 
 _AXES = ("x", "y", "z")
+
+
+def _fit_raster(system: pp.Opts, duration_s: float) -> float:
+    """Return the raster a lengthened hard pulse is rounded up to (s).
+
+    Two block rasters for a duration that is a whole number of them, which
+    keeps the pulse centre on the block raster where a spin echo places its
+    refocusing pulse; the RF raster otherwise.
+    """
+    pair = 2.0 * float(system.block_duration_raster)
+    halves = duration_s / pair
+    return pair if abs(halves - round(halves)) < 1e-6 else float(system.rf_raster_time)
 
 
 class NonSelectiveExcitation(RfModule):
@@ -24,6 +36,9 @@ class NonSelectiveExcitation(RfModule):
         Flip angle (degrees).
     duration_s : float, default=0.001
         Pulse duration (s); spectral width scales inversely with duration.
+        Lengthened when the pulse would peak above the derated ``system.max_b1``: to a
+        whole number of two block rasters when ``duration_s`` is one, else to
+        the RF raster.
     use : str, default='excitation'
         Pulseq use tag. Undefined pulses are treated as excitations by
         k-space analysis.
@@ -36,6 +51,9 @@ class NonSelectiveExcitation(RfModule):
     ----------
     rf : RfEvent
         The pulse.
+    pulse_duration : float
+        Duration the pulse is designed at (s): ``duration_s``, or longer where
+        ``system.max_b1`` requires.
 
     Examples
     --------
@@ -72,14 +90,19 @@ class NonSelectiveExcitation(RfModule):
         freq_offset_hz: float = 0.0,
         phase_offset_rad: float = 0.0,
     ) -> None:
-        rf = pp.make_block_pulse(
-            flip_angle=np.deg2rad(flip_angle_deg),
-            duration=duration_s,
-            freq_offset=freq_offset_hz,
-            phase_offset=phase_offset_rad,
-            delay=system.rf_dead_time,
-            use=use,
-            system=system,
+        self.pulse_duration, rf = b1_fitted(
+            system,
+            duration_s,
+            lambda duration: pp.make_block_pulse(
+                flip_angle=np.deg2rad(flip_angle_deg),
+                duration=duration,
+                freq_offset=freq_offset_hz,
+                phase_offset=phase_offset_rad,
+                delay=system.rf_dead_time,
+                use=use,
+                system=system,
+            ),
+            raster=_fit_raster(system, duration_s),
         )
 
         self.seq = pp.Sequence(system)
@@ -98,7 +121,9 @@ class NonSelectiveRefocusing(RfModule):
     flip_angle_deg : float, default=180.0
         Flip angle (degrees).
     duration_s : float, default=0.001
-        Pulse duration (s).
+        Pulse duration (s). Lengthened when the pulse would peak above the
+        derated ``system.max_b1``: to a whole number of two block rasters when
+        ``duration_s`` is one, else to the RF raster.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing each crusher produces across ``voxel_size_m``.
         Zero omits the crushers.
@@ -118,6 +143,9 @@ class NonSelectiveRefocusing(RfModule):
     ----------
     rf_ref : RfEvent
         The refocusing pulse.
+    pulse_duration : float
+        Duration the pulse is designed at (s): ``duration_s``, or longer where
+        ``system.max_b1`` requires.
     gz_spoil : GradEvent
         The crusher, published once because both sides play the same event.
 
@@ -173,13 +201,18 @@ class NonSelectiveRefocusing(RfModule):
         if axis not in _AXES:
             raise ValueError(f"axis must be one of {_AXES}, got {axis!r}")
 
-        rf_ref = pp.make_block_pulse(
-            flip_angle=np.deg2rad(flip_angle_deg),
-            duration=duration_s,
-            phase_offset=phase_offset_rad,
-            delay=system.rf_dead_time,
-            use=use,
-            system=system,
+        self.pulse_duration, rf_ref = b1_fitted(
+            system,
+            duration_s,
+            lambda duration: pp.make_block_pulse(
+                flip_angle=np.deg2rad(flip_angle_deg),
+                duration=duration,
+                phase_offset=phase_offset_rad,
+                delay=system.rf_dead_time,
+                use=use,
+                system=system,
+            ),
+            raster=_fit_raster(system, duration_s),
         )
 
         self.seq = pp.Sequence(system)
