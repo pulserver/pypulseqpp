@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
-__all__ = ["RfModule", "b1_fitted", "rf_reference", "selective_slr"]
+__all__ = [
+    "ADIABATICITY_FLOOR",
+    "ADIABATIC_MAX_STRETCH",
+    "RfModule",
+    "adiabatic_fitted",
+    "b1_fitted",
+    "held_sweep",
+    "rf_reference",
+    "selective_slr",
+]
 
 from typing import Any
 
@@ -10,6 +19,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
+from ..._adiabatic import HYPSEC_BETA, HYPSEC_MU
 from ..._opts import b1_design_limit
 from .._module import SequenceModule
 
@@ -89,6 +99,161 @@ def b1_fitted(
     raise ValueError(
         f"the pulse peaks at {peak:.0f} Hz at {duration * 1e3:.2f} ms, above the "
         f"{limit:.0f} Hz a pulse is designed to"
+    )
+
+
+#: Most an adiabatic pulse is lengthened past its design duration, as a factor.
+ADIABATIC_MAX_STRETCH = 2.0
+#: Least fraction of its design adiabaticity an adiabatic pulse is lowered to.
+ADIABATICITY_FLOOR = 0.75
+
+
+def held_sweep(pulse_type: str, stretch: float) -> dict[str, float]:
+    """Return the :func:`~pypulseqpp.make_adiabatic_pulse` keywords that keep a sweep's bandwidth over ``stretch`` times its duration.
+
+    A hyperbolic secant sweeps ``mu * beta`` (rad/s) over an envelope
+    ``sech(beta t)``: ``beta`` falls and ``mu`` rises by ``stretch``, so the
+    sweep and the envelope's truncation are kept. The other sweeps are
+    defined in time normalised to the duration and need nothing.
+
+    Parameters
+    ----------
+    pulse_type : str
+        Sweep family, as :func:`~pypulseqpp.make_adiabatic_pulse` names them.
+    stretch : float
+        Duration over the design duration.
+
+    Returns
+    -------
+    dict
+        ``beta`` and ``mu`` for ``"hypsec"``, empty otherwise.
+
+    Examples
+    --------
+    >>> from pypulseqpp.sequences.excitation._base import held_sweep
+    >>> held_sweep("hypsec", 2.0)
+    {'beta': 400.0, 'mu': 9.8}
+    >>> held_sweep("wurst", 2.0)
+    {}
+    """
+    if pulse_type != "hypsec":
+        return {}
+    return {"beta": HYPSEC_BETA / stretch, "mu": HYPSEC_MU * stretch}
+
+
+def adiabatic_fitted(
+    system: Any,
+    duration_s: float,
+    adiabaticity: float,
+    make: Any,
+    *,
+    raster: float | None = None,
+) -> tuple[float, float, Any]:
+    """Return a duration and adiabaticity at which an adiabatic pulse fits the derated ``system.max_b1``, and the pulse.
+
+    The limit is :func:`b1_fitted`'s. At a fixed swept bandwidth the peak
+    meeting ``adiabaticity`` at the sweep's centre falls as
+    ``sqrt(adiabaticity / duration)``, so a pulse above the limit is first
+    designed again at its duration times the square of its peak's ratio to the
+    limit, rounded up to ``raster``, which holds its adiabaticity, its band
+    and its response to B1. Past :data:`ADIABATIC_MAX_STRETCH` times
+    ``duration_s`` the duration stays there and the adiabaticity is lowered
+    by the square of the remaining ratio, to no less than
+    :data:`ADIABATICITY_FLOOR` of ``adiabaticity``. A system without a
+    ``max_b1``, or a pulse within the limit, takes ``duration_s``,
+    ``adiabaticity`` and the pulse as designed.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits; ``max_b1`` is the transmit chain's peak RF amplitude
+        (Hz), ``None`` or absent for none.
+    duration_s : float
+        Duration the pulse is designed at when it fits (s).
+    adiabaticity : float
+        Sweep-rate margin over the adiabatic condition the pulse is designed
+        at when it fits.
+    make : callable
+        ``make(duration, adiabaticity)`` designs the events at ``duration``
+        (s) with the bandwidth swept at ``duration_s`` (see
+        :func:`held_sweep`), the RF event alone or first in a tuple.
+    raster : float, default=None
+        Raster a lengthened duration is rounded up to (s);
+        ``system.grad_raster_time`` when ``None``.
+
+    Returns
+    -------
+    tuple
+        ``(duration, adiabaticity, events)``: what the pulse was designed at
+        and what ``make`` returned for it.
+
+    Raises
+    ------
+    ValueError
+        If the pulse exceeds the limit at :data:`ADIABATIC_MAX_STRETCH` times
+        its duration and :data:`ADIABATICITY_FLOOR` of its adiabaticity.
+
+    Examples
+    --------
+    The 10 ms hyperbolic-secant inversion at adiabaticity 4 peaks at 13.2 uT;
+    under an 11.2 uT limit, held to 10.08 uT, it lasts 17.26 ms at the same
+    adiabaticity:
+
+    >>> import pypulseqpp as pp
+    >>> from pypulseqpp.sequences.excitation._base import adiabatic_fitted, held_sweep
+    >>> system = pp.Opts(max_b1=11.2)
+    >>> def make(duration, adiabaticity):
+    ...     return pp.make_adiabatic_pulse(
+    ...         "hypsec", adiabaticity=adiabaticity, duration=duration, system=system,
+    ...         **held_sweep("hypsec", duration / 10e-3),
+    ...     )
+    >>> duration, adiabaticity, rf = adiabatic_fitted(system, 10e-3, 4, make)
+    >>> round(duration * 1e3, 2), adiabaticity
+    (17.26, 4)
+
+    Under 9.5 uT, held to 8.55 uT, twice the duration is not enough and the
+    adiabaticity falls:
+
+    >>> system = pp.Opts(max_b1=9.5)
+    >>> duration, adiabaticity, rf = adiabatic_fitted(system, 10e-3, 4, make)
+    >>> round(duration * 1e3, 2), round(adiabaticity, 2)
+    (20.0, 3.34)
+    """
+    limit = b1_design_limit(system)
+    events = make(duration_s, adiabaticity)
+    if limit is None:
+        return duration_s, adiabaticity, events
+    step = float(system.grad_raster_time if raster is None else raster)
+    ceiling = float(np.floor(ADIABATIC_MAX_STRETCH * duration_s / step + 1e-9) * step)
+    floor = ADIABATICITY_FLOOR * adiabaticity
+    duration, margin = duration_s, adiabaticity
+    for attempt in range(5):
+        rf = events[0] if isinstance(events, tuple) else events
+        peak = float(np.abs(np.asarray(rf.signal)).max())
+        if peak <= limit:
+            return duration, margin, events
+        if attempt == 4:
+            break
+        wanted = float(np.ceil(duration * (peak / limit) ** 2 / step - 1e-9) * step)
+        if wanted <= ceiling:
+            duration = wanted
+        else:
+            # The adiabaticity that brings the peak at the ceiling to just
+            # under the limit; the sampled peak follows the square root of
+            # the duration to within a part in 1e6.
+            margin *= (1.0 - 1e-6) * (limit / peak) ** 2 * ceiling / duration
+            duration = ceiling
+            if margin < floor * (1.0 - 1e-9):
+                raise ValueError(
+                    f"the adiabatic pulse fits the {limit:.0f} Hz a pulse is "
+                    f"designed to only at adiabaticity {margin:.2f} over "
+                    f"{ADIABATIC_MAX_STRETCH:g} times its {duration_s * 1e3:.2f} ms, "
+                    f"below {ADIABATICITY_FLOOR:g} of its {adiabaticity:g}"
+                )
+        events = make(duration, margin)
+    raise ValueError(
+        f"the adiabatic pulse peaks at {peak:.0f} Hz at {duration * 1e3:.2f} ms, "
+        f"above the {limit:.0f} Hz a pulse is designed to"
     )
 
 

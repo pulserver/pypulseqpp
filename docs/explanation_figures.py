@@ -1293,6 +1293,84 @@ def block_loop_time():
     return figure
 
 
+def adiabatic_inversion_under_b1_limit():
+    """An adiabatic inversion fitted to a peak-B1 limit by lengthening, by the floor, and halved.
+
+    The envelopes of ``InversionPreparation`` with no limit, under 11.2 uT
+    (lengthened at its adiabaticity) and under 9.5 uT (at twice its duration
+    and a lowered adiabaticity), and the same 10 ms pulse at half its
+    adiabaticity; and the highest Mz each leaves over +-250 Hz, from
+    ``sim_rf``, as the transmit field is scaled.
+    """
+    import pypulseqpp as pp
+    from pypulseqpp import sequences
+
+    plt = _pyplot()
+    gamma = pp.Opts().gamma
+    band = 250.0
+    scales = np.linspace(0.5, 1.5, 21)
+    designs = (
+        ("no limit", sequences.InversionPreparation(pp.Opts()), SERIES[0], "-"),
+        (
+            "max_b1 = 11.2 µT",
+            sequences.InversionPreparation(pp.Opts(max_b1=11.2)),
+            SERIES[1],
+            "-",
+        ),
+        (
+            "max_b1 = 9.5 µT",
+            sequences.InversionPreparation(pp.Opts(max_b1=9.5)),
+            SERIES[2],
+            "-",
+        ),
+        (
+            "half the adiabaticity",
+            sequences.InversionPreparation(pp.Opts(), adiabaticity=2),
+            MUTED,
+            "--",
+        ),
+    )
+    figure, (env, eff) = plt.subplots(
+        1, 2, figsize=(PAGE_WIDTH, 3.4), layout="constrained"
+    )
+    for label, module, color, style in designs:
+        b1 = np.asarray(module.rf_prep.signal)
+        dt = module.pulse_duration / b1.size
+        t = (np.arange(b1.size) + 0.5) * dt - module.pulse_duration / 2
+        env.plot(
+            t * 1e3,
+            abs(b1) / gamma * 1e6,
+            color=color,
+            ls=style,
+            lw=1.0,
+            label=f"{label}: {module.pulse_duration * 1e3:.1f} ms, "
+            f"adiabaticity {module.adiabaticity:.2g}",
+        )
+        worst = []
+        for scale in scales:
+            scaled = pp.make_arbitrary_rf(
+                b1 * scale,
+                flip_angle=np.pi,
+                no_signal_scaling=True,
+                dwell=dt,
+                use="inversion",
+            )
+            mz, _, frequency = pp.sim_rf(scaled, df=5.0)[:3]
+            worst.append(mz[np.abs(frequency) <= band].max())
+        eff.plot(scales, worst, color=color, ls=style, lw=1.2)
+    for limit in (11.2, 9.5):
+        env.axhline(pp.MAX_B1_DERATE * limit, color=FAINT, lw=0.8)
+    eff.axvspan(0.7, 1.3, color=FAINT, lw=0)
+    env.set_xlabel("time from centre (ms)")
+    env.set_ylabel("$|B_1|$ (µT)")
+    env.set_title("envelope; lines at 0.9 of each limit")
+    eff.set_xlabel("transmit field, fraction of nominal")
+    eff.set_ylabel(f"highest $M_z$ over $\\pm${band:.0f} Hz")
+    eff.set_title("inversion from sim_rf, no relaxation")
+    figure.legend(ncols=2, loc="outside upper left", fontsize="small")
+    return figure
+
+
 FIGURES = {
     "axis_peaks_against_vector": axis_peaks_against_vector,
     "rotation_against_per_axis_limit": rotation_against_per_axis_limit,
@@ -1310,6 +1388,7 @@ FIGURES = {
     "designed_pulse_and_gradient": designed_pulse_and_gradient,
     "kspace_reset_and_unbroken": kspace_reset_and_unbroken,
     "block_loop_time": block_loop_time,
+    "adiabatic_inversion_under_b1_limit": adiabatic_inversion_under_b1_limit,
 }
 
 

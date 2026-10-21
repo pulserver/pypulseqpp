@@ -8,7 +8,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ..excitation._base import RfModule, rf_reference
+from ..excitation._base import RfModule, adiabatic_fitted, held_sweep, rf_reference
 from ._common import spoiler_gradients
 
 _FINAL_TIPS = ("up", "down")
@@ -19,7 +19,12 @@ class T2Preparation(RfModule):
 
     The refocusing pulses come in pairs, which cancels their B1-dependent
     phase. The storing half passage is the time-reversed, conjugated tip-down
-    half passage.
+    half passage. A half passage or refocusing pulse whose peak exceeds
+    :data:`~pypulseqpp.MAX_B1_DERATE` of ``system.max_b1`` is lengthened at
+    the same adiabaticity and swept bandwidth, up to
+    ``ADIABATIC_MAX_STRETCH`` (2) times its duration, and past it held there
+    with its adiabaticity lowered, to no less than ``ADIABATICITY_FLOOR``
+    (0.75) of ``adiabaticity``.
 
     Parameters
     ----------
@@ -35,11 +40,13 @@ class T2Preparation(RfModule):
         Adiabatic refocusing pulses, spaced evenly through the echo time; even
         and at least 2.
     half_passage_duration_s : float, default=0.004
-        Duration of each half passage (s).
+        Duration of each half passage (s) while it fits the system's peak B1.
     refocusing_duration_s : float, default=0.01024
-        Duration of each refocusing pulse (s).
-    adiabaticity : int, default=8
-        Sweep-rate margin over the adiabatic condition, of every pulse.
+        Duration of each refocusing pulse (s) while it fits the system's peak
+        B1.
+    adiabaticity : float, default=8
+        Sweep-rate margin over the adiabatic condition, of every pulse, while
+        it fits the system's peak B1.
     dwell_s : float, default=1e-05
         RF raster (s).
     spoiling_cycles : float, default=4.0
@@ -59,6 +66,12 @@ class T2Preparation(RfModule):
         The refocusing pulse; every repeat plays this one event.
     rf_store : RfEvent
         The reverse half passage that stores what is left.
+    half_passage_duration, refocusing_duration : float
+        Durations the half passages and the refocusing pulse were designed at
+        (s): the requested ones, or longer under the system's peak B1.
+    half_passage_adiabaticity, refocusing_adiabaticity : float
+        Adiabaticities they were designed at: ``adiabaticity``, or lower under
+        the system's peak B1.
     wait_first, wait_inner, wait_last : DelayEvent
         The gaps before the first refocusing pulse, between refocusing
         pulses, and before ``rf_store``. Each is absent when its gap is zero.
@@ -74,8 +87,9 @@ class T2Preparation(RfModule):
     ------
     ValueError
         If ``final_tip`` is not ``'up'`` or ``'down'``, ``n_refocus`` is not a
-        positive even number, a size is out of range, or the echo time is
-        shorter than the pulses themselves.
+        positive even number, a size is out of range, the echo time is
+        shorter than the pulses themselves, or a pulse cannot fit the system's
+        peak B1.
 
     Examples
     --------
@@ -112,7 +126,7 @@ class T2Preparation(RfModule):
         n_refocus: int = 2,
         half_passage_duration_s: float = 4e-3,
         refocusing_duration_s: float = 10.24e-3,
-        adiabaticity: int = 8,
+        adiabaticity: float = 8,
         dwell_s: float = 10e-6,
         spoiling_cycles: float = 4.0,
         voxel_size_m: float = 1e-3,
@@ -135,19 +149,35 @@ class T2Preparation(RfModule):
         if voxel_size_m <= 0:
             raise ValueError("voxel_size_m must be positive")
 
-        rf_prep, rf_store = pp.make_half_passages(
-            half_passage_duration_s,
-            adiabaticity=adiabaticity,
-            dwell=dwell_s,
-            system=system,
+        def half_passages(duration: float, margin: float):
+            return pp.make_half_passages(
+                duration,
+                adiabaticity=margin,
+                dwell=dwell_s,
+                system=system,
+                **held_sweep("hypsec", duration / half_passage_duration_s),
+            )
+
+        def refocusing(duration: float, margin: float):
+            return pp.make_adiabatic_pulse(
+                pulse_type="hypsec",
+                duration=duration,
+                dwell=dwell_s,
+                adiabaticity=margin,
+                system=system,
+                use="refocusing",
+                **held_sweep("hypsec", duration / refocusing_duration_s),
+            )
+
+        (
+            self.half_passage_duration,
+            self.half_passage_adiabaticity,
+            (rf_prep, rf_store),
+        ) = adiabatic_fitted(
+            system, half_passage_duration_s, adiabaticity, half_passages
         )
-        rf_ref = pp.make_adiabatic_pulse(
-            pulse_type="hypsec",
-            duration=refocusing_duration_s,
-            dwell=dwell_s,
-            adiabaticity=adiabaticity,
-            system=system,
-            use="refocusing",
+        self.refocusing_duration, self.refocusing_adiabaticity, rf_ref = (
+            adiabatic_fitted(system, refocusing_duration_s, adiabaticity, refocusing)
         )
 
         # With the refocusing pulses paired, the transverse phase arrives back

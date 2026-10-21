@@ -36,7 +36,7 @@ blocks, as {doc}`../explanations/sequence-modules` describes.
 
 | Object | Input | Publishes | Purpose |
 | --- | --- | --- | --- |
-| {obj}`~pypulseqpp.sequences.InversionPreparation` | Duration, adiabatic pulse type, bandwidth, crusher cycles | `rf_prep`, `gz_spoil`, `prep_labels` | Non-selective adiabatic inversion. |
+| {obj}`~pypulseqpp.sequences.InversionPreparation` | Duration, adiabatic pulse type, bandwidth, adiabaticity, crusher cycles | `rf_prep`, `gz_spoil`, `prep_labels`, `pulse_duration`, `adiabaticity` | Non-selective adiabatic inversion. |
 | {obj}`~pypulseqpp.sequences.BlochSiegertPreparation` | Frequency offset, duration, peak B1 (Hz) | `rf_prep`, spoilers, `kbs` (rad/Hz²) | Off-resonance Fermi pulse for Bloch-Siegert B1 mapping. |
 | {obj}`~pypulseqpp.sequences.DiffusionPreparation` | b-value (s/mm²), gradient duration and separation | `rf_prep`, `rf_ref`, `rf_store`, `g_diff`, spoilers | Non-selective diffusion preparation. |
 | {obj}`~pypulseqpp.sequences.FatSaturation` | Offset (ppm), flip angle, bandwidth | `rf_prep`, spoilers | SLR fat saturation of the whole transmit volume. |

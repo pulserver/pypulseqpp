@@ -22,6 +22,11 @@ ADIABATIC_PULSE_TYPES = ("hypsec", "wurst", "bir4", "goia_wurst")
 
 _UPSTREAM_TYPES = ("hypsec", "wurst")
 
+#: Default ``"hypsec"`` envelope parameter ``beta`` (1/s).
+HYPSEC_BETA = 800.0
+#: Default ``"hypsec"`` sweep amplitude ``mu``, in units of ``beta``.
+HYPSEC_MU = 4.9
+
 
 def make_adiabatic_pulse(
     pulse_type: str,
@@ -35,7 +40,7 @@ def make_adiabatic_pulse(
     max_grad: float | None = None,
     max_slew: float | None = None,
     n_fac: int | None = None,
-    mu: float = 4.9,
+    mu: float = HYPSEC_MU,
     phase_offset: float = 0.0,
     return_gz: bool = False,
     slice_thickness: float = 0.0,
@@ -157,7 +162,7 @@ def make_adiabatic_pulse(
             pulse_type,
             adiabaticity=adiabaticity,
             bandwidth=bandwidth,
-            beta=800.0 if beta is None else beta,
+            beta=HYPSEC_BETA if beta is None else beta,
             delay=delay,
             duration=duration,
             dwell=dwell,
