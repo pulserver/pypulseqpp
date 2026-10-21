@@ -533,7 +533,8 @@ it, for a readout that includes the rephaser’s moment.</p>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Flip angle (degrees).</p></li>
 <li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Slice or slab thickness (m), set by the selection gradient plateau
 against the pulse’s measured bandwidth.</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Pulse duration (s).</p></li>
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Pulse duration (s); lengthened, flip angle and time-bandwidth product
+held, when the pulse would peak above the derated <code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code>.</p></li>
 <li><p><strong>is_slab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Merge the rephaser into the selection gradient.</p></li>
 <li><p><strong>rephase</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Include the slice rephaser.</p></li>
 <li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Time-bandwidth product; a higher value gives a squarer profile and a
@@ -554,6 +555,8 @@ longer pulse at the same bandwidth.</p></li>
 is converted against: <code class="docutils literal notranslate"><span class="pre">freq_offset</span> <span class="pre">=</span> <span class="pre">selection_amplitude</span> <span class="pre">*</span> <span class="pre">position</span></code>.</p></li>
 <li><p><strong>slice_thickness</strong> (<em>float</em>) – The thickness selected (m), the pulse’s measured bandwidth over
 <code class="docutils literal notranslate"><span class="pre">selection_amplitude</span></code>: <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> to rounding.</p></li>
+<li><p><strong>pulse_duration</strong> (<em>float</em>) – Duration the pulse is designed at (s): <code class="docutils literal notranslate"><span class="pre">duration_s</span></code>, or longer where
+<code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code> requires.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>

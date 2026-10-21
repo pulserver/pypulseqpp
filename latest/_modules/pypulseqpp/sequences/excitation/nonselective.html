@@ -452,9 +452,21 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">b1_fitted</span><span class="p">,</span> <span class="n">rf_reference</span>
 
 <span class="n">_AXES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fit_raster</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the raster a lengthened hard pulse is rounded up to (s).</span>
+
+<span class="sd">    Two block rasters for a duration that is a whole number of them, which</span>
+<span class="sd">    keeps the pulse centre on the block raster where a spin echo places its</span>
+<span class="sd">    refocusing pulse; the RF raster otherwise.</span>
+<span class="sd">    """</span>
+    <span class="n">pair</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">)</span>
+    <span class="n">halves</span> <span class="o">=</span> <span class="n">duration_s</span> <span class="o">/</span> <span class="n">pair</span>
+    <span class="k">return</span> <span class="n">pair</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">halves</span> <span class="o">-</span> <span class="nb">round</span><span class="p">(</span><span class="n">halves</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="NonSelectiveExcitation">
@@ -470,6 +482,9 @@
 <span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float, default=0.001</span>
 <span class="sd">        Pulse duration (s); spectral width scales inversely with duration.</span>
+<span class="sd">        Lengthened when the pulse would peak above the derated ``system.max_b1``: to a</span>
+<span class="sd">        whole number of two block rasters when ``duration_s`` is one, else to</span>
+<span class="sd">        the RF raster.</span>
 <span class="sd">    use : str, default='excitation'</span>
 <span class="sd">        Pulseq use tag. Undefined pulses are treated as excitations by</span>
 <span class="sd">        k-space analysis.</span>
@@ -482,6 +497,9 @@
 <span class="sd">    ----------</span>
 <span class="sd">    rf : RfEvent</span>
 <span class="sd">        The pulse.</span>
+<span class="sd">    pulse_duration : float</span>
+<span class="sd">        Duration the pulse is designed at (s): ``duration_s``, or longer where</span>
+<span class="sd">        ``system.max_b1`` requires.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -520,14 +538,19 @@
         <span class="n">freq_offset_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">phase_offset_rad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">rf</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span>
-            <span class="n">flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
-            <span class="n">duration</span><span class="o">=</span><span class="n">duration_s</span><span class="p">,</span>
-            <span class="n">freq_offset</span><span class="o">=</span><span class="n">freq_offset_hz</span><span class="p">,</span>
-            <span class="n">phase_offset</span><span class="o">=</span><span class="n">phase_offset_rad</span><span class="p">,</span>
-            <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">,</span>
-            <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
-            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_duration</span><span class="p">,</span> <span class="n">rf</span> <span class="o">=</span> <span class="n">b1_fitted</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span>
+            <span class="n">duration_s</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">duration</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span>
+                <span class="n">flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+                <span class="n">freq_offset</span><span class="o">=</span><span class="n">freq_offset_hz</span><span class="p">,</span>
+                <span class="n">phase_offset</span><span class="o">=</span><span class="n">phase_offset_rad</span><span class="p">,</span>
+                <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">,</span>
+                <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">raster</span><span class="o">=</span><span class="n">_fit_raster</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
@@ -550,7 +573,9 @@
 <span class="sd">    flip_angle_deg : float, default=180.0</span>
 <span class="sd">        Flip angle (degrees).</span>
 <span class="sd">    duration_s : float, default=0.001</span>
-<span class="sd">        Pulse duration (s).</span>
+<span class="sd">        Pulse duration (s). Lengthened when the pulse would peak above the</span>
+<span class="sd">        derated ``system.max_b1``: to a whole number of two block rasters when</span>
+<span class="sd">        ``duration_s`` is one, else to the RF raster.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
 <span class="sd">        Cycles of dephasing each crusher produces across ``voxel_size_m``.</span>
 <span class="sd">        Zero omits the crushers.</span>
@@ -570,6 +595,9 @@
 <span class="sd">    ----------</span>
 <span class="sd">    rf_ref : RfEvent</span>
 <span class="sd">        The refocusing pulse.</span>
+<span class="sd">    pulse_duration : float</span>
+<span class="sd">        Duration the pulse is designed at (s): ``duration_s``, or longer where</span>
+<span class="sd">        ``system.max_b1`` requires.</span>
 <span class="sd">    gz_spoil : GradEvent</span>
 <span class="sd">        The crusher, published once because both sides play the same event.</span>
 
@@ -627,13 +655,18 @@
         <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AXES</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"axis must be one of </span><span class="si">{</span><span class="n">_AXES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">rf_ref</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span>
-            <span class="n">flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
-            <span class="n">duration</span><span class="o">=</span><span class="n">duration_s</span><span class="p">,</span>
-            <span class="n">phase_offset</span><span class="o">=</span><span class="n">phase_offset_rad</span><span class="p">,</span>
-            <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">,</span>
-            <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
-            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_duration</span><span class="p">,</span> <span class="n">rf_ref</span> <span class="o">=</span> <span class="n">b1_fitted</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span>
+            <span class="n">duration_s</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">duration</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_block_pulse</span><span class="p">(</span>
+                <span class="n">flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+                <span class="n">phase_offset</span><span class="o">=</span><span class="n">phase_offset_rad</span><span class="p">,</span>
+                <span class="n">delay</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">,</span>
+                <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">raster</span><span class="o">=</span><span class="n">_fit_raster</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>

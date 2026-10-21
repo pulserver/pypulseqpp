@@ -279,6 +279,7 @@ from.
    cap_system
    MAX_GRAD_DERATE
    MAX_SLEW_DERATE
+   MAX_B1_DERATE
 
 .. autosummary::
    :toctree: generated

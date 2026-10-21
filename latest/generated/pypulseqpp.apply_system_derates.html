@@ -520,14 +520,18 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.apply_system_derates">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">apply_system_derates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_opts.html#apply_system_derates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.apply_system_derates" title="Link to this definition">#</a></dt>
-<dd><p>Return a copy with gradient and slew limits scaled from their base values.</p>
-<p>Base limits are retained on the copy, so repeated derating does not compound.</p>
+<dd><p>Return a copy with gradient, slew and peak-B1 limits scaled from their base values.</p>
+<p>Base limits are retained on the copy, so repeated derating does not compound,
+and a ceiling <a class="reference internal" href="pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> puts on a derated copy holds when it is
+derated again.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>opts</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>Opts</em></a>) – System limits. Not modified.</p></li>
 <li><p><strong>grad_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_GRAD_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> to allow.</p></li>
 <li><p><strong>slew_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_SLEW_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> to allow.</p></li>
+<li><p><strong>b1_derate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=MAX_B1_DERATE</em>) – Fraction of the base <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> to allow; a system without a
+<code class="docutils literal notranslate"><span class="pre">max_b1</span></code> keeps none.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -548,7 +552,9 @@
 <p>The default fractions, <a class="reference internal" href="pypulseqpp.MAX_GRAD_DERATE.html#pypulseqpp.MAX_GRAD_DERATE" title="pypulseqpp.MAX_GRAD_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_GRAD_DERATE</span></code></a> and
 <a class="reference internal" href="pypulseqpp.MAX_SLEW_DERATE.html#pypulseqpp.MAX_SLEW_DERATE" title="pypulseqpp.MAX_SLEW_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_SLEW_DERATE</span></code></a>, leave a margin below the amplitude and slew-rate
 limits for waveforms designed on one axis at a time and played while
-other axes are active.</p>
+other axes are active. <a class="reference internal" href="pypulseqpp.MAX_B1_DERATE.html#pypulseqpp.MAX_B1_DERATE" title="pypulseqpp.MAX_B1_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code></a> keeps a designed pulse’s
+peak below the transmit chain’s limit; the excitation and refocusing
+modules fit their pulses to it whether or not the system was derated.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">opts</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="n">max_grad</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">grad_unit</span><span class="o">=</span><span class="s2">"mT/m"</span><span class="p">,</span> <span class="n">max_slew</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">slew_unit</span><span class="o">=</span><span class="s2">"T/m/s"</span><span class="p">)</span>
@@ -561,6 +567,15 @@ other axes are active.</p>
 </div>
 <p>The caller’s own limits are untouched, and repeating does not compound:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">apply_system_derates</span><span class="p">(</span><span class="n">derated</span><span class="p">)</span><span class="o">.</span><span class="n">max_grad</span> <span class="o">==</span> <span class="n">derated</span><span class="o">.</span><span class="n">max_grad</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b1</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">apply_system_derates</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="n">max_b1</span><span class="o">=</span><span class="mf">11.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">b1</span><span class="o">.</span><span class="n">max_b1</span> <span class="o">/</span> <span class="n">b1</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">pp</span><span class="o">.</span><span class="n">apply_system_derates</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span><span class="o">.</span><span class="n">max_b1</span> <span class="o">==</span> <span class="n">b1</span><span class="o">.</span><span class="n">max_b1</span>
+<span class="go">(10.08, True)</span>
+</pre></div>
+</div>
+<p>A ceiling below the derated limit survives a second derate:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">capped</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">cap_system</span><span class="p">(</span><span class="n">derated</span><span class="p">,</span> <span class="n">max_grad</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">apply_system_derates</span><span class="p">(</span><span class="n">capped</span><span class="p">)</span><span class="o">.</span><span class="n">max_grad</span> <span class="o">==</span> <span class="n">capped</span><span class="o">.</span><span class="n">max_grad</span>
 <span class="go">True</span>
 </pre></div>
 </div>

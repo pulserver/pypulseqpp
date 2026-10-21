@@ -602,7 +602,9 @@ lobe is a triangle of peak <span class="math notranslate nohighlight">\(\sqrt{AS
 <p><a class="reference internal" href="../../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> returns a copy of the system limits
 with <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> scaled from base values the copy retains, so
 derating does not compound; <a class="reference internal" href="../../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> lowers them to
-stated ceilings.</p>
+stated ceilings, and a ceiling put on a derated copy holds when the copy is
+derated again. A trajectory solver that derates its system therefore takes no
+second margin from a system the caller derated.</p>
 <figure class="align-default" id="id4">
 <img alt="../../_images/axis_peaks_against_vector.png" src="../../_images/axis_peaks_against_vector.png" />
 <figcaption>

@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:17.025** total execution time for 10 files **from generated/gallery/01-course**:
+**00:13.185** total execution time for 10 files **from generated/gallery/01-course**:
 
 .. container::
 
@@ -33,32 +33,32 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_01-course_03_spoiling.py` (``03_spoiling.py``)
-     - 00:11.579
+     - 00:08.714
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_10_custom_sequence_module.py` (``10_custom_sequence_module.py``)
-     - 00:01.447
+     - 00:01.379
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_06_radial_mprage.py` (``06_radial_mprage.py``)
-     - 00:01.311
+     - 00:00.902
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_05_radial_sampling.py` (``05_radial_sampling.py``)
-     - 00:00.650
+     - 00:00.495
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_07_hardware_and_safety_checks.py` (``07_hardware_and_safety_checks.py``)
-     - 00:00.535
+     - 00:00.471
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_01_first_gradient_echo.py` (``01_first_gradient_echo.py``)
-     - 00:00.377
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_01-course_08_sequence_functions.py` (``08_sequence_functions.py``)
-     - 00:00.326
+     - 00:00.312
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_04_labels_and_metadata.py` (``04_labels_and_metadata.py``)
-     - 00:00.310
+     - 00:00.259
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_02_echo_and_repetition_time.py` (``02_echo_and_repetition_time.py``)
-     - 00:00.299
+     - 00:00.235
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_01-course_08_sequence_functions.py` (``08_sequence_functions.py``)
+     - 00:00.227
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_01-course_09_sequence_modules.py` (``09_sequence_modules.py``)
-     - 00:00.192
+     - 00:00.191
      - 0.0

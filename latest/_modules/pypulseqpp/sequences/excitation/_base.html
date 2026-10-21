@@ -446,7 +446,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"RfModule"</span><span class="p">,</span> <span class="s2">"rf_reference"</span><span class="p">,</span> <span class="s2">"selective_slr"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"RfModule"</span><span class="p">,</span> <span class="s2">"b1_fitted"</span><span class="p">,</span> <span class="s2">"rf_reference"</span><span class="p">,</span> <span class="s2">"selective_slr"</span><span class="p">]</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -454,7 +454,86 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">b1_design_limit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._module</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceModule</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">b1_fitted</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">make</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return a duration from ``duration_s`` up at which a pulse fits the derated ``system.max_b1``, and the pulse.</span>
+
+<span class="sd">    The pulse is held to :data:`~pypulseqpp.MAX_B1_DERATE` of ``max_b1``, or</span>
+<span class="sd">    to ``max_b1`` itself on a system :func:`~pypulseqpp.apply_system_derates`</span>
+<span class="sd">    has derated, so the margin is taken once. The flip angle and</span>
+<span class="sd">    time-bandwidth product are ``make``'s, so the envelope keeps its shape and</span>
+<span class="sd">    its peak falls as the duration grows. A pulse whose peak exceeds the limit</span>
+<span class="sd">    is designed again at its duration times the ratio of its peak to the</span>
+<span class="sd">    limit, rounded up to ``raster``, until it fits. A system without a</span>
+<span class="sd">    ``max_b1``, a plain ``pypulseq.Opts`` among them, or with the pulse</span>
+<span class="sd">    already within the limit, takes ``duration_s`` and the pulse as designed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits; ``max_b1`` is the transmit chain's peak RF amplitude</span>
+<span class="sd">        (Hz), ``None`` or absent for none.</span>
+<span class="sd">    duration_s : float</span>
+<span class="sd">        Duration the pulse is designed at when it fits (s).</span>
+<span class="sd">    make : callable</span>
+<span class="sd">        ``make(duration)`` designs the events at ``duration`` (s), the RF event</span>
+<span class="sd">        alone or first in a tuple.</span>
+<span class="sd">    raster : float, default=None</span>
+<span class="sd">        Raster a lengthened duration is rounded up to (s);</span>
+<span class="sd">        ``system.grad_raster_time`` when ``None``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        ``(duration, events)``: the duration designed at (s) and what</span>
+<span class="sd">        ``make`` returned for it.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the pulse still exceeds the limit after four redesigns.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    A 180 degree hard pulse of 1 ms peaks at 500 Hz, 11.7 uT; under a 5 uT</span>
+<span class="sd">    limit it is held to 4.5 uT, lengthened by the ratio to the next gradient</span>
+<span class="sd">    raster:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp.sequences.excitation._base import b1_fitted</span>
+<span class="sd">    &gt;&gt;&gt; system = pp.Opts(max_b1=5.0)</span>
+<span class="sd">    &gt;&gt;&gt; make = lambda d: pp.make_block_pulse(3.14159, duration=d, system=system)</span>
+<span class="sd">    &gt;&gt;&gt; duration, rf = b1_fitted(system, 1e-3, make)</span>
+<span class="sd">    &gt;&gt;&gt; peak_ut = float(abs(rf.signal).max()) / system.gamma * 1e6</span>
+<span class="sd">    &gt;&gt;&gt; round(duration * 1e3, 2), round(peak_ut, 2)</span>
+<span class="sd">    (2.62, 4.48)</span>
+<span class="sd">    &gt;&gt;&gt; b1_fitted(pp.Opts(), 1e-3, make)[0]</span>
+<span class="sd">    0.001</span>
+<span class="sd">    """</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">b1_design_limit</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">duration_s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">duration_s</span><span class="p">,</span> <span class="n">events</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span> <span class="k">if</span> <span class="n">raster</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">duration_s</span>
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">events</span>
+        <span class="n">peak</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">signal</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">peak</span> <span class="o">&lt;=</span> <span class="n">limit</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">duration</span><span class="p">,</span> <span class="n">events</span>
+        <span class="k">if</span> <span class="n">attempt</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">peak</span> <span class="o">/</span> <span class="n">limit</span> <span class="o">/</span> <span class="n">step</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"the pulse peaks at </span><span class="si">{</span><span class="n">peak</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz at </span><span class="si">{</span><span class="n">duration</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms, above the "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">limit</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz a pulse is designed to"</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">rf_reference</span><span class="p">(</span><span class="n">rf</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>

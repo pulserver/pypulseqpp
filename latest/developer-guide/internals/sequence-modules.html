@@ -673,6 +673,15 @@ exposes the function as <code class="docutils literal notranslate"><span class="
 constants <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (mT/m) and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (T/m/s). Changing one redesigns the
 gradient waveforms and may alter echo spacing, acquisition duration and the
 constraint estimates.</p>
+<p>A pulse duration constant, such as <code class="docutils literal notranslate"><span class="pre">PULSE_DURATION</span></code>, is the duration a pulse is
+designed at while its peak is within <code class="docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code> of <code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code>, the
+peak B1 the transmit chain allows (of <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> itself on a system
+<code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code> has derated). Above it, the selective and non-selective
+excitation and refocusing modules lengthen the pulse, flip angle and
+time-bandwidth product held, until its peak fits; the module’s <code class="docutils literal notranslate"><span class="pre">pulse_duration</span></code>, blocks and centre
+carry the lengthened pulse, and a sequence solves its TE and TR from them.
+Spectral, adiabatic, two-dimensional and multiband pulses are designed as
+given, since their duration sets what they select.</p>
 <section id="protocol">
 <h3>Protocol<a class="headerlink" href="#protocol" title="Link to this heading">#</a></h3>
 <p>A parameter’s type and default come from its annotation and default value, and

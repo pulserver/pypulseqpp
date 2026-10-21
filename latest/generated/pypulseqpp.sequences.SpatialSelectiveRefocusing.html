@@ -531,7 +531,8 @@ until that centre lies on the block raster.</p>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
 <li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Slice thickness (m).</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=180.0</em>) – Flip angle (degrees).</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Pulse duration (s).</p></li>
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.003</em>) – Pulse duration (s); lengthened, flip angle and time-bandwidth product
+held, when the pulse would peak above the derated <code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code>.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each crusher produces across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
 Zero leaves the bare selection lobe.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
@@ -552,6 +553,8 @@ so that its recorded centre is the plateau’s midpoint.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Crusher, selection plateau and crusher, as one gradient.</p></li>
 <li><p><strong>selection_amplitude</strong> (<em>float</em>) – Plateau amplitude of the selection lobe (Hz/m), which a slice offset
 is converted against; <code class="docutils literal notranslate"><span class="pre">gz.amplitude</span></code> is the crushers’ peak.</p></li>
+<li><p><strong>pulse_duration</strong> (<em>float</em>) – Duration the pulse is designed at (s): <code class="docutils literal notranslate"><span class="pre">duration_s</span></code>, or longer where
+<code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code> requires.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>

@@ -527,7 +527,9 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=180.0</em>) – Flip angle (degrees).</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Pulse duration (s).</p></li>
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Pulse duration (s). Lengthened when the pulse would peak above the
+derated <code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code>: to a whole number of two block rasters when
+<code class="docutils literal notranslate"><span class="pre">duration_s</span></code> is one, else to the RF raster.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing each crusher produces across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>.
 Zero omits the crushers.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m).</p></li>
@@ -541,6 +543,8 @@ refocusing pulse, so this is not cosmetic.</p></li>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – The refocusing pulse.</p></li>
+<li><p><strong>pulse_duration</strong> (<em>float</em>) – Duration the pulse is designed at (s): <code class="docutils literal notranslate"><span class="pre">duration_s</span></code>, or longer where
+<code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code> requires.</p></li>
 <li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – The crusher, published once because both sides play the same event.</p></li>
 </ul>
 </dd>

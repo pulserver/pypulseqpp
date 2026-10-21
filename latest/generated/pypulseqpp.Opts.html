@@ -528,7 +528,11 @@ rasters, and zero for the RF and ADC dead times and the RF ringdown time.
 Set the actual hardware timings before checking a sequence.</p>
 <p>Gradient amplitude and slew-rate limits are stored in Hz/m and Hz/m/s after
 conversion from <code class="docutils literal notranslate"><span class="pre">grad_unit</span></code> and <code class="docutils literal notranslate"><span class="pre">slew_unit</span></code>; <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is in Hz/T and
-<code class="docutils literal notranslate"><span class="pre">B0</span></code> in T.</p>
+<code class="docutils literal notranslate"><span class="pre">B0</span></code> in T. <code class="docutils literal notranslate"><span class="pre">max_b1</span></code>, the peak B1 the transmit chain allows, is stored in
+Hz (gamma B1) after conversion from <code class="docutils literal notranslate"><span class="pre">b1_unit</span></code>, one of <code class="docutils literal notranslate"><span class="pre">Hz</span></code>, <code class="docutils literal notranslate"><span class="pre">T</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mT</span></code>, <code class="docutils literal notranslate"><span class="pre">uT</span></code> (the default) and <code class="docutils literal notranslate"><span class="pre">G</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> sets no limit. The
+excitation and refocusing modules lengthen a pulse that would exceed
+<a class="reference internal" href="pypulseqpp.MAX_B1_DERATE.html#pypulseqpp.MAX_B1_DERATE" title="pypulseqpp.MAX_B1_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code></a> of it.</p>
 <p>Importing pypulseqpp installs these defaults for PyPulseq factories.
 Constructing Opts alone does not change the shared default; use
 set_as_default or reset_default.</p>
@@ -539,6 +543,8 @@ set_as_default or reset_default.</p>
 <span class="go">1703040.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span>
 <span class="go">(2e-05, 2e-06)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="n">max_b1</span><span class="o">=</span><span class="mf">11.2</span><span class="p">)</span><span class="o">.</span><span class="n">max_b1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">()</span><span class="o">.</span><span class="n">max_b1</span>
+<span class="go">(476.9, None)</span>
 </pre></div>
 </div>
 </dd></dl>

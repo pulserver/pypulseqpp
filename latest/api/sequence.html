@@ -611,8 +611,8 @@ modify their argument.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Opts</span></code></a></p></td>
-<td><p>Gradient and slew limits with units, rasters, dead times, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> holding limits in Hz/m, Hz/m/s and rasters in s</p></td>
+<td><p>Gradient and slew limits with units, peak B1 <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> with its unit, rasters, dead times, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> holding limits in Hz/m, Hz/m/s, <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> in Hz and rasters in s</p></td>
 <td><p>System limits and rasters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.default_system.html#pypulseqpp.default_system" title="pypulseqpp.default_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_system</span></code></a></p></td>
@@ -621,12 +621,12 @@ modify their argument.</p>
 <td><p>Default-system resolution.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient and slew fractions</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient, slew and peak-B1 fractions</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> copy, limits scaled from base values</p></td>
 <td><p>Derated design limits.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cap_system</span></code></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient and slew ceilings with their units</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient, slew and peak-B1 ceilings with their units</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> copy, limits lowered to the ceilings</p></td>
 <td><p>Capped design limits.</p></td>
 </tr>
@@ -639,6 +639,11 @@ modify their argument.</p>
 <td><p>—</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
 <td><p>Default <code class="docutils literal notranslate"><span class="pre">slew_derate</span></code> of <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_B1_DERATE.html#pypulseqpp.MAX_B1_DERATE" title="pypulseqpp.MAX_B1_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code></a></p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>Default <code class="docutils literal notranslate"><span class="pre">b1_derate</span></code> of <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code>, and the fraction of <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> the excitation and refocusing modules fit their pulses to.</p></td>
 </tr>
 </tbody>
 </table>

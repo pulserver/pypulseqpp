@@ -558,8 +558,10 @@ the ADC. Acquisitions carry the view as <code class="docutils literal notranslat
 <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (200 T/m/s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">pypulseqpp.Opts()</span></code>.</p></li>
 <li><p><strong>fov</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.22</em>) – Isotropic field of view (m).</p></li>
 <li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=128</em>) – Isotropic matrix size; a spoke reads it from the centre out.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=3.0</em>) – Excitation flip angle (degrees); small, because the pulse plays on
-the readout gradient.</p></li>
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.5</em>) – Excitation flip angle (degrees); small, because the pulse plays on
+the readout gradient. At 2.5 the hard pulse, lengthened to fit
+<code class="docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code> of a peak-B1 limit of 11.2 uT, still lasts less
+than two dwells of the default readout.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Pulse centre to pulse centre (s), one per view. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as
 short as the widest turn between views allows; a longer one is
 spent slewing more gently rather than waiting.</p></li>
