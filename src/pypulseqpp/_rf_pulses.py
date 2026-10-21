@@ -25,6 +25,7 @@ import numpy as np
 import pypulseq as _pp
 
 from . import _events
+from ._adiabatic import HYPSEC_BETA, HYPSEC_MU
 from ._angles import calc_uniform_angles
 from ._band_phases import band_phases
 from ._opts import default_system
@@ -854,6 +855,8 @@ def make_half_passages(
     adiabaticity: float = 8,
     dwell: float = 10e-6,
     pulse_type: str = "hypsec",
+    beta: float | None = None,
+    mu: float = HYPSEC_MU,
     use: str = "preparation",
     system=None,
 ) -> tuple:
@@ -877,6 +880,11 @@ def make_half_passages(
         RF raster, in s.
     pulse_type : str, default='hypsec'
         Sweep family, as :func:`make_adiabatic_pulse` names them.
+    beta : float, default=None
+        ``"hypsec"`` envelope parameter of the full sweep (1/s); 800 by
+        default.
+    mu : float, default=4.9
+        ``"hypsec"`` sweep amplitude, in units of ``beta``.
     use : str, default='preparation'
         Pulseq ``use`` tag.
     system : Opts, default=None
@@ -901,6 +909,8 @@ def make_half_passages(
         duration=2.0 * duration,
         dwell=dwell,
         adiabaticity=adiabaticity,
+        beta=HYPSEC_BETA if beta is None else beta,
+        mu=mu,
         system=system,
         use=use,
     )

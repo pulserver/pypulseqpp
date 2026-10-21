@@ -11,7 +11,12 @@ import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
-from pypulseqpp.sequences.excitation._base import b1_fitted
+from pypulseqpp.sequences.excitation._base import (
+    ADIABATIC_MAX_STRETCH,
+    ADIABATICITY_FLOOR,
+    b1_fitted,
+    held_sweep,
+)
 
 se2D = importlib.import_module("pypulseqpp.sequences.sequence.se2D_sequence")
 zte3D = importlib.import_module("pypulseqpp.sequences.sequence.zte3D_sequence")
@@ -282,3 +287,151 @@ def test_a_zte_designs_under_the_7t_limit_at_its_default_flip():
     seq = held[-1] if isinstance(held, list) else held
     assert seq.check_timing()[0]
     assert max(_rf_peaks(seq)) <= _design_limit(system)
+
+
+# --- Adiabatic pulses -----------------------------------------------------------
+
+#: B1 scales and off-resonance band an inversion is judged over.
+B1_SCALES = (0.7, 0.85, 1.0, 1.15, 1.3)
+BAND_HZ = 250.0
+
+MPRAGE_SMALL = {
+    "mprage3D_sequence": {"n_x": 32, "n_y": 16, "n_z": 8, "ti": 100e-3, "tr": 300e-3},
+    "mprage_stack_of_stars3D_sequence": {
+        "n": 32,
+        "n_z": 4,
+        "ti": 100e-3,
+        "tr": 500e-3,
+    },
+    "mprage_stack_of_spirals3D_sequence": {
+        "n": 32,
+        "n_z": 4,
+        "n_shots": 4,
+        "ti": 100e-3,
+        "tr": 300e-3,
+    },
+}
+
+
+def _worst_inversion(rf):
+    """The highest Mz after ``rf`` over ``BAND_HZ`` at each of ``B1_SCALES``."""
+    signal = np.asarray(rf.signal)
+    worst = []
+    for scale in B1_SCALES:
+        scaled = pp.make_arbitrary_rf(
+            signal * scale,
+            flip_angle=np.pi,
+            no_signal_scaling=True,
+            dwell=float(rf.shape_dur) / signal.size,
+            use="inversion",
+        )
+        mz, _, frequency = pp.sim_rf(scaled, df=5.0)[:3]
+        worst.append(float(mz[np.abs(frequency) <= BAND_HZ].max()))
+    return np.asarray(worst)
+
+
+def test_held_sweep_keeps_a_hyperbolic_secants_bandwidth():
+    kept = held_sweep("hypsec", 1.7)
+    assert kept["beta"] * kept["mu"] == pytest.approx(800.0 * 4.9)
+    assert held_sweep("hypsec", 1.0) == {"beta": 800.0, "mu": 4.9}
+    assert held_sweep("bir4", 1.7) == {}
+
+
+def test_half_passages_default_to_the_upstream_sweep():
+    down, _ = pp.make_half_passages(4e-3)
+    full = upstream.make_adiabatic_pulse(
+        "hypsec", duration=8e-3, dwell=10e-6, adiabaticity=8, use="preparation"
+    )
+    np.testing.assert_allclose(
+        np.asarray(down.signal),
+        np.asarray(full.signal)[: np.asarray(full.signal).size // 2],
+    )
+
+
+@pytest.mark.parametrize("max_b1", [None, 100.0])
+def test_an_inversion_without_a_limit_or_within_it_is_unchanged(max_b1):
+    reference = pp.make_adiabatic_pulse("hypsec", duration=10e-3, use="inversion")
+    module = design.InversionPreparation(pp.Opts(max_b1=max_b1))
+    np.testing.assert_array_equal(module.rf_prep.signal, reference.signal)
+    assert module.pulse_duration == 10e-3
+    assert module.adiabaticity == 4
+
+
+def test_an_inversion_is_lengthened_at_its_adiabaticity_and_inverts_as_well():
+    """The 7 T case: the 13.2 uT inversion fits 10.08 uT at 17.26 ms, adiabaticity 4."""
+    free = design.InversionPreparation(pp.Opts())
+    system = pp.Opts(max_b1=11.2)
+    held = design.InversionPreparation(system)
+    assert _peak(free.rf_prep) / GAMMA * 1e6 == pytest.approx(13.24, abs=0.01)
+    assert _peak(held.rf_prep) <= _design_limit(system)
+    assert held.adiabaticity == 4
+    # The peak falls as the square root of the duration.
+    stretch = (_peak(free.rf_prep) / _design_limit(system)) ** 2
+    assert held.pulse_duration == pytest.approx(10e-3 * stretch, abs=10e-6)
+    assert held.rf_prep.shape_dur == pytest.approx(held.pulse_duration)
+    np.testing.assert_allclose(
+        _worst_inversion(held.rf_prep), _worst_inversion(free.rf_prep), atol=0.015
+    )
+
+
+def test_an_inversion_past_twice_its_duration_lowers_its_adiabaticity_to_the_floor():
+    system = pp.Opts(max_b1=9.5)
+    held = design.InversionPreparation(system)
+    assert held.pulse_duration == pytest.approx(ADIABATIC_MAX_STRETCH * 10e-3)
+    assert ADIABATICITY_FLOOR * 4 <= held.adiabaticity < 4
+    assert _peak(held.rf_prep) <= _design_limit(system)
+    worst = _worst_inversion(held.rf_prep)
+    # At the floor the inversion is still at least 0.98 at the nominal B1 and
+    # 0.8 at 0.7 of it, over the band.
+    assert worst[B1_SCALES.index(1.0)] < -0.98
+    assert worst.max() < -0.8
+
+
+def test_an_inversion_that_cannot_fit_is_refused():
+    with pytest.raises(ValueError, match="adiabaticity"):
+        design.InversionPreparation(pp.Opts(max_b1=9.0))
+
+
+def test_the_adiabaticity_floor_inverts_better_than_half_the_adiabaticity():
+    """Halving the adiabaticity, 4 to 2, leaves 0.6 inverted at 0.7 of the B1; the floor leaves 0.8."""
+    floor = design.InversionPreparation(pp.Opts(), adiabaticity=4 * ADIABATICITY_FLOOR)
+    half = design.InversionPreparation(pp.Opts(), adiabaticity=2)
+    assert _worst_inversion(floor.rf_prep)[0] < -0.8
+    assert _worst_inversion(half.rf_prep)[0] > -0.65
+
+
+def test_a_t2_preparation_is_lengthened_and_keeps_its_echo_time():
+    system = pp.Opts(max_b1=15.0)
+    free = design.T2Preparation(pp.Opts(), 80e-3)
+    held = design.T2Preparation(system, 80e-3)
+    assert held.half_passage_duration > 4e-3
+    assert held.refocusing_duration > 10.24e-3
+    assert held.half_passage_adiabaticity == held.refocusing_adiabaticity == 8
+    for rf in (held.rf_prep, held.rf_ref, held.rf_store):
+        assert _peak(rf) <= _design_limit(system)
+    assert held.echo_time == pytest.approx(free.echo_time, abs=20e-6)
+
+
+def test_a_t2_preparation_at_7t_needs_a_lower_adiabaticity():
+    """Its pulses need adiabaticity 4.6 at twice their duration: below 0.75 of 8, above 0.75 of 6."""
+    system = pp.Opts(max_b1=11.2)
+    with pytest.raises(ValueError, match="adiabaticity"):
+        design.T2Preparation(system, 80e-3)
+    held = design.T2Preparation(system, 80e-3, adiabaticity=6)
+    assert held.refocusing_adiabaticity < 6
+    for rf in (held.rf_prep, held.rf_ref, held.rf_store):
+        assert _peak(rf) <= _design_limit(system)
+
+
+@pytest.mark.parametrize("name", MPRAGE_SMALL)
+def test_an_mprage_designs_under_the_7t_limit(name):
+    system = pp.Opts(max_b1=11.2)
+    sequence = importlib.import_module(f"pypulseqpp.sequences.sequence.{name}")
+    free = sequence.main(pp.Opts(), **MPRAGE_SMALL[name], n_dummy=0)
+    held = sequence.main(system, **MPRAGE_SMALL[name], n_dummy=0)
+    assert held.check_timing()[0]
+    assert max(_rf_peaks(free)) > system.max_b1
+    assert max(_rf_peaks(held)) <= _design_limit(system)
+    assert held.get_definition("TI")[0] == pytest.approx(
+        free.get_definition("TI")[0], abs=20e-6
+    )

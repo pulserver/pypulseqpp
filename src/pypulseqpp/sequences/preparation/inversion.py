@@ -6,7 +6,7 @@ __all__ = ["InversionPreparation"]
 
 import pypulseqpp as pp
 
-from ..excitation._base import RfModule, rf_reference
+from ..excitation._base import RfModule, adiabatic_fitted, held_sweep, rf_reference
 
 _AXES = ("x", "y", "z")
 
@@ -14,15 +14,21 @@ _AXES = ("x", "y", "z")
 class InversionPreparation(RfModule):
     """Non-selective adiabatic inversion, followed by an optional crusher.
 
-    The module contains no inversion-time delay; the caller adds it.
+    The module contains no inversion-time delay; the caller adds it. A pulse
+    whose peak exceeds :data:`~pypulseqpp.MAX_B1_DERATE` of
+    ``system.max_b1`` is lengthened at the same adiabaticity and swept
+    bandwidth, up to ``ADIABATIC_MAX_STRETCH`` (2) times ``duration_s``, and
+    past it held there with its adiabaticity lowered, to no less than
+    ``ADIABATICITY_FLOOR`` (0.75) of ``adiabaticity``.
 
     Parameters
     ----------
     system : pypulseqpp.Opts
         System limits.
     duration_s : float, default=0.01
-        Inversion pulse duration (s); a shorter pulse needs a faster sweep,
-        which may violate the adiabatic condition.
+        Inversion pulse duration (s) while the pulse fits the system's peak
+        B1; a shorter pulse needs a faster sweep, which may violate the
+        adiabatic condition.
     spoiling_cycles : float, default=4.0
         Cycles of dephasing of the crusher across ``voxel_size_m``. Zero omits
         the crusher.
@@ -34,9 +40,11 @@ class InversionPreparation(RfModule):
     pulse_type : str, default='hypsec'
         Adiabatic sweep family.
     bandwidth_hz : float, default=40000.0
-        Frequency width of the sweep (Hz).
-    adiabaticity : int, default=4
-        Sweep-rate margin over the adiabatic condition.
+        Frequency width of the sweep (Hz); unused by ``'hypsec'``, which
+        sweeps ``mu * beta`` (:func:`~pypulseqpp.make_adiabatic_pulse`).
+    adiabaticity : float, default=4
+        Sweep-rate margin over the adiabatic condition while the pulse fits
+        the system's peak B1.
     labels : sequence of str, default=None
         Labels the inversion block sets to 0, to be changed per shot by the
         caller.
@@ -45,6 +53,12 @@ class InversionPreparation(RfModule):
     ----------
     rf_prep : RfEvent
         The inversion pulse.
+    pulse_duration : float
+        Duration the pulse was designed at (s): ``duration_s``, or longer
+        under the system's peak B1.
+    adiabaticity : float
+        Adiabaticity the pulse was designed at: the requested one, or lower
+        under the system's peak B1.
     gz_spoil : GradEvent
         The crusher, when ``spoiling_cycles`` is nonzero.
     prep_labels : LabelSetEvent or list of LabelSetEvent
@@ -55,7 +69,8 @@ class InversionPreparation(RfModule):
     ------
     ValueError
         If ``voxel_size_m`` is not positive, ``spoiling_cycles`` is negative,
-        or ``axis`` is not a gradient channel.
+        ``axis`` is not a gradient channel, or the pulse cannot fit the
+        system's peak B1.
 
     Examples
     --------
@@ -67,6 +82,13 @@ class InversionPreparation(RfModule):
 
     >>> len(design.InversionPreparation(pp.Opts(), spoiling_cycles=0).blocks)
     1
+
+    Under an 11.2 uT limit the 13.2 uT pulse is lengthened, at the same
+    adiabaticity, to peak below 0.9 of it:
+
+    >>> prep = design.InversionPreparation(pp.Opts(max_b1=11.2))
+    >>> round(prep.pulse_duration * 1e3, 2), prep.adiabaticity
+    (17.26, 4)
 
     .. plot::
        :include-source: false
@@ -92,7 +114,7 @@ class InversionPreparation(RfModule):
         axis: str = "z",
         pulse_type: str = "hypsec",
         bandwidth_hz: float = 40e3,
-        adiabaticity: int = 4,
+        adiabaticity: float = 4,
         labels: tuple[str, ...] | None = None,
     ) -> None:
         if voxel_size_m <= 0:
@@ -102,13 +124,19 @@ class InversionPreparation(RfModule):
         if axis not in _AXES:
             raise ValueError(f"axis must be one of {_AXES}, got {axis!r}")
 
-        rf_prep = pp.make_adiabatic_pulse(
-            pulse_type=pulse_type,
-            duration=duration_s,
-            bandwidth=bandwidth_hz,
-            adiabaticity=adiabaticity,
-            use="inversion",
-            system=system,
+        def make(duration: float, margin: float):
+            return pp.make_adiabatic_pulse(
+                pulse_type=pulse_type,
+                duration=duration,
+                bandwidth=bandwidth_hz,
+                adiabaticity=margin,
+                use="inversion",
+                system=system,
+                **held_sweep(pulse_type, duration / duration_s),
+            )
+
+        self.pulse_duration, self.adiabaticity, rf_prep = adiabatic_fitted(
+            system, duration_s, adiabaticity, make
         )
         # A slot per label, so the loop has somewhere to put one. An iteration
         # can leave it out or say something different with it, but it cannot
