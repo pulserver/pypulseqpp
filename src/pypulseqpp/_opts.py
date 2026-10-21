@@ -160,7 +160,9 @@ def apply_system_derates(
 ) -> _pp.Opts:
     """Return a copy with gradient, slew and peak-B1 limits scaled from their base values.
 
-    Base limits are retained on the copy, so repeated derating does not compound.
+    Base limits are retained on the copy, so repeated derating does not compound,
+    and a ceiling :func:`cap_system` puts on a derated copy holds when it is
+    derated again.
 
     Parameters
     ----------
@@ -209,19 +211,23 @@ def apply_system_derates(
     >>> b1 = pp.apply_system_derates(pp.Opts(max_b1=11.2))
     >>> round(b1.max_b1 / b1.gamma * 1e6, 2), pp.apply_system_derates(b1).max_b1 == b1.max_b1
     (10.08, True)
+
+    A ceiling below the derated limit survives a second derate:
+
+    >>> capped = pp.cap_system(derated, max_grad=30)
+    >>> pp.apply_system_derates(capped).max_grad == capped.max_grad
+    True
     """
     derated = _copy.copy(opts)
-    if not hasattr(derated, "_base_max_grad"):
-        derated._base_max_grad = float(opts.max_grad)
-    if not hasattr(derated, "_base_max_slew"):
-        derated._base_max_slew = float(opts.max_slew)
-
-    derated.max_grad = derated._base_max_grad * float(grad_derate)
-    derated.max_slew = derated._base_max_slew * float(slew_derate)
+    fractions = {"max_grad": grad_derate, "max_slew": slew_derate}
     if getattr(opts, "max_b1", None) is not None:
-        if not hasattr(derated, "_base_max_b1"):
-            derated._base_max_b1 = float(opts.max_b1)
-        derated.max_b1 = derated._base_max_b1 * float(b1_derate)
+        fractions["max_b1"] = b1_derate
+    for name, fraction in fractions.items():
+        base = f"_base_{name}"
+        if not hasattr(derated, base):
+            setattr(derated, base, float(getattr(opts, name)))
+        value = getattr(derated, base) * float(fraction)
+        setattr(derated, name, min(value, getattr(derated, f"_ceiling_{name}", value)))
     return derated
 
 
@@ -296,6 +302,13 @@ def cap_system(
     Opts
         The capped copy.
 
+    Notes
+    -----
+    On a system :func:`apply_system_derates` has derated, a limit becomes the
+    lower of the derated limit and the ceiling, and stays so when the copy is
+    derated again: the margin is taken from the system's limit, not from the
+    ceiling.
+
     Examples
     --------
     >>> import pypulseqpp as pp
@@ -308,24 +321,29 @@ def cap_system(
     40
     """
     capped = _copy.copy(opts)
+    ceilings = {}
     if max_grad is not None:
-        ceiling = _convert(
+        ceilings["max_grad"] = _convert(
             from_value=float(max_grad),
             from_unit=grad_unit,
             to_unit="Hz/m",
             gamma=opts.gamma,
         )
-        capped.max_grad = min(float(opts.max_grad), ceiling)
     if max_slew is not None:
-        ceiling = _convert(
+        ceilings["max_slew"] = _convert(
             from_value=float(max_slew),
             from_unit=slew_unit,
             to_unit="Hz/m/s",
             gamma=opts.gamma,
         )
-        capped.max_slew = min(float(opts.max_slew), ceiling)
     if max_b1 is not None:
-        ceiling = _b1_to_hz(max_b1, b1_unit, opts.gamma)
-        held = getattr(opts, "max_b1", None)
-        capped.max_b1 = ceiling if held is None else min(float(held), ceiling)
+        ceilings["max_b1"] = _b1_to_hz(max_b1, b1_unit, opts.gamma)
+    for name, ceiling in ceilings.items():
+        held = getattr(opts, name, None)
+        setattr(capped, name, ceiling if held is None else min(float(held), ceiling))
+        # A derated limit keeps its base; the ceiling is kept beside it, so
+        # derating again leaves the cap in place.
+        if hasattr(capped, f"_base_{name}"):
+            kept = getattr(capped, f"_ceiling_{name}", ceiling)
+            setattr(capped, f"_ceiling_{name}", min(kept, ceiling))
     return capped

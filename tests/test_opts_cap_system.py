@@ -77,3 +77,28 @@ def test_derating_is_idempotent():
 
     assert twice.max_grad == once.max_grad
     assert twice.max_slew == once.max_slew
+
+
+def test_a_ceiling_on_a_derated_system_holds_when_derated_again():
+    system = Opts(max_grad=80, grad_unit="mT/m", max_slew=300, slew_unit="T/m/s")
+    capped = cap_system(apply_system_derates(system), max_grad=80, max_slew=200)
+
+    again = apply_system_derates(capped)
+
+    # The margin is taken from the system's limit; a ceiling below it holds.
+    assert round(_grad_mtm(again)) == round(_grad_mtm(capped)) == 72
+    assert round(_slew_tms(again)) == round(_slew_tms(capped)) == 200
+
+
+def test_a_trajectory_takes_the_margin_once_on_a_derated_system():
+    import numpy as np
+
+    from pypulseqpp.sequences import Spiral
+
+    system = Opts(max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s")
+    own = Spiral(system, 0.22, 64, 8)
+    given = Spiral(apply_system_derates(system), 0.22, 64, 8)
+
+    assert len(own.gradients) == len(given.gradients)
+    for a, b in zip(own.gradients, given.gradients, strict=True):
+        np.testing.assert_array_equal(a.waveform, b.waveform)
