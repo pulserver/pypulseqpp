@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=33f0b2e2"></script>
+    <script src="../_static/documentation_options.js?v=24843284"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.45';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.46';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.45" />
+  <meta name="docsearch:version" content="v0.0.46" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -520,7 +520,7 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.cap_system">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">cap_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_opts.html#cap_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.cap_system" title="Link to this definition">#</a></dt>
-<dd><p>Return a copy with gradient and slew limits lowered to the specified ceilings.</p>
+<dd><p>Return a copy with gradient, slew and RF limits lowered to the specified ceilings.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -530,6 +530,9 @@ when None or already lower.</p></li>
 <li><p><strong>max_slew</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Slew-rate ceiling, in <code class="docutils literal notranslate"><span class="pre">slew_unit</span></code>; as <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.</p></li>
 <li><p><strong>grad_unit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='mT/m'</em>) – Unit of <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>.</p></li>
 <li><p><strong>slew_unit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='T/m/s'</em>) – Unit of <code class="docutils literal notranslate"><span class="pre">max_slew</span></code>.</p></li>
+<li><p><strong>max_b1</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Peak RF amplitude ceiling, in <code class="docutils literal notranslate"><span class="pre">b1_unit</span></code>; as <code class="docutils literal notranslate"><span class="pre">max_grad</span></code>. A system
+with no RF limit takes it.</p></li>
+<li><p><strong>b1_unit</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='uT'</em>) – Unit of <code class="docutils literal notranslate"><span class="pre">max_b1</span></code>: <code class="docutils literal notranslate"><span class="pre">Hz</span></code> (gamma B1), <code class="docutils literal notranslate"><span class="pre">T</span></code>, <code class="docutils literal notranslate"><span class="pre">mT</span></code>, <code class="docutils literal notranslate"><span class="pre">uT</span></code> or <code class="docutils literal notranslate"><span class="pre">G</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -539,6 +542,11 @@ when None or already lower.</p></li>
 <dd class="field-odd"><p><a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts">Opts</a></p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>On a system <a class="reference internal" href="pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> has derated, a limit becomes the
+lower of the derated limit and the ceiling, and stays so when the copy is
+derated again: the margin is taken from the system’s limit, not from the
+ceiling.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseq.convert</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert</span>

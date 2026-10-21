@@ -53,7 +53,9 @@ lobe is a triangle of peak $\sqrt{AS}$ and duration $2\sqrt{A/S}$; above
 {func}`~pypulseqpp.apply_system_derates` returns a copy of the system limits
 with `max_grad` and `max_slew` scaled from base values the copy retains, so
 derating does not compound; {func}`~pypulseqpp.cap_system` lowers them to
-stated ceilings.
+stated ceilings, and a ceiling put on a derated copy holds when the copy is
+derated again. A trajectory solver that derates its system therefore takes no
+second margin from a system the caller derated.
 
 ```{figure} ../../generated/figures/axis_peaks_against_vector.png
 A radial gradient echo. The root-sum-square of the three axis peaks is larger

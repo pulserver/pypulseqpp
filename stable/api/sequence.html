@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=33f0b2e2"></script>
+    <script src="../_static/documentation_options.js?v=24843284"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.45';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.46';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="API reference" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.45" />
+  <meta name="docsearch:version" content="v0.0.46" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -611,8 +611,8 @@ modify their argument.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Opts</span></code></a></p></td>
-<td><p>Gradient and slew limits with units, rasters, dead times, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> holding limits in Hz/m, Hz/m/s and rasters in s</p></td>
+<td><p>Gradient and slew limits with units, peak B1 <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> with its unit, rasters, dead times, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>, <code class="docutils literal notranslate"><span class="pre">B0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> holding limits in Hz/m, Hz/m/s, <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> in Hz and rasters in s</p></td>
 <td><p>System limits and rasters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.default_system.html#pypulseqpp.default_system" title="pypulseqpp.default_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_system</span></code></a></p></td>
@@ -621,12 +621,12 @@ modify their argument.</p>
 <td><p>Default-system resolution.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_system_derates</span></code></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient and slew fractions</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient, slew and peak-B1 fractions</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> copy, limits scaled from base values</p></td>
 <td><p>Derated design limits.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cap_system</span></code></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient and slew ceilings with their units</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code>, gradient, slew and peak-B1 ceilings with their units</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Opts</span></code> copy, limits lowered to the ceilings</p></td>
 <td><p>Capped design limits.</p></td>
 </tr>
@@ -639,6 +639,11 @@ modify their argument.</p>
 <td><p>—</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
 <td><p>Default <code class="docutils literal notranslate"><span class="pre">slew_derate</span></code> of <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.MAX_B1_DERATE.html#pypulseqpp.MAX_B1_DERATE" title="pypulseqpp.MAX_B1_DERATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code></a></p></td>
+<td><p>—</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>Default <code class="docutils literal notranslate"><span class="pre">b1_derate</span></code> of <code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code>, and the fraction of <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> the excitation and refocusing modules fit their pulses to.</p></td>
 </tr>
 </tbody>
 </table>

@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=33f0b2e2"></script>
+    <script src="../../_static/documentation_options.js?v=24843284"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.45';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.46';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence-analysis computations" href="sequence-analysis.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.45" />
+  <meta name="docsearch:version" content="v0.0.46" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -602,7 +602,9 @@ lobe is a triangle of peak <span class="math notranslate nohighlight">\(\sqrt{AS
 <p><a class="reference internal" href="../../generated/pypulseqpp.apply_system_derates.html#pypulseqpp.apply_system_derates" title="pypulseqpp.apply_system_derates"><code class="xref py py-func docutils literal notranslate"><span class="pre">apply_system_derates()</span></code></a> returns a copy of the system limits
 with <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> and <code class="docutils literal notranslate"><span class="pre">max_slew</span></code> scaled from base values the copy retains, so
 derating does not compound; <a class="reference internal" href="../../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a> lowers them to
-stated ceilings.</p>
+stated ceilings, and a ceiling put on a derated copy holds when the copy is
+derated again. A trajectory solver that derates its system therefore takes no
+second margin from a system the caller derated.</p>
 <figure class="align-default" id="id4">
 <img alt="../../_images/axis_peaks_against_vector.png" src="../../_images/axis_peaks_against_vector.png" />
 <figcaption>
