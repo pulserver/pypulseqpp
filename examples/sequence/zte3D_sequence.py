@@ -26,7 +26,7 @@ def zte3d(
     *,
     fov: float = 220e-3,
     n: int = 128,
-    flip_angle_deg: float = 3.0,
+    flip_angle_deg: float = 2.5,
     tr: float | None = None,
     readout_bandwidth_hz: float = 250e3,
     r: int = 1,
@@ -56,9 +56,11 @@ def zte3d(
         Isotropic field of view (m).
     n : int, default=128
         Isotropic matrix size; a spoke reads it from the centre out.
-    flip_angle_deg : float, default=3.0
+    flip_angle_deg : float, default=2.5
         Excitation flip angle (degrees); small, because the pulse plays on
-        the readout gradient.
+        the readout gradient. At 2.5 the hard pulse, lengthened to fit
+        ``MAX_B1_DERATE`` of a peak-B1 limit of 11.2 uT, still lasts less
+        than two dwells of the default readout.
     tr : float | None, default=None
         Pulse centre to pulse centre (s), one per view. ``None`` is as
         short as the widest turn between views allows; a longer one is

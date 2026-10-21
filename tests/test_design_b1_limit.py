@@ -273,12 +273,12 @@ def test_a_spin_echo_designs_under_the_7t_limit():
     assert held.get_definition("TE")[0] > free.get_definition("TE")[0]
 
 
-def test_a_zte_designs_under_the_7t_limit_at_a_flip_its_dwell_admits():
-    """At 3 degrees the 10 us pulse needs 20 us under 10.08 uT, two dwells; 2.5 fits in 18."""
+def test_a_zte_designs_under_the_7t_limit_at_its_default_flip():
+    """At 2.5 degrees the 10 us pulse fits 10.08 uT in 18 us; at 3 it needs 20 us, two dwells."""
     system = pp.Opts(max_b1=11.2)
     with pytest.raises(ValueError, match="dwell"):
-        zte3D.main(system, n=32, n_shots=2, n_dummy=0)
-    held = zte3D.main(system, n=32, n_shots=2, n_dummy=0, flip_angle_deg=2.5)
+        zte3D.main(system, n=32, n_shots=2, n_dummy=0, flip_angle_deg=3.0)
+    held = zte3D.main(system, n=32, n_shots=2, n_dummy=0)
     seq = held[-1] if isinstance(held, list) else held
     assert seq.check_timing()[0]
     assert max(_rf_peaks(seq)) <= _design_limit(system)
