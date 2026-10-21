@@ -466,6 +466,11 @@
 
 <span class="n">_UPSTREAM_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"hypsec"</span><span class="p">,</span> <span class="s2">"wurst"</span><span class="p">)</span>
 
+<span class="c1">#: Default ``"hypsec"`` envelope parameter ``beta`` (1/s).</span>
+<span class="n">HYPSEC_BETA</span> <span class="o">=</span> <span class="mf">800.0</span>
+<span class="c1">#: Default ``"hypsec"`` sweep amplitude ``mu``, in units of ``beta``.</span>
+<span class="n">HYPSEC_MU</span> <span class="o">=</span> <span class="mf">4.9</span>
+
 
 <div class="viewcode-block" id="make_adiabatic_pulse">
 <a class="viewcode-back" href="../../generated/pypulseqpp.make_adiabatic_pulse.html#pypulseqpp.make_adiabatic_pulse">[docs]</a>
@@ -481,7 +486,7 @@
     <span class="n">max_grad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_slew</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">n_fac</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.9</span><span class="p">,</span>
+    <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">HYPSEC_MU</span><span class="p">,</span>
     <span class="n">phase_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">return_gz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">slice_thickness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
@@ -603,7 +608,7 @@
             <span class="n">pulse_type</span><span class="p">,</span>
             <span class="n">adiabaticity</span><span class="o">=</span><span class="n">adiabaticity</span><span class="p">,</span>
             <span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span>
-            <span class="n">beta</span><span class="o">=</span><span class="mf">800.0</span> <span class="k">if</span> <span class="n">beta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">beta</span><span class="p">,</span>
+            <span class="n">beta</span><span class="o">=</span><span class="n">HYPSEC_BETA</span> <span class="k">if</span> <span class="n">beta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">beta</span><span class="p">,</span>
             <span class="n">delay</span><span class="o">=</span><span class="n">delay</span><span class="p">,</span>
             <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
             <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>

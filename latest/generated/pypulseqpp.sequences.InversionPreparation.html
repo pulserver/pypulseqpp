@@ -522,21 +522,29 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">InversionPreparation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/inversion.html#InversionPreparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.InversionPreparation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
 <p>Non-selective adiabatic inversion, followed by an optional crusher.</p>
-<p>The module contains no inversion-time delay; the caller adds it.</p>
+<p>The module contains no inversion-time delay; the caller adds it. A pulse
+whose peak exceeds <a class="reference internal" href="pypulseqpp.MAX_B1_DERATE.html#pypulseqpp.MAX_B1_DERATE" title="pypulseqpp.MAX_B1_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code></a> of
+<code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code> is lengthened at the same adiabaticity and swept
+bandwidth, up to <code class="docutils literal notranslate"><span class="pre">ADIABATIC_MAX_STRETCH</span></code> (2) times <code class="docutils literal notranslate"><span class="pre">duration_s</span></code>, and
+past it held there with its adiabaticity lowered, to no less than
+<code class="docutils literal notranslate"><span class="pre">ADIABATICITY_FLOOR</span></code> (0.75) of <code class="docutils literal notranslate"><span class="pre">adiabaticity</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a>) – System limits.</p></li>
-<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Inversion pulse duration (s); a shorter pulse needs a faster sweep,
-which may violate the adiabatic condition.</p></li>
+<li><p><strong>duration_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Inversion pulse duration (s) while the pulse fits the system’s peak
+B1; a shorter pulse needs a faster sweep, which may violate the
+adiabatic condition.</p></li>
 <li><p><strong>spoiling_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4.0</em>) – Cycles of dephasing of the crusher across <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code>. Zero omits
 the crusher.</p></li>
 <li><p><strong>voxel_size_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.001</em>) – Length the dephasing is counted over (m); the smallest voxel
 dimension.</p></li>
 <li><p><strong>axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Gradient channel of the crusher.</p></li>
 <li><p><strong>pulse_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default='hypsec'</em>) – Adiabatic sweep family.</p></li>
-<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=40000.0</em>) – Frequency width of the sweep (Hz).</p></li>
-<li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=4</em>) – Sweep-rate margin over the adiabatic condition.</p></li>
+<li><p><strong>bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=40000.0</em>) – Frequency width of the sweep (Hz); unused by <code class="docutils literal notranslate"><span class="pre">'hypsec'</span></code>, which
+sweeps <code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">*</span> <span class="pre">beta</span></code> (<a class="reference internal" href="pypulseqpp.make_adiabatic_pulse.html#pypulseqpp.make_adiabatic_pulse" title="pypulseqpp.make_adiabatic_pulse"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_adiabatic_pulse()</span></code></a>).</p></li>
+<li><p><strong>adiabaticity</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=4</em>) – Sweep-rate margin over the adiabatic condition while the pulse fits
+the system’s peak B1.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels the inversion block sets to 0, to be changed per shot by the
 caller.</p></li>
 </ul>
@@ -544,6 +552,10 @@ caller.</p></li>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>rf_prep</strong> (<em>RfEvent</em>) – The inversion pulse.</p></li>
+<li><p><strong>pulse_duration</strong> (<em>float</em>) – Duration the pulse was designed at (s): <code class="docutils literal notranslate"><span class="pre">duration_s</span></code>, or longer
+under the system’s peak B1.</p></li>
+<li><p><strong>adiabaticity</strong> (<em>float</em>) – Adiabaticity the pulse was designed at: the requested one, or lower
+under the system’s peak B1.</p></li>
 <li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – The crusher, when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p></li>
 <li><p><strong>prep_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>, in order. Absent when <code class="docutils literal notranslate"><span class="pre">labels</span></code> is
 empty, and a bare event rather than a list when there is one.</p></li>
@@ -551,7 +563,8 @@ empty, and a bare event rather than a list when there is one.</p></li>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code> is not positive, <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is negative,
-    or <code class="docutils literal notranslate"><span class="pre">axis</span></code> is not a gradient channel.</p>
+    <code class="docutils literal notranslate"><span class="pre">axis</span></code> is not a gradient channel, or the pulse cannot fit the
+    system’s peak B1.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -564,6 +577,13 @@ empty, and a bare event rather than a list when there is one.</p></li>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">design</span><span class="o">.</span><span class="n">InversionPreparation</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(),</span> <span class="n">spoiling_cycles</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span>
 <span class="go">1</span>
+</pre></div>
+</div>
+<p>Under an 11.2 uT limit the 13.2 uT pulse is lengthened, at the same
+adiabaticity, to peak below 0.9 of it:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">prep</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">InversionPreparation</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(</span><span class="n">max_b1</span><span class="o">=</span><span class="mf">11.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">prep</span><span class="o">.</span><span class="n">pulse_duration</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">prep</span><span class="o">.</span><span class="n">adiabaticity</span>
+<span class="go">(17.26, 4)</span>
 </pre></div>
 </div>
 <figure class="align-default" id="id1">

@@ -469,6 +469,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_events</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._adiabatic</span><span class="w"> </span><span class="kn">import</span> <span class="n">HYPSEC_BETA</span><span class="p">,</span> <span class="n">HYPSEC_MU</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._angles</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_uniform_angles</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._band_phases</span><span class="w"> </span><span class="kn">import</span> <span class="n">band_phases</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_system</span>
@@ -1312,6 +1313,8 @@
     <span class="n">adiabaticity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
     <span class="n">dwell</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10e-6</span><span class="p">,</span>
     <span class="n">pulse_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hypsec"</span><span class="p">,</span>
+    <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">HYPSEC_MU</span><span class="p">,</span>
     <span class="n">use</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"preparation"</span><span class="p">,</span>
     <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
@@ -1335,6 +1338,11 @@
 <span class="sd">        RF raster, in s.</span>
 <span class="sd">    pulse_type : str, default='hypsec'</span>
 <span class="sd">        Sweep family, as :func:`make_adiabatic_pulse` names them.</span>
+<span class="sd">    beta : float, default=None</span>
+<span class="sd">        ``"hypsec"`` envelope parameter of the full sweep (1/s); 800 by</span>
+<span class="sd">        default.</span>
+<span class="sd">    mu : float, default=4.9</span>
+<span class="sd">        ``"hypsec"`` sweep amplitude, in units of ``beta``.</span>
 <span class="sd">    use : str, default='preparation'</span>
 <span class="sd">        Pulseq ``use`` tag.</span>
 <span class="sd">    system : Opts, default=None</span>
@@ -1359,6 +1367,8 @@
         <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">duration</span><span class="p">,</span>
         <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>
         <span class="n">adiabaticity</span><span class="o">=</span><span class="n">adiabaticity</span><span class="p">,</span>
+        <span class="n">beta</span><span class="o">=</span><span class="n">HYPSEC_BETA</span> <span class="k">if</span> <span class="n">beta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">beta</span><span class="p">,</span>
+        <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span>
         <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
     <span class="p">)</span>

@@ -53,6 +53,8 @@
     <script src="../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
     <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'developer-guide/internals/sequence-modules';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
@@ -680,8 +682,34 @@ peak B1 the transmit chain allows (of <code class="docutils literal notranslate"
 excitation and refocusing modules lengthen the pulse, flip angle and
 time-bandwidth product held, until its peak fits; the module’s <code class="docutils literal notranslate"><span class="pre">pulse_duration</span></code>, blocks and centre
 carry the lengthened pulse, and a sequence solves its TE and TR from them.
-Spectral, adiabatic, two-dimensional and multiband pulses are designed as
-given, since their duration sets what they select.</p>
+Spectral, two-dimensional and multiband pulses are designed as given, since
+their duration sets what they select.</p>
+<p>An adiabatic pulse’s duration sets its sweep rate instead. At a fixed swept
+bandwidth the peak that meets its adiabaticity at the sweep’s centre falls as
+<span class="math notranslate nohighlight">\(\sqrt{\mathtt{adiabaticity}/\mathtt{duration}}\)</span>, so
+<code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code> and <code class="docutils literal notranslate"><span class="pre">T2Preparation</span></code> lengthen a pulse above the limit
+with its adiabaticity and bandwidth held (a hyperbolic secant with <code class="docutils literal notranslate"><span class="pre">beta</span></code>
+divided and <code class="docutils literal notranslate"><span class="pre">mu</span></code> multiplied by the stretch), which leaves its inversion across
+B1 and off-resonance where it was. Relaxation during the sweep, which
+<a class="reference internal" href="../../generated/pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> does not model, grows with the duration, and so do
+the shortest TI and preparation echo time, so the stretch stops at
+<code class="docutils literal notranslate"><span class="pre">ADIABATIC_MAX_STRETCH</span></code> times the design duration. Past it the adiabaticity
+is lowered, to no less than <code class="docutils literal notranslate"><span class="pre">ADIABATICITY_FLOOR</span></code> of the design’s; at 0.7 of
+the nominal B1 an inversion at the floor leaves its band far better inverted
+than one at half the adiabaticity. A pulse that does not fit there is refused.
+<code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code> publishes the <code class="docutils literal notranslate"><span class="pre">pulse_duration</span></code> and <code class="docutils literal notranslate"><span class="pre">adiabaticity</span></code> it
+designed at, and <code class="docutils literal notranslate"><span class="pre">T2Preparation</span></code> one of each for its half passages and its
+refocusing pulse.</p>
+<figure class="align-default" id="id2">
+<img alt="../../_images/adiabatic_inversion_under_b1_limit.png" src="../../_images/adiabatic_inversion_under_b1_limit.png" />
+<figcaption>
+<p><span class="caption-text">The default hyperbolic-secant inversion with no limit, under 11.2 µT
+(lengthened), under 9.5 µT (at the stretch ceiling, adiabaticity lowered), and
+at half its adiabaticity. Left, the envelopes; right, the highest <span class="math notranslate nohighlight">\(M_z\)</span> each
+leaves over ±250 Hz as the transmit field is scaled, the band 0.7 to 1.3
+shaded.</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
 <section id="protocol">
 <h3>Protocol<a class="headerlink" href="#protocol" title="Link to this heading">#</a></h3>
 <p>A parameter’s type and default come from its annotation and default value, and
