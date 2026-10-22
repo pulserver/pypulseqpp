@@ -613,7 +613,8 @@
 <span class="sd">    trace : bool, default=False</span>
 <span class="sd">        Also return the response over time, which a diagnostic plot draws.</span>
 <span class="sd">        The trace has one value per gradient raster interval over the whole</span>
-<span class="sd">        sequence.</span>
+<span class="sd">        sequence: at its end under a chronaxie model, at its centre under</span>
+<span class="sd">        SAFE.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -640,11 +641,14 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    The gradient is sampled at the centres of the sequence's own gradient</span>
-<span class="sd">    raster, from rest, and its slew is the difference between neighbouring</span>
-<span class="sd">    samples; this and the SAFE model are upstream PyPulseq's ``calc_pns``.</span>
-<span class="sd">    The response is evaluated over the whole sequence in one pass, carrying</span>
-<span class="sd">    each model's memory, in bounded storage.</span>
+<span class="sd">    The gradient is sampled on the sequence's own gradient raster, from rest,</span>
+<span class="sd">    and its slew is the difference between neighbouring samples. Under a</span>
+<span class="sd">    chronaxie model the samples are the ends of the raster intervals, so the</span>
+<span class="sd">    slew is the one each interval plays and the response is the exact</span>
+<span class="sd">    convolution at every interval end, where a ramp's response peaks. Under</span>
+<span class="sd">    SAFE they are the interval centres; this and the SAFE model are upstream</span>
+<span class="sd">    PyPulseq's ``calc_pns``. The response is evaluated over the whole</span>
+<span class="sd">    sequence in one pass, carrying each model's memory, in bounded storage.</span>
 <span class="sd">    """</span>
     <span class="n">kind</span><span class="p">,</span> <span class="n">found</span> <span class="o">=</span> <span class="n">_pns</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">keep_trace</span><span class="o">=</span><span class="n">trace</span><span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
@@ -659,7 +663,7 @@
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">trace</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">found</span><span class="p">[</span><span class="s2">"trace_norm"</span><span class="p">])</span>
-        <span class="n">report</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">report</span><span class="o">.</span><span class="n">raster</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">+</span> <span class="n">found</span><span class="p">[</span><span class="s2">"phase"</span><span class="p">])</span> <span class="o">*</span> <span class="n">report</span><span class="o">.</span><span class="n">raster</span>
         <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">response</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">axes</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="s2">"trace_axes"</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="n">axis</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span><span class="o">.</span><span class="n">peak</span><span class="o">.</span><span class="n">value</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">report</span></div>

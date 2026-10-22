@@ -534,7 +534,8 @@ after each block’s own rotation; identity (axial) when <code class="docutils l
 <code class="docutils literal notranslate"><span class="pre">None</span></code>, then the default <a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a>.</p></li>
 <li><p><strong>trace</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Also return the response over time, which a diagnostic plot draws.
 The trace has one value per gradient raster interval over the whole
-sequence.</p></li>
+sequence: at its end under a chronaxie model, at its centre under
+SAFE.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -561,11 +562,14 @@ each axis’s own <code class="docutils literal notranslate"><span class="pre">r
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>The gradient is sampled at the centres of the sequence’s own gradient
-raster, from rest, and its slew is the difference between neighbouring
-samples; this and the SAFE model are upstream PyPulseq’s <code class="docutils literal notranslate"><span class="pre">calc_pns</span></code>.
-The response is evaluated over the whole sequence in one pass, carrying
-each model’s memory, in bounded storage.</p>
+<p>The gradient is sampled on the sequence’s own gradient raster, from rest,
+and its slew is the difference between neighbouring samples. Under a
+chronaxie model the samples are the ends of the raster intervals, so the
+slew is the one each interval plays and the response is the exact
+convolution at every interval end, where a ramp’s response peaks. Under
+SAFE they are the interval centres; this and the SAFE model are upstream
+PyPulseq’s <code class="docutils literal notranslate"><span class="pre">calc_pns</span></code>. The response is evaluated over the whole
+sequence in one pass, carrying each model’s memory, in bounded storage.</p>
 </dd></dl>
 
 </section>

@@ -192,7 +192,7 @@ scanner supplies its own model, which you read from its file.
 
  .. code-block:: none
 
-    peak 0.77 of threshold at 38.732 s, in block 4286
+    peak 0.79 of threshold at 38.732 s, in block 4286
 
 
 
@@ -350,7 +350,7 @@ Check summary
     gradient amplitude             pass   31.4 mT/m
     slew rate                      pass   121 T/m/s
     gradient continuity            pass   0 jumps
-    nerve stimulation              pass   0.77 of threshold
+    nerve stimulation              pass   0.79 of threshold
     mechanical resonance           pass   0 windows over
     SAR                            pass   0.33 W/kg local
 
@@ -380,7 +380,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.521 seconds)
+   **Total running time of the script:** (0 minutes 0.529 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_07_hardware_and_safety_checks.py:
