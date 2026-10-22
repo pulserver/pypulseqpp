@@ -148,6 +148,39 @@ nearest its centre. The report keeps each band's worst window.
 {func}`~pypulseqpp.safety.read_forbidden_bands` reads the acoustic resonances
 of a Siemens `.asc` file as centre ± bandwidth/2 on all axes, tolerance 0.
 
+Echo-spacing lockout tables state a tolerance as a gradient amplitude: the
+echo spacing is locked when the readout gradient exceeds it. With
+`tolerance_limits="gradient"` a band with a positive tolerance is violated by
+a window that holds a line above `min_line` (6 mT/m) inside the band while the
+axis's gradient magnitude over the window exceeds the tolerance. The gradient
+magnitude is bounded by the logical channels' extremes turned onto the axis,
+which is exact for an unrotated prescription.
+
+A window's Hann main lobe spans $\pm 2/T_W$, so a strong line just outside a
+band leaks into it: $\pm 100$ Hz for a 20 ms window. With `reread` (on by
+default), each window that exceeds a band is read again over a window four
+times longer, centred on it, around the band widened by $2/T_W$. If the
+strongest line there lies outside the band and keeps 80 % of the amplitude the
+short window read, the line is steady and outside the band, and the window
+counts as `leakage`, not as a violation. A short train loses amplitude in the
+long window in proportion to its length, so its reading stands. Only the
+windows that exceeded are read again, so a design that exceeds no band pays
+nothing for it.
+
+A wide band is read only where the gradient can reach its threshold. Summing
+by parts, a window's reading at $f$ is bounded by
+
+$$
+A(f) \le \frac{3\,V}{\sum_n w_n\,\sin(\pi f\,\Delta t)},
+$$
+
+where $V$ is the total variation of the axis's samples over the window and
+$\Delta t$ the gradient raster. The check bounds $V$ per window from the
+corners of the blocks it overlaps, and reads a band wider than 256 bins only
+up to where the bound at the largest $V$ meets the threshold. No verdict
+changes; a band open towards the raster's Nyquist frequency costs what its
+reachable part costs.
+
 A train alternating at echo spacing $\Delta t$ has its fundamental at
 $1/(2\,\Delta t)$, with an amplitude between $8/\pi^2$ (triangular) and
 $4/\pi$ (square) of the plateau, and odd harmonics. A tolerance stated as a

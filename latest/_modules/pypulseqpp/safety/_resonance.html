@@ -676,6 +676,9 @@
     <span class="n">stride</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">frequency_oversampling</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
     <span class="n">min_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">tolerance_limits</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"line"</span><span class="p">,</span>
+    <span class="n">min_line</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.0</span><span class="p">,</span>
+    <span class="n">reread</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">rotation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">SimpleNamespace</span><span class="p">]:</span>
@@ -696,6 +699,20 @@
 <span class="sd">        Zero-padded transform length, in window lengths.</span>
 <span class="sd">    min_threshold : float, default=10.0</span>
 <span class="sd">        Threshold (mT/m) for a band whose tolerance is 0.</span>
+<span class="sd">    tolerance_limits : {"line", "gradient"}, default="line"</span>
+<span class="sd">        What a positive tolerance limits. ``"line"``: the amplitude of any</span>
+<span class="sd">        line inside the band. ``"gradient"``: the gradient amplitude on the</span>
+<span class="sd">        guarded axis, as echo-spacing lockout tables state it; a window then</span>
+<span class="sd">        violates the band when the band holds a line above ``min_line`` and</span>
+<span class="sd">        the axis's gradient over the window exceeds the tolerance.</span>
+<span class="sd">    min_line : float, default=6.0</span>
+<span class="sd">        Line amplitude (mT/m) a band with ``tolerance_limits="gradient"``</span>
+<span class="sd">        must hold before its tolerance is compared with the gradient.</span>
+<span class="sd">    reread : bool, default=True</span>
+<span class="sd">        Read each window that exceeds a band again over a window four times</span>
+<span class="sd">        longer, centred on it. The excess is leakage, and no violation, when</span>
+<span class="sd">        the strongest line there lies outside the band and keeps 80 % of the</span>
+<span class="sd">        amplitude it read at.</span>
 <span class="sd">    rotation : array_like, default=None</span>
 <span class="sd">        3x3 prescription rotation from logical to physical axes, applied after</span>
 <span class="sd">        each block's own rotation; identity (axial) by default.</span>
@@ -712,18 +729,24 @@
 <span class="sd">        transforms with, and ``bands``: one entry per band, in</span>
 <span class="sd">        the order given, with the band's ``axis`` (None for every axis),</span>
 <span class="sd">        ``f_min``, ``f_max``, ``tolerance`` and applied ``threshold`` (mT/m);</span>
-<span class="sd">        the band's worst window, kept whether or not it violates: its largest</span>
-<span class="sd">        ``peak`` amplitude (mT/m), on ``peak_axis`` at ``frequency``, in the</span>
-<span class="sd">        0-based ``window`` starting at ``window_start`` (s); ``violations``,</span>
-<span class="sd">        the windows exceeding the threshold on any guarded axis; and ``axes``,</span>
-<span class="sd">        the same reading for each guarded axis on its own.</span>
+<span class="sd">        the band's worst window, its strongest violating one when any violates</span>
+<span class="sd">        and its strongest reading otherwise: its ``peak`` amplitude (mT/m), on</span>
+<span class="sd">        ``peak_axis`` at ``frequency``, in the</span>
+<span class="sd">        0-based ``window`` starting at ``window_start`` (s), with that axis's</span>
+<span class="sd">        largest ``gradient`` magnitude over the window (mT/m); ``violations``,</span>
+<span class="sd">        the windows violating the band on any guarded axis; ``leakage``, the</span>
+<span class="sd">        exceeding windows the longer read put down to a line outside the</span>
+<span class="sd">        band, counted per axis; and ``axes``, the same reading for each</span>
+<span class="sd">        guarded axis on its own.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``min_threshold``, ``window_width`` or ``stride`` is not positive,</span>
-<span class="sd">        ``frequency_oversampling`` is below 1, a band's frequency range is</span>
-<span class="sd">        empty or negative, or ``rotation`` is not a 3x3 orthonormal matrix.</span>
+<span class="sd">        If ``min_threshold``, ``min_line``, ``window_width`` or ``stride`` is</span>
+<span class="sd">        not positive, ``frequency_oversampling`` is below 1,</span>
+<span class="sd">        ``tolerance_limits`` is neither ``"line"`` nor ``"gradient"``, a</span>
+<span class="sd">        band's frequency range is empty or negative, or ``rotation`` is not a</span>
+<span class="sd">        3x3 orthonormal matrix.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -732,14 +755,28 @@
 <span class="sd">    Hann-tapered and zero-padded before a real FFT, and a bin's amplitude is</span>
 <span class="sd">    ``2 |X_k| / sum(w)``, so a sustained sinusoid of amplitude A at a bin</span>
 <span class="sd">    frequency reads A. A band's threshold is its tolerance where that is</span>
-<span class="sd">    positive and ``min_threshold`` otherwise. The FFT is MKL's when the</span>
-<span class="sd">    ``mkl`` package is installed, and pocketfft otherwise.</span>
+<span class="sd">    positive and ``min_threshold`` otherwise.</span>
+
+<span class="sd">    A wide band is read only up to the frequency the gradient can reach its</span>
+<span class="sd">    threshold at: a window's reading at f is at most</span>
+<span class="sd">    ``3 V / (sum(w) sin(pi f dt))``, with V the total variation of the axis's</span>
+<span class="sd">    gradient over the window and dt the gradient raster. This leaves every</span>
+<span class="sd">    verdict as it is and bounds the cost of a band open towards the raster's</span>
+<span class="sd">    Nyquist frequency. A band's ``peak`` is the largest reading of the</span>
+<span class="sd">    frequencies read.</span>
+
+<span class="sd">    The FFT is MKL's when the ``mkl`` package is installed, and pocketfft</span>
+<span class="sd">    otherwise.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bands</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
         <span class="n">bands</span> <span class="o">=</span> <span class="n">read_forbidden_bands</span><span class="p">(</span><span class="n">bands</span><span class="p">)</span>
     <span class="n">bands</span> <span class="o">=</span> <span class="p">[</span><span class="n">ForbiddenBand</span><span class="p">(</span><span class="o">*</span><span class="n">band</span><span class="p">)</span> <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">min_threshold</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"min_threshold must be positive"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">min_line</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"min_line must be positive"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tolerance_limits</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"line"</span><span class="p">,</span> <span class="s2">"gradient"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"tolerance_limits must be 'line' or 'gradient'"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">window_width</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"window_width must be positive"</span><span class="p">)</span>
     <span class="n">stride</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">window_width</span> <span class="k">if</span> <span class="n">stride</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">stride</span>
@@ -750,8 +787,14 @@
 
     <span class="n">turn</span> <span class="o">=</span> <span class="n">_prescription</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
     <span class="n">to_hz</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">_gamma</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+    <span class="n">on_gradient</span> <span class="o">=</span> <span class="n">tolerance_limits</span> <span class="o">==</span> <span class="s2">"gradient"</span>
     <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">band</span><span class="o">.</span><span class="n">tolerance</span> <span class="k">if</span> <span class="n">band</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="n">min_threshold</span> <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">bands</span>
+        <span class="n">min_threshold</span>
+        <span class="k">if</span> <span class="n">band</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
+        <span class="k">else</span> <span class="n">min_line</span>
+        <span class="k">if</span> <span class="n">on_gradient</span>
+        <span class="k">else</span> <span class="n">band</span><span class="o">.</span><span class="n">tolerance</span>
+        <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">bands</span>
     <span class="p">]</span>
     <span class="n">found</span> <span class="o">=</span> <span class="n">_cxx</span><span class="o">.</span><span class="n">mech_resonance</span><span class="p">(</span>
         <span class="n">seq</span><span class="o">.</span><span class="n">_native</span><span class="p">,</span>
@@ -761,6 +804,7 @@
                 <span class="nb">float</span><span class="p">(</span><span class="n">band</span><span class="o">.</span><span class="n">f_min</span><span class="p">),</span>
                 <span class="nb">float</span><span class="p">(</span><span class="n">band</span><span class="o">.</span><span class="n">f_max</span><span class="p">),</span>
                 <span class="n">threshold</span> <span class="o">*</span> <span class="n">to_hz</span><span class="p">,</span>
+                <span class="n">band</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">*</span> <span class="n">to_hz</span> <span class="k">if</span> <span class="n">on_gradient</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">band</span><span class="p">,</span> <span class="n">threshold</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bands</span><span class="p">,</span> <span class="n">thresholds</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="p">],</span>
@@ -769,6 +813,7 @@
         <span class="n">oversampling</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">frequency_oversampling</span><span class="p">),</span>
         <span class="n">rotation</span><span class="o">=</span><span class="n">turn</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
         <span class="n">mkl_runtime</span><span class="o">=</span><span class="n">_mkl_runtime</span><span class="p">(),</span>
+        <span class="n">reread</span><span class="o">=</span><span class="mi">4</span> <span class="k">if</span> <span class="n">reread</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">per_axis</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">]</span>
@@ -780,7 +825,9 @@
                 <span class="n">frequency</span><span class="o">=</span><span class="n">reading</span><span class="p">[</span><span class="s2">"frequency"</span><span class="p">],</span>
                 <span class="n">window</span><span class="o">=</span><span class="n">reading</span><span class="p">[</span><span class="s2">"window"</span><span class="p">],</span>
                 <span class="n">window_start</span><span class="o">=</span><span class="n">reading</span><span class="p">[</span><span class="s2">"window_start"</span><span class="p">],</span>
+                <span class="n">gradient</span><span class="o">=</span><span class="n">reading</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]</span> <span class="o">/</span> <span class="n">to_hz</span><span class="p">,</span>
                 <span class="n">violations</span><span class="o">=</span><span class="n">reading</span><span class="p">[</span><span class="s2">"violations"</span><span class="p">],</span>
+                <span class="n">leakage</span><span class="o">=</span><span class="n">reading</span><span class="p">[</span><span class="s2">"leakage"</span><span class="p">],</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -788,7 +835,8 @@
     <span class="k">for</span> <span class="n">band</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">violations</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
         <span class="n">bands</span><span class="p">,</span> <span class="n">thresholds</span><span class="p">,</span> <span class="n">per_axis</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="s2">"band_violations"</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">):</span>
-        <span class="n">worst</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">reading</span><span class="p">:</span> <span class="n">reading</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
+        <span class="n">violated</span> <span class="o">=</span> <span class="p">[</span><span class="n">reading</span> <span class="k">for</span> <span class="n">reading</span> <span class="ow">in</span> <span class="n">axes</span> <span class="k">if</span> <span class="n">reading</span><span class="o">.</span><span class="n">violations</span><span class="p">]</span>
+        <span class="n">worst</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">violated</span> <span class="ow">or</span> <span class="n">axes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">reading</span><span class="p">:</span> <span class="n">reading</span><span class="o">.</span><span class="n">peak</span><span class="p">)</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">_axis_index</span><span class="p">(</span><span class="n">band</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span>
         <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">SimpleNamespace</span><span class="p">(</span>
@@ -802,7 +850,9 @@
                 <span class="n">frequency</span><span class="o">=</span><span class="n">worst</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
                 <span class="n">window</span><span class="o">=</span><span class="n">worst</span><span class="o">.</span><span class="n">window</span><span class="p">,</span>
                 <span class="n">window_start</span><span class="o">=</span><span class="n">worst</span><span class="o">.</span><span class="n">window_start</span><span class="p">,</span>
+                <span class="n">gradient</span><span class="o">=</span><span class="n">worst</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span>
                 <span class="n">violations</span><span class="o">=</span><span class="n">violations</span><span class="p">,</span>
+                <span class="n">leakage</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">reading</span><span class="o">.</span><span class="n">leakage</span> <span class="k">for</span> <span class="n">reading</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">),</span>
                 <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
