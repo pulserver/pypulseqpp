@@ -221,6 +221,9 @@ def check_mech_resonance(
     stride: float | None = None,
     frequency_oversampling: int = 3,
     min_threshold: float = 10.0,
+    tolerance_limits: str = "line",
+    min_line: float = 6.0,
+    reread: bool = True,
     rotation=None,
     system=None,
 ) -> tuple[bool, SimpleNamespace]:
@@ -241,6 +244,20 @@ def check_mech_resonance(
         Zero-padded transform length, in window lengths.
     min_threshold : float, default=10.0
         Threshold (mT/m) for a band whose tolerance is 0.
+    tolerance_limits : {"line", "gradient"}, default="line"
+        What a positive tolerance limits. ``"line"``: the amplitude of any
+        line inside the band. ``"gradient"``: the gradient amplitude on the
+        guarded axis, as echo-spacing lockout tables state it; a window then
+        violates the band when the band holds a line above ``min_line`` and
+        the axis's gradient over the window exceeds the tolerance.
+    min_line : float, default=6.0
+        Line amplitude (mT/m) a band with ``tolerance_limits="gradient"``
+        must hold before its tolerance is compared with the gradient.
+    reread : bool, default=True
+        Read each window that exceeds a band again over a window four times
+        longer, centred on it. The excess is leakage, and no violation, when
+        the strongest line there lies outside the band and keeps 80 % of the
+        amplitude it read at.
     rotation : array_like, default=None
         3x3 prescription rotation from logical to physical axes, applied after
         each block's own rotation; identity (axial) by default.
@@ -257,18 +274,24 @@ def check_mech_resonance(
         transforms with, and ``bands``: one entry per band, in
         the order given, with the band's ``axis`` (None for every axis),
         ``f_min``, ``f_max``, ``tolerance`` and applied ``threshold`` (mT/m);
-        the band's worst window, kept whether or not it violates: its largest
-        ``peak`` amplitude (mT/m), on ``peak_axis`` at ``frequency``, in the
-        0-based ``window`` starting at ``window_start`` (s); ``violations``,
-        the windows exceeding the threshold on any guarded axis; and ``axes``,
-        the same reading for each guarded axis on its own.
+        the band's worst window, its strongest violating one when any violates
+        and its strongest reading otherwise: its ``peak`` amplitude (mT/m), on
+        ``peak_axis`` at ``frequency``, in the
+        0-based ``window`` starting at ``window_start`` (s), with that axis's
+        largest ``gradient`` magnitude over the window (mT/m); ``violations``,
+        the windows violating the band on any guarded axis; ``leakage``, the
+        exceeding windows the longer read put down to a line outside the
+        band, counted per axis; and ``axes``, the same reading for each
+        guarded axis on its own.
 
     Raises
     ------
     ValueError
-        If ``min_threshold``, ``window_width`` or ``stride`` is not positive,
-        ``frequency_oversampling`` is below 1, a band's frequency range is
-        empty or negative, or ``rotation`` is not a 3x3 orthonormal matrix.
+        If ``min_threshold``, ``min_line``, ``window_width`` or ``stride`` is
+        not positive, ``frequency_oversampling`` is below 1,
+        ``tolerance_limits`` is neither ``"line"`` nor ``"gradient"``, a
+        band's frequency range is empty or negative, or ``rotation`` is not a
+        3x3 orthonormal matrix.
 
     Notes
     -----
@@ -277,14 +300,28 @@ def check_mech_resonance(
     Hann-tapered and zero-padded before a real FFT, and a bin's amplitude is
     ``2 |X_k| / sum(w)``, so a sustained sinusoid of amplitude A at a bin
     frequency reads A. A band's threshold is its tolerance where that is
-    positive and ``min_threshold`` otherwise. The FFT is MKL's when the
-    ``mkl`` package is installed, and pocketfft otherwise.
+    positive and ``min_threshold`` otherwise.
+
+    A wide band is read only up to the frequency the gradient can reach its
+    threshold at: a window's reading at f is at most
+    ``3 V / (sum(w) sin(pi f dt))``, with V the total variation of the axis's
+    gradient over the window and dt the gradient raster. This leaves every
+    verdict as it is and bounds the cost of a band open towards the raster's
+    Nyquist frequency. A band's ``peak`` is the largest reading of the
+    frequencies read.
+
+    The FFT is MKL's when the ``mkl`` package is installed, and pocketfft
+    otherwise.
     """
     if isinstance(bands, (str, os.PathLike)):
         bands = read_forbidden_bands(bands)
     bands = [ForbiddenBand(*band) for band in bands]
     if min_threshold <= 0.0:
         raise ValueError("min_threshold must be positive")
+    if min_line <= 0.0:
+        raise ValueError("min_line must be positive")
+    if tolerance_limits not in ("line", "gradient"):
+        raise ValueError("tolerance_limits must be 'line' or 'gradient'")
     if window_width <= 0.0:
         raise ValueError("window_width must be positive")
     stride = 0.5 * window_width if stride is None else stride
@@ -295,8 +332,14 @@ def check_mech_resonance(
 
     turn = _prescription(rotation)
     to_hz = 1e-3 * _gamma(seq, system)
+    on_gradient = tolerance_limits == "gradient"
     thresholds = [
-        band.tolerance if band.tolerance > 0.0 else min_threshold for band in bands
+        min_threshold
+        if band.tolerance <= 0.0
+        else min_line
+        if on_gradient
+        else band.tolerance
+        for band in bands
     ]
     found = _cxx.mech_resonance(
         seq._native,
@@ -306,6 +349,7 @@ def check_mech_resonance(
                 float(band.f_min),
                 float(band.f_max),
                 threshold * to_hz,
+                band.tolerance * to_hz if on_gradient else 0.0,
             )
             for band, threshold in zip(bands, thresholds, strict=True)
         ],
@@ -314,6 +358,7 @@ def check_mech_resonance(
         oversampling=int(frequency_oversampling),
         rotation=turn.tolist(),
         mkl_runtime=_mkl_runtime(),
+        reread=4 if reread else 1,
     )
 
     per_axis = [[] for _ in bands]
@@ -325,7 +370,9 @@ def check_mech_resonance(
                 frequency=reading["frequency"],
                 window=reading["window"],
                 window_start=reading["window_start"],
+                gradient=reading["gradient"] / to_hz,
                 violations=reading["violations"],
+                leakage=reading["leakage"],
             )
         )
 
@@ -333,7 +380,8 @@ def check_mech_resonance(
     for band, threshold, axes, violations in zip(
         bands, thresholds, per_axis, found["band_violations"], strict=True
     ):
-        worst = max(axes, key=lambda reading: reading.peak)
+        violated = [reading for reading in axes if reading.violations]
+        worst = max(violated or axes, key=lambda reading: reading.peak)
         index = _axis_index(band.axis)
         entries.append(
             SimpleNamespace(
@@ -347,7 +395,9 @@ def check_mech_resonance(
                 frequency=worst.frequency,
                 window=worst.window,
                 window_start=worst.window_start,
+                gradient=worst.gradient,
                 violations=violations,
+                leakage=sum(reading.leakage for reading in axes),
                 axes=axes,
             )
         )
