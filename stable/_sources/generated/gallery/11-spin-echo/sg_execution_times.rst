@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:53.602** total execution time for 9 files **from generated/gallery/11-spin-echo**:
+**00:32.028** total execution time for 9 files **from generated/gallery/11-spin-echo**:
 
 .. container::
 
@@ -33,29 +33,29 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se3D_sequence.py` (``se3D_sequence.py``)
-     - 00:23.655
+     - 00:13.735
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_blades3D_sequence.py` (``se_stack_of_blades3D_sequence.py``)
-     - 00:08.737
+     - 00:05.458
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_stars3D_sequence.py` (``se_stack_of_stars3D_sequence.py``)
-     - 00:05.345
+     - 00:03.239
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_propeller2D_sequence.py` (``se_propeller2D_sequence.py``)
-     - 00:03.997
+     - 00:02.398
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py` (``se_stack_of_spirals3D_sequence.py``)
-     - 00:03.172
+     - 00:01.952
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_radial2D_sequence.py` (``se_radial2D_sequence.py``)
-     - 00:02.778
+     - 00:01.657
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se2D_sequence.py` (``se2D_sequence.py``)
-     - 00:02.286
+     - 00:01.403
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py` (``se_epi_propeller2D_sequence.py``)
-     - 00:02.216
+     - 00:01.345
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_11-spin-echo_se_spiral2D_sequence.py` (``se_spiral2D_sequence.py``)
-     - 00:01.415
+     - 00:00.840
      - 0.0

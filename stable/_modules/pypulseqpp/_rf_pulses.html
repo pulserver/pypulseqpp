@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=24843284"></script>
+    <script src="../../_static/documentation_options.js?v=9f78b099"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.46';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.47';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.46" />
+  <meta name="docsearch:version" content="v0.0.47" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -469,6 +469,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseq</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_events</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._adiabatic</span><span class="w"> </span><span class="kn">import</span> <span class="n">HYPSEC_BETA</span><span class="p">,</span> <span class="n">HYPSEC_MU</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._angles</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_uniform_angles</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._band_phases</span><span class="w"> </span><span class="kn">import</span> <span class="n">band_phases</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_system</span>
@@ -1312,6 +1313,8 @@
     <span class="n">adiabaticity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
     <span class="n">dwell</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10e-6</span><span class="p">,</span>
     <span class="n">pulse_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"hypsec"</span><span class="p">,</span>
+    <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">HYPSEC_MU</span><span class="p">,</span>
     <span class="n">use</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"preparation"</span><span class="p">,</span>
     <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
@@ -1335,6 +1338,11 @@
 <span class="sd">        RF raster, in s.</span>
 <span class="sd">    pulse_type : str, default='hypsec'</span>
 <span class="sd">        Sweep family, as :func:`make_adiabatic_pulse` names them.</span>
+<span class="sd">    beta : float, default=None</span>
+<span class="sd">        ``"hypsec"`` envelope parameter of the full sweep (1/s); 800 by</span>
+<span class="sd">        default.</span>
+<span class="sd">    mu : float, default=4.9</span>
+<span class="sd">        ``"hypsec"`` sweep amplitude, in units of ``beta``.</span>
 <span class="sd">    use : str, default='preparation'</span>
 <span class="sd">        Pulseq ``use`` tag.</span>
 <span class="sd">    system : Opts, default=None</span>
@@ -1359,6 +1367,8 @@
         <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">duration</span><span class="p">,</span>
         <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>
         <span class="n">adiabaticity</span><span class="o">=</span><span class="n">adiabaticity</span><span class="p">,</span>
+        <span class="n">beta</span><span class="o">=</span><span class="n">HYPSEC_BETA</span> <span class="k">if</span> <span class="n">beta</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">beta</span><span class="p">,</span>
+        <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span>
         <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span>
     <span class="p">)</span>

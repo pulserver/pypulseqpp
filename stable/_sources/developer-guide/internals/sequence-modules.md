@@ -115,8 +115,33 @@ peak B1 the transmit chain allows (of `max_b1` itself on a system
 excitation and refocusing modules lengthen the pulse, flip angle and
 time-bandwidth product held, until its peak fits; the module's `pulse_duration`, blocks and centre
 carry the lengthened pulse, and a sequence solves its TE and TR from them.
-Spectral, adiabatic, two-dimensional and multiband pulses are designed as
-given, since their duration sets what they select.
+Spectral, two-dimensional and multiband pulses are designed as given, since
+their duration sets what they select.
+
+An adiabatic pulse's duration sets its sweep rate instead. At a fixed swept
+bandwidth the peak that meets its adiabaticity at the sweep's centre falls as
+$\sqrt{\mathtt{adiabaticity}/\mathtt{duration}}$, so
+`InversionPreparation` and `T2Preparation` lengthen a pulse above the limit
+with its adiabaticity and bandwidth held (a hyperbolic secant with `beta`
+divided and `mu` multiplied by the stretch), which leaves its inversion across
+B1 and off-resonance where it was. Relaxation during the sweep, which
+{func}`~pypulseqpp.sim_rf` does not model, grows with the duration, and so do
+the shortest TI and preparation echo time, so the stretch stops at
+`ADIABATIC_MAX_STRETCH` times the design duration. Past it the adiabaticity
+is lowered, to no less than `ADIABATICITY_FLOOR` of the design's; at 0.7 of
+the nominal B1 an inversion at the floor leaves its band far better inverted
+than one at half the adiabaticity. A pulse that does not fit there is refused.
+`InversionPreparation` publishes the `pulse_duration` and `adiabaticity` it
+designed at, and `T2Preparation` one of each for its half passages and its
+refocusing pulse.
+
+```{figure} ../../generated/figures/adiabatic_inversion_under_b1_limit.png
+The default hyperbolic-secant inversion with no limit, under 11.2 µT
+(lengthened), under 9.5 µT (at the stretch ceiling, adiabaticity lowered), and
+at half its adiabaticity. Left, the envelopes; right, the highest $M_z$ each
+leaves over ±250 Hz as the transmit field is scaled, the band 0.7 to 1.3
+shaded.
+```
 
 ### Protocol
 

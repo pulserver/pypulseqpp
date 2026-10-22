@@ -18,7 +18,7 @@ also returns its slice-selection and rephasing gradients;
 | {obj}`~pypulseqpp.make_arbitrary_rf` | Complex waveform, flip angle | RF event; optional slice-select gradient | RF event from a given waveform. |
 | {obj}`~pypulseqpp.make_block_pulse` | Flip angle, duration or bandwidth | RF event | Hard (rectangular) pulse. |
 | {obj}`~pypulseqpp.make_gauss_pulse` | Flip angle, duration, time-bandwidth product | RF event; optional slice-select and rephasing gradients | Gaussian pulse. |
-| {obj}`~pypulseqpp.make_half_passages` | Duration, adiabaticity, sweep type | Two RF events, `down` and `up` | Adiabatic half-passage pair. |
+| {obj}`~pypulseqpp.make_half_passages` | Duration, adiabaticity, sweep type, hyperbolic-secant `beta` and `mu` | Two RF events, `down` and `up` | Adiabatic half-passage pair. |
 | {obj}`~pypulseqpp.make_sinc_pulse` | Flip angle, duration, time-bandwidth product | RF event; optional slice-select and rephasing gradients | Sinc pulse. |
 
 ## SLR and multidimensional design
