@@ -454,7 +454,7 @@ def test_mkl_and_the_compiled_fft_agree(system):
         [pp.make_trapezoid("x", area=3000, duration=2e-3, system=system)],
     )
     arguments = {
-        "bands": [(-1, 500.0, 700.0, 1e3)],
+        "bands": [(-1, 500.0, 700.0, 1e3, 0.0)],
         "window": 40e-3,
         "stride": 20e-3,
         "oversampling": 3,
@@ -475,7 +475,7 @@ def test_an_unloadable_mkl_falls_back_to_the_compiled_fft(system, tmp_path):
 
     found = _ext.mech_resonance(
         sequence._native,
-        bands=[(0, 550.0, 650.0, 1.0)],
+        bands=[(0, 550.0, 650.0, 1.0, 0.0)],
         window=40e-3,
         stride=20e-3,
         oversampling=3,
@@ -561,3 +561,136 @@ def test_a_window_the_sequence_does_not_reach_is_refused(system):
 
     with pytest.raises(ValueError, match="no window"):
         safety.mech_resonance_spectrum(sequence, window=99, window_width=20e-3)
+
+
+# -- a second, longer read of the windows that exceed --------------------------
+
+
+def burst(system, channel, amplitude, frequency, duration, silence):
+    """A sinusoid of `duration` s between two stretches of `silence` s."""
+    return [
+        [pp.make_delay(silence)],
+        [sinusoid(system, channel, amplitude, frequency, duration)],
+        [pp.make_delay(silence)],
+    ]
+
+
+def test_a_steady_line_beside_a_band_is_leakage_on_the_longer_read(system):
+    sequence = played(system, [sinusoid(system, "x", 20.0, 1080.0, 0.4)])
+    band = [("x", 1100.0, 1200.0, 0.0)]
+
+    once_ok, once = safety.check_mech_resonance(
+        sequence, band, window_width=0.02, reread=False
+    )
+    ok, report = safety.check_mech_resonance(sequence, band, window_width=0.02)
+
+    assert not once_ok
+    assert ok
+    assert report.bands[0].violations == 0
+    assert report.bands[0].leakage == once.bands[0].violations
+
+
+def test_a_short_train_in_a_band_stays_a_violation_on_the_longer_read(system):
+    sequence = played(system, *burst(system, "x", 25.0, 1150.0, 0.012, 0.1))
+    band = [("x", 1100.0, 1200.0, 0.0)]
+
+    _, once = safety.check_mech_resonance(
+        sequence, band, window_width=0.02, reread=False
+    )
+    ok, report = safety.check_mech_resonance(sequence, band, window_width=0.02)
+
+    assert once.bands[0].violations > 0
+    assert not ok
+    assert report.bands[0].violations == once.bands[0].violations
+    assert report.bands[0].leakage == 0
+
+
+def two_tones(system, strong, weak):
+    """`strong` mT/m at 300 Hz and `weak` mT/m at 1150 Hz on x, 0.2 s."""
+    dt = system.grad_raster_time
+    n = round(0.2 / dt)
+    t = (np.arange(n) + 0.5) * dt
+    hz = 1e-3 * system.gamma
+    wave = hz * (
+        strong * np.sin(2 * math.pi * 300.0 * t)
+        + weak * np.sin(2 * math.pi * 1150.0 * t)
+    )
+    return played(
+        system,
+        [pp.make_arbitrary_grad("x", wave, first=0.0, last=wave[-1], system=system)],
+    )
+
+
+def test_a_stated_tolerance_limits_the_gradient_not_the_line(system):
+    band = [("x", 1100.0, 1200.0, 16.0)]
+    strong = two_tones(system, 30.0, 8.0)
+    weak = two_tones(system, 5.0, 8.0)
+
+    on_line, _ = safety.check_mech_resonance(strong, band, window_width=0.02)
+    on_gradient, report = safety.check_mech_resonance(
+        strong, band, window_width=0.02, tolerance_limits="gradient"
+    )
+    within, _ = safety.check_mech_resonance(
+        weak, band, window_width=0.02, tolerance_limits="gradient"
+    )
+
+    assert on_line
+    assert not on_gradient
+    assert report.bands[0].threshold == 6.0
+    assert report.bands[0].gradient > 30.0
+    assert within
+
+
+def test_a_tolerance_is_said_to_limit_a_line_or_a_gradient(system):
+    sequence = played(system, [sinusoid(system, "x", 5.0, 600.0, 0.1)])
+
+    with pytest.raises(ValueError, match="tolerance_limits"):
+        safety.check_mech_resonance(
+            sequence, [("x", 550.0, 650.0, 5.0)], tolerance_limits="plateau"
+        )
+
+
+@pytest.mark.parametrize("amplitude", [5.0, 15.0])
+def test_a_wide_band_reads_the_same_verdict_capped_as_read_whole(system, amplitude):
+    sequence = played(system, [sinusoid(system, "y", amplitude, 600.0, 0.2)])
+    dt = system.grad_raster_time
+    nyquist = 0.5 / dt
+
+    ok, report = safety.check_mech_resonance(
+        sequence, [("y", 300.0, nyquist, 0.0)], window_width=0.02, reread=False
+    )
+    ((best, _),) = windows_the_long_way(
+        sequence, dt, [(1, 300.0, nyquist)], 0.02, 0.01, 3
+    )
+    best /= 1e-3 * system.gamma
+
+    assert ok == (best <= 10.0)
+    assert report.bands[0].peak == pytest.approx(best, rel=1e-6)
+
+
+def test_a_violated_band_names_a_window_that_violates(system):
+    """A stated tolerance on the gradient: the strongest line is where the gradient is weak."""
+    dt = system.grad_raster_time
+    hz = 1e-3 * system.gamma
+    t = (np.arange(round(0.1 / dt)) + 0.5) * dt
+    line = np.sin(2 * math.pi * 1150.0 * t)
+    strong = hz * 9.0 * line
+    weak = hz * (7.0 * line + 25.0 * np.sin(2 * math.pi * 100.0 * t))
+    sequence = played(
+        system,
+        *(
+            [pp.make_arbitrary_grad("x", wave, first=0.0, last=wave[-1], system=system)]
+            for wave in (strong, weak)
+        ),
+    )
+
+    ok, report = safety.check_mech_resonance(
+        sequence,
+        [("x", 1100.0, 1200.0, 16.0)],
+        window_width=0.02,
+        tolerance_limits="gradient",
+    )
+
+    assert not ok
+    assert report.bands[0].gradient > 16.0
+    assert report.bands[0].window_start + 0.02 > 0.1

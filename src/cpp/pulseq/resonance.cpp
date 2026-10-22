@@ -170,6 +170,7 @@ namespace pulseq
             int64_t lo = 1;
             int64_t hi = 0;
             double threshold = 0.0;
+            double gradient_limit = 0.0;
             std::vector<size_t> at;
             std::vector<size_t> below;
             std::vector<size_t> above;
@@ -446,6 +447,90 @@ namespace pulseq
             mutable std::vector<double> sum_im_;
         };
 
+        /** A window that exceeded a band on one axis, with its strongest bin. */
+        struct Exceeding
+        {
+            size_t reading = 0;
+            int64_t window = 0;
+            double amplitude = 0.0;
+            double frequency = 0.0;
+            double gradient = 0.0;
+        };
+
+        /** What one reading of the windows does beyond the report. */
+        struct Control
+        {
+            /** Leave out the bins a band cannot exceed its threshold at. */
+            bool cap = true;
+            /** Sorted windows to read; every window when null. Samples no
+             * wanted window covers are passed over unsummed. */
+            const std::vector<int64_t>* wanted = nullptr;
+            /** Where each exceeding window goes instead of the violation counts. */
+            std::vector<Exceeding>* exceeding = nullptr;
+            /** Where every wanted window's strongest bin per reading goes. */
+            std::vector<Exceeding>* lines = nullptr;
+            /** Samples in the sequence, once read. */
+            int64_t samples = -1;
+        };
+
+        /** Bands wider than this many bins are capped where the gradient cannot reach them. */
+        constexpr int64_t kCapBins = 256;
+
+        /**
+         * The largest total variation of each physical axis's samples over
+         * any window, bounded per block by its channels' corners, the steps
+         * from and to zero at its edges included, turned onto the axis.
+         */
+        void largest_variation(const Sequence& seq, const double rotation[3][3], int64_t width,
+                               int64_t step, double (&out)[3])
+        {
+            std::vector<double> windows[3];
+            PhysicalRaster raster(seq, rotation);
+            int64_t count;
+            while ((count = raster.enter_block()) > 0)
+            {
+                const int64_t at = raster.position();
+                double channel[3] = {0.0, 0.0, 0.0};
+                bool any = false;
+                for (int c = 0; c < 3; ++c)
+                {
+                    const PhysicalRaster::ChannelCorners corners = raster.played(c);
+                    if (!raster.channel(c) || corners.count == 0)
+                        continue;
+                    double v = std::abs(corners.values[0]) + std::abs(corners.values[corners.count - 1]);
+                    for (size_t i = 0; i + 1 < corners.count; ++i)
+                        v += std::abs(corners.values[i + 1] - corners.values[i]);
+                    channel[c] = v;
+                    any = any || v > 0.0;
+                }
+                raster.skip(count);
+                if (!any)
+                    continue;
+                const double(&turn)[3][3] = raster.rotation();
+                /* Windows k with k step < at + count and k step + width > at. */
+                const int64_t first = at < width ? 0 : (at - width) / step + 1;
+                const int64_t last = (at + count - 1) / step;
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    const double v = std::abs(turn[axis][0]) * channel[0] +
+                        std::abs(turn[axis][1]) * channel[1] + std::abs(turn[axis][2]) * channel[2];
+                    if (v == 0.0)
+                        continue;
+                    std::vector<double>& per = windows[axis];
+                    if (per.size() <= static_cast<size_t>(last))
+                        per.resize(static_cast<size_t>(last) + 1, 0.0);
+                    for (int64_t k = first; k <= last; ++k)
+                        per[static_cast<size_t>(k)] += v;
+                }
+            }
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                out[axis] = windows[axis].empty()
+                    ? 0.0
+                    : *std::max_element(windows[axis].begin(), windows[axis].end());
+            }
+        }
+
         /** The FFT of one window of every axis, for a diagnostic. */
         void keep_spectrum(
             const Sequence& seq,
@@ -514,10 +599,14 @@ namespace pulseq
 
     } // namespace
 
-    ResonanceReport mech_resonance(
+    namespace
+    {
+
+    ResonanceReport read_bands(
         const Sequence& seq,
         const std::vector<ForbiddenBand>& bands,
-        const ResonanceOptions& options)
+        const ResonanceOptions& options,
+        Control& control)
     {
         ResonanceReport out;
         const double dt = seq.grad_raster_time();
@@ -555,6 +644,7 @@ namespace pulseq
                 guard.lo = lo;
                 guard.hi = hi;
                 guard.threshold = band.threshold;
+                guard.gradient_limit = band.gradient_limit;
                 out.readings.push_back(reading);
                 if (lo <= hi)
                     guards[axis].push_back(guard);
@@ -562,8 +652,6 @@ namespace pulseq
         }
 
         out.band_violations.assign(bands.size(), 0);
-        /* A window violating a band on two axes is one violating window. */
-        std::vector<int64_t> last_violated(bands.size(), -1);
 
         std::vector<double> taper(static_cast<size_t>(width));
         double taper_sum = 0.0;
@@ -574,6 +662,38 @@ namespace pulseq
             taper_sum += taper[static_cast<size_t>(i)];
         }
         const double scale = taper_sum > 0.0 ? 2.0 / taper_sum : 0.0;
+
+        if (control.cap)
+        {
+            bool wide = false;
+            for (int axis = 0; axis < 3; ++axis)
+                for (const Guard& guard : guards[axis])
+                    wide = wide || guard.hi - guard.lo > kCapBins;
+            if (wide)
+            {
+                double variation[3];
+                largest_variation(seq, options.rotation, width, step, variation);
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    for (Guard& guard : guards[axis])
+                    {
+                        if (guard.hi - guard.lo <= kCapBins || guard.threshold <= 0.0)
+                            continue;
+                        /* The reading is at most 3 V / (sum(w) sin(pi f dt)). */
+                        const double reach = 3.0 * variation[axis] / (taper_sum * guard.threshold);
+                        if (reach >= 1.0)
+                            continue;
+                        const double f_cap = std::asin(reach) / (kPi * dt);
+                        guard.hi = std::min(
+                            guard.hi, static_cast<int64_t>(std::ceil(f_cap / out.frequency_step)));
+                    }
+                    guards[axis].erase(
+                        std::remove_if(guards[axis].begin(), guards[axis].end(),
+                                       [](const Guard& guard) { return guard.lo > guard.hi; }),
+                        guards[axis].end());
+                }
+            }
+        }
 
         out.backend = RealFft(static_cast<size_t>(length), options.mkl_runtime).backend();
 
@@ -650,7 +770,14 @@ namespace pulseq
         int64_t next = 0;
         int64_t samples = -1;
 
+        const auto wanted = [&](int64_t window) {
+            return !control.wanted ||
+                std::binary_search(control.wanted->begin(), control.wanted->end(), window);
+        };
+
         const auto judge = [&](int64_t window) {
+            if (!wanted(window))
+                return;
             const int64_t start = window * step;
             std::fill(sum_re.begin(), sum_re.end(), 0.0);
             std::fill(sum_im.begin(), sum_im.end(), 0.0);
@@ -712,23 +839,23 @@ namespace pulseq
                         }
                     }
                     const double amplitude = std::sqrt(strongest) * scale;
+                    const double frequency = static_cast<double>(found) * out.frequency_step;
+                    const double gradient = std::max(std::abs(low[axis]), std::abs(high[axis]));
                     BandReading& reading = out.readings[guard.reading];
-                    if (amplitude > guard.threshold)
-                    {
-                        ++reading.violations;
-                        const size_t band = static_cast<size_t>(reading.band);
-                        if (last_violated[band] != window)
-                        {
-                            last_violated[band] = window;
-                            ++out.band_violations[band];
-                        }
-                    }
+                    if (control.lines)
+                        control.lines->push_back({guard.reading, window, amplitude, frequency, gradient});
+                    const bool over = amplitude > guard.threshold &&
+                        (guard.gradient_limit <= 0.0 || gradient > guard.gradient_limit);
+                    if (over && control.exceeding)
+                        control.exceeding->push_back(
+                            {guard.reading, window, amplitude, frequency, gradient});
                     if (amplitude > reading.peak)
                     {
                         reading.peak = amplitude;
-                        reading.frequency = static_cast<double>(found) * out.frequency_step;
+                        reading.frequency = frequency;
                         reading.window = window;
                         reading.window_start = static_cast<double>(start) * dt;
+                        reading.gradient = gradient;
                     }
                 }
             }
@@ -788,6 +915,17 @@ namespace pulseq
             std::vector<Interval> intervals;
             size_t completed = 0;
             bool exhausted = false;
+        };
+
+        /* Whether a wanted window covers any of an interval's samples. */
+        const auto needed = [&](const Interval& interval) {
+            if (!control.wanted)
+                return true;
+            /* The first wanted window not ending at or before the interval's start. */
+            const int64_t from = interval.begin < width ? 0 : (interval.begin - width) / step + 1;
+            const auto found =
+                std::lower_bound(control.wanted->begin(), control.wanted->end(), from);
+            return found != control.wanted->end() && *found * step < interval.end;
         };
 
         /* Sum samples [first, last) into w.intervals, one interval per pair
@@ -957,6 +1095,7 @@ namespace pulseq
             current->sums.reset(total_bins);
             current->begin = first;
             current->end = next_edge(first);
+            bool summing = needed(*current);
             raster.advance(first);
             int64_t count;
             while (raster.position() < last)
@@ -977,8 +1116,11 @@ namespace pulseq
                 while (from < until)
                 {
                     const int64_t n = std::min(until - from, current->end - at);
-                    block_sums(raster, count, from, n);
-                    w.spectra.add_from(current->sums, at, part);
+                    if (summing)
+                    {
+                        block_sums(raster, count, from, n);
+                        w.spectra.add_from(current->sums, at, part);
+                    }
                     at += n;
                     from += n;
                     if (at == current->end)
@@ -991,6 +1133,7 @@ namespace pulseq
                         current->sums.reset(total_bins);
                         current->begin = end;
                         current->end = next_edge(end);
+                        summing = needed(*current);
                     }
                 }
                 raster.skip(from);
@@ -1075,6 +1218,124 @@ namespace pulseq
         }
         if (options.keep_spectrum >= 0 && options.keep_spectrum < out.windows)
             keep_spectrum(seq, options, width, step, length, taper, scale, out);
+        control.samples = samples;
+        return out;
+    }
+
+    } // namespace
+
+    ResonanceReport mech_resonance(
+        const Sequence& seq,
+        const std::vector<ForbiddenBand>& bands,
+        const ResonanceOptions& options)
+    {
+        std::vector<Exceeding> exceeding;
+        Control first;
+        first.exceeding = &exceeding;
+        ResonanceReport out = read_bands(seq, bands, options, first);
+        std::vector<char> leaked(exceeding.size(), 0);
+
+        const double dt = seq.grad_raster_time();
+        const int64_t step = std::llround(out.stride / dt);
+        if (options.reread > 1 && !exceeding.empty())
+        {
+            const int64_t width = std::llround(out.window / dt);
+            const int64_t long_width = width * options.reread;
+            const int64_t samples = first.samples;
+            const int64_t long_windows =
+                samples <= long_width ? 1 : (samples - long_width + step - 1) / step + 1;
+            /* The longer window centred on each exceeding one, on the same stride. */
+            const auto centred = [&](int64_t window) {
+                const double start = static_cast<double>(window * step + width / 2 - long_width / 2);
+                const int64_t at = std::llround(start / static_cast<double>(step));
+                return std::clamp<int64_t>(at, 0, long_windows - 1);
+            };
+
+            /* One band per exceeding reading, on its axis, widened by the short
+             * window's main lobe and up to its highest exceeding bin. */
+            const double lobe = 2.0 / out.window;
+            std::vector<int> long_band(out.readings.size(), -1);
+            std::vector<double> top(out.readings.size(), -1.0);
+            for (const Exceeding& e : exceeding)
+                top[e.reading] = std::max(top[e.reading], e.frequency);
+            std::vector<ForbiddenBand> widened;
+            for (size_t r = 0; r < out.readings.size(); ++r)
+            {
+                if (top[r] < 0.0)
+                    continue;
+                const ForbiddenBand& band = bands[static_cast<size_t>(out.readings[r].band)];
+                ForbiddenBand one;
+                one.axis = out.readings[r].axis;
+                one.f_min = std::max(0.0, std::min(band.f_min, top[r]) - lobe);
+                one.f_max = top[r] + lobe;
+                long_band[r] = static_cast<int>(widened.size());
+                widened.push_back(one);
+            }
+            std::vector<int64_t> wanted;
+            for (const Exceeding& e : exceeding)
+                wanted.push_back(centred(e.window));
+            std::sort(wanted.begin(), wanted.end());
+            wanted.erase(std::unique(wanted.begin(), wanted.end()), wanted.end());
+
+            ResonanceOptions longer = options;
+            longer.window = static_cast<double>(long_width) * dt;
+            longer.keep_spectrum = -1;
+            longer.reread = 1;
+            std::vector<Exceeding> lines;
+            Control second;
+            second.cap = false;
+            second.wanted = &wanted;
+            second.lines = &lines;
+            read_bands(seq, widened, longer, second);
+
+            std::unordered_map<int64_t, const Exceeding*> line_at;
+            const int64_t per_band = long_windows;
+            for (const Exceeding& line : lines)
+                line_at[static_cast<int64_t>(line.reading) * per_band + line.window] = &line;
+            for (size_t i = 0; i < exceeding.size(); ++i)
+            {
+                const Exceeding& e = exceeding[i];
+                const ForbiddenBand& band = bands[static_cast<size_t>(out.readings[e.reading].band)];
+                const auto found = line_at.find(
+                    static_cast<int64_t>(long_band[e.reading]) * per_band + centred(e.window));
+                if (found == line_at.end())
+                    continue;
+                const Exceeding& line = *found->second;
+                const bool outside = line.frequency < band.f_min || line.frequency > band.f_max;
+                leaked[i] = outside && line.amplitude >= options.reread_keep * e.amplitude;
+            }
+        }
+
+        /* A window violating a band on two axes is one violating window. */
+        std::vector<int64_t> last_violated(bands.size(), -1);
+        std::vector<double> strongest(out.readings.size(), -1.0);
+        for (size_t i = 0; i < exceeding.size(); ++i)
+        {
+            const Exceeding& e = exceeding[i];
+            BandReading& reading = out.readings[e.reading];
+            if (leaked[i])
+            {
+                ++reading.leakage;
+                continue;
+            }
+            /* A violated band reports its strongest violating window. */
+            if (e.amplitude > strongest[e.reading])
+            {
+                strongest[e.reading] = e.amplitude;
+                reading.peak = e.amplitude;
+                reading.frequency = e.frequency;
+                reading.window = e.window;
+                reading.window_start = static_cast<double>(e.window * step) * dt;
+                reading.gradient = e.gradient;
+            }
+            ++reading.violations;
+            const size_t band = static_cast<size_t>(reading.band);
+            if (last_violated[band] != e.window)
+            {
+                last_violated[band] = e.window;
+                ++out.band_violations[band];
+            }
+        }
         return out;
     }
 

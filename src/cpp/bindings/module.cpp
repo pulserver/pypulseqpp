@@ -1330,10 +1330,11 @@ PYBIND11_MODULE(_ext, module)
     module.def(
         "mech_resonance",
         [](const Sequence& sequence,
-           const std::vector<std::tuple<int, double, double, double>>& bands,
+           const std::vector<std::tuple<int, double, double, double, double>>& bands,
            double window, double stride, int oversampling,
            const std::array<std::array<double, 3>, 3>& rotation,
-           const std::string& mkl_runtime, int64_t keep_spectrum) {
+           const std::string& mkl_runtime, int64_t keep_spectrum, int reread,
+           double reread_keep) {
             std::vector<pulseq::ForbiddenBand> guarded;
             guarded.reserve(bands.size());
             for (const auto& band : bands)
@@ -1343,6 +1344,7 @@ PYBIND11_MODULE(_ext, module)
                 one.f_min = std::get<1>(band);
                 one.f_max = std::get<2>(band);
                 one.threshold = std::get<3>(band);
+                one.gradient_limit = std::get<4>(band);
                 guarded.push_back(one);
             }
             pulseq::ResonanceOptions options;
@@ -1354,6 +1356,8 @@ PYBIND11_MODULE(_ext, module)
                     options.rotation[i][j] = rotation[i][j];
             options.mkl_runtime = mkl_runtime;
             options.keep_spectrum = keep_spectrum;
+            options.reread = reread;
+            options.reread_keep = reread_keep;
 
             pulseq::ResonanceReport found;
             {
@@ -1371,7 +1375,9 @@ PYBIND11_MODULE(_ext, module)
                 entry["frequency"] = reading.frequency;
                 entry["window"] = reading.window;
                 entry["window_start"] = reading.window_start;
+                entry["gradient"] = reading.gradient;
                 entry["violations"] = reading.violations;
+                entry["leakage"] = reading.leakage;
                 readings.append(entry);
             }
             py::dict out;
@@ -1391,9 +1397,9 @@ PYBIND11_MODULE(_ext, module)
         },
         py::arg("sequence"), py::arg("bands"), py::arg("window"), py::arg("stride"),
         py::arg("oversampling"), py::arg("rotation"), py::arg("mkl_runtime") = "",
-        py::arg("keep_spectrum") = -1,
+        py::arg("keep_spectrum") = -1, py::arg("reread") = 4, py::arg("reread_keep") = 0.8,
         "Windowed physical-axis gradient spectrum against forbidden bands "
-        "(axis, f_min, f_max, threshold in Hz/m); amplitudes in Hz/m.");
+        "(axis, f_min, f_max, threshold, gradient limit in Hz/m); amplitudes in Hz/m.");
 
     module.def(
         "pns",
