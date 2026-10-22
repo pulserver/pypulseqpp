@@ -102,22 +102,25 @@ def test_the_safe_response_is_upstreams(system, tmp_path):
     assert (found["norm"]["value"] < 1.0) == ok
 
 
-def test_the_chronaxie_response_is_the_whole_convolution_to_1e5_of_the_largest_slew(
+def test_the_chronaxie_response_is_the_whole_convolution_at_every_interval_end(
     system,
 ):
+    """Within 1e-5 of the largest slew's response, the kernel's quadrature error."""
     sequence = encoded(system)
     dt = system.grad_raster_time
     total = round(sequence.duration()[0] / dt)
-    t = (np.arange(total) + 0.5) * dt
+    ends = np.arange(total + 1) * dt
     c, s_min = CHRONAXIE.chronaxie, CHRONAXIE.rheobase / CHRONAXIE.alpha
     lags = np.arange(total) * dt
     kernel = c * dt / (s_min * (c + lags) * (c + lags + dt))
 
     found = trace(sequence, CHRONAXIE)
+    _, report = safety.check_pns(sequence, CHRONAXIE, trace=True)
 
+    np.testing.assert_allclose(report.time, ends[1:], rtol=0, atol=1e-12)
     for axis, channel in enumerate(sequence.waveforms()):
-        g = np.interp(t, channel[0], channel[1], left=0.0, right=0.0)
-        slew = np.diff(g, prepend=0.0) / dt / system.gamma
+        g = np.interp(ends, channel[0], channel[1], left=0.0, right=0.0)
+        slew = np.diff(g) / dt / system.gamma
         expected = np.abs(np.convolve(slew, kernel)[:total])
         bound = 1e-5 * np.abs(slew).max() / s_min
         assert np.abs(found["trace_axes"][axis] - expected).max() <= bound
@@ -186,7 +189,8 @@ def test_a_rectangular_slew_follows_the_strength_duration_curve(system):
     slew = amplitude * 1e-3 / rise
     c = CHRONAXIE.chronaxie
     expected = slew * CHRONAXIE.alpha * rise / (CHRONAXIE.rheobase * (c + rise))
-    assert report.peak.value == pytest.approx(expected, rel=0.02)
+    assert report.peak.value == pytest.approx(expected, rel=1e-5)
+    assert report.peak.time == pytest.approx(rise, abs=1e-12)
 
 
 def test_the_chronaxie_response_does_not_move_when_the_raster_is_halved(system):

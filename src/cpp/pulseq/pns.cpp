@@ -56,6 +56,7 @@ namespace pulseq
         {
         public:
             static constexpr bool kLinear = false;
+            static constexpr bool kAtEnds = false;
             static constexpr int kStates = 3;
 
             Safe(const std::array<SafeAxis, 3>& axes, double dt) : axes_(axes)
@@ -216,6 +217,8 @@ namespace pulseq
         public:
             /** The response is a linear function of the filter state and the slews. */
             static constexpr bool kLinear = true;
+            /** The response to a ramp peaks where the ramp ends, on an interval's end. */
+            static constexpr bool kAtEnds = true;
             static constexpr int kStates = kNodes;
 
             Chronaxie(double chronaxie, const double (&rheobase)[3],
@@ -539,7 +542,7 @@ namespace pulseq
                 const int block = raster_.block();
                 for (int64_t i = 0; i < got; ++i, ++n_)
                 {
-                    const double time = (static_cast<double>(n_) + 0.5) * dt_;
+                    const double time = (static_cast<double>(n_) + out_.phase) * dt_;
                     double squared = 0.0;
                     for (int axis = 0; axis < 3; ++axis)
                     {
@@ -577,9 +580,10 @@ namespace pulseq
         };
 
         template <typename Model>
-        void run(const Sequence& seq, PhysicalRaster& raster, Model& model,
-                 const PnsOptions& options, PnsReport& out)
+        void run(const Sequence& seq, Model& model, const PnsOptions& options, PnsReport& out)
         {
+            PhysicalRaster raster(seq, options.rotation, Model::kAtEnds);
+            out.phase = Model::kAtEnds ? 1.0 : 0.5;
             Run<Model>(seq, raster, model, options, out)();
         }
 
@@ -589,17 +593,16 @@ namespace pulseq
     {
         PnsReport out;
         const FlushSubnormals flush;
-        PhysicalRaster raster(seq, options.rotation);
-        out.raster = raster.raster();
+        out.raster = seq.grad_raster_time();
         if (model.kind == PnsModel::Kind::Safe)
         {
             Safe safe(model.safe, out.raster);
-            run(seq, raster, safe, options, out);
+            run(seq, safe, options, out);
         }
         else
         {
             Chronaxie chronaxie(model.chronaxie, model.rheobase, model.alpha, out.raster);
-            run(seq, raster, chronaxie, options, out);
+            run(seq, chronaxie, options, out);
         }
         return out;
     }

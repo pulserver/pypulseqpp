@@ -104,7 +104,11 @@ chronaxie $c$.[^irnich]
 Each physical axis's slew waveform drives its response $R_a(t)$, and
 $R(t) = \sqrt{R_x^2 + R_y^2 + R_z^2}$. The check fails where $R$ exceeds the
 threshold fraction. The response depends on the preceding slew history, so the
-sequence is evaluated in one pass from rest. With equal coefficients on every
+sequence is evaluated in one pass from rest. The chronaxie response is read at
+the end of every gradient raster interval, from the slew that interval plays; a
+ramp's response peaks where the ramp ends, so the peak reported is the peak of
+the exact convolution. SAFE is read at interval centres, as upstream PyPulseq's
+`calc_pns` reads it. With equal coefficients on every
 axis a rotation leaves $R$ unchanged; per-axis coefficients make it depend on
 the prescription.
 
