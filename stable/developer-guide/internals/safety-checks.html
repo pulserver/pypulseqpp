@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=9f78b099"></script>
+    <script src="../../_static/documentation_options.js?v=d5de3167"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.47';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.48';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence-analysis computations" href="sequence-analysis.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.47" />
+  <meta name="docsearch:version" content="v0.0.48" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -671,7 +671,11 @@ chronaxie <span class="math notranslate nohighlight">\(c\)</span>.<a class="foot
 <p>Each physical axis’s slew waveform drives its response <span class="math notranslate nohighlight">\(R_a(t)\)</span>, and
 <span class="math notranslate nohighlight">\(R(t) = \sqrt{R_x^2 + R_y^2 + R_z^2}\)</span>. The check fails where <span class="math notranslate nohighlight">\(R\)</span> exceeds the
 threshold fraction. The response depends on the preceding slew history, so the
-sequence is evaluated in one pass from rest. With equal coefficients on every
+sequence is evaluated in one pass from rest. The chronaxie response is read at
+the end of every gradient raster interval, from the slew that interval plays; a
+ramp’s response peaks where the ramp ends, so the peak reported is the peak of
+the exact convolution. SAFE is read at interval centres, as upstream PyPulseq’s
+<code class="docutils literal notranslate"><span class="pre">calc_pns</span></code> reads it. With equal coefficients on every
 axis a rotation leaves <span class="math notranslate nohighlight">\(R\)</span> unchanged; per-axis coefficients make it depend on
 the prescription.</p>
 <figure class="align-default" id="id7">
