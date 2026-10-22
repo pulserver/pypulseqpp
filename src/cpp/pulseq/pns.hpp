@@ -71,7 +71,9 @@ namespace pulseq
         std::array<PnsPeak, 3> axes;
         int64_t samples = 0;
         double raster = 0.0;
-        /** Per sample when asked for, at (n + 1/2) raster. */
+        /** Sample n is the response at (n + phase) raster: 1/2 under SAFE, 1 under chronaxie. */
+        double phase = 0.5;
+        /** Per sample when asked for. */
         std::vector<double> trace_norm;
         std::array<std::vector<double>, 3> trace_axes;
     };
@@ -79,14 +81,17 @@ namespace pulseq
     /**
      * Nerve response to the slew of every physical axis, over the whole sequence.
      *
-     * The gradient is read at raster centres (PhysicalRaster), from rest; the
+     * The gradient is read on the raster (PhysicalRaster), from rest; the
      * slew of sample n is its difference from sample n - 1 over one raster,
-     * zero before the first. SAFE filters each axis's slew with its own three
-     * RC low-passes, as the Szczepankiewicz-Witzel implementation does, and
-     * normalises by stim_limit / g_scale. The chronaxie model convolves the
-     * slew with c / (c + t)^2 integrated over each raster interval, normalised
-     * by rheobase / alpha, so a rectangular slew S held for tau responds with
-     * S alpha tau / (rheobase (c + tau)). The kernel is evaluated as a sum
+     * zero before the first. SAFE reads raster centres and filters each
+     * axis's slew with its own three RC low-passes, as the
+     * Szczepankiewicz-Witzel implementation does, and normalises by
+     * stim_limit / g_scale. The chronaxie model reads interval ends, so the
+     * slew of sample n is the played slew over interval n, and convolves it
+     * with c / (c + t)^2 integrated over each raster interval, normalised by
+     * rheobase / alpha: sample n is the response at the end of interval n,
+     * where a ramp's response peaks, and a rectangular slew S held for tau
+     * responds with S alpha tau / (rheobase (c + tau)). The kernel is evaluated as a sum
      * of 24 exponentials, within 1e-5 of the convolution relative to the
      * largest slew's response, and a block that repeats one already
      * evaluated is answered by linearity in the filter state it carries in,

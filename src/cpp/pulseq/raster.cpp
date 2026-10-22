@@ -14,14 +14,18 @@ namespace pulseq
     namespace
     {
 
-        /* Fraction of a raster interval a time may miss a sample centre by. */
+        /* Fraction of a raster interval a time may miss a sample by. */
         constexpr double kRasterEps = 1e-9;
+
+        /* Time, in s, a sample on a shape's last corner may be read past it by
+         * rounding, below the picosecond the format writes times in. */
+        constexpr double kCornerEps = 1e-13;
 
     } // namespace
 
     double PhysicalRaster::Played::value(double t)
     {
-        if (count == 0 || t < when(0) || t > when(count - 1))
+        if (count == 0 || t < when(0) || t > when(count - 1) + kCornerEps)
             return 0.0;
         while (at + 1 < count && when(at + 1) <= t)
             ++at;
@@ -33,9 +37,9 @@ namespace pulseq
         return values[at] + (values[at + 1] - values[at]) * (t - when(at)) / span;
     }
 
-    PhysicalRaster::PhysicalRaster(const Sequence& seq, const double rotation[3][3])
+    PhysicalRaster::PhysicalRaster(const Sequence& seq, const double rotation[3][3], bool at_ends)
         : seq_(seq), dt_(seq.grad_raster_time()), dt_ps_(to_picoseconds(seq.grad_raster_time())),
-          corners_(seq, seq.grad_raster_time())
+          phase_(at_ends ? 2 : 1), corners_(seq, seq.grad_raster_time())
     {
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < 3; ++j)
@@ -162,7 +166,7 @@ namespace pulseq
                 next = std::min(next, p.when(0));
                 continue;
             }
-            if (t > p.when(p.count - 1))
+            if (t > p.when(p.count - 1) + kCornerEps)
                 continue;
             while (p.at + 1 < p.count && p.when(p.at + 1) <= t)
                 ++p.at;
@@ -177,7 +181,7 @@ namespace pulseq
             if (p.values[p.at] != p.values[p.at + 1])
                 *steady = false;
         }
-        /* Samples from this one to the first whose centre is not before next. */
+        /* Samples from this one to the first not before next. */
         const double ahead = std::ceil((next - t) / dt_ - kRasterEps);
         const int64_t until = std::min(block_end_ - position_, static_cast<int64_t>(ahead));
         return std::max<int64_t>(1, until);

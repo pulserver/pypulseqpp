@@ -161,7 +161,8 @@ def check_pns(
     trace : bool, default=False
         Also return the response over time, which a diagnostic plot draws.
         The trace has one value per gradient raster interval over the whole
-        sequence.
+        sequence: at its end under a chronaxie model, at its centre under
+        SAFE.
 
     Returns
     -------
@@ -188,11 +189,14 @@ def check_pns(
 
     Notes
     -----
-    The gradient is sampled at the centres of the sequence's own gradient
-    raster, from rest, and its slew is the difference between neighbouring
-    samples; this and the SAFE model are upstream PyPulseq's ``calc_pns``.
-    The response is evaluated over the whole sequence in one pass, carrying
-    each model's memory, in bounded storage.
+    The gradient is sampled on the sequence's own gradient raster, from rest,
+    and its slew is the difference between neighbouring samples. Under a
+    chronaxie model the samples are the ends of the raster intervals, so the
+    slew is the one each interval plays and the response is the exact
+    convolution at every interval end, where a ramp's response peaks. Under
+    SAFE they are the interval centres; this and the SAFE model are upstream
+    PyPulseq's ``calc_pns``. The response is evaluated over the whole
+    sequence in one pass, carrying each model's memory, in bounded storage.
     """
     kind, found = _pns(seq, model, rotation, system, keep_trace=trace)
     report = SimpleNamespace(
@@ -207,7 +211,7 @@ def check_pns(
     )
     if trace:
         report.response = np.asarray(found["trace_norm"])
-        report.time = (np.arange(report.response.size) + 0.5) * report.raster
+        report.time = (np.arange(report.response.size) + found["phase"]) * report.raster
         for axis, response in zip(report.axes, found["trace_axes"], strict=True):
             axis.response = np.asarray(response)
     return report.peak.value < 1.0, report

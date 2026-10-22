@@ -1467,6 +1467,7 @@ PYBIND11_MODULE(_ext, module)
             out["axes"] = axes;
             out["samples"] = found.samples;
             out["raster"] = found.raster;
+            out["phase"] = found.phase;
             if (keep_trace)
             {
                 out["trace_norm"] = array(found.trace_norm);
