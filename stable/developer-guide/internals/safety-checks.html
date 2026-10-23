@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=d5de3167"></script>
+    <script src="../../_static/documentation_options.js?v=6e22b37a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.48';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.49';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence-analysis computations" href="sequence-analysis.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.48" />
+  <meta name="docsearch:version" content="v0.0.49" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -716,6 +716,35 @@ threshold on any axis it guards; a band narrower than a bin is read at the bin
 nearest its centre. The report keeps each band’s worst window.
 <a class="reference internal" href="../../generated/pypulseqpp.safety.read_forbidden_bands.html#pypulseqpp.safety.read_forbidden_bands" title="pypulseqpp.safety.read_forbidden_bands"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forbidden_bands()</span></code></a> reads the acoustic resonances
 of a Siemens <code class="docutils literal notranslate"><span class="pre">.asc</span></code> file as centre ± bandwidth/2 on all axes, tolerance 0.</p>
+<p>Echo-spacing lockout tables state a tolerance as a gradient amplitude: the
+echo spacing is locked when the readout gradient exceeds it. With
+<code class="docutils literal notranslate"><span class="pre">tolerance_limits=&quot;gradient&quot;</span></code> a band with a positive tolerance is violated by
+a window that holds a line above <code class="docutils literal notranslate"><span class="pre">min_line</span></code> (6 mT/m) inside the band while the
+axis’s gradient magnitude over the window exceeds the tolerance. The gradient
+magnitude is bounded by the logical channels’ extremes turned onto the axis,
+which is exact for an unrotated prescription.</p>
+<p>A window’s Hann main lobe spans <span class="math notranslate nohighlight">\(\pm 2/T_W\)</span>, so a strong line just outside a
+band leaks into it: <span class="math notranslate nohighlight">\(\pm 100\)</span> Hz for a 20 ms window. With <code class="docutils literal notranslate"><span class="pre">reread</span></code> (on by
+default), each window that exceeds a band is read again over a window four
+times longer, centred on it, around the band widened by <span class="math notranslate nohighlight">\(2/T_W\)</span>. If the
+strongest line there lies outside the band and keeps 80 % of the amplitude the
+short window read, the line is steady and outside the band, and the window
+counts as <code class="docutils literal notranslate"><span class="pre">leakage</span></code>, not as a violation. A short train loses amplitude in the
+long window in proportion to its length, so its reading stands. Only the
+windows that exceeded are read again, so a design that exceeds no band pays
+nothing for it.</p>
+<p>A wide band is read only where the gradient can reach its threshold. Summing
+by parts, a window’s reading at <span class="math notranslate nohighlight">\(f\)</span> is bounded by</p>
+<div class="math notranslate nohighlight">
+\[
+A(f) \le \frac{3\,V}{\sum_n w_n\,\sin(\pi f\,\Delta t)},
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(V\)</span> is the total variation of the axis’s samples over the window and
+<span class="math notranslate nohighlight">\(\Delta t\)</span> the gradient raster. The check bounds <span class="math notranslate nohighlight">\(V\)</span> per window from the
+corners of the blocks it overlaps, and reads a band wider than 256 bins only
+up to where the bound at the largest <span class="math notranslate nohighlight">\(V\)</span> meets the threshold. No verdict
+changes; a band open towards the raster’s Nyquist frequency costs what its
+reachable part costs.</p>
 <p>A train alternating at echo spacing <span class="math notranslate nohighlight">\(\Delta t\)</span> has its fundamental at
 <span class="math notranslate nohighlight">\(1/(2\,\Delta t)\)</span>, with an amplitude between <span class="math notranslate nohighlight">\(8/\pi^2\)</span> (triangular) and
 <span class="math notranslate nohighlight">\(4/\pi\)</span> (square) of the plateau, and odd harmonics. A tolerance stated as a

@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=d5de3167"></script>
+    <script src="../_static/documentation_options.js?v=6e22b37a"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.48';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.49';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.48" />
+  <meta name="docsearch:version" content="v0.0.49" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -531,6 +531,17 @@
 <li><p><strong>stride</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Step between window starts (s); <code class="docutils literal notranslate"><span class="pre">window_width</span> <span class="pre">/</span> <span class="pre">2</span></code> when <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 <li><p><strong>frequency_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=3</em>) – Zero-padded transform length, in window lengths.</p></li>
 <li><p><strong>min_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=10.0</em>) – Threshold (mT/m) for a band whose tolerance is 0.</p></li>
+<li><p><strong>tolerance_limits</strong> (<em>{&quot;line&quot;</em><em>, </em><em>&quot;gradient&quot;}</em><em>, </em><em>default=&quot;line&quot;</em>) – What a positive tolerance limits. <code class="docutils literal notranslate"><span class="pre">&quot;line&quot;</span></code>: the amplitude of any
+line inside the band. <code class="docutils literal notranslate"><span class="pre">&quot;gradient&quot;</span></code>: the gradient amplitude on the
+guarded axis, as echo-spacing lockout tables state it; a window then
+violates the band when the band holds a line above <code class="docutils literal notranslate"><span class="pre">min_line</span></code> and
+the axis’s gradient over the window exceeds the tolerance.</p></li>
+<li><p><strong>min_line</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=6.0</em>) – Line amplitude (mT/m) a band with <code class="docutils literal notranslate"><span class="pre">tolerance_limits=&quot;gradient&quot;</span></code>
+must hold before its tolerance is compared with the gradient.</p></li>
+<li><p><strong>reread</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Read each window that exceeds a band again over a window four times
+longer, centred on it. The excess is leakage, and no violation, when
+the strongest line there lies outside the band and keeps 80 % of the
+amplitude it read at.</p></li>
 <li><p><strong>rotation</strong> (<em>array_like</em><em>, </em><em>default=None</em>) – 3x3 prescription rotation from logical to physical axes, applied after
 each block’s own rotation; identity (axial) by default.</p></li>
 <li><p><strong>system</strong> (<a class="reference internal" href="pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><em>pypulseqpp.Opts</em></a><em>, </em><em>default=None</em>) – Source of the gyromagnetic ratio; the sequence’s own by default.</p></li>
@@ -544,18 +555,24 @@ each block’s own rotation; identity (axial) by default.</p></li>
 transforms with, and <code class="docutils literal notranslate"><span class="pre">bands</span></code>: one entry per band, in
 the order given, with the band’s <code class="docutils literal notranslate"><span class="pre">axis</span></code> (None for every axis),
 <code class="docutils literal notranslate"><span class="pre">f_min</span></code>, <code class="docutils literal notranslate"><span class="pre">f_max</span></code>, <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> and applied <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (mT/m);
-the band’s worst window, kept whether or not it violates: its largest
-<code class="docutils literal notranslate"><span class="pre">peak</span></code> amplitude (mT/m), on <code class="docutils literal notranslate"><span class="pre">peak_axis</span></code> at <code class="docutils literal notranslate"><span class="pre">frequency</span></code>, in the
-0-based <code class="docutils literal notranslate"><span class="pre">window</span></code> starting at <code class="docutils literal notranslate"><span class="pre">window_start</span></code> (s); <code class="docutils literal notranslate"><span class="pre">violations</span></code>,
-the windows exceeding the threshold on any guarded axis; and <code class="docutils literal notranslate"><span class="pre">axes</span></code>,
-the same reading for each guarded axis on its own.</p></li>
+the band’s worst window, its strongest violating one when any violates
+and its strongest reading otherwise: its <code class="docutils literal notranslate"><span class="pre">peak</span></code> amplitude (mT/m), on
+<code class="docutils literal notranslate"><span class="pre">peak_axis</span></code> at <code class="docutils literal notranslate"><span class="pre">frequency</span></code>, in the
+0-based <code class="docutils literal notranslate"><span class="pre">window</span></code> starting at <code class="docutils literal notranslate"><span class="pre">window_start</span></code> (s), with that axis’s
+largest <code class="docutils literal notranslate"><span class="pre">gradient</span></code> magnitude over the window (mT/m); <code class="docutils literal notranslate"><span class="pre">violations</span></code>,
+the windows violating the band on any guarded axis; <code class="docutils literal notranslate"><span class="pre">leakage</span></code>, the
+exceeding windows the longer read put down to a line outside the
+band, counted per axis; and <code class="docutils literal notranslate"><span class="pre">axes</span></code>, the same reading for each
+guarded axis on its own.</p></li>
 </ul>
 </p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code>, <code class="docutils literal notranslate"><span class="pre">window_width</span></code> or <code class="docutils literal notranslate"><span class="pre">stride</span></code> is not positive,
-    <code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> is below 1, a band’s frequency range is
-    empty or negative, or <code class="docutils literal notranslate"><span class="pre">rotation</span></code> is not a 3x3 orthonormal matrix.</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code>, <code class="docutils literal notranslate"><span class="pre">min_line</span></code>, <code class="docutils literal notranslate"><span class="pre">window_width</span></code> or <code class="docutils literal notranslate"><span class="pre">stride</span></code> is
+    not positive, <code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> is below 1,
+    <code class="docutils literal notranslate"><span class="pre">tolerance_limits</span></code> is neither <code class="docutils literal notranslate"><span class="pre">&quot;line&quot;</span></code> nor <code class="docutils literal notranslate"><span class="pre">&quot;gradient&quot;</span></code>, a
+    band’s frequency range is empty or negative, or <code class="docutils literal notranslate"><span class="pre">rotation</span></code> is not a
+    3x3 orthonormal matrix.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -564,8 +581,16 @@ raster, the one its definitions record. Each window is mean-subtracted,
 Hann-tapered and zero-padded before a real FFT, and a bin’s amplitude is
 <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">|X_k|</span> <span class="pre">/</span> <span class="pre">sum(w)</span></code>, so a sustained sinusoid of amplitude A at a bin
 frequency reads A. A band’s threshold is its tolerance where that is
-positive and <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> otherwise. The FFT is MKL’s when the
-<code class="docutils literal notranslate"><span class="pre">mkl</span></code> package is installed, and pocketfft otherwise.</p>
+positive and <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> otherwise.</p>
+<p>A wide band is read only up to the frequency the gradient can reach its
+threshold at: a window’s reading at f is at most
+<code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">V</span> <span class="pre">/</span> <span class="pre">(sum(w)</span> <span class="pre">sin(pi</span> <span class="pre">f</span> <span class="pre">dt))</span></code>, with V the total variation of the axis’s
+gradient over the window and dt the gradient raster. This leaves every
+verdict as it is and bounds the cost of a band open towards the raster’s
+Nyquist frequency. A band’s <code class="docutils literal notranslate"><span class="pre">peak</span></code> is the largest reading of the
+frequencies read.</p>
+<p>The FFT is MKL’s when the <code class="docutils literal notranslate"><span class="pre">mkl</span></code> package is installed, and pocketfft
+otherwise.</p>
 </dd></dl>
 
 </section>

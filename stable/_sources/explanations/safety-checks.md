@@ -64,7 +64,7 @@ lesson 7 of the {doc}`Course <../examples/course>`.
 
   <details><summary>Show code and tests</summary>
 
-  Code: {func}`~pypulseqpp.safety.check_mech_resonance`, {class}`~pypulseqpp.safety.ForbiddenBand`, {func}`~pypulseqpp.safety.read_forbidden_bands`, {func}`~pypulseqpp.safety.mech_resonance_spectrum`. Tests: *a sustained sinusoid reads its own amplitude*; *a band guards only the axis it names*; *the spectrum reads the amplitude the check reports* (`test_mech_resonance.py`).
+  Code: {func}`~pypulseqpp.safety.check_mech_resonance`, {class}`~pypulseqpp.safety.ForbiddenBand`, {func}`~pypulseqpp.safety.read_forbidden_bands`, {func}`~pypulseqpp.safety.mech_resonance_spectrum`. Tests: *a sustained sinusoid reads its own amplitude*; *a band guards only the axis it names*; *the spectrum reads the amplitude the check reports*; *a steady line beside a band is leakage on the longer read*; *a short train in a band stays a violation on the longer read*; *a stated tolerance limits the gradient, not the line*; *a wide band reads the same verdict capped as read whole* (`test_mech_resonance.py`).
 
   </details>
 - **Holds the loudest repetition, played without end, to 140 dB peak and 99 dB(A) average.**

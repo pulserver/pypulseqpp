@@ -34,7 +34,7 @@ raster. The forbidden bands are an argument; only `gamma` is read from
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
-| {obj}`~pypulseqpp.safety.check_mech_resonance` | Sequence, forbidden bands, window width (s), `rotation` | `(is_ok, report)`; amplitudes in mT/m | Windowed gradient spectrum against forbidden bands. |
+| {obj}`~pypulseqpp.safety.check_mech_resonance` | Sequence, forbidden bands, window width (s), `tolerance_limits`, `reread`, `rotation` | `(is_ok, report)`; amplitudes in mT/m | Windowed gradient spectrum against forbidden bands; exceeding windows read again for leakage. |
 | {obj}`~pypulseqpp.safety.mech_resonance_spectrum` | Sequence, window index, window width (s), `rotation` | `frequency` (Hz) and `(3, bins)` `amplitude` (mT/m) | Gradient amplitude spectrum of one window. |
 | {obj}`~pypulseqpp.safety.read_forbidden_bands` | Siemens `.asc` path | List of `ForbiddenBand` | Forbidden bands from a hardware description. |
 | {obj}`~pypulseqpp.safety.ForbiddenBand` | Axis, `f_min`, `f_max` (Hz), tolerance (mT/m) | Band record | Forbidden band on one or every physical axis. |
