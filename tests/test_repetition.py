@@ -95,6 +95,26 @@ def test_a_sequence_in_which_nothing_repeats_is_one_repetition(gradient_echo):
     assert gradient_echo(lines=1).repetition() == (3, 1)
 
 
+def test_a_shot_that_opens_with_two_equal_runs_repeats_at_its_own_length():
+    """Two identical sets of saturation bands open each shot; the shots before
+    the first readout play no ADC, so only the definitions say it repeats."""
+    sequence = pp.Sequence(pp.Opts())
+    band = pp.make_block_pulse(math.pi / 2, duration=1e-3, use="saturation")
+    spoil = pp.make_trapezoid("z", area=2000, duration=3e-3)
+    pulse = pp.make_block_pulse(math.pi / 12, duration=1e-3, use="excitation")
+    read = pp.make_trapezoid("x", area=1000, duration=2e-3)
+    window = pp.make_adc(num_samples=64, duration=2e-3)
+
+    for shot in range(6):
+        for _ in range(2):
+            sequence.add_block(band)
+            sequence.add_block(spoil)
+        sequence.add_block(pulse)
+        sequence.add_block(read, *([window] if shot >= 2 else []))
+
+    assert sequence.repetition() == (6, 1)
+
+
 def test_a_sequence_with_nothing_in_it_does_not_repeat():
     assert pp.Sequence(pp.Opts()).repetition() == (0, 1)
 
