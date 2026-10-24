@@ -10,7 +10,7 @@ import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
 #: The shell shapes ``scheme`` selects from.
-SCHEMES = ("spiral", "meridian")
+SCHEMES = ("quiet", "spiral", "meridian")
 
 NAME = "zte_3d"
 MAX_GRAD = 80.0
@@ -31,7 +31,7 @@ def zte3d(
     readout_bandwidth_hz: float = 250e3,
     r: int = 1,
     n_shots: int | None = None,
-    scheme: str = "spiral",
+    scheme: str = "quiet",
     n_dummy: int = 2,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
@@ -46,6 +46,9 @@ def zte3d(
     gap after each pulse leaves ``MissingSamples`` at the centre of k-space
     unacquired. Dummy shells precede the first shot, played as it is without
     the ADC. Acquisitions carry the view as ``LIN`` and the shot as ``SEG``.
+    Under the default ``scheme='quiet'`` every other shell played, dummies
+    included, runs backwards from the pole the previous one ended on, so no
+    shot reverses the gradient pole to pole.
 
     Parameters
     ----------
@@ -75,8 +78,10 @@ def zte3d(
         Shells the sphere is dealt into, each the same one turned about
         ``z``. ``None`` balances the spacing within a shell against the
         spacing between them.
-    scheme : {'spiral', 'meridian'}, default='spiral'
-        Shape of the shell, as :data:`SCHEMES` names them.
+    scheme : {'quiet', 'spiral', 'meridian'}, default='quiet'
+        Shape of the shell, as :data:`SCHEMES` names them. ``'quiet'``
+        samples the directions of ``'spiral'`` in steps about a ring gap
+        long; ``'spiral'`` strides across many rings at a constant step.
     n_dummy : int, default=2
         Whole shells played without acquiring before the first shot.
     readout_oversampling : float, default=2.0
@@ -132,15 +137,20 @@ def zte3d(
     )
 
     # One rotation for the whole shell: the shell is written out view by
-    # view, so this only places the shot.
-    rotations = pp.make_rotation(np.asarray(ro.shot_rotations))
-    shots = list(range(0, len(rotations), r))
+    # view, so this only places the shot. A quiet shell alternates direction,
+    # counted in play order so that the last dummy hands over to the first
+    # shot at the pole they share.
+    shots = list(range(0, len(ro.shot_rotations), r))
+    plays = [(0, False)] * n_dummy + [(shot, True) for shot in shots]
+    turns = np.asarray(ro.shot_rotations)[[shot for shot, _ in plays]]
+    if scheme == "quiet":
+        backwards = (np.arange(len(plays)) - n_dummy) % 2 == 1
+        turns[backwards] = turns[backwards] @ ro.reversal
 
     seq, labels = pp.Sequence(system), sequences.Labels()
 
-    def kernel(shot: int, acquire: bool = True) -> None:
-        """Add one shell at shot ``shot``; ``acquire=False`` leaves the ADC off."""
-        turn = rotations[shot]
+    def kernel(shot: int, turn, acquire: bool = True) -> None:
+        """Add one shell labelled ``shot``; ``acquire=False`` leaves the ADC off."""
         seq.add_block(*ro.g_ramp, turn)
         for view in range(len(ro.directions)):
             once = labels(ONCE=int(not acquire)) if n_dummy else []
@@ -152,10 +162,8 @@ def zte3d(
                 seq.add_block(*ro.g_read[view], turn)
 
     # The dummy shells play first, then every shot the undersampling keeps.
-    for _ in range(n_dummy):
-        kernel(0, acquire=False)
-    for shot in shots:
-        kernel(shot)
+    for (shot, acquire), turn in zip(plays, pp.make_rotation(turns), strict=True):
+        kernel(shot, turn, acquire)
 
     # The volume's offset is applied to the finished sequence with
     # pp.TransformFOV.
