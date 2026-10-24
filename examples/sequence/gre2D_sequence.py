@@ -58,6 +58,26 @@ def gre2d(
     sat2_normal_z: float = 0.0,
     sat2_position: float = 0.0,
     sat2_thickness: float = 0.0,
+    sat3_normal_x: float = 0.0,
+    sat3_normal_y: float = 0.0,
+    sat3_normal_z: float = 0.0,
+    sat3_position: float = 0.0,
+    sat3_thickness: float = 0.0,
+    sat4_normal_x: float = 0.0,
+    sat4_normal_y: float = 0.0,
+    sat4_normal_z: float = 0.0,
+    sat4_position: float = 0.0,
+    sat4_thickness: float = 0.0,
+    sat5_normal_x: float = 0.0,
+    sat5_normal_y: float = 0.0,
+    sat5_normal_z: float = 0.0,
+    sat5_position: float = 0.0,
+    sat5_thickness: float = 0.0,
+    sat6_normal_x: float = 0.0,
+    sat6_normal_y: float = 0.0,
+    sat6_normal_z: float = 0.0,
+    sat6_position: float = 0.0,
+    sat6_thickness: float = 0.0,
 ) -> pp.Sequence:
     """RF-spoiled, multi-slice 2D Cartesian gradient echo.
 
@@ -68,8 +88,8 @@ def gre2d(
     Under undersampling the calibration lines are acquired first, marked
     ``IMA``.
 
-    Up to two spatial saturation bands (``sat1_*``, ``sat2_*``) are played
-    before every excitation. Each lies in the physical frame, centred
+    Up to six spatial saturation bands (``sat1_*`` to ``sat6_*``) are played
+    before every excitation, in that order. Each lies in the physical frame, centred
     ``position`` from the isocentre along its normal, and the field-of-view
     offset and rotation leave it there.
 
@@ -126,12 +146,13 @@ def gre2d(
         Centre of the first band along its normal, from the isocentre (m).
     sat1_thickness : float, default=0.0
         Thickness of the first band (m). Zero plays no band.
-    sat2_normal_x, sat2_normal_y, sat2_normal_z : float, default=0.0
-        Normal of the second band, as for the first.
-    sat2_position : float, default=0.0
-        Centre of the second band along its normal, from the isocentre (m).
-    sat2_thickness : float, default=0.0
-        Thickness of the second band (m). Zero plays no band.
+    sat2_normal_x, sat2_normal_y, sat2_normal_z, sat3_normal_x, sat3_normal_y, sat3_normal_z, sat4_normal_x, sat4_normal_y, sat4_normal_z, sat5_normal_x, sat5_normal_y, sat5_normal_z, sat6_normal_x, sat6_normal_y, sat6_normal_z : float, default=0.0
+        Normals of the second to the sixth band, as for the first.
+    sat2_position, sat3_position, sat4_position, sat5_position, sat6_position : float, default=0.0
+        Centres of the second to the sixth band along their normals, from
+        the isocentre (m).
+    sat2_thickness, sat3_thickness, sat4_thickness, sat5_thickness, sat6_thickness : float, default=0.0
+        Thicknesses of the second to the sixth band (m). Zero plays no band.
 
     Returns
     -------
@@ -202,6 +223,26 @@ def gre2d(
                 (sat2_normal_x, sat2_normal_y, sat2_normal_z),
                 sat2_position,
                 sat2_thickness,
+            ),
+            (
+                (sat3_normal_x, sat3_normal_y, sat3_normal_z),
+                sat3_position,
+                sat3_thickness,
+            ),
+            (
+                (sat4_normal_x, sat4_normal_y, sat4_normal_z),
+                sat4_position,
+                sat4_thickness,
+            ),
+            (
+                (sat5_normal_x, sat5_normal_y, sat5_normal_z),
+                sat5_position,
+                sat5_thickness,
+            ),
+            (
+                (sat6_normal_x, sat6_normal_y, sat6_normal_z),
+                sat6_position,
+                sat6_thickness,
             ),
         ),
         duration_s=BAND_DURATION,
