@@ -434,6 +434,22 @@ def test_every_zte_acquisition_is_turned_by_its_shot_rotation():
     assert matrix_of(first) == pytest.approx(about_z(0.0), abs=1e-9)
 
 
+@pytest.mark.parametrize("r", [1, 2])
+def test_each_quiet_zte_shell_starts_at_the_pole_the_last_one_ended_on(r):
+    """Shells alternate direction in play order, dummies included."""
+    seq = built("zte3D_sequence", n_shots=4, r=r, n_dummy=1, scheme="quiet")
+    poles = []
+    for block in blocks(seq):
+        if block.rf is None:
+            continue
+        hold = np.array([float(g.first) for g in (block.gx, block.gy, block.gz)])
+        poles.append(matrix_of(block.rotation.quaternion) @ hold)
+    poles = np.array(poles).reshape(1 + 4 // r, -1, 3)
+    assert poles[1:, 0] == pytest.approx(poles[:-1, -1], abs=1e-6)
+    # The first shot plays forward, from +z, so the dummy before it runs back.
+    assert poles[1, 0, 2] > 0 and poles[0, 0, 2] < 0
+
+
 def test_a_zte_pulse_too_long_for_its_dead_time_is_refused(monkeypatch):
     """The pulse duration is a module constant, so changing it reaches the refusal."""
     monkeypatch.setattr(module("zte3D_sequence"), "HARD_PULSE_DURATION", 1e-3)

@@ -55,7 +55,7 @@ class ZteReadout(SequenceModule):
         Shells the sphere is split into, each the shell turned about z by
         ``2 * pi / n_shots`` relative to the previous one. Playing only some of
         the shots undersamples in angle. ``None`` is ``ceil(pi * (matrix - 1))``.
-    scheme : {'spiral', 'meridian'}, default='spiral'
+    scheme : {'spiral', 'quiet', 'meridian'}, default='spiral'
         Shape of the shell, as in :func:`pypulseqpp.calc_projection_shell`.
     oversampling : float, default=2.0
         Radial oversampling: the k-space sample spacing along the spoke is
@@ -327,7 +327,7 @@ class ZteReadout(SequenceModule):
 
         self.register(g_hold=g_hold, g_read=g_read, directions=directions)
         if shot_rotations is not None:
-            self.register(shot_rotations=shot_rotations)
+            self.register(shot_rotations=shot_rotations, reversal=_reversal(directions))
         self.center = ramp_span + rf_center
         self.tr = view_span
         self.view_duration = hold_span + read_span
@@ -361,6 +361,20 @@ def _unit(directions: Any) -> np.ndarray:
     unit = np.array(values / norms[:, None])
     unit.setflags(write=False)
     return unit
+
+
+def _reversal(directions: np.ndarray) -> np.ndarray:
+    """Return the rotation taking each view to its mirror in the play order.
+
+    A generated shell is symmetric about the equator, heights and azimuth
+    increments alike, so a half turn about a horizontal axis reverses it.
+    """
+    u, _, vt = np.linalg.svd(directions[::-1].T @ directions)
+    rotation = u @ np.diag([1.0, 1.0, np.linalg.det(u @ vt)]) @ vt
+    if not np.allclose(directions @ rotation.T, directions[::-1], atol=1e-9):
+        raise AssertionError("a generated shell must be its own reverse")
+    rotation.setflags(write=False)
+    return rotation
 
 
 def _slew_span(system: pp.Opts, delta: float) -> float:

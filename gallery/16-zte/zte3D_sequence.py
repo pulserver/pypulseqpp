@@ -81,3 +81,18 @@ for name, seq in (("every shell", baseline), ("every second", alternative)):
 pp.plot.plot_kspace(alternative, color_by="shot")
 
 # %%
+# Quiet spoke order
+# -----------------
+#
+# A ``'spiral'`` shell strides across many rings' worth of azimuth between
+# views, because the shots fill each ring, and each shot ends at ``-z`` while
+# the next starts at ``+z``. ``scheme='quiet'`` samples the same directions:
+# each ring's spoke is moved by whole shot turns to the one nearest its
+# predecessor, so a shell is a near-meridian stepping about one ring gap, and
+# every other shell runs backwards from the pole the last one ended on. The
+# turns between views slew less; the polar gap still sets the TR.
+
+quiet = zte3D_sequence(n=64, n_dummy=0, scheme="quiet")
+pp.plot.plot_kspace(quiet, color_by="shot")
+
+# %%

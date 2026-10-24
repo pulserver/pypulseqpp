@@ -235,8 +235,8 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
 def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spiral"):
     """Return a pole-to-pole base shell and z-axis rotations for each shot.
 
-    Consecutive base directions have equal angular separation. Rotated shells
-    share both poles; each nonpolar ring has one spoke per shot.
+    Rotated shells share both poles; each nonpolar ring has one spoke per
+    shot.
 
     Parameters
     ----------
@@ -244,11 +244,15 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
         Spokes in the base shell, at least three.
     n_shots : int, default=1
         Number of rotated replays of the base shell, at least one.
-    scheme : {'spiral', 'meridian'}, default='spiral'
+    scheme : {'spiral', 'quiet', 'meridian'}, default='spiral'
         ``'spiral'`` winds pole to pole across equal-area rings, so the shell
-        alone is already near-uniform. ``'meridian'`` is a half great circle in
-        the x-z plane at equal polar steps, which is simpler and oversamples
-        the poles.
+        alone is already near-uniform. ``'quiet'`` keeps the spiral's rings and
+        the directions the shots sample on them, but moves each ring's spoke by
+        whole shot turns to the one nearest its predecessor: the shell becomes
+        a near-meridian whose steps are about one ring gap, instead of a
+        stride across many rings' worth of azimuth. ``'meridian'`` is a half
+        great circle in the x-z plane at equal polar steps, which is simpler
+        and oversamples the poles.
 
     Returns
     -------
@@ -278,11 +282,18 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     >>> bool(np.allclose(directions[[0, -1]], [[0, 0, 1], [0, 0, -1]]))
     True
 
-    Consecutive views are exactly one step apart, so every turn between them
-    is the same slew:
+    Consecutive ``'spiral'`` views are exactly one step apart, so every turn
+    between them is the same slew:
 
     >>> steps = np.arccos(np.clip(np.sum(directions[:-1] * directions[1:], axis=1), -1, 1))
     >>> bool(np.ptp(steps) < 1e-9)
+    True
+
+    ``'quiet'`` samples the same sphere with the shell's steps a ring gap long:
+
+    >>> quiet, _ = pp.calc_projection_shell(32, n_shots=13, scheme="quiet")
+    >>> quiet_steps = np.arccos(np.clip(np.sum(quiet[:-1] * quiet[1:], axis=1), -1, 1))
+    >>> bool(np.median(quiet_steps) < np.median(steps) / 2)
     True
 
     See Also
@@ -295,23 +306,29 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     if n_shots < 1:
         raise ValueError("n_shots must be positive")
 
-    if scheme == "spiral":
-        directions = _constant_step_spiral(n_views)
+    if scheme in ("spiral", "quiet"):
+        directions = _constant_step_spiral(
+            n_views, 2.0 * np.pi / n_shots if scheme == "quiet" else None
+        )
     elif scheme == "meridian":
         polar = np.linspace(0.0, np.pi, n_views)
         directions = np.column_stack((np.sin(polar), np.zeros(n_views), np.cos(polar)))
     else:
-        raise ValueError(f"scheme must be 'spiral' or 'meridian', got {scheme!r}")
+        raise ValueError(
+            f"scheme must be 'spiral', 'quiet' or 'meridian', got {scheme!r}"
+        )
     return directions, _turns_about_z(
         2.0 * np.pi * np.arange(n_shots, dtype=float) / n_shots
     )
 
 
-def _constant_step_spiral(n_views: int) -> np.ndarray:
+def _constant_step_spiral(n_views: int, shot_turn: float | None = None) -> np.ndarray:
     """Place equal-angle neighbours on equal-area polar rings.
 
     The polar gap next to a pole fixes the angular step. Solve each azimuth
-    increment from the spherical cosine relation.
+    increment from the spherical cosine relation. With ``shot_turn``, each
+    increment is reduced to the nearest one modulo the shot turn, which moves a
+    spoke onto another shot's copy of it and leaves the shots' union alone.
     """
     height = np.linspace(1.0, -1.0, n_views)
     polar = np.arccos(np.clip(height, -1.0, 1.0))
@@ -324,6 +341,10 @@ def _constant_step_spiral(n_views: int) -> np.ndarray:
     increment[turning] = np.arccos(
         np.clip(numerator[turning] / denominator[turning], -1.0, 1.0)
     )
+    if shot_turn is not None:
+        increment = (
+            np.remainder(increment + 0.5 * shot_turn, shot_turn) - 0.5 * shot_turn
+        )
     azimuth = np.concatenate(([0.0], np.cumsum(increment)))
     radius = np.sqrt(np.maximum(0.0, 1.0 - height**2))
     return np.column_stack((radius * np.cos(azimuth), radius * np.sin(azimuth), height))
