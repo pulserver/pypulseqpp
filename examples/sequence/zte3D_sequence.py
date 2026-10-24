@@ -10,7 +10,7 @@ import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
 #: The shell shapes ``scheme`` selects from.
-SCHEMES = ("spiral", "quiet", "meridian")
+SCHEMES = ("quiet", "spiral", "meridian")
 
 NAME = "zte_3d"
 MAX_GRAD = 80.0
@@ -31,7 +31,7 @@ def zte3d(
     readout_bandwidth_hz: float = 250e3,
     r: int = 1,
     n_shots: int | None = None,
-    scheme: str = "spiral",
+    scheme: str = "quiet",
     n_dummy: int = 2,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
@@ -46,9 +46,9 @@ def zte3d(
     gap after each pulse leaves ``MissingSamples`` at the centre of k-space
     unacquired. Dummy shells precede the first shot, played as it is without
     the ADC. Acquisitions carry the view as ``LIN`` and the shot as ``SEG``.
-    With ``scheme='quiet'`` every other shell played, dummies included, runs
-    backwards from the pole the previous one ended on, so no shot reverses
-    the gradient pole to pole.
+    Under the default ``scheme='quiet'`` every other shell played, dummies
+    included, runs backwards from the pole the previous one ended on, so no
+    shot reverses the gradient pole to pole.
 
     Parameters
     ----------
@@ -78,10 +78,10 @@ def zte3d(
         Shells the sphere is dealt into, each the same one turned about
         ``z``. ``None`` balances the spacing within a shell against the
         spacing between them.
-    scheme : {'spiral', 'quiet', 'meridian'}, default='spiral'
+    scheme : {'quiet', 'spiral', 'meridian'}, default='quiet'
         Shape of the shell, as :data:`SCHEMES` names them. ``'quiet'``
         samples the directions of ``'spiral'`` in steps about a ring gap
-        long instead of a stride across many rings.
+        long; ``'spiral'`` strides across many rings at a constant step.
     n_dummy : int, default=2
         Whole shells played without acquiring before the first shot.
     readout_oversampling : float, default=2.0

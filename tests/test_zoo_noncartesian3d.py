@@ -419,9 +419,9 @@ def test_every_zte_view_of_every_shot_is_acquired_once_in_order():
     assert set(once) == {0}
 
 
-def test_every_zte_acquisition_is_turned_by_its_shot_rotation():
-    """Each shot is the first turned about z by a whole share of the turn."""
-    seq = built("zte3D_sequence", n_shots=3, n_dummy=1)
+def test_every_spiral_zte_acquisition_is_turned_by_its_shot_rotation():
+    """Each spiral shot is the first turned about z by a whole share of the turn."""
+    seq = built("zte3D_sequence", n_shots=3, n_dummy=1, scheme="spiral")
     (seg,) = adc_labels(seq, "SEG")
 
     assert sorted(set(seg)) == [0, 1, 2]
@@ -435,9 +435,9 @@ def test_every_zte_acquisition_is_turned_by_its_shot_rotation():
 
 
 @pytest.mark.parametrize("r", [1, 2])
-def test_each_quiet_zte_shell_starts_at_the_pole_the_last_one_ended_on(r):
-    """Shells alternate direction in play order, dummies included."""
-    seq = built("zte3D_sequence", n_shots=4, r=r, n_dummy=1, scheme="quiet")
+def test_each_zte_shell_starts_at_the_pole_the_last_one_ended_on(r):
+    """By default shells alternate direction in play order, dummies included."""
+    seq = built("zte3D_sequence", n_shots=4, r=r, n_dummy=1)
     poles = []
     for block in blocks(seq):
         if block.rf is None:

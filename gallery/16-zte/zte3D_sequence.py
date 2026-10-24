@@ -60,7 +60,7 @@ pp.plot.plot_kspace(baseline, color_by="shot")
 # ---------------------
 #
 # The Nyquist set of directions is divided into shells, each a copy of the
-# first rotated about ``z``. ``r`` acquires one shell in every ``r``: at
+# first rotated about ``z``, every other one also played backwards. ``r`` acquires one shell in every ``r``: at
 # ``r = 2`` the number of acquisitions is halved and the azimuthal spacing
 # between acquired shells is doubled. Angular undersampling produces streak
 # artefacts from the k-space periphery rather than the fold-over of an
@@ -81,18 +81,19 @@ for name, seq in (("every shell", baseline), ("every second", alternative)):
 pp.plot.plot_kspace(alternative, color_by="shot")
 
 # %%
-# Quiet spoke order
-# -----------------
+# Spoke order
+# -----------
 #
-# A ``'spiral'`` shell strides across many rings' worth of azimuth between
-# views, because the shots fill each ring, and each shot ends at ``-z`` while
-# the next starts at ``+z``. ``scheme='quiet'`` samples the same directions:
-# each ring's spoke is moved by whole shot turns to the one nearest its
-# predecessor, so a shell is a near-meridian stepping about one ring gap, and
-# every other shell runs backwards from the pole the last one ended on. The
-# turns between views slew less; the polar gap still sets the TR.
+# The default ``scheme='quiet'`` moves each ring's spoke by whole shot turns
+# to the copy nearest its predecessor, so a shell is a near-meridian stepping
+# about one ring gap, and every other shell runs backwards from the pole the
+# last one ended on. ``scheme='spiral'`` samples the same directions at a
+# constant step that strides across many rings' worth of azimuth, because the
+# shots fill each ring, and each shot ends at ``-z`` while the next starts at
+# ``+z``. Both play one shell's waveforms turned per shot, and the polar gap
+# sets the TR of both.
 
-quiet = zte3D_sequence(n=64, n_dummy=0, scheme="quiet")
-pp.plot.plot_kspace(quiet, color_by="shot")
+spiral = zte3D_sequence(n=64, n_dummy=0, scheme="spiral")
+pp.plot.plot_kspace(spiral, color_by="shot")
 
 # %%
