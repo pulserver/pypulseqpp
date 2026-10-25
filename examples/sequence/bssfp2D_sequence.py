@@ -292,9 +292,8 @@ def bssfp2d(
                 seq.add_block(rf, ro.gz)
             else:
                 seq.add_block(rf, ro.gz, *ro.prep_labels)
-            seq.add_block(ro.wait_prep, *ro.train_labels)
+            seq.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
             rf.amplitude = nominal
-            seq.add_block(ro.wait_rewind, ro.gz_rew)
         else:
             seq.add_block(ro.gx_rew, pp.scale_grad(ro.gy_rew, previous_ky), ro.gz_rew)
         if trigger:

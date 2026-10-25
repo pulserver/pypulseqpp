@@ -251,8 +251,7 @@ def bssfp3d(
         ro.rf.phase_offset = -n_dummy * increment % (2 * np.pi)
         seq.add_block(ro.rf, *([] if ro_gz is None else [ro_gz]))
         ro.rf.amplitude = nominal
-        seq.add_block(ro.wait_prep)
-        seq.add_block(ro.wait_rewind, *([] if z_rew is None else [z_rew]))
+        seq.add_block(ro.wait_prep, *([] if ro.gz_prep is None else [ro.gz_prep]))
         for n in range(n_dummy - 1, -1, -1):
             ro.rf.phase_offset = -n * increment % (2 * np.pi)
             seq.add_block(ro.rf, *([] if ro_gz is None else [ro_gz]))

@@ -189,7 +189,8 @@ def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
     for start in (0, size):
         assert getattr(listed[start], "trig", None)
         assert once[start] == 1
-        half, full = listed[start + 1].rf, listed[start + 4].rf
+        half = listed[start + 1].rf
+        full = next(b.rf for b in listed[start + 2 :] if b.rf is not None)
         peak = np.abs(np.asarray(half.signal)).max()
         assert peak == pytest.approx(0.5 * np.abs(np.asarray(full.signal)).max())
 
@@ -395,3 +396,26 @@ def test_a_bssfp_flag_is_named_and_described_by_its_docstring(
 
     assert flag in printed
     assert help_text in printed
+
+
+def slice_moment_to_first_excitation(seq):
+    """The slice-axis moment (1/m) from the half-flip centre to the next pulse centre."""
+    half, first = (t for t, _, _ in excitations(seq)[:2])
+    times, amplitudes = (np.asarray(v) for v in seq.waveforms()[2][:2])
+    grid = np.linspace(half, first, 20001)
+    return np.trapezoid(np.interp(grid, times, amplitudes, left=0, right=0), grid)
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        lambda: built_2d(),
+        # The catalyst file holds the half flip and the first dummy.
+        lambda: chain_3d(excitation="slab", n_dummy=1)[0],
+    ],
+    ids=["2d", "3d-slab"],
+)
+def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation(build):
+    seq = build()
+
+    assert slice_moment_to_first_excitation(seq) == pytest.approx(0.0, abs=1e-3)
