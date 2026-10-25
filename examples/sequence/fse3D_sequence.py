@@ -808,8 +808,6 @@ def fse3d(
             seq.add_block(
                 fse.rf_ref, *([] if refocusing_gz is None else [refocusing_gz])
             )
-            if echo == 0 and fse.esp_first > fse.esp:
-                seq.add_block(fse.wait_esp1)
             line, partition = (n_y // 2, n_z // 2) if view is None else view
             ky = (line - n_y // 2) / (n_y / 2)
             kz = (partition - n_z // 2) / (n_z / 2)

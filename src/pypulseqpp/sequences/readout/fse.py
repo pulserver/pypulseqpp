@@ -27,8 +27,11 @@ class _FseReadout(SequenceModule):
     """One excitation and a CPMG echo train, to the end of the TR.
 
     Each refocusing pulse is centred midway between the preceding RF centre
-    or echo and the following echo. Echoes are ``esp`` apart, except that the
-    first is ``esp_first`` after the excitation. The phase encodes and the
+    or echo and the following echo, and echoes are ``esp`` apart from the
+    excitation on: the excitation is half a spacing before the first
+    refocusing pulse, and the pulses are a spacing apart. The spin echoes and
+    the stimulated echoes of a refocusing angle below 180 degrees then
+    coincide. The phase encodes and the
     refocusing amplitude are templates that the caller may scale per echo; the
     sampling order sets the effective TE.
 
@@ -63,12 +66,9 @@ class _FseReadout(SequenceModule):
     etl : int, default=8
         Echo train length: refocusing pulses and encoded lines per repetition.
     esp : float, default=None
-        Echo spacing (s). ``None`` is as short as possible.
-    esp_first : float, default=None
-        Time from the RF centre to the first echo (s). ``None`` is the shortest
-        that accommodates the excitation, which is ``esp`` when the excitation
-        fits in half of it. Rounded so that ``esp_first - esp`` is a multiple
-        of twice the block raster.
+        Echo spacing (s). ``None`` is as short as possible, including the
+        excitation, its rephaser and the read prephaser in the first half
+        spacing.
     tr : float, default=None
         Repetition time (s), over the whole module. ``None`` is as short as
         possible.
@@ -141,16 +141,10 @@ class _FseReadout(SequenceModule):
         The acquisition window, shared by every echo.
     adc_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``.
-    wait_esp1 : DelayEvent
-        Delay after the first refocusing pulse; present only when
-        ``esp_first`` exceeds ``esp``.
     wait_tr : DelayEvent
         Present only when ``tr`` exceeds the minimum.
     esp : float
-        Echo spacing (s).
-    esp_first : float
-        Time from the RF centre to the first echo (s); equals ``esp`` unless
-        the excitation needs more room.
+        Echo spacing (s), and the time from the RF centre to the first echo.
     echo_times : numpy.ndarray
         Echo time of each echo (s) from the RF centre.
     bandwidth_hz : float
@@ -193,7 +187,6 @@ class _FseReadout(SequenceModule):
         matrix: Any,
         etl: int = 8,
         esp: float | None = None,
-        esp_first: float | None = None,
         tr: float | None = None,
         partial_echo: float = 1.0,
         oversampling: float = 1.0,
@@ -360,8 +353,14 @@ class _FseReadout(SequenceModule):
             raster,
         )
 
-        esp_min = pp.ceil_to_raster(
-            2.0 * max(pre_fixed + pre_floor, post_fixed + post_floor), raster
+        # Twice a raster-rounded half, so that each half lands on the raster.
+        esp_min = 2.0 * pp.ceil_to_raster(
+            max(
+                lead_fixed + lead_floor,
+                pre_fixed + pre_floor,
+                post_fixed + post_floor,
+            ),
+            raster,
         )
         if esp is None:
             esp = esp_min
@@ -373,30 +372,7 @@ class _FseReadout(SequenceModule):
                     f"{esp_min * 1e3:.3f} ms this train can achieve"
                 )
 
-        # The first spacing is its own number, so a long excitation is paid for
-        # once instead of by every echo. It differs from the rest by twice a
-        # raster at a time, since half of it has to land on the raster too.
-        lead_min = esp + 2.0 * pp.ceil_to_raster(
-            max(0.0, lead_fixed + lead_floor - 0.5 * esp), raster
-        )
-        if esp_first is None:
-            esp_first = lead_min
-        else:
-            esp_first = esp + 2.0 * pp.round_to_raster(
-                0.5 * (float(esp_first) - esp), raster
-            )
-            if esp_first < lead_min - 1e-12:
-                raise ValueError(
-                    f"the requested first echo spacing of {esp_first * 1e3:.3f} ms is shorter "
-                    f"than the {lead_min * 1e3:.3f} ms needed to reach the first refocusing "
-                    f"pulse from this excitation; leave esp_first unset to be given that, or "
-                    f"lengthen esp until half of it covers the excitation"
-                )
-        wait_first = 0.5 * (esp_first - esp)
-
-        lead_span = max(
-            lead_floor, pp.round_to_raster(0.5 * esp_first - lead_fixed, raster)
-        )
+        lead_span = max(lead_floor, pp.round_to_raster(0.5 * esp - lead_fixed, raster))
         pre_span = pp.round_to_raster(0.5 * esp - pre_fixed, raster)
         pre_span = min(
             max(pre_span, pre_floor), esp - ref_span - flat_span - post_floor
@@ -428,11 +404,8 @@ class _FseReadout(SequenceModule):
         self.seq = pp.Sequence(system)
         self.seq.add_block(rf, *present(gz))
         self.seq.add_block(gx_pre, *present(gz_reph), *present(trigger))
-        for echo in range(etl):
+        for _ in range(etl):
             self.seq.add_block(rf_ref, *present(gz_ref))
-            if wait_first and echo == 0:
-                wait_esp1 = pp.make_delay(wait_first)
-                self.seq.add_block(wait_esp1)
             self.seq.add_block(gx_bridge_pre, gy_pre, *present(gz_pre))
             self.seq.add_block(
                 gx, adc, *present(gy_wave), *present(gz_wave), *adc_labels
@@ -445,13 +418,10 @@ class _FseReadout(SequenceModule):
             wait_tr = pp.make_delay(tr_delay)
             self.seq.add_block(wait_tr)
 
-        first_echo = (
-            exc_span + lead_span + ref_span + wait_first + pre_span + echo_offset
-        )
+        first_echo = exc_span + lead_span + ref_span + pre_span + echo_offset
         self.center = first_echo
         self.echo_times = first_echo - rf_center + esp * np.arange(etl)
         self.esp = esp
-        self.esp_first = esp_first
         self.etl = etl
         self.bandwidth_hz = 1.0 / dwell
         self.n_samples = n_samples
