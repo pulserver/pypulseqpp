@@ -8,7 +8,16 @@ from pypulseqpp import cli, sequences
 
 fse3d = sequences.fse3D_sequence
 
-SMALL = {"n_x": 32, "n_y": 16, "n_z": 8, "etl": 8, "te": 20e-3, "tr": 300e-3}
+#: Without dummy trains, so that every train played acquires.
+SMALL = {
+    "n_x": 32,
+    "n_y": 16,
+    "n_z": 8,
+    "etl": 8,
+    "te": 20e-3,
+    "tr": 300e-3,
+    "n_dummy": 0,
+}
 N_Y, N_Z, ETL = SMALL["n_y"], SMALL["n_z"], SMALL["etl"]
 RASTER = pp.Opts().block_duration_raster
 
@@ -443,6 +452,19 @@ def test_dummy_trains_acquire_nothing():
     plain, dummied = built(), built(n_dummy=2)
 
     assert len(labels(dummied, "LIN")[0]) == len(labels(plain, "LIN")[0])
+
+
+def test_the_centre_of_k_space_is_read_after_the_magnetisation_has_settled():
+    seq = built(n_dummy=None)
+    acquired = [False]
+    for block in blocks(seq):
+        rf = getattr(block, "rf", None)
+        if rf is not None and rf.use == "excitation":
+            acquired.append(False)
+        acquired[-1] |= block.adc is not None
+
+    assert not acquired[1]
+    assert all(acquired[2:])
 
 
 def test_a_flag_is_named_and_described_by_the_function_it_runs(capsys):

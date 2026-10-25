@@ -365,7 +365,7 @@ def fse3d(
     partial_fourier_x: float = 1.0,
     partial_fourier_y: float = 1.0,
     partial_fourier_z: float = 1.0,
-    n_dummy: int = 0,
+    n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 2.0,
     esp: float | None = None,
@@ -451,8 +451,11 @@ def fse3d(
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent acquired, in
         ``[0.75, 1]``.
-    n_dummy : int, default=0
-        Trains played without acquiring before the first.
+    n_dummy : int | None, default=None
+        Trains played without acquiring before the first. ``None`` is as many
+        as bring the longitudinal magnetisation to its steady state
+        (:func:`~pypulseqpp.sequences.steady_state_dummies`): the radial
+        order reads the centre of k-space in the first train acquired.
     excitation : {'slab', 'nonselective'}, default='slab'
         Slab-selective excitation and refocusing, or hard pulses with
         readout-axis crushers, which shorten the echo spacing.
@@ -640,6 +643,8 @@ def fse3d(
         pp.round_to_raster(time, system.block_duration_raster)
         for time in (tr, tr_periphery)
     )
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(repetition_time, 90.0)
 
     calibrating, imaging = pp.make_cartesian_plane_sampling(
         (n_y, n_z),
