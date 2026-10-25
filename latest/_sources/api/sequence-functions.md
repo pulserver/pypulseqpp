@@ -61,7 +61,7 @@ as bring its spoiled steady state within 1 % for a T1 of
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
-| {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), tolerance | Repetitions | The repetitions to play before acquiring. |
+| {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), T2 (s) for a balanced steady state, tolerance | Repetitions | The repetitions to play before acquiring. |
 | {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 1.5 s | T1 the dummies are counted for: grey matter at 3 T. |
 
 ## Receive-gain prescan

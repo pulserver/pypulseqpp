@@ -75,7 +75,7 @@ One cardiac phase, with every phase-encode line acquired.
 
  .. code-block:: none
 
-    579 blocks, 0.73 s
+    578 blocks, 0.73 s
     TR 3.80 ms
 
 
@@ -178,9 +178,9 @@ Segment length sets the temporal footprint of each cardiac phase.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    ungated               579          0.73           192
-    prospective           873          0.82           288
-    retrospective        6339          6.00          2112
+    ungated               578          0.73           192
+    prospective           872          0.95           288
+    retrospective        5474          5.98          1824
 
 
 
@@ -206,7 +206,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.079 seconds)
+   **Total running time of the script:** (0 minutes 1.174 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

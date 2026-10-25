@@ -550,7 +550,10 @@ turned about z by a rotation extension. The Nyquist set is <code class="docutils
 shell is played, in order, which is angular undersampling. The dead-time
 gap after each pulse leaves <code class="docutils literal notranslate"><span class="pre">MissingSamples</span></code> at the centre of k-space
 unacquired. Dummy shells precede the first shot, played as it is without
-the ADC. Acquisitions carry the view as <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and the shot as <code class="docutils literal notranslate"><span class="pre">SEG</span></code>.</p>
+the ADC. Acquisitions carry the view as <code class="docutils literal notranslate"><span class="pre">LIN</span></code> and the shot as <code class="docutils literal notranslate"><span class="pre">SEG</span></code>.
+Under the default <code class="docutils literal notranslate"><span class="pre">scheme='quiet'</span></code> every other shell played, dummies
+included, runs backwards from the pole the previous one ended on, so no
+shot reverses the gradient pole to pole.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -565,15 +568,20 @@ than two dwells of the default readout.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Pulse centre to pulse centre (s), one per view. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as
 short as the widest turn between views allows; a longer one is
 spent slewing more gently rather than waiting.</p></li>
-<li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested receiver bandwidth (Hz). It sets the gradient amplitude
+<li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=100000.0</em>) – Requested receiver bandwidth (Hz). It sets the gradient amplitude
 too, the spoke being traversed at one sample per <code class="docutils literal notranslate"><span class="pre">delta_k</span></code>.</p></li>
 <li><p><strong>r</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Angular undersampling: one shell in every <code class="docutils literal notranslate"><span class="pre">r</span></code> of the set is
 played.</p></li>
 <li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Shells the sphere is dealt into, each the same one turned about
 <code class="docutils literal notranslate"><span class="pre">z</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> balances the spacing within a shell against the
 spacing between them.</p></li>
-<li><p><strong>scheme</strong> (<em>{'spiral'</em><em>, </em><em>'meridian'}</em><em>, </em><em>default='spiral'</em>) – Shape of the shell, as <code class="xref py py-data docutils literal notranslate"><span class="pre">SCHEMES</span></code> names them.</p></li>
-<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=2</em>) – Whole shells played without acquiring before the first shot.</p></li>
+<li><p><strong>scheme</strong> (<em>{'quiet'</em><em>, </em><em>'spiral'</em><em>, </em><em>'meridian'}</em><em>, </em><em>default='quiet'</em>) – Shape of the shell, as <code class="xref py py-data docutils literal notranslate"><span class="pre">SCHEMES</span></code> names them. <code class="docutils literal notranslate"><span class="pre">'quiet'</span></code>
+samples the directions of <code class="docutils literal notranslate"><span class="pre">'spiral'</span></code> in steps about a ring gap
+long; <code class="docutils literal notranslate"><span class="pre">'spiral'</span></code> strides across many rings at a constant step.</p></li>
+<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Whole shells played without acquiring before the first shot. <code class="docutils literal notranslate"><span class="pre">None</span></code>
+is the fewest that hold the repetitions bringing the longitudinal
+magnetisation to its steady state
+(<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Radial oversampling: a finer <code class="docutils literal notranslate"><span class="pre">delta_k</span></code> along the same spoke.</p></li>
 <li><p><strong>n_gain_calibration_repetitions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=None</em>) – Imaging repetitions the receive-gain prescan plays, written as the
 readouts they acquire in the <code class="docutils literal notranslate"><span class="pre">NumGainCalibrationReadouts</span></code>

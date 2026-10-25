@@ -501,7 +501,7 @@
 <span class="sd">        Shells the sphere is split into, each the shell turned about z by</span>
 <span class="sd">        ``2 * pi / n_shots`` relative to the previous one. Playing only some of</span>
 <span class="sd">        the shots undersamples in angle. ``None`` is ``ceil(pi * (matrix - 1))``.</span>
-<span class="sd">    scheme : {'spiral', 'meridian'}, default='spiral'</span>
+<span class="sd">    scheme : {'spiral', 'quiet', 'meridian'}, default='spiral'</span>
 <span class="sd">        Shape of the shell, as in :func:`pypulseqpp.calc_projection_shell`.</span>
 <span class="sd">    oversampling : float, default=2.0</span>
 <span class="sd">        Radial oversampling: the k-space sample spacing along the spoke is</span>
@@ -775,7 +775,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">g_hold</span><span class="o">=</span><span class="n">g_hold</span><span class="p">,</span> <span class="n">g_read</span><span class="o">=</span><span class="n">g_read</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="n">directions</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">shot_rotations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">shot_rotations</span><span class="o">=</span><span class="n">shot_rotations</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">shot_rotations</span><span class="o">=</span><span class="n">shot_rotations</span><span class="p">,</span> <span class="n">reversal</span><span class="o">=</span><span class="n">_reversal</span><span class="p">(</span><span class="n">directions</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">ramp_span</span> <span class="o">+</span> <span class="n">rf_center</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tr</span> <span class="o">=</span> <span class="n">view_span</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">view_duration</span> <span class="o">=</span> <span class="n">hold_span</span> <span class="o">+</span> <span class="n">read_span</span>
@@ -811,6 +811,20 @@
     <span class="n">unit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span> <span class="o">/</span> <span class="n">norms</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span>
     <span class="n">unit</span><span class="o">.</span><span class="n">setflags</span><span class="p">(</span><span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">unit</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reversal</span><span class="p">(</span><span class="n">directions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the rotation taking each view to its mirror in the play order.</span>
+
+<span class="sd">    A generated shell is symmetric about the equator, heights and azimuth</span>
+<span class="sd">    increments alike, so a half turn about a horizontal axis reverses it.</span>
+<span class="sd">    """</span>
+    <span class="n">u</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">vt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">directions</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">directions</span><span class="p">)</span>
+    <span class="n">rotation</span> <span class="o">=</span> <span class="n">u</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">u</span> <span class="o">@</span> <span class="n">vt</span><span class="p">)])</span> <span class="o">@</span> <span class="n">vt</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">directions</span> <span class="o">@</span> <span class="n">rotation</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">directions</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"a generated shell must be its own reverse"</span><span class="p">)</span>
+    <span class="n">rotation</span><span class="o">.</span><span class="n">setflags</span><span class="p">(</span><span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rotation</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_slew_span</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>

@@ -521,17 +521,21 @@
 <dt class="sig sig-object py" id="pypulseqpp.calc_projection_shell">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">calc_projection_shell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_angles.html#calc_projection_shell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.calc_projection_shell" title="Link to this definition">#</a></dt>
 <dd><p>Return a pole-to-pole base shell and z-axis rotations for each shot.</p>
-<p>Consecutive base directions have equal angular separation. Rotated shells
-share both poles; each nonpolar ring has one spoke per shot.</p>
+<p>Rotated shells share both poles; each nonpolar ring has one spoke per
+shot.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n_views</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Spokes in the base shell, at least three.</p></li>
 <li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Number of rotated replays of the base shell, at least one.</p></li>
-<li><p><strong>scheme</strong> (<em>{'spiral'</em><em>, </em><em>'meridian'}</em><em>, </em><em>default='spiral'</em>) – <code class="docutils literal notranslate"><span class="pre">'spiral'</span></code> winds pole to pole across equal-area rings, so the shell
-alone is already near-uniform. <code class="docutils literal notranslate"><span class="pre">'meridian'</span></code> is a half great circle in
-the x-z plane at equal polar steps, which is simpler and oversamples
-the poles.</p></li>
+<li><p><strong>scheme</strong> (<em>{'spiral'</em><em>, </em><em>'quiet'</em><em>, </em><em>'meridian'}</em><em>, </em><em>default='spiral'</em>) – <code class="docutils literal notranslate"><span class="pre">'spiral'</span></code> winds pole to pole across equal-area rings, so the shell
+alone is already near-uniform. <code class="docutils literal notranslate"><span class="pre">'quiet'</span></code> keeps the spiral’s rings and
+the directions the shots sample on them, but moves each ring’s spoke by
+whole shot turns to the one nearest its predecessor: the shell becomes
+a near-meridian whose steps are about one ring gap, instead of a
+stride across many rings’ worth of azimuth. <code class="docutils literal notranslate"><span class="pre">'meridian'</span></code> is a half
+great circle in the x-z plane at equal polar steps, which is simpler
+and oversamples the poles.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -561,10 +565,17 @@ base shell to the directions that shot samples.</p></li>
 <span class="go">True</span>
 </pre></div>
 </div>
-<p>Consecutive views are exactly one step apart, so every turn between them
-is the same slew:</p>
+<p>Consecutive <code class="docutils literal notranslate"><span class="pre">'spiral'</span></code> views are exactly one step apart, so every turn
+between them is the same slew:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">directions</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">directions</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">'quiet'</span></code> samples the same sphere with the shell’s steps a ring gap long:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">quiet</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_projection_shell</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">n_shots</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">"quiet"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quiet_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">quiet</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">quiet</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">quiet_steps</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>

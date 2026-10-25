@@ -471,9 +471,9 @@
 <span class="sd">    The module's blocks are excitation, acquisition, rewind. The caller plays</span>
 <span class="sd">    each shot as the previous shot's rewind, excitation and acquisition, and</span>
 <span class="sd">    writes the transients: the half-flip pulse (``rf`` at half amplitude,</span>
-<span class="sd">    opposite in phase to the first excitation) followed by ``wait_prep``;</span>
-<span class="sd">    ``wait_rewind`` with ``gz_rew`` in place of the first rewind; and a last</span>
-<span class="sd">    rewind block to ramp down.</span>
+<span class="sd">    opposite in phase to the first excitation) followed by ``wait_prep`` with</span>
+<span class="sd">    ``gz_prep`` in place of the first rewind; and a last rewind block to ramp</span>
+<span class="sd">    down.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -538,11 +538,14 @@
 <span class="sd">        ``ONCE`` set to 1, 0 and 2, for the half-flip block, the block after</span>
 <span class="sd">        it and the final rewind.</span>
 <span class="sd">    wait_prep : DelayEvent</span>
-<span class="sd">        Delay after the half-flip block; with the ``wait_rewind`` block it</span>
-<span class="sd">        places the half-flip pulse half a repetition before the first</span>
-<span class="sd">        excitation. Absent with ``half_flip_prep=False``.</span>
-<span class="sd">    wait_rewind : DelayEvent</span>
-<span class="sd">        Delay of the rewind block's duration, for the first repetition.</span>
+<span class="sd">        Delay after the half-flip block, which places the half-flip pulse</span>
+<span class="sd">        half a repetition before the first excitation. Absent with</span>
+<span class="sd">        ``half_flip_prep=False``.</span>
+<span class="sd">    gz_prep : TrapEvent</span>
+<span class="sd">        Slice rephaser played with ``wait_prep``: the two rephasers of a</span>
+<span class="sd">        repetition in one lobe, so that the slice axis is balanced from the</span>
+<span class="sd">        half-flip pulse to the first excitation. None without a selection</span>
+<span class="sd">        gradient; absent with ``half_flip_prep=False``.</span>
 <span class="sd">    tr, te : float</span>
 <span class="sd">        Repetition and echo time (s); ``te`` is always half of ``tr``.</span>
 <span class="sd">    bandwidth_hz : float</span>
@@ -657,8 +660,15 @@
             <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
         <span class="p">)</span>
         <span class="n">step_z</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">fov</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="c1"># The half-flip gap holds both rephasers in one lobe.</span>
+        <span class="n">prep_floor</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">),</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="o">-</span> <span class="n">prep_span</span>
+            <span class="k">if</span> <span class="n">half_flip_prep</span>
+            <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="p">)</span>
         <span class="n">floor</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
             <span class="n">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pre_area</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">post_area</span><span class="p">))</span> <span class="o">+</span> <span class="n">step_z</span><span class="p">,</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">raster</span><span class="p">),</span>
+            <span class="n">prep_floor</span><span class="p">,</span>
             <span class="n">_span</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">gx_rew</span><span class="p">,</span> <span class="n">trigger</span><span class="p">),</span>
             <span class="n">_span</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">fov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)),</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">entry_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">raster</span><span class="p">),</span>
@@ -703,8 +713,8 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">half_flip_prep</span><span class="p">:</span>
-            <span class="n">wait_prep</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">prep_span</span><span class="p">)</span>
-        <span class="n">wait_rewind</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">rewind_span</span><span class="p">)</span>
+            <span class="n">wait_prep</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">prep_span</span> <span class="o">+</span> <span class="n">rewind_span</span><span class="p">)</span>
+            <span class="n">gz_prep</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">,</span> <span class="n">prep_span</span> <span class="o">+</span> <span class="n">rewind_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
 
         <span class="n">adc_labels</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">labels</span> <span class="ow">or</span> <span class="p">()</span>
@@ -720,11 +730,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span> <span class="o">*</span><span class="n">adc_labels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_rew</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
-            <span class="n">wait_rewind</span><span class="o">=</span><span class="n">wait_rewind</span><span class="p">,</span>
             <span class="n">prep_labels</span><span class="o">=</span><span class="n">prep_labels</span><span class="p">,</span>
             <span class="n">train_labels</span><span class="o">=</span><span class="n">train_labels</span><span class="p">,</span>
             <span class="n">end_labels</span><span class="o">=</span><span class="n">end_labels</span><span class="p">,</span>
-            <span class="o">**</span><span class="p">({</span><span class="s2">"wait_prep"</span><span class="p">:</span> <span class="n">wait_prep</span><span class="p">}</span> <span class="k">if</span> <span class="n">half_flip_prep</span> <span class="k">else</span> <span class="p">{}),</span>
+            <span class="o">**</span><span class="p">({</span><span class="s2">"wait_prep"</span><span class="p">:</span> <span class="n">wait_prep</span><span class="p">,</span> <span class="s2">"gz_prep"</span><span class="p">:</span> <span class="n">gz_prep</span><span class="p">}</span> <span class="k">if</span> <span class="n">half_flip_prep</span> <span class="k">else</span> <span class="p">{}),</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">tr</span> <span class="o">=</span> <span class="n">rewind_span</span> <span class="o">+</span> <span class="n">excite_span</span> <span class="o">+</span> <span class="n">encode_span</span> <span class="o">+</span> <span class="n">flat_span</span>

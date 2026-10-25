@@ -137,7 +137,7 @@ Angular undersampling
 ---------------------
 
 The Nyquist set of directions is divided into shells, each a copy of the
-first rotated about ``z``. ``r`` acquires one shell in every ``r``: at
+first rotated about ``z``, every other one also played backwards. ``r`` acquires one shell in every ``r``: at
 ``r = 2`` the number of acquisitions is halved and the azimuthal spacing
 between acquired shells is doubled. Angular undersampling produces streak
 artefacts from the k-space periphery rather than the fold-over of an
@@ -184,10 +184,44 @@ undersampled Cartesian acquisition.
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 84-95
+
+Spoke order
+-----------
+
+The default ``scheme='quiet'`` moves each ring's spoke by whole shot turns
+to the copy nearest its predecessor, so a shell is a near-meridian stepping
+about one ring gap, and every other shell runs backwards from the pole the
+last one ended on. ``scheme='spiral'`` samples the same directions at a
+constant step that strides across many rings' worth of azimuth, because the
+shots fill each ring, and each shot ends at ``-z`` while the next starts at
+``+z``. Both play one shell's waveforms turned per shot, and the polar gap
+sets the TR of both.
+
+.. GENERATED FROM PYTHON SOURCE LINES 95-99
+
+.. code-block:: Python
+
+
+    spiral = zte3D_sequence(n=64, n_dummy=0, scheme="spiral")
+    pp.plot.plot_kspace(spiral, color_by="shot")
+
+
+
+
+.. image-sg:: /generated/gallery/16-zte/images/sphx_glr_zte3D_sequence_004.png
+   :alt: zte3D sequence
+   :srcset: /generated/gallery/16-zte/images/sphx_glr_zte3D_sequence_004.png
+   :class: sphx-glr-single-img
+
+
+
+
+
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 15.941 seconds)
+   **Total running time of the script:** (0 minutes 30.538 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:

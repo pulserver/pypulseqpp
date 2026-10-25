@@ -509,6 +509,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-order">Sampling order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#angular-undersampling">Angular undersampling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spoke-order">Spoke order</a></li>
 </ul>
             </nav>
         </div>
@@ -573,7 +574,7 @@ k-space and runs outward to the surface of the sampled sphere.</p>
 <section id="angular-undersampling">
 <h2>Angular undersampling<a class="headerlink" href="#angular-undersampling" title="Link to this heading">#</a></h2>
 <p>The Nyquist set of directions is divided into shells, each a copy of the
-first rotated about <code class="docutils literal notranslate"><span class="pre">z</span></code>. <code class="docutils literal notranslate"><span class="pre">r</span></code> acquires one shell in every <code class="docutils literal notranslate"><span class="pre">r</span></code>: at
+first rotated about <code class="docutils literal notranslate"><span class="pre">z</span></code>, every other one also played backwards. <code class="docutils literal notranslate"><span class="pre">r</span></code> acquires one shell in every <code class="docutils literal notranslate"><span class="pre">r</span></code>: at
 <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">2</span></code> the number of acquisitions is halved and the azimuthal spacing
 between acquired shells is doubled. Angular undersampling produces streak
 artefacts from the k-space periphery rather than the fold-over of an
@@ -587,7 +588,21 @@ every second        12969          4.12          6435
 </div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_zte3D_sequence_003.png" srcset="../../../_images/sphx_glr_zte3D_sequence_003.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 15.941 seconds)</p>
+<img src="../../../_images/sphx_glr_zte3D_sequence_003.png" srcset="../../../_images/sphx_glr_zte3D_sequence_003.png" alt="zte3D sequence" class = "sphx-glr-single-img"/></section>
+<section id="spoke-order">
+<h2>Spoke order<a class="headerlink" href="#spoke-order" title="Link to this heading">#</a></h2>
+<p>The default <code class="docutils literal notranslate"><span class="pre">scheme='quiet'</span></code> moves each ring’s spoke by whole shot turns
+to the copy nearest its predecessor, so a shell is a near-meridian stepping
+about one ring gap, and every other shell runs backwards from the pole the
+last one ended on. <code class="docutils literal notranslate"><span class="pre">scheme='spiral'</span></code> samples the same directions at a
+constant step that strides across many rings’ worth of azimuth, because the
+shots fill each ring, and each shot ends at <code class="docutils literal notranslate"><span class="pre">-z</span></code> while the next starts at
+<code class="docutils literal notranslate"><span class="pre">+z</span></code>. Both play one shell’s waveforms turned per shot, and the polar gap
+sets the TR of both.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">spiral</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/zte3D_sequence.html#pypulseqpp.sequences.zte3D_sequence" title="pypulseqpp.sequences.zte3D_sequence"><span class="n">zte3D_sequence</span></a><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">spiral</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">spiral</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
+</span></pre></div></div>
+<img src="../../../_images/sphx_glr_zte3D_sequence_004.png" srcset="../../../_images/sphx_glr_zte3D_sequence_004.png" alt="zte3D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 30.538 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-16-zte-zte3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/6cfc1d5d44130deb0bbbdfb53d454950/zte3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">zte3D_sequence.ipynb</span></code></a></p>
@@ -654,6 +669,7 @@ every second        12969          4.12          6435
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-diagram">Sequence diagram</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-order">Sampling order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#angular-undersampling">Angular undersampling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spoke-order">Spoke order</a></li>
 </ul>
   </nav></div>
 
