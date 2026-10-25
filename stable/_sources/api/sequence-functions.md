@@ -45,7 +45,9 @@ from one slab prescription.
 A sequence function offers each spatial saturation band as `sat<k>_normal_x`,
 `_y`, `_z`, `sat<k>_position` and `sat<k>_thickness`, in the physical frame,
 and builds the bands it plays with `spatial_saturations`; a band of zero
-thickness is off.
+thickness is off. `gre2D_sequence` and `se2D_sequence` offer six, `k` from 1
+to 6, as many as a console places, played in that order before every
+excitation.
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |

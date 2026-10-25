@@ -249,9 +249,20 @@ shells and each non-polar ring has one spoke per shot. `'spiral'` places
 neighbours at equal angular separation on equal-area rings, winding pole to
 pole, so the shell alone is near-uniform and every turn between consecutive
 views is the same slew; the polar gap next to a pole fixes the step and each
-azimuth increment follows from the spherical cosine relation. `'meridian'` is
-a half great circle in the x-z plane at equal polar steps, simpler and
-oversampling the poles.
+azimuth increment follows from the spherical cosine relation. That step is a
+stride across many rings' worth of azimuth, because the shots, not the shell,
+fill a ring. `'quiet'` keeps the spiral's rings and the sphere the shots
+sample, and reduces each azimuth increment modulo the shot turn `2*pi/n_shots`
+to the nearest one: the spoke moves onto another shot's copy of itself, the
+shell becomes a near-meridian, and its steps shrink to about one ring gap
+except the polar gap at each end. `'meridian'` is a half great circle in the
+x-z plane at equal polar steps, simpler and oversampling the poles. Every
+generated shell is symmetric about the equator, so a half turn about a
+horizontal axis maps it onto itself in reverse order; `ZteReadout` publishes
+that turn as `reversal`, and `zte3d` plays every other quiet shell through it
+so that each starts at the pole the previous one ended on. `'quiet'` is
+`zte3d`'s default; `calc_projection_shell` and `ZteReadout` default to
+`'spiral'`.
 
 ## RF schedules
 

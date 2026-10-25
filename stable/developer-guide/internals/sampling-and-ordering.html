@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=6e22b37a"></script>
+    <script src="../../_static/documentation_options.js?v=69d0a213"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.49';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.50';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence module and function internals" href="sequence-modules.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.49" />
+  <meta name="docsearch:version" content="v0.0.50" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -810,9 +810,20 @@ shells and each non-polar ring has one spoke per shot. <code class="docutils lit
 neighbours at equal angular separation on equal-area rings, winding pole to
 pole, so the shell alone is near-uniform and every turn between consecutive
 views is the same slew; the polar gap next to a pole fixes the step and each
-azimuth increment follows from the spherical cosine relation. <code class="docutils literal notranslate"><span class="pre">'meridian'</span></code> is
-a half great circle in the x-z plane at equal polar steps, simpler and
-oversampling the poles.</p>
+azimuth increment follows from the spherical cosine relation. That step is a
+stride across many rings’ worth of azimuth, because the shots, not the shell,
+fill a ring. <code class="docutils literal notranslate"><span class="pre">'quiet'</span></code> keeps the spiral’s rings and the sphere the shots
+sample, and reduces each azimuth increment modulo the shot turn <code class="docutils literal notranslate"><span class="pre">2*pi/n_shots</span></code>
+to the nearest one: the spoke moves onto another shot’s copy of itself, the
+shell becomes a near-meridian, and its steps shrink to about one ring gap
+except the polar gap at each end. <code class="docutils literal notranslate"><span class="pre">'meridian'</span></code> is a half great circle in the
+x-z plane at equal polar steps, simpler and oversampling the poles. Every
+generated shell is symmetric about the equator, so a half turn about a
+horizontal axis maps it onto itself in reverse order; <code class="docutils literal notranslate"><span class="pre">ZteReadout</span></code> publishes
+that turn as <code class="docutils literal notranslate"><span class="pre">reversal</span></code>, and <code class="docutils literal notranslate"><span class="pre">zte3d</span></code> plays every other quiet shell through it
+so that each starts at the pole the previous one ended on. <code class="docutils literal notranslate"><span class="pre">'quiet'</span></code> is
+<code class="docutils literal notranslate"><span class="pre">zte3d</span></code>’s default; <code class="docutils literal notranslate"><span class="pre">calc_projection_shell</span></code> and <code class="docutils literal notranslate"><span class="pre">ZteReadout</span></code> default to
+<code class="docutils literal notranslate"><span class="pre">'spiral'</span></code>.</p>
 </section>
 <section id="rf-schedules">
 <h2>RF schedules<a class="headerlink" href="#rf-schedules" title="Link to this heading">#</a></h2>
