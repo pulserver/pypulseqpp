@@ -526,8 +526,11 @@
 selective or non-selective; a non-selective train is crushed only by
 <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code>, on the read axis.</p>
 <p>Each refocusing pulse is centred midway between the preceding RF centre
-or echo and the following echo. Echoes are <code class="docutils literal notranslate"><span class="pre">esp</span></code> apart, except that the
-first is <code class="docutils literal notranslate"><span class="pre">esp_first</span></code> after the excitation. The phase encodes and the
+or echo and the following echo, and echoes are <code class="docutils literal notranslate"><span class="pre">esp</span></code> apart from the
+excitation on: the excitation is half a spacing before the first
+refocusing pulse, and the pulses are a spacing apart. The spin echoes and
+the stimulated echoes of a refocusing angle below 180 degrees then
+coincide. The phase encodes and the
 refocusing amplitude are templates that the caller may scale per echo; the
 sampling order sets the effective TE.</p>
 <dl class="field-list simple">
@@ -552,11 +555,9 @@ a non-selective train, which is crushed on the read axis by
 <li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Matrix size per encoded axis, readout first. The caller sets the
 number and order of acquired lines.</p></li>
 <li><p><strong>etl</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Echo train length: refocusing pulses and encoded lines per repetition.</p></li>
-<li><p><strong>esp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Echo spacing (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible.</p></li>
-<li><p><strong>esp_first</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Time from the RF centre to the first echo (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is the shortest
-that accommodates the excitation, which is <code class="docutils literal notranslate"><span class="pre">esp</span></code> when the excitation
-fits in half of it. Rounded so that <code class="docutils literal notranslate"><span class="pre">esp_first</span> <span class="pre">-</span> <span class="pre">esp</span></code> is a multiple
-of twice the block raster.</p></li>
+<li><p><strong>esp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Echo spacing (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible, including the
+excitation, its rephaser and the read prephaser in the first half
+spacing.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Repetition time (s), over the whole module. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as
 possible.</p></li>
 <li><p><strong>partial_echo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Fraction of the full echo acquired, in (0.5, 1]. The samples before
@@ -605,12 +606,8 @@ scaling one to zero changes nothing else. Only the channels driven by
 <code class="docutils literal notranslate"><span class="pre">wave</span></code>.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, shared by every echo.</p></li>
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
-<li><p><strong>wait_esp1</strong> (<em>DelayEvent</em>) – Delay after the first refocusing pulse; present only when
-<code class="docutils literal notranslate"><span class="pre">esp_first</span></code> exceeds <code class="docutils literal notranslate"><span class="pre">esp</span></code>.</p></li>
 <li><p><strong>wait_tr</strong> (<em>DelayEvent</em>) – Present only when <code class="docutils literal notranslate"><span class="pre">tr</span></code> exceeds the minimum.</p></li>
-<li><p><strong>esp</strong> (<em>float</em>) – Echo spacing (s).</p></li>
-<li><p><strong>esp_first</strong> (<em>float</em>) – Time from the RF centre to the first echo (s); equals <code class="docutils literal notranslate"><span class="pre">esp</span></code> unless
-the excitation needs more room.</p></li>
+<li><p><strong>esp</strong> (<em>float</em>) – Echo spacing (s), and the time from the RF centre to the first echo.</p></li>
 <li><p><strong>echo_times</strong> (<em>numpy.ndarray</em>) – Echo time of each echo (s) from the RF centre.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<em>float</em>) – Achieved ADC sampling rate <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz).</p></li>
 <li><p><strong>n_samples</strong> (<em>int</em>) – ADC samples per echo.</p></li>
