@@ -527,7 +527,9 @@ gradient channels in proportion to its components. The slab is centred
 <code class="docutils literal notranslate"><span class="pre">position</span></code> from the isocentre along <code class="docutils literal notranslate"><span class="pre">normal</span></code>. <code class="docutils literal notranslate"><span class="pre">NOPOS</span></code> and <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>
 are set on the pulse block and cleared on the spoiler block, so neither a
 <a class="reference internal" href="pypulseqpp.TransformFOV.html#pypulseqpp.TransformFOV" title="pypulseqpp.TransformFOV"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransformFOV</span></code></a> offset nor the prescription rotation
-moves the band, which stays where it is placed in the physical frame.</p>
+moves the band, which stays where it is placed in the physical frame.
+The pulse block lasts at least <code class="docutils literal notranslate"><span class="pre">RF_TAIL_S</span></code> (220 us) past the end of the
+pulse.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

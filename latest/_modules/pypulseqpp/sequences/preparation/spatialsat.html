@@ -463,6 +463,12 @@
 <span class="c1">#: move it.</span>
 <span class="n">FOV_EXEMPT_FLAGS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"NOPOS"</span><span class="p">,</span> <span class="s2">"NOROT"</span><span class="p">)</span>
 
+<span class="c1">#: Time the pulse block holds after the pulse ends (s). Exempt from the</span>
+<span class="c1">#: prescription while the blocks around it are not, the pulse block can make a</span>
+<span class="c1">#: segment of its own on a scanner that groups blocks by their transform, and</span>
+<span class="c1">#: a pulse that ends its segment needs this long after it to close.</span>
+<span class="n">RF_TAIL_S</span> <span class="o">=</span> <span class="mf">220e-6</span>
+
 
 <div class="viewcode-block" id="SpatialSaturation">
 <a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation">[docs]</a>
@@ -475,6 +481,8 @@
 <span class="sd">    are set on the pulse block and cleared on the spoiler block, so neither a</span>
 <span class="sd">    :class:`~pypulseqpp.TransformFOV` offset nor the prescription rotation</span>
 <span class="sd">    moves the band, which stays where it is placed in the physical frame.</span>
+<span class="sd">    The pulse block lasts at least ``RF_TAIL_S`` (220 us) past the end of the</span>
+<span class="sd">    pulse.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -602,8 +610,14 @@
             <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">FOV_EXEMPT_FLAGS</span>
         <span class="p">]</span>
 
+        <span class="n">hold</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+                <span class="n">rf_prep</span><span class="o">.</span><span class="n">delay</span> <span class="o">+</span> <span class="n">rf_prep</span><span class="o">.</span><span class="n">shape_dur</span> <span class="o">+</span> <span class="n">RF_TAIL_S</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">,</span> <span class="o">*</span><span class="n">selection</span><span class="p">,</span> <span class="o">*</span><span class="n">prep_labels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">,</span> <span class="o">*</span><span class="n">selection</span><span class="p">,</span> <span class="n">hold</span><span class="p">,</span> <span class="o">*</span><span class="n">prep_labels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span><span class="p">,</span> <span class="o">*</span><span class="n">reset_labels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">rf_reference</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span></div>
 </div>
