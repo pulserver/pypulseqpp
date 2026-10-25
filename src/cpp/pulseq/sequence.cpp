@@ -895,6 +895,30 @@ namespace pulseq
             return blocks;
         }
 
+        /** The shortest period @p keys repeats with, a partial last copy counted, or its length.
+
+         * A period is the length less a border, a run that both opens and
+         * closes the stream, so the longest border the prefix function finds
+         * gives it in linear time. A repetition that opens with two equal
+         * runs, as two identical sets of saturation bands do, is found at its
+         * own length rather than at the run's.
+         */
+        int shortest_period(const std::vector<int32_t>& keys)
+        {
+            const size_t blocks = keys.size();
+            if (blocks == 0)
+                return 0;
+            std::vector<int> border(blocks, 0);
+            for (size_t i = 1; i < blocks; ++i)
+            {
+                int k = border[i - 1];
+                while (k > 0 && keys[i] != keys[static_cast<size_t>(k)])
+                    k = border[static_cast<size_t>(k) - 1];
+                border[i] = k + (keys[i] == keys[static_cast<size_t>(k)] ? 1 : 0);
+            }
+            return static_cast<int>(blocks) - border[blocks - 1];
+        }
+
         /** The longest run @p period holds over, as (first block, whole copies). */
         std::array<int, 2> periodic_run(const std::vector<int32_t>& keys, int period)
         {
@@ -1032,10 +1056,11 @@ namespace pulseq
             return repetition_;
         }
 
-        /* The shortest period of the definition stream from its first block,
-         * as long as every block repeats the one a period before it. */
-        const int period = first_repeat(instance_def_);
-        if (period < blocks && repeats_with(instance_def_, period) && shims_repeat_with(period))
+        /* The shortest period of the definition stream from its first block
+         * that every block repeats, the one a period before it, copied whole
+         * at least twice, as long as the shims repeat with it. */
+        const int period = shortest_period(instance_def_);
+        if (period <= blocks / 2 && shims_repeat_with(period))
         {
             repetition_.size = period;
             return repetition_;
