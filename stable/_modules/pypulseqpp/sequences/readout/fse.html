@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../../_static/documentation_options.js?v=d22c200e"></script>
+    <script src="../../../../_static/documentation_options.js?v=c558a068"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.51';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.52';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.51" />
+  <meta name="docsearch:version" content="v0.0.52" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -471,8 +471,11 @@
 <span class="w">    </span><span class="sd">"""One excitation and a CPMG echo train, to the end of the TR.</span>
 
 <span class="sd">    Each refocusing pulse is centred midway between the preceding RF centre</span>
-<span class="sd">    or echo and the following echo. Echoes are ``esp`` apart, except that the</span>
-<span class="sd">    first is ``esp_first`` after the excitation. The phase encodes and the</span>
+<span class="sd">    or echo and the following echo, and echoes are ``esp`` apart from the</span>
+<span class="sd">    excitation on: the excitation is half a spacing before the first</span>
+<span class="sd">    refocusing pulse, and the pulses are a spacing apart. The spin echoes and</span>
+<span class="sd">    the stimulated echoes of a refocusing angle below 180 degrees then</span>
+<span class="sd">    coincide. The phase encodes and the</span>
 <span class="sd">    refocusing amplitude are templates that the caller may scale per echo; the</span>
 <span class="sd">    sampling order sets the effective TE.</span>
 
@@ -507,12 +510,9 @@
 <span class="sd">    etl : int, default=8</span>
 <span class="sd">        Echo train length: refocusing pulses and encoded lines per repetition.</span>
 <span class="sd">    esp : float, default=None</span>
-<span class="sd">        Echo spacing (s). ``None`` is as short as possible.</span>
-<span class="sd">    esp_first : float, default=None</span>
-<span class="sd">        Time from the RF centre to the first echo (s). ``None`` is the shortest</span>
-<span class="sd">        that accommodates the excitation, which is ``esp`` when the excitation</span>
-<span class="sd">        fits in half of it. Rounded so that ``esp_first - esp`` is a multiple</span>
-<span class="sd">        of twice the block raster.</span>
+<span class="sd">        Echo spacing (s). ``None`` is as short as possible, including the</span>
+<span class="sd">        excitation, its rephaser and the read prephaser in the first half</span>
+<span class="sd">        spacing.</span>
 <span class="sd">    tr : float, default=None</span>
 <span class="sd">        Repetition time (s), over the whole module. ``None`` is as short as</span>
 <span class="sd">        possible.</span>
@@ -585,16 +585,10 @@
 <span class="sd">        The acquisition window, shared by every echo.</span>
 <span class="sd">    adc_labels : LabelSetEvent or list of LabelSetEvent</span>
 <span class="sd">        One per name in ``labels``.</span>
-<span class="sd">    wait_esp1 : DelayEvent</span>
-<span class="sd">        Delay after the first refocusing pulse; present only when</span>
-<span class="sd">        ``esp_first`` exceeds ``esp``.</span>
 <span class="sd">    wait_tr : DelayEvent</span>
 <span class="sd">        Present only when ``tr`` exceeds the minimum.</span>
 <span class="sd">    esp : float</span>
-<span class="sd">        Echo spacing (s).</span>
-<span class="sd">    esp_first : float</span>
-<span class="sd">        Time from the RF centre to the first echo (s); equals ``esp`` unless</span>
-<span class="sd">        the excitation needs more room.</span>
+<span class="sd">        Echo spacing (s), and the time from the RF centre to the first echo.</span>
 <span class="sd">    echo_times : numpy.ndarray</span>
 <span class="sd">        Echo time of each echo (s) from the RF centre.</span>
 <span class="sd">    bandwidth_hz : float</span>
@@ -637,7 +631,6 @@
         <span class="n">matrix</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">etl</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
         <span class="n">esp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">esp_first</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">tr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">partial_echo</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="n">oversampling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
@@ -804,8 +797,14 @@
             <span class="n">raster</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">esp_min</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="mf">2.0</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">pre_fixed</span> <span class="o">+</span> <span class="n">pre_floor</span><span class="p">,</span> <span class="n">post_fixed</span> <span class="o">+</span> <span class="n">post_floor</span><span class="p">),</span> <span class="n">raster</span>
+        <span class="c1"># Twice a raster-rounded half, so that each half lands on the raster.</span>
+        <span class="n">esp_min</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span>
+                <span class="n">lead_fixed</span> <span class="o">+</span> <span class="n">lead_floor</span><span class="p">,</span>
+                <span class="n">pre_fixed</span> <span class="o">+</span> <span class="n">pre_floor</span><span class="p">,</span>
+                <span class="n">post_fixed</span> <span class="o">+</span> <span class="n">post_floor</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">raster</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">esp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">esp</span> <span class="o">=</span> <span class="n">esp_min</span>
@@ -817,30 +816,7 @@
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">esp_min</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> ms this train can achieve"</span>
                 <span class="p">)</span>
 
-        <span class="c1"># The first spacing is its own number, so a long excitation is paid for</span>
-        <span class="c1"># once instead of by every echo. It differs from the rest by twice a</span>
-        <span class="c1"># raster at a time, since half of it has to land on the raster too.</span>
-        <span class="n">lead_min</span> <span class="o">=</span> <span class="n">esp</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">lead_fixed</span> <span class="o">+</span> <span class="n">lead_floor</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">esp</span><span class="p">),</span> <span class="n">raster</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">esp_first</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">esp_first</span> <span class="o">=</span> <span class="n">lead_min</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">esp_first</span> <span class="o">=</span> <span class="n">esp</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span>
-                <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">esp_first</span><span class="p">)</span> <span class="o">-</span> <span class="n">esp</span><span class="p">),</span> <span class="n">raster</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">esp_first</span> <span class="o">&lt;</span> <span class="n">lead_min</span> <span class="o">-</span> <span class="mf">1e-12</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"the requested first echo spacing of </span><span class="si">{</span><span class="n">esp_first</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> ms is shorter "</span>
-                    <span class="sa">f</span><span class="s2">"than the </span><span class="si">{</span><span class="n">lead_min</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> ms needed to reach the first refocusing "</span>
-                    <span class="sa">f</span><span class="s2">"pulse from this excitation; leave esp_first unset to be given that, or "</span>
-                    <span class="sa">f</span><span class="s2">"lengthen esp until half of it covers the excitation"</span>
-                <span class="p">)</span>
-        <span class="n">wait_first</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">esp_first</span> <span class="o">-</span> <span class="n">esp</span><span class="p">)</span>
-
-        <span class="n">lead_span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-            <span class="n">lead_floor</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">esp_first</span> <span class="o">-</span> <span class="n">lead_fixed</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">lead_span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lead_floor</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">esp</span> <span class="o">-</span> <span class="n">lead_fixed</span><span class="p">,</span> <span class="n">raster</span><span class="p">))</span>
         <span class="n">pre_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">esp</span> <span class="o">-</span> <span class="n">pre_fixed</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
         <span class="n">pre_span</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
             <span class="nb">max</span><span class="p">(</span><span class="n">pre_span</span><span class="p">,</span> <span class="n">pre_floor</span><span class="p">),</span> <span class="n">esp</span> <span class="o">-</span> <span class="n">ref_span</span> <span class="o">-</span> <span class="n">flat_span</span> <span class="o">-</span> <span class="n">post_floor</span>
@@ -872,11 +848,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_ref</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_ref</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">wait_first</span> <span class="ow">and</span> <span class="n">echo</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">wait_esp1</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">wait_first</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_esp1</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_bridge_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
                 <span class="n">gx</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gy_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_wave</span><span class="p">),</span> <span class="o">*</span><span class="n">adc_labels</span>
@@ -889,13 +862,10 @@
             <span class="n">wait_tr</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">tr_delay</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_tr</span><span class="p">)</span>
 
-        <span class="n">first_echo</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">exc_span</span> <span class="o">+</span> <span class="n">lead_span</span> <span class="o">+</span> <span class="n">ref_span</span> <span class="o">+</span> <span class="n">wait_first</span> <span class="o">+</span> <span class="n">pre_span</span> <span class="o">+</span> <span class="n">echo_offset</span>
-        <span class="p">)</span>
+        <span class="n">first_echo</span> <span class="o">=</span> <span class="n">exc_span</span> <span class="o">+</span> <span class="n">lead_span</span> <span class="o">+</span> <span class="n">ref_span</span> <span class="o">+</span> <span class="n">pre_span</span> <span class="o">+</span> <span class="n">echo_offset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">first_echo</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">echo_times</span> <span class="o">=</span> <span class="n">first_echo</span> <span class="o">-</span> <span class="n">rf_center</span> <span class="o">+</span> <span class="n">esp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esp</span> <span class="o">=</span> <span class="n">esp</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">esp_first</span> <span class="o">=</span> <span class="n">esp_first</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">etl</span> <span class="o">=</span> <span class="n">etl</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">dwell</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
