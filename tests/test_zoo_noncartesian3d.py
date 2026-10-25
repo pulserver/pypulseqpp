@@ -450,6 +450,22 @@ def test_each_zte_shell_starts_at_the_pole_the_last_one_ended_on(r):
     assert poles[1, 0, 2] > 0 and poles[0, 0, 2] < 0
 
 
+@pytest.mark.parametrize("max_b1", [None, 11.2])
+def test_the_default_zte_designs_on_a_4_us_gradient_raster(max_b1):
+    """At its default bandwidth the hard pulse, stretched to a 7 T peak B1, is under two dwells."""
+    system = pp.Opts(
+        grad_raster_time=4e-6,
+        rf_raster_time=2e-6,
+        adc_raster_time=2e-6,
+        block_duration_raster=4e-6,
+        **({} if max_b1 is None else {"max_b1": max_b1}),
+    )
+
+    seq = module("zte3D_sequence").main(system, n=32, n_shots=2, n_dummy=0)
+
+    assert seq.check_timing()[0]
+
+
 def test_a_zte_pulse_too_long_for_its_dead_time_is_refused(monkeypatch):
     """The pulse duration is a module constant, so changing it reaches the refusal."""
     monkeypatch.setattr(module("zte3D_sequence"), "HARD_PULSE_DURATION", 1e-3)

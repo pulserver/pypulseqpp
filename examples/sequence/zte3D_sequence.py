@@ -28,7 +28,7 @@ def zte3d(
     n: int = 128,
     flip_angle_deg: float = 2.5,
     tr: float | None = None,
-    readout_bandwidth_hz: float = 250e3,
+    readout_bandwidth_hz: float = 100e3,
     r: int = 1,
     n_shots: int | None = None,
     scheme: str = "quiet",
@@ -68,7 +68,7 @@ def zte3d(
         Pulse centre to pulse centre (s), one per view. ``None`` is as
         short as the widest turn between views allows; a longer one is
         spent slewing more gently rather than waiting.
-    readout_bandwidth_hz : float, default=250000.0
+    readout_bandwidth_hz : float, default=100000.0
         Requested receiver bandwidth (Hz). It sets the gradient amplitude
         too, the spoke being traversed at one sample per ``delta_k``.
     r : int, default=1
