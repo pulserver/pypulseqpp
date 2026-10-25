@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:06.691** total execution time for 9 files **from generated/gallery/02-tours**:
+**00:03.558** total execution time for 9 files **from generated/gallery/02-tours**:
 
 .. container::
 
@@ -33,29 +33,29 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_02-tours_02_slice_selective_excitation.py` (``02_slice_selective_excitation.py``)
-     - 00:02.039
+     - 00:01.153
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_06_spiral.py` (``06_spiral.py``)
-     - 00:01.249
+     - 00:00.709
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_09_minimum_phase_excitation.py` (``09_minimum_phase_excitation.py``)
-     - 00:00.840
+     - 00:00.455
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_03_epi.py` (``03_epi.py``)
-     - 00:00.749
+     - 00:00.367
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_05_segmented_epi.py` (``05_segmented_epi.py``)
-     - 00:00.594
+     - 00:00.278
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_01_fid_and_spin_echo.py` (``01_fid_and_spin_echo.py``)
-     - 00:00.384
-     - 0.0
-   * - :ref:`sphx_glr_generated_gallery_02-tours_07_ramp_sampled_readout.py` (``07_ramp_sampled_readout.py``)
-     - 00:00.301
+     - 00:00.180
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_08_twisting_radial_readout.py` (``08_twisting_radial_readout.py``)
-     - 00:00.300
+     - 00:00.158
+     - 0.0
+   * - :ref:`sphx_glr_generated_gallery_02-tours_07_ramp_sampled_readout.py` (``07_ramp_sampled_readout.py``)
+     - 00:00.148
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_02-tours_04_multi_echo.py` (``04_multi_echo.py``)
-     - 00:00.236
+     - 00:00.109
      - 0.0

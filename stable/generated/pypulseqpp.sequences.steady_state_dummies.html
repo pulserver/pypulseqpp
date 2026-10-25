@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=69d0a213"></script>
+    <script src="../_static/documentation_options.js?v=d22c200e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.50';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.51';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.50" />
+  <meta name="docsearch:version" content="v0.0.51" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -520,18 +520,24 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.steady_state_dummies">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">steady_state_dummies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_steady.html#steady_state_dummies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.steady_state_dummies" title="Link to this definition">#</a></dt>
-<dd><p>Return the dummy repetitions that bring a spoiled steady state within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>.</p>
+<dd><p>Return the dummy repetitions that bring a spoiled or balanced steady state within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>.</p>
 <p>The count is of repetitions played before acquiring, so that the
-longitudinal magnetisation is within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its steady state.
-From equilibrium, the distance to the steady state shrinks by
+magnetisation is within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its steady state. From
+equilibrium, the distance to a spoiled steady state shrinks by
 <code class="docutils literal notranslate"><span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t1_s)</span> <span class="pre">*</span> <span class="pre">cos(flip)</span></code> each repetition. A flip of 90
-degrees or more reaches it after one; at least one is always played.</p>
+degrees or more reaches it after one. Given <code class="docutils literal notranslate"><span class="pre">t2_s</span></code>, the count is for a
+balanced (bSSFP) steady state reached from an alpha/2 catalyst, whose
+distance shrinks by <code class="docutils literal notranslate"><span class="pre">E1</span> <span class="pre">cos^2(flip</span> <span class="pre">/</span> <span class="pre">2)</span> <span class="pre">+</span> <span class="pre">E2</span> <span class="pre">sin^2(flip</span> <span class="pre">/</span> <span class="pre">2)</span></code>, with
+<code class="docutils literal notranslate"><span class="pre">E1,</span> <span class="pre">E2</span> <span class="pre">=</span> <span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t1_s),</span> <span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t2_s)</span></code>
+(Scheffler, Magn Reson Med 2003). At least one is always played.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>repetition_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Time between two excitations of the same magnetisation (s).</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Excitation flip angle (degrees).</p></li>
 <li><p><strong>t1_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=STEADY_STATE_T1_S</em>) – T1 the steady state is reached for (s).</p></li>
+<li><p><strong>t2_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – T2 a balanced steady state is reached for (s), as
+<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> counts for a spoiled one.</p></li>
 <li><p><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Fraction of the distance from equilibrium to the steady state left.</p></li>
 </ul>
 </dd>
@@ -546,6 +552,8 @@ degrees or more reaches it after one; at least one is always played.</p>
 <span class="go">182</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sequences</span><span class="o">.</span><span class="n">steady_state_dummies</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)</span>
 <span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sequences</span><span class="o">.</span><span class="n">steady_state_dummies</span><span class="p">(</span><span class="mf">3.5e-3</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="n">t2_s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="go">443</span>
 </pre></div>
 </div>
 </dd></dl>

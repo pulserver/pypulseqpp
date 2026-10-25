@@ -1,0 +1,890 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pypulseqpp.sequences.excitation._base &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pypulseqpp.css?v=1f2aaf0f" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../../_static/documentation_options.js?v=d22c200e"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../../../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pypulseqpp/sequences/excitation/_base';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.51';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/_modules/pypulseqpp/sequences/excitation/_base.html" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="v0.0.51" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../../../../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../../../index.html">
+                    Homepage
+                </a>
+            </li>
+        </ul>
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../developer-guide/internals/safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../explanations/safety-checks.html">Safety checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../generated/gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/io.html">Reading and writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/events.html">Events and blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/gradients.html">Gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/rf.html">RF pulse design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/trajectories.html">Trajectory design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sampling.html">Sampling and scan-loop schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/modules.html">Sequence modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/sequence-functions.html">Sequence functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sequences.html">Sequence catalogue</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2F_modules/pypulseqpp/sequences/excitation/_base.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pypulseqpp.sequences.excitation._base</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""RF-module simulation and pulse-centre timing."""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ADIABATICITY_FLOOR"</span><span class="p">,</span>
+    <span class="s2">"ADIABATIC_MAX_STRETCH"</span><span class="p">,</span>
+    <span class="s2">"RfModule"</span><span class="p">,</span>
+    <span class="s2">"adiabatic_fitted"</span><span class="p">,</span>
+    <span class="s2">"b1_fitted"</span><span class="p">,</span>
+    <span class="s2">"held_sweep"</span><span class="p">,</span>
+    <span class="s2">"rf_reference"</span><span class="p">,</span>
+    <span class="s2">"selective_slr"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._adiabatic</span><span class="w"> </span><span class="kn">import</span> <span class="n">HYPSEC_BETA</span><span class="p">,</span> <span class="n">HYPSEC_MU</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._opts</span><span class="w"> </span><span class="kn">import</span> <span class="n">b1_design_limit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._module</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceModule</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">b1_fitted</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">make</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return a duration from ``duration_s`` up at which a pulse fits the derated ``system.max_b1``, and the pulse.</span>
+
+<span class="sd">    The pulse is held to :data:`~pypulseqpp.MAX_B1_DERATE` of ``max_b1``, or</span>
+<span class="sd">    to ``max_b1`` itself on a system :func:`~pypulseqpp.apply_system_derates`</span>
+<span class="sd">    has derated, so the margin is taken once. The flip angle and</span>
+<span class="sd">    time-bandwidth product are ``make``'s, so the envelope keeps its shape and</span>
+<span class="sd">    its peak falls as the duration grows. A pulse whose peak exceeds the limit</span>
+<span class="sd">    is designed again at its duration times the ratio of its peak to the</span>
+<span class="sd">    limit, rounded up to ``raster``, until it fits. A system without a</span>
+<span class="sd">    ``max_b1``, a plain ``pypulseq.Opts`` among them, or with the pulse</span>
+<span class="sd">    already within the limit, takes ``duration_s`` and the pulse as designed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits; ``max_b1`` is the transmit chain's peak RF amplitude</span>
+<span class="sd">        (Hz), ``None`` or absent for none.</span>
+<span class="sd">    duration_s : float</span>
+<span class="sd">        Duration the pulse is designed at when it fits (s).</span>
+<span class="sd">    make : callable</span>
+<span class="sd">        ``make(duration)`` designs the events at ``duration`` (s), the RF event</span>
+<span class="sd">        alone or first in a tuple.</span>
+<span class="sd">    raster : float, default=None</span>
+<span class="sd">        Raster a lengthened duration is rounded up to (s);</span>
+<span class="sd">        ``system.grad_raster_time`` when ``None``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        ``(duration, events)``: the duration designed at (s) and what</span>
+<span class="sd">        ``make`` returned for it.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the pulse still exceeds the limit after four redesigns.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    A 180 degree hard pulse of 1 ms peaks at 500 Hz, 11.7 uT; under a 5 uT</span>
+<span class="sd">    limit it is held to 4.5 uT, lengthened by the ratio to the next gradient</span>
+<span class="sd">    raster:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp.sequences.excitation._base import b1_fitted</span>
+<span class="sd">    &gt;&gt;&gt; system = pp.Opts(max_b1=5.0)</span>
+<span class="sd">    &gt;&gt;&gt; make = lambda d: pp.make_block_pulse(3.14159, duration=d, system=system)</span>
+<span class="sd">    &gt;&gt;&gt; duration, rf = b1_fitted(system, 1e-3, make)</span>
+<span class="sd">    &gt;&gt;&gt; peak_ut = float(abs(rf.signal).max()) / system.gamma * 1e6</span>
+<span class="sd">    &gt;&gt;&gt; round(duration * 1e3, 2), round(peak_ut, 2)</span>
+<span class="sd">    (2.62, 4.48)</span>
+<span class="sd">    &gt;&gt;&gt; b1_fitted(pp.Opts(), 1e-3, make)[0]</span>
+<span class="sd">    0.001</span>
+<span class="sd">    """</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">b1_design_limit</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">duration_s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">duration_s</span><span class="p">,</span> <span class="n">events</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span> <span class="k">if</span> <span class="n">raster</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="n">duration_s</span>
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">events</span>
+        <span class="n">peak</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">signal</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">peak</span> <span class="o">&lt;=</span> <span class="n">limit</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">duration</span><span class="p">,</span> <span class="n">events</span>
+        <span class="k">if</span> <span class="n">attempt</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="n">peak</span> <span class="o">/</span> <span class="n">limit</span> <span class="o">/</span> <span class="n">step</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"the pulse peaks at </span><span class="si">{</span><span class="n">peak</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz at </span><span class="si">{</span><span class="n">duration</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms, above the "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">limit</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz a pulse is designed to"</span>
+    <span class="p">)</span>
+
+
+<span class="c1">#: Most an adiabatic pulse is lengthened past its design duration, as a factor.</span>
+<span class="n">ADIABATIC_MAX_STRETCH</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="c1">#: Least fraction of its design adiabaticity an adiabatic pulse is lowered to.</span>
+<span class="n">ADIABATICITY_FLOOR</span> <span class="o">=</span> <span class="mf">0.75</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">held_sweep</span><span class="p">(</span><span class="n">pulse_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stretch</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the :func:`~pypulseqpp.make_adiabatic_pulse` keywords that keep a sweep's bandwidth over ``stretch`` times its duration.</span>
+
+<span class="sd">    A hyperbolic secant sweeps ``mu * beta`` (rad/s) over an envelope</span>
+<span class="sd">    ``sech(beta t)``: ``beta`` falls and ``mu`` rises by ``stretch``, so the</span>
+<span class="sd">    sweep and the envelope's truncation are kept. The other sweeps are</span>
+<span class="sd">    defined in time normalised to the duration and need nothing.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pulse_type : str</span>
+<span class="sd">        Sweep family, as :func:`~pypulseqpp.make_adiabatic_pulse` names them.</span>
+<span class="sd">    stretch : float</span>
+<span class="sd">        Duration over the design duration.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        ``beta`` and ``mu`` for ``"hypsec"``, empty otherwise.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp.sequences.excitation._base import held_sweep</span>
+<span class="sd">    &gt;&gt;&gt; held_sweep("hypsec", 2.0)</span>
+<span class="sd">    {'beta': 400.0, 'mu': 9.8}</span>
+<span class="sd">    &gt;&gt;&gt; held_sweep("wurst", 2.0)</span>
+<span class="sd">    {}</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">pulse_type</span> <span class="o">!=</span> <span class="s2">"hypsec"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"beta"</span><span class="p">:</span> <span class="n">HYPSEC_BETA</span> <span class="o">/</span> <span class="n">stretch</span><span class="p">,</span> <span class="s2">"mu"</span><span class="p">:</span> <span class="n">HYPSEC_MU</span> <span class="o">*</span> <span class="n">stretch</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">adiabatic_fitted</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">adiabaticity</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">make</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return a duration and adiabaticity at which an adiabatic pulse fits the derated ``system.max_b1``, and the pulse.</span>
+
+<span class="sd">    The limit is :func:`b1_fitted`'s. At a fixed swept bandwidth the peak</span>
+<span class="sd">    meeting ``adiabaticity`` at the sweep's centre falls as</span>
+<span class="sd">    ``sqrt(adiabaticity / duration)``, so a pulse above the limit is first</span>
+<span class="sd">    designed again at its duration times the square of its peak's ratio to the</span>
+<span class="sd">    limit, rounded up to ``raster``, which holds its adiabaticity, its band</span>
+<span class="sd">    and its response to B1. Past :data:`ADIABATIC_MAX_STRETCH` times</span>
+<span class="sd">    ``duration_s`` the duration stays there and the adiabaticity is lowered</span>
+<span class="sd">    by the square of the remaining ratio, to no less than</span>
+<span class="sd">    :data:`ADIABATICITY_FLOOR` of ``adiabaticity``. A system without a</span>
+<span class="sd">    ``max_b1``, or a pulse within the limit, takes ``duration_s``,</span>
+<span class="sd">    ``adiabaticity`` and the pulse as designed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits; ``max_b1`` is the transmit chain's peak RF amplitude</span>
+<span class="sd">        (Hz), ``None`` or absent for none.</span>
+<span class="sd">    duration_s : float</span>
+<span class="sd">        Duration the pulse is designed at when it fits (s).</span>
+<span class="sd">    adiabaticity : float</span>
+<span class="sd">        Sweep-rate margin over the adiabatic condition the pulse is designed</span>
+<span class="sd">        at when it fits.</span>
+<span class="sd">    make : callable</span>
+<span class="sd">        ``make(duration, adiabaticity)`` designs the events at ``duration``</span>
+<span class="sd">        (s) with the bandwidth swept at ``duration_s`` (see</span>
+<span class="sd">        :func:`held_sweep`), the RF event alone or first in a tuple.</span>
+<span class="sd">    raster : float, default=None</span>
+<span class="sd">        Raster a lengthened duration is rounded up to (s);</span>
+<span class="sd">        ``system.grad_raster_time`` when ``None``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        ``(duration, adiabaticity, events)``: what the pulse was designed at</span>
+<span class="sd">        and what ``make`` returned for it.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the pulse exceeds the limit at :data:`ADIABATIC_MAX_STRETCH` times</span>
+<span class="sd">        its duration and :data:`ADIABATICITY_FLOOR` of its adiabaticity.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    The 10 ms hyperbolic-secant inversion at adiabaticity 4 peaks at 13.2 uT;</span>
+<span class="sd">    under an 11.2 uT limit, held to 10.08 uT, it lasts 17.26 ms at the same</span>
+<span class="sd">    adiabaticity:</span>
+
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp.sequences.excitation._base import adiabatic_fitted, held_sweep</span>
+<span class="sd">    &gt;&gt;&gt; system = pp.Opts(max_b1=11.2)</span>
+<span class="sd">    &gt;&gt;&gt; def make(duration, adiabaticity):</span>
+<span class="sd">    ...     return pp.make_adiabatic_pulse(</span>
+<span class="sd">    ...         "hypsec", adiabaticity=adiabaticity, duration=duration, system=system,</span>
+<span class="sd">    ...         **held_sweep("hypsec", duration / 10e-3),</span>
+<span class="sd">    ...     )</span>
+<span class="sd">    &gt;&gt;&gt; duration, adiabaticity, rf = adiabatic_fitted(system, 10e-3, 4, make)</span>
+<span class="sd">    &gt;&gt;&gt; round(duration * 1e3, 2), adiabaticity</span>
+<span class="sd">    (17.26, 4)</span>
+
+<span class="sd">    Under 9.5 uT, held to 8.55 uT, twice the duration is not enough and the</span>
+<span class="sd">    adiabaticity falls:</span>
+
+<span class="sd">    &gt;&gt;&gt; system = pp.Opts(max_b1=9.5)</span>
+<span class="sd">    &gt;&gt;&gt; duration, adiabaticity, rf = adiabatic_fitted(system, 10e-3, 4, make)</span>
+<span class="sd">    &gt;&gt;&gt; round(duration * 1e3, 2), round(adiabaticity, 2)</span>
+<span class="sd">    (20.0, 3.34)</span>
+<span class="sd">    """</span>
+    <span class="n">limit</span> <span class="o">=</span> <span class="n">b1_design_limit</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">duration_s</span><span class="p">,</span> <span class="n">adiabaticity</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">duration_s</span><span class="p">,</span> <span class="n">adiabaticity</span><span class="p">,</span> <span class="n">events</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span> <span class="k">if</span> <span class="n">raster</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">ceiling</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">ADIABATIC_MAX_STRETCH</span> <span class="o">*</span> <span class="n">duration_s</span> <span class="o">/</span> <span class="n">step</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+    <span class="n">floor</span> <span class="o">=</span> <span class="n">ADIABATICITY_FLOOR</span> <span class="o">*</span> <span class="n">adiabaticity</span>
+    <span class="n">duration</span><span class="p">,</span> <span class="n">margin</span> <span class="o">=</span> <span class="n">duration_s</span><span class="p">,</span> <span class="n">adiabaticity</span>
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">events</span>
+        <span class="n">peak</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">signal</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">peak</span> <span class="o">&lt;=</span> <span class="n">limit</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">duration</span><span class="p">,</span> <span class="n">margin</span><span class="p">,</span> <span class="n">events</span>
+        <span class="k">if</span> <span class="n">attempt</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">wanted</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="p">(</span><span class="n">peak</span> <span class="o">/</span> <span class="n">limit</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">step</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wanted</span> <span class="o">&lt;=</span> <span class="n">ceiling</span><span class="p">:</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">wanted</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The adiabaticity that brings the peak at the ceiling to just</span>
+            <span class="c1"># under the limit; the sampled peak follows the square root of</span>
+            <span class="c1"># the duration to within a part in 1e6.</span>
+            <span class="n">margin</span> <span class="o">*=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">limit</span> <span class="o">/</span> <span class="n">peak</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ceiling</span> <span class="o">/</span> <span class="n">duration</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">ceiling</span>
+            <span class="k">if</span> <span class="n">margin</span> <span class="o">&lt;</span> <span class="n">floor</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the adiabatic pulse fits the </span><span class="si">{</span><span class="n">limit</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz a pulse is "</span>
+                    <span class="sa">f</span><span class="s2">"designed to only at adiabaticity </span><span class="si">{</span><span class="n">margin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> over "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ADIABATIC_MAX_STRETCH</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> times its </span><span class="si">{</span><span class="n">duration_s</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms, "</span>
+                    <span class="sa">f</span><span class="s2">"below </span><span class="si">{</span><span class="n">ADIABATICITY_FLOOR</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> of its </span><span class="si">{</span><span class="n">adiabaticity</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">make</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">margin</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"the adiabatic pulse peaks at </span><span class="si">{</span><span class="n">peak</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz at </span><span class="si">{</span><span class="n">duration</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms, "</span>
+        <span class="sa">f</span><span class="s2">"above the </span><span class="si">{</span><span class="n">limit</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz a pulse is designed to"</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">rf_reference</span><span class="p">(</span><span class="n">rf</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the RF pulse centre from the start of its block (s).</span>
+
+<span class="sd">    This is ``delay + center``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rf : object</span>
+<span class="sd">        An RF event.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Delay plus centre time of the pulse (s).</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">selective_slr</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">thickness_m</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">**</span><span class="n">design</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Design an SLR pulse and the gradients that select ``thickness_m``.</span>
+
+<span class="sd">    The thickness a pulse selects is its measured bandwidth,</span>
+<span class="sd">    :func:`pypulseqpp.calc_rf_bandwidth`, over the selection plateau.</span>
+<span class="sd">    :func:`pypulseqpp.make_slr_pulse` sizes the plateau for the nominal</span>
+<span class="sd">    bandwidth, the time-bandwidth product over the duration, from which the</span>
+<span class="sd">    designed envelope's spectrum departs; the plateau is sized again for the</span>
+<span class="sd">    measured bandwidth.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flip_angle_deg : float</span>
+<span class="sd">        Flip angle (degrees).</span>
+<span class="sd">    thickness_m : float</span>
+<span class="sd">        Thickness to select, from the pulse's measured bandwidth (m).</span>
+<span class="sd">    **design</span>
+<span class="sd">        The rest of :func:`pypulseqpp.make_slr_pulse`'s arguments, without</span>
+<span class="sd">        ``slice_thickness`` and ``return_gz``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        ``(rf, gz, gz_reph)``, as :func:`pypulseqpp.make_slr_pulse` returns</span>
+<span class="sd">        them under ``return_gz``.</span>
+<span class="sd">    """</span>
+    <span class="n">flip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">)</span>
+    <span class="n">design</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"delay"</span><span class="p">,</span> <span class="n">design</span><span class="p">[</span><span class="s2">"system"</span><span class="p">]</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">)</span>
+    <span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
+        <span class="n">flip</span><span class="p">,</span> <span class="n">slice_thickness</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span> <span class="n">return_gz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">design</span>
+    <span class="p">)</span>
+    <span class="n">nominal</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span> <span class="o">*</span> <span class="n">thickness_m</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
+        <span class="n">flip</span><span class="p">,</span>
+        <span class="n">slice_thickness</span><span class="o">=</span><span class="n">thickness_m</span> <span class="o">*</span> <span class="n">nominal</span> <span class="o">/</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_rf_bandwidth</span><span class="p">(</span><span class="n">rf</span><span class="p">),</span>
+        <span class="n">return_gz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">design</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="RfModule">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RfModule</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Sequence module whose RF pulse can be simulated across off-resonance.</span>
+
+<span class="sd">    Base class of the excitation and preparation modules the package ships.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp.sequences as design</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; module = design.SpatialSelectiveExcitation(pp.Opts(), 15.0, 5e-3)</span>
+<span class="sd">    &gt;&gt;&gt; isinstance(module, design.RfModule)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; mz_z, mz_xy, frequency = module.sim_rf()[:3]</span>
+<span class="sd">    &gt;&gt;&gt; mz_xy.shape == frequency.shape</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="RfModule.sim_rf">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.RfModule.sim_rf.html#pypulseqpp.sequences.RfModule.sim_rf">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sim_rf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Simulate this module's pulse across off-resonance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pulse : RfEvent, default=None</span>
+<span class="sd">            Pulse to simulate; ``None`` takes the first RF event in block</span>
+<span class="sd">            order.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Forwarded to :func:`pypulseqpp.sim_rf` (``rephase_factor``,</span>
+<span class="sd">            ``df``, ``bandwidth_multiplier``, ``dt``).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            MATLAB's six answers: ``mz_z``, ``mz_xy``, the frequency axis,</span>
+<span class="sd">            ``ref_eff``, ``mx_xy`` and ``my_xy``.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp.sequences as design</span>
+<span class="sd">        &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">        &gt;&gt;&gt; pulse = design.SpatialSelectiveExcitation(pp.Opts(), 15.0, 5e-3)</span>
+<span class="sd">        &gt;&gt;&gt; mz_z, mz_xy, frequency = pulse.sim_rf()[:3]</span>
+<span class="sd">        &gt;&gt;&gt; mz_z.shape == frequency.shape</span>
+<span class="sd">        True</span>
+<span class="sd">        """</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
+
+        <span class="k">if</span> <span class="n">pulse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pulse</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+                <span class="n">event</span>
+                <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span>
+                <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">block</span>
+                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"rf"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">sim_rf</span><span class="p">(</span><span class="n">pulse</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

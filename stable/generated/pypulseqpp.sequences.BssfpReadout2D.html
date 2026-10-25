@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=69d0a213"></script>
+    <script src="../_static/documentation_options.js?v=d22c200e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.50';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.51';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.50" />
+  <meta name="docsearch:version" content="v0.0.51" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -529,9 +529,9 @@ come from an excitation built with <code class="docutils literal notranslate"><s
 <p>The module’s blocks are excitation, acquisition, rewind. The caller plays
 each shot as the previous shot’s rewind, excitation and acquisition, and
 writes the transients: the half-flip pulse (<code class="docutils literal notranslate"><span class="pre">rf</span></code> at half amplitude,
-opposite in phase to the first excitation) followed by <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code>;
-<code class="docutils literal notranslate"><span class="pre">wait_rewind</span></code> with <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> in place of the first rewind; and a last
-rewind block to ramp down.</p>
+opposite in phase to the first excitation) followed by <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code> with
+<code class="docutils literal notranslate"><span class="pre">gz_prep</span></code> in place of the first rewind; and a last rewind block to ramp
+down.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -575,10 +575,13 @@ the window of <code class="docutils literal notranslate"><span class="pre">gz_pr
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
 <li><p><strong>prep_labels, train_labels, end_labels</strong> (<em>list of LabelSetEvent</em>) – <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> set to 1, 0 and 2, for the half-flip block, the block after
 it and the final rewind.</p></li>
-<li><p><strong>wait_prep</strong> (<em>DelayEvent</em>) – Delay after the half-flip block; with the <code class="docutils literal notranslate"><span class="pre">wait_rewind</span></code> block it
-places the half-flip pulse half a repetition before the first
-excitation. Absent with <code class="docutils literal notranslate"><span class="pre">half_flip_prep=False</span></code>.</p></li>
-<li><p><strong>wait_rewind</strong> (<em>DelayEvent</em>) – Delay of the rewind block’s duration, for the first repetition.</p></li>
+<li><p><strong>wait_prep</strong> (<em>DelayEvent</em>) – Delay after the half-flip block, which places the half-flip pulse
+half a repetition before the first excitation. Absent with
+<code class="docutils literal notranslate"><span class="pre">half_flip_prep=False</span></code>.</p></li>
+<li><p><strong>gz_prep</strong> (<em>TrapEvent</em>) – Slice rephaser played with <code class="docutils literal notranslate"><span class="pre">wait_prep</span></code>: the two rephasers of a
+repetition in one lobe, so that the slice axis is balanced from the
+half-flip pulse to the first excitation. None without a selection
+gradient; absent with <code class="docutils literal notranslate"><span class="pre">half_flip_prep=False</span></code>.</p></li>
 <li><p><strong>tr, te</strong> (<em>float</em>) – Repetition and echo time (s); <code class="docutils literal notranslate"><span class="pre">te</span></code> is always half of <code class="docutils literal notranslate"><span class="pre">tr</span></code>.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<em>float</em>) – Achieved ADC sampling rate (Hz).</p></li>
 <li><p><strong>n_samples</strong> (<em>int</em>) – ADC samples per repetition.</p></li>

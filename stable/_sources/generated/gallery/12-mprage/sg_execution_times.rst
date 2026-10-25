@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:21.269** total execution time for 3 files **from generated/gallery/12-mprage**:
+**00:12.635** total execution time for 3 files **from generated/gallery/12-mprage**:
 
 .. container::
 
@@ -33,11 +33,11 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py` (``mprage_stack_of_spirals3D_sequence.py``)
-     - 00:11.510
+     - 00:07.006
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py` (``mprage_stack_of_stars3D_sequence.py``)
-     - 00:08.740
+     - 00:05.122
      - 0.0
    * - :ref:`sphx_glr_generated_gallery_12-mprage_mprage3D_sequence.py` (``mprage3D_sequence.py``)
-     - 00:01.018
+     - 00:00.507
      - 0.0
