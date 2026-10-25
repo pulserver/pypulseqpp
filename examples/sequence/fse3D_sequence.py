@@ -116,6 +116,45 @@ def shot_parameters(
     return lengths, times, place
 
 
+def pclo_rings(te_echo: int, etl: int) -> np.ndarray:
+    """Return the echo each ring of k-space takes, innermost first.
+
+    Pivot centre, linear outer (PCLO; Rydén et al., Magn Reson Med 2026,
+    doi:10.1002/mrm.70482, Eq. 3): the TE echo reads the innermost ring, the
+    rings around it step through the earlier echoes two at a time down to
+    the first and back up through the others, and the outer rings take the
+    remaining echoes in order. Neighbouring rings are at most two echoes
+    apart, so T2 decay modulates k-space without a jump. A TE echo in the
+    second half of the train mirrors the order from the end.
+
+    Parameters
+    ----------
+    te_echo : int
+        The echo read at the centre of k-space, counting from 0.
+    etl : int
+        Echoes in the train.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``(etl,)`` the echo of each ring, counting from 0.
+    """
+    centre = te_echo + 1
+    mirrored = centre > etl / 2
+    if mirrored:
+        centre = etl - centre + 1
+    pivot = centre + centre % 2
+    rings = np.arange(1, etl + 1)
+    inner = rings <= pivot // 2
+    middle = (rings > pivot // 2) & (rings <= pivot)
+    echoes = rings.copy()
+    echoes[inner] = centre - 2 * rings[inner] + 2
+    echoes[middle] = 2 * rings[middle] - centre - 1
+    if mirrored:
+        echoes = etl + 1 - echoes
+    return echoes - 1
+
+
 def deal_trains(
     coords: np.ndarray,
     lengths: list[int],
@@ -126,14 +165,15 @@ def deal_trains(
     """Deal views into trains by adaptive radial reordering.
 
     Every ``(shot, echo)`` slot a train plays is ranked by its distance from
-    the prescription: how far the echo is from the TE echo, and how far the
-    shot is along the transition. The views are ranked by radius. Both are cut
-    into sections of one slot per shot, the innermost views filling the
-    nearest slots, and within a section the views, sorted by angle, fill the
-    slots in shot order (Buonincontri et al., abstract 566-05-007, Fig. 2D);
-    the centre of k-space, which has no angle, takes the nearest slot.
-    With identical trains the shot term vanishes and a section is one echo, so
-    this is the radial ordering folded about the TE echo.
+    the prescription: the ring the echo takes in the PCLO order
+    (:func:`pclo_rings`), and how far the shot is along the transition. The
+    views are ranked by radius. Both are cut into sections of one slot per
+    shot, the innermost views filling the nearest slots, and within a section
+    the views, sorted by angle, fill the slots in shot order (Buonincontri et
+    al., abstract 566-05-007, Fig. 2D); the centre of k-space, which has no
+    angle, takes the nearest slot. With identical trains the shot term
+    vanishes and a section is one echo, so the rings of k-space take the
+    echoes in PCLO order.
 
     Parameters
     ----------
@@ -160,10 +200,11 @@ def deal_trains(
     angle = np.arctan2(coords[:, 1], coords[:, 0])
     views = sorted(range(len(coords)), key=lambda i: (radius[i], angle[i]))
     span = max(etl_max - 1, 1)
+    ring = np.argsort(pclo_rings(te_echo, etl_max))
     slots = sorted(
         ((s, e) for s in range(n_shots) for e in range(lengths[s])),
         key=lambda slot: (
-            math.hypot(abs(slot[1] - te_echo) / span, place[slot[0]]),
+            math.hypot(ring[slot[1]] / span, place[slot[0]]),
             slot[1],
             slot[0],
         ),

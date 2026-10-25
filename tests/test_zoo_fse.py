@@ -1,5 +1,7 @@
 """The 3D fast spin-echo example sequence: views, echo times, refocusing trains and shots."""
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -269,13 +271,14 @@ def test_the_centre_of_k_space_is_read_at_the_te_written(te):
         assert abs(written - te) <= esp / 2
 
 
-def test_radial_trains_read_further_out_the_further_the_echo_is_from_te():
+def test_radial_trains_read_further_out_the_later_the_echo_comes_in_pclo_order():
     seq = built(te=40e-3)
     lin, par, eco = places(seq)
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
+    ring = np.argsort(fse3d.pclo_rings(eco[centre], ETL))
     by_echo = {}
     for line, partition, echo in zip(lin, par, eco, strict=True):
-        by_echo.setdefault(abs(echo - eco[centre]), []).append(radius(line, partition))
+        by_echo.setdefault(ring[echo], []).append(radius(line, partition))
     distances = sorted(by_echo)
     widest = [max(by_echo[d]) for d in distances]
     narrowest = [min(by_echo[d]) for d in distances]
@@ -497,3 +500,13 @@ def test_a_tr_with_no_room_for_a_navigator_is_refused():
 
     with pytest.raises(ValueError, match=r"no room .* for the .* navigator"):
         built(tr=shortest + 1e-3, navigator=True)
+
+
+@pytest.mark.parametrize("etl", [1, 2, 8, 9, 45])
+def test_pclo_rings_start_at_the_te_echo_and_step_at_most_two_echoes(etl):
+    for te_echo in range(etl):
+        rings = fse3d.pclo_rings(te_echo, etl)
+
+        assert sorted(rings) == list(range(etl))
+        assert rings[0] == te_echo
+        assert all(abs(a - b) <= 2 for a, b in itertools.pairwise(rings))
