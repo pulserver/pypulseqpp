@@ -95,8 +95,7 @@ def test_a_repetition_is_an_excitation_a_prephaser_and_one_unit_per_echo(
     system, slice_, selective
 ):
     fse = readout2d(system, slice_, selective)
-    stretched = 1 if fse.esp_first > fse.esp else 0
-    assert len(fse.blocks) == 2 + 4 * ETL + stretched
+    assert len(fse.blocks) == 2 + 4 * ETL
     assert fse.blocks[0] == (fse.rf, fse.gz)
     assert fse.blocks[1] == (fse.gx_pre, fse.gz_reph)
 
@@ -235,11 +234,15 @@ def test_a_3d_train_holds_its_line_across_the_train(system, slab, hard):
 
 
 def _cpmg_error(module):
-    """How far each refocusing pulse sits from the midpoint it should be at."""
+    """How far each refocusing pulse sits from the midpoint it should be at.
+
+    Rounded to the picosecond: the echo can sit half a raster off the block
+    raster, and the timing sums carry float noise of that size around it.
+    """
     _, excitation, refocusing = _lines(module)
     echoes = module.echo_times + excitation
     midpoints = 0.5 * (np.concatenate(([excitation], echoes[:-1])) + echoes)
-    return np.abs(refocusing - midpoints)
+    return np.round(np.abs(refocusing - midpoints), 12)
 
 
 def test_every_refocusing_pulse_sits_midway_between_the_echoes_it_makes(
@@ -255,12 +258,33 @@ def test_the_3d_train_is_cpmg_too(system, slab, hard):
     )
 
 
-def test_the_echoes_are_evenly_spaced_after_the_first(system, slice_, selective):
+def test_the_echoes_are_one_spacing_apart_from_the_excitation_on(
+    system, slice_, selective
+):
     fse = readout2d(system, slice_, selective)
     assert np.diff(fse.echo_times) == pytest.approx(fse.esp)
-    assert fse.echo_times[0] == pytest.approx(
-        fse.esp_first, abs=system.block_duration_raster
-    )
+    assert fse.echo_times[0] == pytest.approx(fse.esp, abs=system.block_duration_raster)
+
+
+@pytest.mark.parametrize("dims", [2, 3])
+def test_stimulated_echoes_coincide_with_the_spin_echoes(
+    system, slice_, slab, selective, hard, dims
+):
+    """The excitation is half a spacing before the first refocusing pulse.
+
+    A path dephased between the excitation and the first pulse, stored by it
+    and recalled by the second, refocuses at the second pulse plus the
+    excitation-to-first-pulse interval; the spin echo refocuses at the second
+    pulse plus half a spacing. They meet only when the two are equal.
+    """
+    if dims == 2:
+        fse = readout2d(system, slice_, selective)
+    else:
+        fse = readout3d(system, slab, hard)
+    _, excitation, refocusing = _lines(fse)
+    tolerance = system.block_duration_raster
+    assert refocusing[0] - excitation == pytest.approx(0.5 * fse.esp, abs=tolerance)
+    assert np.diff(refocusing) == pytest.approx(fse.esp, abs=tolerance)
 
 
 def test_the_train_lasts_one_spacing_per_echo(system, slice_, selective):
@@ -342,44 +366,27 @@ def test_a_bare_train_bridges_the_readout_with_its_own_ramps(system, slab, hard)
 
 
 # ----------------------------------------------------------------------
-# The first echo spacing
+# The excitation in the first half spacing
 # ----------------------------------------------------------------------
 
 
-def test_a_long_excitation_lengthens_only_the_first_spacing(system, slab, hard):
-    fse = readout3d(system, slab, hard)
-    assert fse.esp_first > fse.esp
-    assert np.diff(fse.echo_times) == pytest.approx(fse.esp)
-
-
-def test_the_first_spacing_is_still_cpmg(system, slab, hard):
-    fse = readout3d(system, slab, hard)
-    _, excitation, refocusing = _lines(fse)
-    first_echo = fse.echo_times[0] + excitation
-    assert refocusing[0] - excitation == pytest.approx(
-        first_echo - refocusing[0], abs=system.block_duration_raster
+def test_a_long_excitation_lengthens_every_spacing(system, slab, hard):
+    short_rf = design.NonSelectiveExcitation(system, 90.0, duration_s=0.5e-3)
+    short = design.FseReadout3D(
+        system, short_rf.rf, rf_ref=hard.rf_ref, fov=FOV, matrix=MATRIX, etl=ETL
     )
+    long = readout3d(system, slab, hard, spoiling_cycles=0.0)
+    assert long.esp > short.esp
+    assert np.diff(long.echo_times) == pytest.approx(long.esp)
 
 
-def test_a_short_excitation_needs_no_extra_first_spacing(system, hard):
-    excitation = design.NonSelectiveExcitation(system, 90.0, duration_s=0.5e-3)
-    fse = design.FseReadout3D(
-        system, excitation.rf, rf_ref=hard.rf_ref, fov=FOV, matrix=MATRIX, etl=ETL
+def test_a_spacing_too_short_for_the_excitation_is_refused(system, slab, hard):
+    short_rf = design.NonSelectiveExcitation(system, 90.0, duration_s=0.5e-3)
+    short = design.FseReadout3D(
+        system, short_rf.rf, rf_ref=hard.rf_ref, fov=FOV, matrix=MATRIX, etl=ETL
     )
-    assert fse.esp_first == pytest.approx(fse.esp)
-    assert not hasattr(fse.events, "wait_esp1")
-
-
-def test_a_first_spacing_shorter_than_the_excitation_is_refused(system, slab, hard):
-    fse = readout3d(system, slab, hard)
-    with pytest.raises(ValueError, match="first echo spacing"):
-        readout3d(system, slab, hard, esp=fse.esp, esp_first=fse.esp)
-
-
-def test_a_wider_spacing_absorbs_the_excitation(system, slab, hard):
-    fse = readout3d(system, slab, hard)
-    wide = readout3d(system, slab, hard, esp=fse.esp_first)
-    assert wide.esp_first == pytest.approx(wide.esp)
+    with pytest.raises(ValueError, match="echo spacing"):
+        readout3d(system, slab, hard, spoiling_cycles=0.0, esp=short.esp)
 
 
 # ----------------------------------------------------------------------
@@ -431,8 +438,6 @@ def test_a_scan_loop_reproduces_the_timing_the_module_reports(system, slab, hard
         ky = (echo - 0.5 * fse.etl) / (0.5 * fse.etl)
         kz = ((echo * 7) % MATRIX[2] - 0.5 * MATRIX[2]) / (0.5 * MATRIX[2])
         seq.add_block(fse.rf_ref)
-        if echo == 0 and fse.esp_first > fse.esp:
-            seq.add_block(fse.wait_esp1)
         seq.add_block(
             fse.gx_bridge_pre,
             pp.scale_grad(fse.gy_pre, ky),
@@ -544,8 +549,6 @@ def test_a_train_with_no_phase_encode_keeps_its_echo_spacing(system, slice_, sel
     for echo in range(fse.etl):
         fse.adc_labels.value = echo
         seq.add_block(fse.rf_ref, fse.gz_ref)
-        if echo == 0 and fse.esp_first > fse.esp:
-            seq.add_block(fse.wait_esp1)
         seq.add_block(fse.gx_bridge_pre)
         seq.add_block(fse.gx, fse.adc, fse.adc_labels)
         seq.add_block(fse.gx_bridge_post)
