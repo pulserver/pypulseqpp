@@ -19,6 +19,12 @@ from ._common import AXES, spoiler_gradients
 #: move it.
 FOV_EXEMPT_FLAGS = ("NOPOS", "NOROT")
 
+#: Time the pulse block holds after the pulse ends (s). Exempt from the
+#: prescription while the blocks around it are not, the pulse block can make a
+#: segment of its own on a scanner that groups blocks by their transform, and
+#: a pulse that ends its segment needs this long after it to close.
+RF_TAIL_S = 220e-6
+
 
 class SpatialSaturation(RfModule):
     """Slab-selective saturation pulse in the physical frame, followed by a three-axis spoiler.
@@ -29,6 +35,8 @@ class SpatialSaturation(RfModule):
     are set on the pulse block and cleared on the spoiler block, so neither a
     :class:`~pypulseqpp.TransformFOV` offset nor the prescription rotation
     moves the band, which stays where it is placed in the physical frame.
+    The pulse block lasts at least ``RF_TAIL_S`` (220 us) past the end of the
+    pulse.
 
     Parameters
     ----------
@@ -154,8 +162,14 @@ class SpatialSaturation(RfModule):
             pp.make_label(type="SET", label=name, value=0) for name in FOV_EXEMPT_FLAGS
         ]
 
+        hold = pp.make_delay(
+            pp.ceil_to_raster(
+                rf_prep.delay + rf_prep.shape_dur + RF_TAIL_S,
+                system.block_duration_raster,
+            )
+        )
         self.seq = pp.Sequence(system)
-        self.seq.add_block(rf_prep, *selection, *prep_labels)
+        self.seq.add_block(rf_prep, *selection, hold, *prep_labels)
         self.seq.add_block(gx_spoil, gy_spoil, gz_spoil, *reset_labels)
         self.center = rf_reference(rf_prep)
 

@@ -6,6 +6,7 @@ from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp.sequences.preparation.spatialsat import RF_TAIL_S
 
 DURATION = 3e-3
 TBW = 4.0
@@ -82,6 +83,20 @@ def test_the_pulse_block_is_exempt_and_the_spoiler_block_clears_it(system):
 
     assert flags(band.seq.get_block(1)) == [("NOPOS", 1), ("NOROT", 1), ("LIN", 0)]
     assert flags(band.seq.get_block(2)) == [("NOPOS", 0), ("NOROT", 0)]
+
+
+@pytest.mark.parametrize("duration", [1e-3, DURATION, 6e-3])
+def test_the_pulse_block_holds_the_rf_tail_past_the_pulse(system, duration):
+    """The exempt pulse block can close a segment of its own, and a pulse that
+    ends its segment needs time after it."""
+    band = design.SpatialSaturation(
+        system, NORMAL, POSITION, THICKNESS, duration_s=duration
+    )
+    rf = band.rf_prep
+
+    tail = band.seq.block_durations[1] - (rf.delay + rf.shape_dur)
+    assert tail >= RF_TAIL_S - 1e-12
+    assert tail < RF_TAIL_S + system.block_duration_raster
 
 
 def _scan_with(band, system):
