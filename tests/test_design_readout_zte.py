@@ -333,6 +333,39 @@ def test_the_shots_put_even_azimuth_on_every_polar_ring(system, hard):
         assert np.diff(azimuth) == pytest.approx(2.0 * np.pi / 6.0)
 
 
+def sphere_of(zte):
+    """Every direction the shots sample, as sorted unique rows."""
+    sphere = np.einsum("sij,vj->svi", zte.shot_rotations, zte.directions)
+    return np.unique(np.round(sphere.reshape(-1, 3), 9), axis=0)
+
+
+def angular_steps(directions):
+    return np.arccos(np.clip(np.sum(directions[:-1] * directions[1:], axis=1), -1, 1))
+
+
+def test_the_quiet_shell_samples_the_spiral_sphere_in_shorter_steps(system, hard):
+    """Same rings, same spokes; each ring's spoke is moved by whole shot turns."""
+    spiral = readout(system, hard, n_views=None, n_shots=150)
+    quiet = readout(system, hard, n_views=None, n_shots=150, scheme="quiet")
+    assert sphere_of(quiet) == pytest.approx(sphere_of(spiral), abs=1e-8)
+    # A step crosses about one ring gap, against the spiral's stride.
+    ring_gap = 2.0 / MATRIX
+    assert np.median(angular_steps(quiet.directions)) < 2.0 * ring_gap
+    assert np.median(angular_steps(spiral.directions)) > 5.0 * ring_gap
+    # Only the steps off the poles are shorter: the polar gap stays the widest.
+    assert quiet.step_rad == pytest.approx(spiral.step_rad)
+
+
+@pytest.mark.parametrize("scheme", ["spiral", "quiet", "meridian"])
+def test_the_reversal_turns_a_generated_shell_onto_itself_backwards(
+    system, hard, scheme
+):
+    zte = readout(system, hard, n_views=33, n_shots=8, scheme=scheme)
+    backwards = zte.directions @ np.asarray(zte.reversal).T
+    assert backwards == pytest.approx(zte.directions[::-1], abs=1e-9)
+    assert np.linalg.det(zte.reversal) == pytest.approx(1.0)
+
+
 def test_a_supplied_ordering_is_used_as_it_stands(system, hard):
     directions, _ = calc_projection_shell(20, scheme="meridian")
     zte = readout(system, hard, n_views=None, directions=directions)
