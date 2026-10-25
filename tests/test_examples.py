@@ -34,8 +34,7 @@ def test_a_zoo_entry_takes_its_dummies_and_names_the_axis_of_its_calibration(nam
     parameters = getattr(sequences, name).__signature__.parameters
     calibration = [p for p in parameters if p.startswith("n_acs")]
 
-    # The 3D bSSFP starts its steady state with a chained half flip instead.
-    assert ("n_dummy" in parameters) != (name == "bssfp3D_sequence")
+    assert "n_dummy" in parameters
     assert all(p in ("n_acs_y", "n_acs_z") for p in calibration)
 
 

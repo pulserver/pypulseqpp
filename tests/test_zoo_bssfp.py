@@ -189,7 +189,8 @@ def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
     for start in (0, size):
         assert getattr(listed[start], "trig", None)
         assert once[start] == 1
-        half, full = listed[start + 1].rf, listed[start + 4].rf
+        half = listed[start + 1].rf
+        full = next(b.rf for b in listed[start + 2 :] if b.rf is not None)
         peak = np.abs(np.asarray(half.signal)).max()
         assert peak == pytest.approx(0.5 * np.abs(np.asarray(full.signal)).max())
 
@@ -325,16 +326,27 @@ def test_each_cycle_steps_its_phase_by_its_own_increment(n_cycles):
         assert set(cycle) == {k}
 
 
-def test_a_catalyst_is_a_half_flip_half_a_repetition_before_its_cycle():
-    catalyst, cycle = chain_3d()
-    (half,) = excitations(catalyst)
+@pytest.mark.parametrize("n_dummy", [0, 3])
+def test_a_catalyst_is_a_half_flip_and_dummies_leading_into_its_cycle(n_dummy):
+    catalyst, cycle = chain_3d(n_dummy=n_dummy)
+    half, *dummies = excitations(catalyst)
     first = excitations(cycle)[0]
     increment = np.deg2rad(recorded(cycle, "PhaseIncrement"))
+    tr = recorded(cycle, "TR")
+    lead = catalyst.duration()[0] + first[0]
+    times = [t - lead for t, _, _ in (half, *dummies)]
 
+    assert len(dummies) == n_dummy
     assert half[2] == pytest.approx(0.5 * first[2])
-    assert same_phase(half[1], first[1] - increment)
-    lead = catalyst.duration()[0] - half[0]
-    assert lead + first[0] == pytest.approx(0.5 * recorded(cycle, "TR"), abs=1e-9)
+    assert all(peak == pytest.approx(first[2]) for _, _, peak in dummies)
+    assert times == pytest.approx(
+        [-(n_dummy + 0.5) * tr, *(-tr * (n + 1) for n in reversed(range(n_dummy)))],
+        abs=1e-9,
+    )
+    phases = [phase for _, phase, _ in (half, *dummies)]
+    expected = [first[1] - (n_dummy + 1 - n) * increment for n in range(n_dummy + 1)]
+    assert same_phase(phases, expected)
+    assert all(block.adc is None for block in blocks(catalyst))
 
 
 def test_every_view_is_read_once_inside_the_ellipse_back_and_forth():
@@ -384,3 +396,53 @@ def test_a_bssfp_flag_is_named_and_described_by_its_docstring(
 
     assert flag in printed
     assert help_text in printed
+
+
+def slice_moment_to_first_excitation(seq):
+    """The slice-axis moment (1/m) from the half-flip centre to the next pulse centre."""
+    half, first = (t for t, _, _ in excitations(seq)[:2])
+    times, amplitudes = (np.asarray(v) for v in seq.waveforms()[2][:2])
+    grid = np.linspace(half, first, 20001)
+    return np.trapezoid(np.interp(grid, times, amplitudes, left=0, right=0), grid)
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        lambda: built_2d(),
+        # The catalyst file holds the half flip and the first dummy.
+        lambda: chain_3d(excitation="slab", n_dummy=1)[0],
+    ],
+    ids=["2d", "3d-slab"],
+)
+def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation(build):
+    seq = build()
+
+    assert slice_moment_to_first_excitation(seq) == pytest.approx(0.0, abs=1e-3)
+
+
+def dummies_before_the_first_readout(seq):
+    """Full-flip excitations played before the one the first acquisition reads."""
+    count = 0
+    for block in blocks(seq):
+        if block.adc is not None:
+            return count - 2
+        if block.rf is not None:
+            count += 1
+    raise AssertionError("no acquisition")
+
+
+@pytest.mark.parametrize("gating", ["none", "retrospective", "prospective"])
+def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggered(
+    gating,
+):
+    seq = built_2d(n_dummy=None, gating=gating, n_phases=2, **CINE)
+    expected = (
+        bssfp2d.PROSPECTIVE_DUMMIES
+        if gating == "prospective"
+        else sequences.steady_state_dummies(
+            recorded(seq, "TR"), 45.0, t2_s=sequences.STEADY_STATE_T2_S
+        )
+    )
+
+    assert dummies_before_the_first_readout(seq) == expected

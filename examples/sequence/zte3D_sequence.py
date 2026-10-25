@@ -28,11 +28,11 @@ def zte3d(
     n: int = 128,
     flip_angle_deg: float = 2.5,
     tr: float | None = None,
-    readout_bandwidth_hz: float = 250e3,
+    readout_bandwidth_hz: float = 100e3,
     r: int = 1,
     n_shots: int | None = None,
     scheme: str = "quiet",
-    n_dummy: int = 2,
+    n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
 ) -> pp.Sequence:
@@ -68,7 +68,7 @@ def zte3d(
         Pulse centre to pulse centre (s), one per view. ``None`` is as
         short as the widest turn between views allows; a longer one is
         spent slewing more gently rather than waiting.
-    readout_bandwidth_hz : float, default=250000.0
+    readout_bandwidth_hz : float, default=100000.0
         Requested receiver bandwidth (Hz). It sets the gradient amplitude
         too, the spoke being traversed at one sample per ``delta_k``.
     r : int, default=1
@@ -82,8 +82,11 @@ def zte3d(
         Shape of the shell, as :data:`SCHEMES` names them. ``'quiet'``
         samples the directions of ``'spiral'`` in steps about a ring gap
         long; ``'spiral'`` strides across many rings at a constant step.
-    n_dummy : int, default=2
-        Whole shells played without acquiring before the first shot.
+    n_dummy : int | None, default=None
+        Whole shells played without acquiring before the first shot. ``None``
+        is the fewest that hold the repetitions bringing the longitudinal
+        magnetisation to its steady state
+        (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0
         Radial oversampling: a finer ``delta_k`` along the same spoke.
     n_gain_calibration_repetitions : int, default=None
@@ -140,6 +143,9 @@ def zte3d(
     # view, so this only places the shot. A quiet shell alternates direction,
     # counted in play order so that the last dummy hands over to the first
     # shot at the pole they share.
+    if n_dummy is None:
+        repetitions = sequences.steady_state_dummies(ro.tr, flip_angle_deg)
+        n_dummy = -(-repetitions // len(ro.directions))
     shots = list(range(0, len(ro.shot_rotations), r))
     plays = [(0, False)] * n_dummy + [(shot, True) for shot in shots]
     turns = np.asarray(ro.shot_rotations)[[shot for shot, _ in plays]]

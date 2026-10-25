@@ -55,7 +55,11 @@ def build_loop(system, bssfp, plan, partitions=None):
     nominal = bssfp.rf.amplitude
     bssfp.rf.amplitude = 0.5 * nominal
     seq.add_block(bssfp.rf, bssfp.gz, *bssfp.prep_labels)
-    seq.add_block(bssfp.wait_prep, *bssfp.train_labels)
+    seq.add_block(
+        bssfp.wait_prep,
+        *([] if bssfp.gz_prep is None else [bssfp.gz_prep]),
+        *bssfp.train_labels,
+    )
     bssfp.rf.amplitude = nominal
 
     def z_lobes(index):
@@ -83,8 +87,6 @@ def build_loop(system, bssfp, plan, partitions=None):
                 pp.scale_grad(bssfp.gy_rew, plan[shot - 1]),
                 z_lobes(shot - 1)[1],
             )
-        else:
-            seq.add_block(bssfp.wait_rewind, bssfp.gz_rew)
         seq.add_block(bssfp.rf, bssfp.gz)
         seq.add_block(
             bssfp.gx,

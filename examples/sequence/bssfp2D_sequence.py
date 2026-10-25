@@ -22,6 +22,9 @@ PULSE_DURATION = 0.6e-3
 TIME_BW_PRODUCT = 4.0
 #: Physiological signal a prospective heartbeat waits for.
 TRIGGER_CHANNEL = "physio1"
+#: Dummies a prospective heartbeat's train opens with when ``n_dummy`` is
+#: None: the wait for each trigger interrupts the steady state anyway.
+PROSPECTIVE_DUMMIES = 10
 #: Longest a slice's train may last (s); the interpreter aborts beyond it.
 MAX_SLICE_DURATION = 15.0
 
@@ -42,7 +45,7 @@ def bssfp2d(
     ry: int = 1,
     partial_fourier_y: float = 1.0,
     n_phases: int = 25,
-    n_dummy: int = 10,
+    n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
     gating: str = "none",
@@ -105,9 +108,12 @@ def bssfp2d(
         Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
     n_phases : int, default=25
         Cardiac phases a prospective heartbeat acquires.
-    n_dummy : int, default=10
-        Repetitions played without acquiring after the half flip, while
-        the oscillating transient settles.
+    n_dummy : int | None, default=None
+        Repetitions played without acquiring after the half flip. ``None``
+        is as many as bring the balanced steady state within 1 %
+        (:func:`~pypulseqpp.sequences.steady_state_dummies` at
+        :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`), or
+        :data:`PROSPECTIVE_DUMMIES` under ``prospective`` gating.
     readout_oversampling : float, default=1.0
         Readout oversampling factor, at least one.
     n_acs_y : int, default=24
@@ -189,6 +195,14 @@ def bssfp2d(
         readout_bandwidth_hz=readout_bandwidth_hz,
     )
     nominal = ro.rf.amplitude
+    if n_dummy is None:
+        n_dummy = (
+            PROSPECTIVE_DUMMIES
+            if gating == "prospective"
+            else sequences.steady_state_dummies(
+                ro.tr, flip_angle_deg, t2_s=sequences.STEADY_STATE_T2_S
+            )
+        )
     trigger_event = pp.make_trigger(
         TRIGGER_CHANNEL, duration=trigger_delay, system=system
     )
@@ -292,9 +306,8 @@ def bssfp2d(
                 seq.add_block(rf, ro.gz)
             else:
                 seq.add_block(rf, ro.gz, *ro.prep_labels)
-            seq.add_block(ro.wait_prep, *ro.train_labels)
+            seq.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
             rf.amplitude = nominal
-            seq.add_block(ro.wait_rewind, ro.gz_rew)
         else:
             seq.add_block(ro.gx_rew, pp.scale_grad(ro.gy_rew, previous_ky), ro.gz_rew)
         if trigger:

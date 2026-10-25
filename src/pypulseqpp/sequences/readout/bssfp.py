@@ -27,9 +27,9 @@ class _BssfpReadout(SequenceModule):
     The module's blocks are excitation, acquisition, rewind. The caller plays
     each shot as the previous shot's rewind, excitation and acquisition, and
     writes the transients: the half-flip pulse (``rf`` at half amplitude,
-    opposite in phase to the first excitation) followed by ``wait_prep``;
-    ``wait_rewind`` with ``gz_rew`` in place of the first rewind; and a last
-    rewind block to ramp down.
+    opposite in phase to the first excitation) followed by ``wait_prep`` with
+    ``gz_prep`` in place of the first rewind; and a last rewind block to ramp
+    down.
 
     Parameters
     ----------
@@ -94,11 +94,14 @@ class _BssfpReadout(SequenceModule):
         ``ONCE`` set to 1, 0 and 2, for the half-flip block, the block after
         it and the final rewind.
     wait_prep : DelayEvent
-        Delay after the half-flip block; with the ``wait_rewind`` block it
-        places the half-flip pulse half a repetition before the first
-        excitation. Absent with ``half_flip_prep=False``.
-    wait_rewind : DelayEvent
-        Delay of the rewind block's duration, for the first repetition.
+        Delay after the half-flip block, which places the half-flip pulse
+        half a repetition before the first excitation. Absent with
+        ``half_flip_prep=False``.
+    gz_prep : TrapEvent
+        Slice rephaser played with ``wait_prep``: the two rephasers of a
+        repetition in one lobe, so that the slice axis is balanced from the
+        half-flip pulse to the first excitation. None without a selection
+        gradient; absent with ``half_flip_prep=False``.
     tr, te : float
         Repetition and echo time (s); ``te`` is always half of ``tr``.
     bandwidth_hz : float
@@ -213,8 +216,15 @@ class _BssfpReadout(SequenceModule):
             system.max_grad / system.max_slew, system.grad_raster_time
         )
         step_z = 0.5 * n[2] / fov[2] if ndim == 3 else 0.0
+        # The half-flip gap holds both rephasers in one lobe.
+        prep_floor = (
+            _z_floor(system, abs(pre_area + post_area), ramp, raster) - prep_span
+            if half_flip_prep
+            else 0.0
+        )
         floor = max(
             _z_floor(system, max(abs(pre_area), abs(post_area)) + step_z, ramp, raster),
+            prep_floor,
             _span(raster, gx_rew, trigger),
             _span(raster, pp.make_phase_encoding("y", fov[1] / n[1], system=system)),
             pp.ceil_to_raster(float(entry_times[-1]), raster),
@@ -259,8 +269,8 @@ class _BssfpReadout(SequenceModule):
         )
 
         if half_flip_prep:
-            wait_prep = pp.make_delay(prep_span)
-        wait_rewind = pp.make_delay(rewind_span)
+            wait_prep = pp.make_delay(prep_span + rewind_span)
+            gz_prep = _lobe(system, pre_area + post_area, prep_span + rewind_span, ramp)
 
         adc_labels = [
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
@@ -276,11 +286,10 @@ class _BssfpReadout(SequenceModule):
         self.seq.add_block(gx, adc, gy_pre, *present(gz_pre), *adc_labels)
         self.seq.add_block(gx_rew, gy_rew, *present(gz_rew), *present(trigger))
         self.register(
-            wait_rewind=wait_rewind,
             prep_labels=prep_labels,
             train_labels=train_labels,
             end_labels=end_labels,
-            **({"wait_prep": wait_prep} if half_flip_prep else {}),
+            **({"wait_prep": wait_prep, "gz_prep": gz_prep} if half_flip_prep else {}),
         )
 
         self.tr = rewind_span + excite_span + encode_span + flat_span
