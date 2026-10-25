@@ -325,16 +325,27 @@ def test_each_cycle_steps_its_phase_by_its_own_increment(n_cycles):
         assert set(cycle) == {k}
 
 
-def test_a_catalyst_is_a_half_flip_half_a_repetition_before_its_cycle():
-    catalyst, cycle = chain_3d()
-    (half,) = excitations(catalyst)
+@pytest.mark.parametrize("n_dummy", [0, 3])
+def test_a_catalyst_is_a_half_flip_and_dummies_leading_into_its_cycle(n_dummy):
+    catalyst, cycle = chain_3d(n_dummy=n_dummy)
+    half, *dummies = excitations(catalyst)
     first = excitations(cycle)[0]
     increment = np.deg2rad(recorded(cycle, "PhaseIncrement"))
+    tr = recorded(cycle, "TR")
+    lead = catalyst.duration()[0] + first[0]
+    times = [t - lead for t, _, _ in (half, *dummies)]
 
+    assert len(dummies) == n_dummy
     assert half[2] == pytest.approx(0.5 * first[2])
-    assert same_phase(half[1], first[1] - increment)
-    lead = catalyst.duration()[0] - half[0]
-    assert lead + first[0] == pytest.approx(0.5 * recorded(cycle, "TR"), abs=1e-9)
+    assert all(peak == pytest.approx(first[2]) for _, _, peak in dummies)
+    assert times == pytest.approx(
+        [-(n_dummy + 0.5) * tr, *(-tr * (n + 1) for n in reversed(range(n_dummy)))],
+        abs=1e-9,
+    )
+    phases = [phase for _, phase, _ in (half, *dummies)]
+    expected = [first[1] - (n_dummy + 1 - n) * increment for n in range(n_dummy + 1)]
+    assert same_phase(phases, expected)
+    assert all(block.adc is None for block in blocks(catalyst))
 
 
 def test_every_view_is_read_once_inside_the_ellipse_back_and_forth():

@@ -45,6 +45,7 @@ def bssfp3d(
     n_acs_z: int = 16,
     elliptical_acs: bool = False,
     n_phase_cycles: int = 1,
+    n_dummy: int = 10,
 ) -> list[pp.Sequence]:
     """Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip.
 
@@ -55,8 +56,9 @@ def bssfp3d(
     phase by ``pi + 2 pi k / n_phase_cycles`` per repetition, which shifts the
     off-resonance bands; two cycles is CISS. Each cycle is a file of its own, a
     repeating unit from its first excitation, and a ``catalyst`` file ahead of
-    it plays the half flip half a repetition before that excitation, at the
-    phase the repetition before the first would have had. The files are chained
+    it plays the half flip half a repetition before the first of ``n_dummy``
+    unencoded repetitions that acquire nothing, each at the phase it would have
+    had in the cycle, while the oscillating transient settles. The files are chained
     in that order, so the scanner plays them as one table. Acquisitions carry
     their line, partition and cycle as ``LIN``, ``PAR`` and ``SET``, and
     calibration views are marked ``IMA``.
@@ -111,6 +113,9 @@ def bssfp3d(
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
     n_phase_cycles : int, default=1
         Trains acquired, each with its own RF phase increment.
+    n_dummy : int, default=10
+        Repetitions each catalyst plays without acquiring after the half
+        flip, while the oscillating transient settles.
 
     Returns
     -------
@@ -151,6 +156,8 @@ def bssfp3d(
     for name, count in (("ry", ry), ("rz", rz), ("n_phase_cycles", n_phase_cycles)):
         if count < 1:
             raise ValueError(f"{name} must be at least 1, got {count}")
+    if n_dummy < 0:
+        raise ValueError(f"n_dummy must be at least 0, got {n_dummy}")
     if not 0 <= caipi_shift < rz:
         raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
 
@@ -235,16 +242,30 @@ def bssfp3d(
         return pp.scale_grad(lobe, amplitude / lobe.amplitude)
 
     def catalyst(k: int) -> pp.Sequence:
-        """Design cycle ``k``'s half flip, half a repetition before its first excitation."""
+        """Design cycle ``k``'s half flip and dummy repetitions, ahead of its first excitation."""
         seq = pp.Sequence(system)
+        increment = increments[k]
+        # The first excitation of the cycle is at the increment itself, so
+        # repetition n before it is at -n increments.
         ro.rf.amplitude = 0.5 * nominal
-        # The first excitation is at the increment itself, so the one before it
-        # would have been at zero.
-        ro.rf.phase_offset = 0.0
+        ro.rf.phase_offset = -n_dummy * increment % (2 * np.pi)
         seq.add_block(ro.rf, *([] if ro_gz is None else [ro_gz]))
         ro.rf.amplitude = nominal
         seq.add_block(ro.wait_prep)
         seq.add_block(ro.wait_rewind, *([] if z_rew is None else [z_rew]))
+        for n in range(n_dummy - 1, -1, -1):
+            ro.rf.phase_offset = -n * increment % (2 * np.pi)
+            seq.add_block(ro.rf, *([] if ro_gz is None else [ro_gz]))
+            seq.add_block(
+                ro.gx,
+                pp.scale_grad(ro.gy_pre, 0.0),
+                z_encode(ro.gz_partition, z_pre, 0.0),
+            )
+            seq.add_block(
+                ro.gx_rew,
+                pp.scale_grad(ro.gy_rew, 0.0),
+                z_encode(ro.gz_partition_rew, z_rew, 0.0),
+            )
         define(seq, Name=f"{NAME}_catalyst", PhaseCycle=k)
         return seq
 

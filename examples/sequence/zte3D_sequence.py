@@ -32,7 +32,7 @@ def zte3d(
     r: int = 1,
     n_shots: int | None = None,
     scheme: str = "quiet",
-    n_dummy: int = 2,
+    n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
 ) -> pp.Sequence:
@@ -82,8 +82,11 @@ def zte3d(
         Shape of the shell, as :data:`SCHEMES` names them. ``'quiet'``
         samples the directions of ``'spiral'`` in steps about a ring gap
         long; ``'spiral'`` strides across many rings at a constant step.
-    n_dummy : int, default=2
-        Whole shells played without acquiring before the first shot.
+    n_dummy : int | None, default=None
+        Whole shells played without acquiring before the first shot. ``None``
+        is the fewest that hold the repetitions bringing the longitudinal
+        magnetisation to its steady state
+        (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=2.0
         Radial oversampling: a finer ``delta_k`` along the same spoke.
     n_gain_calibration_repetitions : int, default=None
@@ -140,6 +143,9 @@ def zte3d(
     # view, so this only places the shot. A quiet shell alternates direction,
     # counted in play order so that the last dummy hands over to the first
     # shot at the pole they share.
+    if n_dummy is None:
+        repetitions = sequences.steady_state_dummies(ro.tr, flip_angle_deg)
+        n_dummy = -(-repetitions // len(ro.directions))
     shots = list(range(0, len(ro.shot_rotations), r))
     plays = [(0, False)] * n_dummy + [(shot, True) for shot in shots]
     turns = np.asarray(ro.shot_rotations)[[shot for shot, _ in plays]]
