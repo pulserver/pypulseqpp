@@ -419,3 +419,30 @@ def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation(bu
     seq = build()
 
     assert slice_moment_to_first_excitation(seq) == pytest.approx(0.0, abs=1e-3)
+
+
+def dummies_before_the_first_readout(seq):
+    """Full-flip excitations played before the one the first acquisition reads."""
+    count = 0
+    for block in blocks(seq):
+        if block.adc is not None:
+            return count - 2
+        if block.rf is not None:
+            count += 1
+    raise AssertionError("no acquisition")
+
+
+@pytest.mark.parametrize("gating", ["none", "retrospective", "prospective"])
+def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggered(
+    gating,
+):
+    seq = built_2d(n_dummy=None, gating=gating, n_phases=2, **CINE)
+    expected = (
+        bssfp2d.PROSPECTIVE_DUMMIES
+        if gating == "prospective"
+        else sequences.steady_state_dummies(
+            recorded(seq, "TR"), 45.0, t2_s=sequences.STEADY_STATE_T2_S
+        )
+    )
+
+    assert dummies_before_the_first_readout(seq) == expected

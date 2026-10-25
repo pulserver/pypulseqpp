@@ -45,7 +45,7 @@ def bssfp3d(
     n_acs_z: int = 16,
     elliptical_acs: bool = False,
     n_phase_cycles: int = 1,
-    n_dummy: int = 10,
+    n_dummy: int | None = None,
 ) -> list[pp.Sequence]:
     """Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip.
 
@@ -113,9 +113,11 @@ def bssfp3d(
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
     n_phase_cycles : int, default=1
         Trains acquired, each with its own RF phase increment.
-    n_dummy : int, default=10
+    n_dummy : int | None, default=None
         Repetitions each catalyst plays without acquiring after the half
-        flip, while the oscillating transient settles.
+        flip. ``None`` is as many as bring the balanced steady state within
+        1 % (:func:`~pypulseqpp.sequences.steady_state_dummies` at
+        :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`).
 
     Returns
     -------
@@ -156,7 +158,7 @@ def bssfp3d(
     for name, count in (("ry", ry), ("rz", rz), ("n_phase_cycles", n_phase_cycles)):
         if count < 1:
             raise ValueError(f"{name} must be at least 1, got {count}")
-    if n_dummy < 0:
+    if n_dummy is not None and n_dummy < 0:
         raise ValueError(f"n_dummy must be at least 0, got {n_dummy}")
     if not 0 <= caipi_shift < rz:
         raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
@@ -195,6 +197,10 @@ def bssfp3d(
     )
     ro_gz = getattr(ro, "gz", None)
     nominal = ro.rf.amplitude
+    if n_dummy is None:
+        n_dummy = sequences.steady_state_dummies(
+            ro.tr, flip_angle_deg, t2_s=sequences.STEADY_STATE_T2_S
+        )
     # The slice rephaser and the partition encode share one ramp and one
     # window, so their sum is the partition lobe scaled.
     z_pre = getattr(ro, "gz_pre", None)

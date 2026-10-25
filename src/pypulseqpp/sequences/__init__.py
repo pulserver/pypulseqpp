@@ -19,7 +19,7 @@ from ._labels import Labels
 from ._module import SequenceModule
 from ._parameters import ProtocolParameter, parameters
 from ._prescan import GAIN_CALIBRATION_DURATION, gain_calibration_readouts
-from ._steady import STEADY_STATE_T1_S, steady_state_dummies
+from ._steady import STEADY_STATE_T1_S, STEADY_STATE_T2_S, steady_state_dummies
 from ._write import duration, write
 from .excitation import (
     EXCITATIONS,
@@ -105,6 +105,7 @@ PREPARATION = (
     "MtPreparation",
     "OffResonanceSaturation",
     "STEADY_STATE_T1_S",
+    "STEADY_STATE_T2_S",
     "SpatialSaturation",
     "spatial_saturations",
     "steady_state_dummies",
