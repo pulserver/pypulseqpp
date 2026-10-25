@@ -6,6 +6,7 @@ from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
 from pypulseqpp import sequences as design
+from pypulseqpp.sequences.preparation.spatialsat import RF_TAIL_S
 
 DURATION = 3e-3
 TBW = 4.0
@@ -84,6 +85,20 @@ def test_the_pulse_block_is_exempt_and_the_spoiler_block_clears_it(system):
     assert flags(band.seq.get_block(2)) == [("NOPOS", 0), ("NOROT", 0)]
 
 
+@pytest.mark.parametrize("duration", [1e-3, DURATION, 6e-3])
+def test_the_pulse_block_holds_the_rf_tail_past_the_pulse(system, duration):
+    """The exempt pulse block can close a segment of its own, and a pulse that
+    ends its segment needs time after it."""
+    band = design.SpatialSaturation(
+        system, NORMAL, POSITION, THICKNESS, duration_s=duration
+    )
+    rf = band.rf_prep
+
+    tail = band.seq.block_durations[1] - (rf.delay + rf.shape_dur)
+    assert tail >= RF_TAIL_S - 1e-12
+    assert tail < RF_TAIL_S + system.block_duration_raster
+
+
 def _scan_with(band, system):
     excitation = design.SpatialSelectiveExcitation(system, 15.0, 5e-3)
     seq = pp.Sequence(system)
@@ -144,6 +159,18 @@ def test_a_band_that_cannot_be_played_is_refused(system, band):
 SMALL = {"n_x": 32, "n_y": 16, "n_dummy": 0}
 BAND_1 = {"sat1_normal_y": 1.0, "sat1_position": 0.04, "sat1_thickness": 0.02}
 BAND_2 = {"sat2_normal_z": 1.0, "sat2_position": -0.03, "sat2_thickness": 0.02}
+#: Six bands, one on each side of the volume along each physical axis.
+SIX_BANDS = {
+    f"sat{n}_{key}": value
+    for n, (axis, side) in enumerate(
+        [(axis, side) for axis in "xyz" for side in (1, -1)], start=1
+    )
+    for key, value in (
+        (f"normal_{axis}", 1.0),
+        ("position", side * 0.08),
+        ("thickness", 0.02),
+    )
+}
 SEQUENCES = {"gre2D": design.gre2D_sequence, "se2D": design.se2D_sequence}
 
 
@@ -165,7 +192,8 @@ def excitations(seq):
 
 @pytest.mark.parametrize("name", SEQUENCES)
 @pytest.mark.parametrize(
-    "bands, count", [({}, 0), (BAND_1, 1), ({**BAND_1, **BAND_2}, 2)]
+    "bands, count",
+    [({}, 0), (BAND_1, 1), ({**BAND_1, **BAND_2}, 2), (SIX_BANDS, 6)],
 )
 def test_a_2d_sequence_plays_each_band_before_every_excitation(name, bands, count):
     seq = SEQUENCES[name](**SMALL, tr=None, **bands)
