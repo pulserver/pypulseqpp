@@ -218,17 +218,22 @@ def test_every_trigger_falls_between_two_balanced_repetitions():
     [
         ({"gating": "gated"}, "gating"),
         ({"gating": "prospective", "n_phases": 60, **CINE}, "heartbeat"),
-        (
-            {"gating": "retrospective", "heart_rate_bpm": 20, "views_per_segment": 2},
-            "longer than",
-        ),
         ({"tr": 1e-3}, "TR"),
     ],
-    ids=["gating", "too many phases", "too long", "short TR"],
+    ids=["gating", "too many phases", "short TR"],
 )
 def test_a_2d_train_that_cannot_be_played_is_refused(prescription, match):
     with pytest.raises(ValueError, match=match):
         built_2d(**prescription)
+
+
+def test_a_slice_train_of_any_length_is_one_repetition():
+    # Eight segments of a 3 s heartbeat: a 24 s train.
+    seq = built_2d(gating="retrospective", heart_rate_bpm=20, views_per_segment=2)
+    size, start = seq.repetition()
+
+    assert seq.duration()[0] > 20.0
+    assert (start, size) == (1, len(seq.block_events))
 
 
 # -- 3D ------------------------------------------------------------------------
