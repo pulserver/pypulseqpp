@@ -585,7 +585,8 @@ the centre line among them.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetitions played without acquiring after the half flip. <code class="docutils literal notranslate"><span class="pre">None</span></code>
 is as many as bring the balanced steady state within 1 %
 (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a> at
-<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>), or
+<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>), at most one
+heartbeat under <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating, or
 <code class="xref py py-data docutils literal notranslate"><span class="pre">PROSPECTIVE_DUMMIES</span></code> under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Fully sampled calibration lines at the centre of k-space, acquired
