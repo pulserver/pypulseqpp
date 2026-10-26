@@ -549,8 +549,7 @@ half-flip pulse half a TR ahead of the first excitation and opposite in
 phase to it; excitations then alternate between phase pi and 0, the ADC
 following. <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> marks the half flip (1), the train (0) and the closing
 rewind (2), so the whole slice is one repetition of the scan. Slices play
-one after another, since a steady state does not survive interleaving,
-and a slice longer than <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code> is refused.</p>
+one after another, since a steady state does not survive interleaving.</p>
 <p>The phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
 <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled as many times as a full
 segment fits in a heartbeat, the same number for every segment, so each
@@ -608,10 +607,8 @@ without gating.</p></li>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">gating</span></code> is unknown, <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, a count is below one, a prospective heartbeat cannot
-    hold its phases, a slice
-    outlasts <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code>, or the TR is shorter than the
-    balanced repetition, or too short beside the pulse for the half
-    flip.</p>
+    hold its phases, or the TR is shorter than the balanced repetition,
+    or too short beside the pulse for the half flip.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
