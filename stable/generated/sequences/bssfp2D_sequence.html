@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=c558a068"></script>
+    <script src="../../_static/documentation_options.js?v=7ea42275"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.52';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.53';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.52" />
+  <meta name="docsearch:version" content="v0.0.53" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -549,8 +549,7 @@ half-flip pulse half a TR ahead of the first excitation and opposite in
 phase to it; excitations then alternate between phase pi and 0, the ADC
 following. <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> marks the half flip (1), the train (0) and the closing
 rewind (2), so the whole slice is one repetition of the scan. Slices play
-one after another, since a steady state does not survive interleaving,
-and a slice longer than <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code> is refused.</p>
+one after another, since a steady state does not survive interleaving.</p>
 <p>The phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
 <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled as many times as a full
 segment fits in a heartbeat, the same number for every segment, so each
@@ -586,7 +585,8 @@ the centre line among them.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetitions played without acquiring after the half flip. <code class="docutils literal notranslate"><span class="pre">None</span></code>
 is as many as bring the balanced steady state within 1 %
 (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a> at
-<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>), or
+<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>), at most one
+heartbeat under <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating, or
 <code class="xref py py-data docutils literal notranslate"><span class="pre">PROSPECTIVE_DUMMIES</span></code> under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Fully sampled calibration lines at the centre of k-space, acquired
@@ -608,10 +608,8 @@ without gating.</p></li>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">gating</span></code> is unknown, <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, a count is below one, a prospective heartbeat cannot
-    hold its phases, a slice
-    outlasts <code class="docutils literal notranslate"><span class="pre">MAX_SLICE_DURATION</span></code>, or the TR is shorter than the
-    balanced repetition, or too short beside the pulse for the half
-    flip.</p>
+    hold its phases, or the TR is shorter than the balanced repetition,
+    or too short beside the pulse for the half flip.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
