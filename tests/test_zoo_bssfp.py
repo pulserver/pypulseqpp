@@ -437,7 +437,7 @@ def dummies_before_the_first_readout(seq):
     raise AssertionError("no acquisition")
 
 
-@pytest.mark.parametrize("gating", ["none", "retrospective", "prospective"])
+@pytest.mark.parametrize("gating", ["none", "prospective"])
 def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggered(
     gating,
 ):
@@ -451,3 +451,12 @@ def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggere
     )
 
     assert dummies_before_the_first_readout(seq) == expected
+
+
+def test_default_retrospective_dummies_last_at_most_one_heartbeat():
+    seq = built_2d(n_dummy=None, gating="retrospective", heart_rate_bpm=60)
+    tr = recorded(seq, "TR")
+    full = sequences.steady_state_dummies(tr, 45.0, t2_s=sequences.STEADY_STATE_T2_S)
+
+    assert full * tr > 1.0
+    assert dummies_before_the_first_readout(seq) == round(1.0 / tr)

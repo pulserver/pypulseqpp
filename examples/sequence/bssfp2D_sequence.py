@@ -109,7 +109,8 @@ def bssfp2d(
         Repetitions played without acquiring after the half flip. ``None``
         is as many as bring the balanced steady state within 1 %
         (:func:`~pypulseqpp.sequences.steady_state_dummies` at
-        :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`), or
+        :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`), at most one
+        heartbeat under ``retrospective`` gating, or
         :data:`PROSPECTIVE_DUMMIES` under ``prospective`` gating.
     readout_oversampling : float, default=1.0
         Readout oversampling factor, at least one.
@@ -190,6 +191,7 @@ def bssfp2d(
         readout_bandwidth_hz=readout_bandwidth_hz,
     )
     nominal = ro.rf.amplitude
+    rr = 60.0 / heart_rate_bpm
     if n_dummy is None:
         n_dummy = (
             PROSPECTIVE_DUMMIES
@@ -198,6 +200,10 @@ def bssfp2d(
                 ro.tr, flip_angle_deg, t2_s=sequences.STEADY_STATE_T2_S
             )
         )
+        if gating == "retrospective":
+            # One heartbeat: the residual approach spreads over every
+            # segment and cardiac phase, as in product cine.
+            n_dummy = min(n_dummy, max(1, round(rr / ro.tr)))
     trigger_event = pp.make_trigger(
         TRIGGER_CHANNEL, duration=trigger_delay, system=system
     )
@@ -212,7 +218,6 @@ def bssfp2d(
     # A train is a list of (line, segment, phase) repetitions, None where a
     # heartbeat's trigger falls; the first heartbeat's is ahead of the half
     # flip, and so ahead of the dummies too.
-    rr = 60.0 / heart_rate_bpm
     segments = (
         [lines]
         if gating == "none"
