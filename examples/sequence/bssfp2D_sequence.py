@@ -25,8 +25,6 @@ TRIGGER_CHANNEL = "physio1"
 #: Dummies a prospective heartbeat's train opens with when ``n_dummy`` is
 #: None: the wait for each trigger interrupts the steady state anyway.
 PROSPECTIVE_DUMMIES = 10
-#: Longest a slice's train may last (s); the interpreter aborts beyond it.
-MAX_SLICE_DURATION = 15.0
 
 
 def bssfp2d(
@@ -61,8 +59,7 @@ def bssfp2d(
     phase to it; excitations then alternate between phase pi and 0, the ADC
     following. ``ONCE`` marks the half flip (1), the train (0) and the closing
     rewind (2), so the whole slice is one repetition of the scan. Slices play
-    one after another, since a steady state does not survive interleaving,
-    and a slice longer than ``MAX_SLICE_DURATION`` is refused.
+    one after another, since a steady state does not survive interleaving.
 
     The phase-encode lines are played ``views_per_segment`` at a time. Under
     ``retrospective`` gating each segment is cycled as many times as a full
@@ -140,10 +137,8 @@ def bssfp2d(
     ValueError
         If ``gating`` is unknown, ``partial_fourier_y`` is outside
         ``[0.75, 1]``, a count is below one, a prospective heartbeat cannot
-        hold its phases, a slice
-        outlasts ``MAX_SLICE_DURATION``, or the TR is shorter than the
-        balanced repetition, or too short beside the pulse for the half
-        flip.
+        hold its phases, or the TR is shorter than the balanced repetition,
+        or too short beside the pulse for the half flip.
 
     Examples
     --------
@@ -248,19 +243,6 @@ def bssfp2d(
             train += [(line, s, f) for f in range(n_phases) for line in segment]
     n_segments = len(segments)
 
-    # The half flip takes half a TR and each repetition a TR, the last one's
-    # closing rewind included; a prospective heartbeat lasts until the next
-    # trigger.
-    repetitions = sum(item is not None for item in train)
-    slice_duration = (repetitions + 0.5) * ro.tr
-    if gating == "prospective":
-        slice_duration = n_segments * rr
-    if slice_duration > MAX_SLICE_DURATION:
-        raise ValueError(
-            f"a slice's train lasts {slice_duration:.1f} s, longer than "
-            f"the {MAX_SLICE_DURATION:.0f} s one repetition of the scan "
-            f"may; raise ry or views_per_segment, or lower n_y"
-        )
     slice_step = slice_thickness + slice_spacing
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * slice_step
     slab_thickness = n_slices * slice_step - slice_spacing
