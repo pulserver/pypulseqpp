@@ -221,7 +221,7 @@ sets the TR of both.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 33.314 seconds)
+   **Total running time of the script:** (0 minutes 33.590 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_16-zte_zte3D_sequence.py:
