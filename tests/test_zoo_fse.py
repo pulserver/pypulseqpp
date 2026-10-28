@@ -324,6 +324,50 @@ def test_an_optimized_train_peaks_at_the_prescribed_angle_and_passes_it_at_te(
     assert seq.definitions["RefocusingFlipAngles"] == pytest.approx(flips)
 
 
+#: A train of eight echoes at 5 ms spacing, its TE echo the third, at a
+#: refocusing angle of 120 degrees.
+DESIGNED = {"refocusing_angle_deg": 120.0, "te_echo": 2, "etl_max": 8, "esp": 5e-3}
+#: Repetition counts move the descent by the rounding of a mean over shots:
+#: about 1e-6 degrees.
+REPEATED_DEG = 1e-5
+
+
+def designed_trains(individual, lengths, times, place=None):
+    place = np.zeros(len(lengths)) if place is None else np.asarray(place)
+    return fse3d.design_trains(
+        individual=individual, lengths=lengths, times=times, place=place, **DESIGNED
+    )
+
+
+def test_a_shared_train_is_the_one_designed_for_a_single_shot(blochsim):
+    one = designed_trains(False, [8], [1.0])
+    many = designed_trains(False, [8] * 6, [1.0] * 6)
+
+    assert np.ptp(many, axis=0) == pytest.approx(np.zeros(8), abs=0.0)
+    assert many[0] == pytest.approx(one[0], abs=REPEATED_DEG)
+
+
+def test_a_shared_minimum_counts_each_train_as_often_as_shots_play_it(blochsim):
+    lengths, times = [8, 8, 6], [1.0, 1.5, 1.5]
+    once = designed_trains(False, lengths, times)
+    twice = designed_trains(False, lengths * 2, times * 2)
+
+    assert twice[:3] == pytest.approx(once, abs=REPEATED_DEG)
+
+
+def test_individual_minima_step_from_the_centre_shot_to_the_periphery_shot(blochsim):
+    lengths, times, place = [8, 8, 7, 6, 6], [1.0, 0.95, 0.75, 0.55, 0.5], None
+    place = np.linspace(0.0, 1.0, len(lengths))
+    flips = designed_trains(True, lengths, times, place)
+    ends = designed_trains(True, lengths[::4], times[::4], place[::4])
+    lowest = np.where(flips > 0.0, flips, np.inf).min(axis=1)
+    step = 3 * place**2 - 2 * place**3
+
+    assert flips[[0, -1]] == pytest.approx(ends, abs=1e-12)
+    assert lowest == pytest.approx(lowest[0] + (lowest[-1] - lowest[0]) * step)
+    assert lowest[0] != pytest.approx(lowest[-1])
+
+
 def test_optimized_individual_trains_are_silent_past_their_length(blochsim):
     seq = built(flip_modulation="optimized", refocusing_angle_deg=120.0, **INDIVIDUAL)
     flips = refocusing_flips(seq)

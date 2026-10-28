@@ -244,9 +244,14 @@ def design_trains(
     angle bounds its RF power. The minimum is designed with blochsim against
     the sharpness of the periphery of k-space, the contrast at the centre
     between the tissues ``DESIGN_CONTRAST`` names, and the RF power of the
-    starting trains. Individually parameterized trains have a minimum at each
-    end, and every shot takes it a cubic step of the way along its
-    transition. Angles past a shot's own train length are zero.
+    starting trains. Trains that are not individually parameterized share one
+    minimum, designed over their distinct lengths and TRs, each weighted by the
+    shots that play it. Individually parameterized trains have a minimum at
+    each end of the transition, the two designed together on the two end
+    shots alone, at their own train lengths and TRs: the centre's against the
+    contrast, the periphery's against the sharpness, both under the RF power
+    of their starting trains. Every shot takes its minimum a cubic step of the
+    way between them. Angles past a shot's own train length are zero.
 
     Parameters
     ----------
@@ -293,14 +298,12 @@ def design_trains(
     dtype = torch.float64
     angle = float(refocusing_angle_deg)
     echo = torch.arange(1, etl_max + 1, dtype=dtype)
-    length = torch.tensor(lengths, dtype=dtype)[:, None]
-    tr_ms = torch.tensor(times, dtype=dtype)[:, None] * 1e3
-    step = torch.as_tensor(cubic(place), dtype=dtype)[:, None]
-    acquired = (echo <= length).to(dtype)
     centre = float(te_echo + 1)
-    one = torch.ones_like(length)
 
-    def smooth(knots, values):
+    def column(values):
+        return torch.as_tensor(np.asarray(values, dtype=float), dtype=dtype)[:, None]
+
+    def smooth(knots, values, one):
         """Smooth steps between successive ``(knot, value)`` pairs, held beyond them."""
         out = values[-1] * one
         for k in reversed(range(len(knots) - 1)):
@@ -312,15 +315,17 @@ def design_trains(
             out = torch.where(echo <= knots[k + 1], ramp, out)
         return out
 
-    def trains(low, high):
+    def trains(low, length):
+        """Return the trains of ``length`` echoes whose minimum is ``low``, one row each."""
+        one = torch.ones_like(length)
         if centre > 5.0:
             knots = [one, 5.0 * one, centre * one, length]
-            values = [high, low, angle * one, high]
+            values = [angle * one, low, angle * one, angle * one]
         else:
             fallen = torch.minimum((centre + 4.0) * one, length)
             knots = [centre * one, fallen, length]
-            values = [angle * one, low, high]
-        return smooth(knots, values) * acquired
+            values = [angle * one, low, angle * one]
+        return smooth(knots, values, one) * (echo <= length).to(dtype)
 
     simulator = FSESimulator(
         ESP=esp * 1e3,
@@ -330,10 +335,10 @@ def design_trains(
     )
     bright, dark = DESIGN_CONTRAST
 
-    def measure(centre_low, centre_high, edge_low, edge_high):
-        low = centre_low + (edge_low - centre_low) * step
-        high = centre_high + (edge_high - centre_high) * step
-        flip = trains(low, high)
+    def measure(low, length, tr_ms):
+        """Return the sharpness, contrast and RF power of each train."""
+        flip = trains(low, length)
+        acquired = (echo <= length).to(dtype)
         signal = simulator.simulate(flip=flip, TR=tr_ms).abs()
         pair = acquired[:, None, :-1] * acquired[:, None, 1:]
         slope = (torch.diff(signal, dim=-1) * pair).square().sum(-1)
@@ -341,48 +346,82 @@ def design_trains(
         blur = (length / (2 * torch.pi) * (slope / energy).sqrt()).mean(-1)
         contrast = signal[:, bright, te_echo] - signal[:, dark, te_echo]
         power = ((flip / 180.0).square() * acquired).sum(-1) / (tr_ms[:, 0] * 1e-3)
-        return flip, blur, contrast, power
+        return blur, contrast, power
 
-    # Each control angle moves between its limits, the midpoint to start; one
-    # with no room to move is held at its limit.
+    def mean(values, weights):
+        total = weights.sum()
+        return (weights * values).sum() / total if total > 0 else 0.0
+
+    # Each minimum moves between its limits, the midpoint to start; one with
+    # no room to move is held at the prescribed angle.
     lowest = min(DESIGN_MIN_DEG, 0.5 * angle)
-    limits = {"low": (lowest, angle), "high": (angle, angle)}
-    free, fixed = {}, {}
-    for end in ("centre", "edge") if individual else ("centre",):
-        for kind, (lower, upper) in limits.items():
-            if upper - lower > 1.0:
-                start = torch.tensor([0.5 * (lower + upper)], dtype=dtype)
-                free[f"{end}_{kind}"] = Bounded(start, lower, upper)
-            else:
-                fixed[f"{end}_{kind}"] = torch.tensor([upper], dtype=dtype)
 
-    def complete(values):
-        values = {**fixed, **values}
-        for kind in limits:
-            values.setdefault(f"edge_{kind}", values[f"centre_{kind}"])
-        return values
+    def minima(parameter, length, tr_ms, shots, sharp, contrasted):
+        """Return the minima the trains take, designed with blochsim.
 
-    start = complete({name: bound.initial for name, bound in free.items()})
-    budget = measure(**start)[3].mean()
-    weight = step[:, 0]
-    outer = weight if individual else torch.ones_like(weight)
-    inner = 1.0 - weight
+        Train ``i`` takes minimum ``parameter[i]``. ``shots`` weighs the RF
+        power of each train, ``sharp`` its sharpness and ``contrasted`` its
+        contrast.
+        """
+        count = max(parameter) + 1
+        if angle - lowest <= 1.0:
+            return torch.full((count,), angle, dtype=dtype)
+        start = torch.tensor([0.5 * (lowest + angle)], dtype=dtype)
+        bounds = {f"low{n}": Bounded(start, lowest, angle) for n in range(count)}
+        index = torch.as_tensor(parameter)
 
-    def cost(**values):
-        _, blur, contrast, power = measure(**complete(values))
-        return (
-            (outer * blur).sum() / outer.sum()
-            - DESIGN_CONTRAST_WEIGHT * (inner * contrast).sum() / inner.sum()
-            + DESIGN_POWER_WEIGHT * torch.relu(power.mean() / budget - 1.0)
-        )
+        def lows(values):
+            return torch.cat([values[f"low{n}"] for n in range(count)])[index, None]
 
-    if free:
-        result = SequenceDesign(cost, **free).minimize(
+        initial = {name: bound.initial for name, bound in bounds.items()}
+        budget = mean(measure(lows(initial), length, tr_ms)[2], shots)
+
+        def cost(**values):
+            blur, contrast, power = measure(lows(values), length, tr_ms)
+            return (
+                mean(blur, sharp)
+                - DESIGN_CONTRAST_WEIGHT * mean(contrast, contrasted)
+                + DESIGN_POWER_WEIGHT * torch.relu(mean(power, shots) / budget - 1.0)
+            )
+
+        result = SequenceDesign(cost, **bounds).minimize(
             iterations=DESIGN_ITERATIONS, learning_rate=DESIGN_LEARNING_RATE
         )
-        start = complete(result.parameters)
+        return torch.cat([result.parameters[f"low{n}"] for n in range(count)]).detach()
+
+    place = np.asarray(place, dtype=float)
+    length = column(lengths)
+    if individual:
+        # Only the end shots are simulated: the shots between take their
+        # minimum from the two.
+        ends = [int(np.argmin(place)), int(np.argmax(place))]
+        step = column(cubic(place[ends]))[:, 0]
+        centre_low, edge_low = minima(
+            [0, 1],
+            length[ends],
+            column(times)[ends] * 1e3,
+            torch.ones_like(step),
+            step,
+            1.0 - step,
+        )
+        low = centre_low + (edge_low - centre_low) * column(cubic(place))
+    else:
+        # Each distinct train is simulated once, weighted by the shots playing it.
+        rows, shots = np.unique(
+            np.column_stack([lengths, times, place]), axis=0, return_counts=True
+        )
+        weight = column(shots)[:, 0]
+        (shared,) = minima(
+            [0] * len(rows),
+            column(rows[:, 0]),
+            column(rows[:, 1]) * 1e3,
+            weight,
+            weight,
+            weight * (1.0 - column(cubic(rows[:, 2]))[:, 0]),
+        )
+        low = shared * torch.ones_like(length)
     with torch.no_grad():
-        flip = measure(**start)[0]
+        flip = trains(low, length)
     return flip.numpy(force=True)
 
 
