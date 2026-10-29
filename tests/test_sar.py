@@ -196,6 +196,48 @@ def test_the_blocks_before_the_first_repetition_are_a_window_of_their_own(
     assert found["last"].tolist() == [2, 4, 6, 8, 10]
 
 
+def test_windows_that_play_the_same_pulses_keep_their_own_duration_and_amplitude(
+    system, model
+):
+    """Each window's SAR is its own sum, whether another window plays the same
+    pulses at the same amplitudes, at another amplitude or over another
+    duration, or plays one pulse twice."""
+    quiet = pp.make_sinc_pulse(math.pi / 6, duration=1e-3, system=system)
+    loud = pp.make_sinc_pulse(math.pi / 3, duration=1e-3, system=system)
+    seq = pp.Sequence(system)
+    for first, second in (
+        (quiet, pp.make_delay(5e-3)),
+        (quiet, pp.make_delay(5e-3)),
+        (quiet, pp.make_delay(10e-3)),
+        (loud, pp.make_delay(5e-3)),
+        (quiet, quiet),
+        (quiet, pp.make_delay(5e-3)),
+    ):
+        seq.add_block(first)
+        seq.add_block(second)
+    seq.remove_duplicates(in_place=True)
+    drive = np.ones(CHANNELS)
+    shim = np.ones(CHANNELS, dtype=complex)
+
+    found = _ext.vop_sar(
+        seq._native,
+        vops=np.ascontiguousarray(model.vops),
+        drive=drive,
+        default_shim=shim,
+        size=2,
+        start=1,
+    )
+
+    sums = [
+        plain_sar(seq, model, range(first, first + 2), drive, {}, shim)[0]
+        for first in range(1, 13, 2)
+    ]
+    assert found["local"] == pytest.approx([s.max() for s in sums], rel=1e-9)
+    assert found["vop"].tolist() == [int(np.argmax(s)) for s in sums]
+    worst = sums[int(np.argmax([s.max() for s in sums]))]
+    np.testing.assert_allclose(found["worst"], worst, rtol=1e-9)
+
+
 def test_a_sequence_that_does_not_repeat_is_one_window(system, model):
     seq = pp.Sequence(system)
     seq.add_block(pp.make_block_pulse(math.pi / 2, duration=1e-3, system=system))

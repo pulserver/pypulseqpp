@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
+#include <cstring>
 #include <limits>
 #include <map>
 #include <stdexcept>
@@ -271,6 +273,85 @@ namespace pulseq
             return out;
         }
 
+        /**
+         * A window's weights: each deposit it plays, in the order it first
+         * plays it, with the squared amplitudes of the pulses that play it
+         * summed. Its energy is the weighted sum of the deposits'.
+         */
+        using Weights = std::vector<std::pair<size_t, double>>;
+
+        /** A window's weights by their exact bits, so that two windows match only when equal, and a NaN never does. */
+        using WeightBits = std::vector<std::pair<size_t, uint64_t>>;
+
+        WeightBits bits_of(const Weights& weights)
+        {
+            WeightBits out;
+            out.reserve(weights.size());
+            for (const auto& [index, scale] : weights)
+            {
+                uint64_t pattern = 0;
+                std::memcpy(&pattern, &scale, sizeof pattern);
+                out.emplace_back(index, pattern);
+            }
+            return out;
+        }
+
+        /** The energy @p weights deposit in each VOP, or with @p global in each body model. */
+        void weighted(std::vector<double>& energy, const Weights& weights, const std::vector<Deposit>& deposits, bool global)
+        {
+            std::fill(energy.begin(), energy.end(), 0.0);
+            for (const auto& [index, scale] : weights)
+            {
+                const std::vector<double>& each = global ? deposits[index].global : deposits[index].local;
+                for (size_t k = 0; k < energy.size(); ++k)
+                    energy[k] += scale * each[k];
+            }
+        }
+
+        /** What a window's energy gives before it is divided by the window's duration. */
+        struct Taken
+        {
+            double local = 0.0;
+            int vop = -1;
+            double ratio = 0.0;
+            int ratio_vop = -1;
+            std::vector<double> global;
+        };
+
+        Taken take(
+            const Weights& weights,
+            const std::vector<Deposit>& deposits,
+            const SarModel& model,
+            std::vector<double>& energy,
+            size_t bodies)
+        {
+            Taken out;
+            weighted(energy, weights, deposits, false);
+            for (size_t k = 0; k < energy.size(); ++k)
+            {
+                if (out.vop < 0 || energy[k] > out.local)
+                {
+                    out.local = energy[k];
+                    out.vop = static_cast<int>(k);
+                }
+                if (!model.reference.empty())
+                {
+                    const double against = model.reference[k];
+                    const double ratio = against > 0.0
+                        ? energy[k] / against
+                        : (energy[k] > 0.0 ? std::numeric_limits<double>::infinity() : 0.0);
+                    if (out.ratio_vop < 0 || ratio > out.ratio)
+                    {
+                        out.ratio = ratio;
+                        out.ratio_vop = static_cast<int>(k);
+                    }
+                }
+            }
+            out.global.resize(bodies);
+            weighted(out.global, weights, deposits, true);
+            return out;
+        }
+
     } // namespace
 
     SarReport vop_sar(const Sequence& seq, const SarModel& model, int size, int start)
@@ -304,21 +385,31 @@ namespace pulseq
         const std::vector<std::complex<double>> ones(nc, std::complex<double>(1.0, 0.0));
 
         /* One deposit per pulse shape and shim, whatever amplitude plays them. */
-        std::map<std::pair<ShapeKey, int>, Deposit> known;
+        std::map<std::pair<ShapeKey, int>, size_t> known;
+        std::vector<Deposit> deposits;
         std::map<ShapeKey, Resampled> resampled;
+        /* Windows that play the same weights deposit the same energy, so each
+         * set of weights is summed over the VOPs once, however many
+         * repetitions play it. */
+        std::map<WeightBits, Taken> taken;
 
         SarReport out;
         out.windows.reserve(bounds.size());
         double worst = -1.0;
+        Weights worst_weights;
+        double worst_duration = 0.0;
         std::vector<double> energy(count);
-        std::vector<double> global(bodies);
+        Weights weights;
+        /* Where each deposit sits in the window's weights, or -1. */
+        std::vector<long> slot;
         for (const auto& bound : bounds)
         {
             SarWindow window;
             window.first = bound.first;
             window.last = bound.second;
-            std::fill(energy.begin(), energy.end(), 0.0);
-            std::fill(global.begin(), global.end(), 0.0);
+            for (const auto& weight : weights)
+                slot[weight.first] = -1;
+            weights.clear();
 
             for (int block = bound.first; block <= bound.second; ++block)
             {
@@ -348,43 +439,40 @@ namespace pulseq
                     {
                         shim = pulse->second.channels == 1 ? model.default_shim : ones;
                     }
-                    found = known.emplace(std::make_pair(key, shim_id), deposit(pulse->second, shim, model))
-                                .first;
+                    deposits.push_back(deposit(pulse->second, shim, model));
+                    slot.push_back(-1);
+                    found = known.emplace(std::make_pair(key, shim_id), deposits.size() - 1).first;
                 }
+                const size_t index = found->second;
                 const double scale = rf[0] * rf[0];
-                const std::vector<double>& local = found->second.local;
-                for (size_t k = 0; k < count; ++k)
-                    energy[k] += scale * local[k];
-                for (size_t b = 0; b < bodies; ++b)
-                    global[b] += scale * found->second.global[b];
+                if (slot[index] < 0)
+                {
+                    slot[index] = static_cast<long>(weights.size());
+                    weights.emplace_back(index, scale);
+                }
+                else
+                {
+                    weights[static_cast<size_t>(slot[index])].second += scale;
+                }
             }
 
             if (window.duration > 0.0)
             {
-                for (size_t k = 0; k < count; ++k)
+                WeightBits bits = bits_of(weights);
+                auto at = taken.find(bits);
+                if (at == taken.end())
+                    at = taken.emplace(std::move(bits), take(weights, deposits, model, energy, bodies)).first;
+                const Taken& peak = at->second;
+                window.local = peak.local / window.duration;
+                window.vop = peak.vop;
+                if (!model.reference.empty())
                 {
-                    const double sar = energy[k] / window.duration;
-                    if (window.vop < 0 || sar > window.local)
-                    {
-                        window.local = sar;
-                        window.vop = static_cast<int>(k);
-                    }
-                    if (!model.reference.empty())
-                    {
-                        const double against = model.reference[k];
-                        const double ratio = against > 0.0
-                            ? sar / against
-                            : (sar > 0.0 ? std::numeric_limits<double>::infinity() : 0.0);
-                        if (window.ratio_vop < 0 || ratio > window.ratio)
-                        {
-                            window.ratio = ratio;
-                            window.ratio_vop = static_cast<int>(k);
-                        }
-                    }
+                    window.ratio = peak.ratio / window.duration;
+                    window.ratio_vop = peak.ratio_vop;
                 }
                 for (size_t b = 0; b < bodies; ++b)
                 {
-                    const double sar = global[b] / window.duration;
+                    const double sar = peak.global[b] / window.duration;
                     if (window.global_body < 0 || sar > window.global)
                     {
                         window.global = sar;
@@ -394,12 +482,18 @@ namespace pulseq
                 if (window.local > worst)
                 {
                     worst = window.local;
-                    out.worst.resize(count);
-                    for (size_t k = 0; k < count; ++k)
-                        out.worst[k] = energy[k] / window.duration;
+                    worst_weights = weights;
+                    worst_duration = window.duration;
                 }
             }
             out.windows.push_back(window);
+        }
+        if (worst_duration > 0.0)
+        {
+            weighted(energy, worst_weights, deposits, false);
+            out.worst.resize(count);
+            for (size_t k = 0; k < count; ++k)
+                out.worst[k] = energy[k] / worst_duration;
         }
         return out;
     }
