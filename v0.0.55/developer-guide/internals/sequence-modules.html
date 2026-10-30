@@ -1,0 +1,889 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sequence module and function internals &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pypulseqpp.css?v=1f2aaf0f" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../_static/documentation_options.js?v=504d22b9"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developer-guide/internals/sequence-modules';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.55';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/developer-guide/internals/sequence-modules.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Sampling and ordering internals" href="sampling-and-ordering.html" />
+    <link rel="prev" title="RF and gradient design internals" href="rf-and-gradient-design.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="v0.0.55" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Homepage
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Developer guide</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Internals</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../explanations/index.html">Explanations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/cpp-core.html">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../explanations/safety-checks.html">Safety checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../generated/gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/io.html">Reading and writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/events.html">Events and blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/gradients.html">Gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/rf.html">RF pulse design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectories.html">Trajectory design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sampling.html">Sampling and scan-loop schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/modules.html">Sequence modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/sequence-functions.html">Sequence functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../sequences.html">Sequence catalogue</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/developer-guide/internals/sequence-modules.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fdeveloper-guide/internals/sequence-modules.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/developer-guide/internals/sequence-modules.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Sequence module and function internals</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-modules">Sequence modules</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#construction">Construction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#publication">Publication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#representation-boundary">Representation boundary</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-functions">Sequence functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol">Protocol</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-labels">Encoding labels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans-and-chains">Prescans and chains</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-checks">Prescription checks</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="sequence-module-and-function-internals">
+<h1>Sequence module and function internals<a class="headerlink" href="#sequence-module-and-function-internals" title="Link to this heading">#</a></h1>
+<p>The contracts of sequence modules and sequence functions. The concepts are in
+<a class="reference internal" href="../../explanations/sequence-modules.html"><span class="doc">Sequence modules and functions</span></a>.</p>
+<section id="sequence-modules">
+<h2>Sequence modules<a class="headerlink" href="#sequence-modules" title="Link to this heading">#</a></h2>
+<p>A <a class="reference internal" href="../../generated/pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a> solves a reusable block layout
+independently of the acquisition loop. It holds block tuples, named mutable
+event templates and a timing reference.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>SequenceModule
+├── blocks: [(event, ...), ...]
+├── events: named mutable event templates
+└── center: timing reference (s)
+</pre></div>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Module family</p></th>
+<th class="head"><p>Blocks and events</p></th>
+<th class="head"><p>Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Excitation</p></td>
+<td><p>RF event, selection gradient, rephaser</p></td>
+<td><p>Excitation or refocusing geometry and pulse timing.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Preparation</p></td>
+<td><p>RF and gradient preparation blocks</p></td>
+<td><p>Inversion, T2 preparation, saturation, diffusion, or magnetisation transfer.</p></td>
+</tr>
+<tr class="row-even"><td><p>Readout</p></td>
+<td><p>Prephasing, ADC event, readout gradients, rewinding or spoiling</p></td>
+<td><p>Echo timing, acquisition bandwidth, and sampling trajectory.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Every excitation and preparation module is an
+<a class="reference internal" href="../../generated/pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a>, which adds <code class="docutils literal notranslate"><span class="pre">sim_rf</span></code>, the
+off-resonance simulation of the module’s pulse, by default the first RF event
+in block order.</p>
+<section id="construction">
+<h3>Construction<a class="headerlink" href="#construction" title="Link to this heading">#</a></h3>
+<p>A subclass implements <code class="docutils literal notranslate"><span class="pre">init_module</span></code>, assigns <code class="docutils literal notranslate"><span class="pre">self.seq</span></code> (a
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">pypulseqpp.Sequence</span></code></a>; an upstream <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> is refused), adds blocks to
+it, and sets <code class="docutils literal notranslate"><span class="pre">center</span></code> when the module is timed against something other than its
+start. Assigning <code class="docutils literal notranslate"><span class="pre">seq</span></code> makes it record the event identities and block tuples
+added to it. A module that assigns no <code class="docutils literal notranslate"><span class="pre">seq</span></code>, or adds no blocks, raises
+<code class="docutils literal notranslate"><span class="pre">TypeError</span></code>. The constructor forwards its arguments to <code class="docutils literal notranslate"><span class="pre">init_module</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">inspect.signature</span></code> and the class docstring report that method’s parameters,
+with the keywords a subclass forwards to its parent’s <code class="docutils literal notranslate"><span class="pre">init_module</span></code> spelt out.
+A family states its parameters once, and a variant narrows them.</p>
+</section>
+<section id="publication">
+<h3>Publication<a class="headerlink" href="#publication" title="Link to this heading">#</a></h3>
+<p>After <code class="docutils literal notranslate"><span class="pre">init_module</span></code> returns, the locals of every <code class="docutils literal notranslate"><span class="pre">init_module</span></code> frame in the
+chain of subclasses are scanned; a local that names an event a block played is
+published as an attribute of the module and on <code class="docutils literal notranslate"><span class="pre">events</span></code>. The innermost frame
+is read first, so where a subclass and its base bind one name, the subclass’s
+meaning is published.</p>
+<ul class="simple">
+<li><p>Repeated references are deduplicated by identity: one distinct object
+becomes a scalar event, several become a list in first-seen order.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">register(name=event)</span></code> publishes events no block played and preserves the
+supplied structure, including one-element lists; it takes precedence over
+automatic names.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">publish()</span></code> publishes the caller’s locals, for construction helpers whose
+locals are not captured automatically.</p></li>
+<li><p>A module that publishes nothing warns. A published name that is also a
+module attribute warns, and the event stays reachable as <code class="docutils literal notranslate"><span class="pre">events.&lt;name&gt;</span></code>; the
+module’s own attribute wins.</p></li>
+</ul>
+</section>
+<section id="module-interface">
+<h3>Module interface<a class="headerlink" href="#module-interface" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">blocks</span></code> returns a copy of the block tuples in play order, holding the
+original event objects. Mutating those objects changes the published
+templates and what the loop adds afterwards; it does not rewrite the stored
+sequence, so the analyses forwarded to <code class="docutils literal notranslate"><span class="pre">seq</span></code> (<code class="docutils literal notranslate"><span class="pre">calculate_kspace</span></code>,
+<code class="docutils literal notranslate"><span class="pre">check_timing</span></code>, <code class="docutils literal notranslate"><span class="pre">paper_plot</span></code>, <code class="docutils literal notranslate"><span class="pre">test_report</span></code>, <code class="docutils literal notranslate"><span class="pre">waveforms_and_times</span></code>) answer for
+the layout as constructed. <code class="docutils literal notranslate"><span class="pre">duration</span></code> is summed from the blocks unless the
+module derived its timing analytically and assigned it. An unknown attribute
+raises <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> naming the module.</p>
+</section>
+<section id="representation-boundary">
+<h3>Representation boundary<a class="headerlink" href="#representation-boundary" title="Link to this heading">#</a></h3>
+<p>Module construction separates the fixed waveform and timing design from the
+per-view encoding. This mirrors the Pulseq distinction between event
+definitions and playout instances, described in <a class="reference internal" href="../../explanations/pulseq-file.html"><span class="doc">Pulseq file format</span></a>.
+Sampling order and repetition structure belong to the sequence function.</p>
+</section>
+</section>
+<section id="sequence-functions">
+<h2>Sequence functions<a class="headerlink" href="#sequence-functions" title="Link to this heading">#</a></h2>
+<p>A complete sequence is designed from the system limits and a prescription: the
+field of view, matrix, timing, flip angle and sampling order of the
+acquisition. A sequence function is that design as a callable, from which a
+script, the command line and a protocol editor obtain the sequence and the
+prescription.</p>
+<p>The signature is <code class="docutils literal notranslate"><span class="pre">sequence(system,</span> <span class="pre">**protocol)</span></code>. <code class="docutils literal notranslate"><span class="pre">system</span></code> is the
+<a class="reference internal" href="../../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a> the sequence is designed under. A function designed
+for lower gradient or slew limits lowers <code class="docutils literal notranslate"><span class="pre">system</span></code> to them with
+<a class="reference internal" href="../../generated/pypulseqpp.cap_system.html#pypulseqpp.cap_system" title="pypulseqpp.cap_system"><code class="xref py py-func docutils literal notranslate"><span class="pre">cap_system()</span></code></a>, which never raises a limit. The keyword
+parameters after <code class="docutils literal notranslate"><span class="pre">system</span></code> are the protocol, and each states its unit in its
+description. The function returns a <a class="reference internal" href="../../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>, or, for a
+scan with prescans, a list of sequences in play order. A new example module
+exposes the function as <code class="docutils literal notranslate"><span class="pre">main</span></code>, which makes the module callable as it.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Concern</p></th>
+<th class="head"><p>Sequence function</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Prescription</p></td>
+<td><p>Keyword parameters after <code class="docutils literal notranslate"><span class="pre">system</span></code>, documented in the Parameters section</p></td>
+</tr>
+<tr class="row-odd"><td><p>System limits</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, capped to the design’s limits with <code class="docutils literal notranslate"><span class="pre">cap_system</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Modules, timing and sampling arrays</p></td>
+<td><p>The body, before the loop</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sampling order</p></td>
+<td><p>The loop</p></td>
+</tr>
+<tr class="row-even"><td><p>One repetition</p></td>
+<td><p>The body of the loop</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pulseq definitions required by reconstruction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_definition</span></code> after the loop</p></td>
+</tr>
+<tr class="row-even"><td><p>Prescans</p></td>
+<td><p>The elements of the returned list before the main sequence</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The Python module of a shipped sequence defines its design limits as the
+constants <code class="docutils literal notranslate"><span class="pre">MAX_GRAD</span></code> (mT/m) and <code class="docutils literal notranslate"><span class="pre">MAX_SLEW</span></code> (T/m/s). Changing one redesigns the
+gradient waveforms and may alter echo spacing, acquisition duration and the
+constraint estimates.</p>
+<p>A pulse duration constant, such as <code class="docutils literal notranslate"><span class="pre">PULSE_DURATION</span></code>, is the duration a pulse is
+designed at while its peak is within <code class="docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code> of <code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code>, the
+peak B1 the transmit chain allows (of <code class="docutils literal notranslate"><span class="pre">max_b1</span></code> itself on a system
+<code class="docutils literal notranslate"><span class="pre">apply_system_derates</span></code> has derated). Above it, the selective and non-selective
+excitation and refocusing modules lengthen the pulse, flip angle and
+time-bandwidth product held, until its peak fits; the module’s <code class="docutils literal notranslate"><span class="pre">pulse_duration</span></code>, blocks and centre
+carry the lengthened pulse, and a sequence solves its TE and TR from them.
+Spectral, two-dimensional and multiband pulses are designed as given, since
+their duration sets what they select.</p>
+<p>An adiabatic pulse’s duration sets its sweep rate instead. At a fixed swept
+bandwidth the peak that meets its adiabaticity at the sweep’s centre falls as
+<span class="math notranslate nohighlight">\(\sqrt{\mathtt{adiabaticity}/\mathtt{duration}}\)</span>, so
+<code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code> and <code class="docutils literal notranslate"><span class="pre">T2Preparation</span></code> lengthen a pulse above the limit
+with its adiabaticity and bandwidth held (a hyperbolic secant with <code class="docutils literal notranslate"><span class="pre">beta</span></code>
+divided and <code class="docutils literal notranslate"><span class="pre">mu</span></code> multiplied by the stretch), which leaves its inversion across
+B1 and off-resonance where it was. Relaxation during the sweep, which
+<a class="reference internal" href="../../generated/pypulseqpp.sim_rf.html#pypulseqpp.sim_rf" title="pypulseqpp.sim_rf"><code class="xref py py-func docutils literal notranslate"><span class="pre">sim_rf()</span></code></a> does not model, grows with the duration, and so do
+the shortest TI and preparation echo time, so the stretch stops at
+<code class="docutils literal notranslate"><span class="pre">ADIABATIC_MAX_STRETCH</span></code> times the design duration. Past it the adiabaticity
+is lowered, to no less than <code class="docutils literal notranslate"><span class="pre">ADIABATICITY_FLOOR</span></code> of the design’s; at 0.7 of
+the nominal B1 an inversion at the floor leaves its band far better inverted
+than one at half the adiabaticity. A pulse that does not fit there is refused.
+<code class="docutils literal notranslate"><span class="pre">InversionPreparation</span></code> publishes the <code class="docutils literal notranslate"><span class="pre">pulse_duration</span></code> and <code class="docutils literal notranslate"><span class="pre">adiabaticity</span></code> it
+designed at, and <code class="docutils literal notranslate"><span class="pre">T2Preparation</span></code> one of each for its half passages and its
+refocusing pulse.</p>
+<figure class="align-default" id="id2">
+<img alt="../../_images/adiabatic_inversion_under_b1_limit.png" src="../../_images/adiabatic_inversion_under_b1_limit.png" />
+<figcaption>
+<p><span class="caption-text">The default hyperbolic-secant inversion with no limit, under 11.2 µT
+(lengthened), under 9.5 µT (at the stretch ceiling, adiabaticity lowered), and
+at half its adiabaticity. Left, the envelopes; right, the highest <span class="math notranslate nohighlight">\(M_z\)</span> each
+leaves over ±250 Hz as the transmit field is scaled, the band 0.7 to 1.3
+shaded.</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<section id="protocol">
+<h3>Protocol<a class="headerlink" href="#protocol" title="Link to this heading">#</a></h3>
+<p>A parameter’s type and default come from its annotation and default value, and
+its unit, choices and description from the NumPy-style Parameters section. The
+unit is the parenthesised group in the first sentence of a description,
+<code class="docutils literal notranslate"><span class="pre">Echo</span> <span class="pre">time</span> <span class="pre">(s).</span></code>, and the choices of a string parameter are the values its
+documented type lists in braces. An annotation that admits <code class="docutils literal notranslate"><span class="pre">None</span></code> leaves the
+value to the design. <a class="reference internal" href="../../generated/pypulseqpp.sequences.parameters.html#pypulseqpp.sequences.parameters" title="pypulseqpp.sequences.parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameters()</span></code></a> returns one
+<a class="reference internal" href="../../generated/pypulseqpp.sequences.ProtocolParameter.html#pypulseqpp.sequences.ProtocolParameter" title="pypulseqpp.sequences.ProtocolParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtocolParameter</span></code></a> per keyword parameter, in
+signature order, which is what a protocol editor presents.</p>
+<p><a class="reference internal" href="../../generated/pypulseqpp.cli.run.html#pypulseqpp.cli.run" title="pypulseqpp.cli.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">pypulseqpp.cli.run()</span></code></a> derives one command-line option from each scalar
+keyword parameter and takes its help text from the first sentence of the
+parameter’s description. The limit options <code class="docutils literal notranslate"><span class="pre">--max-grad-mtm</span></code> (mT/m) and
+<code class="docutils literal notranslate"><span class="pre">--max-slew-tm-s</span></code> (T/m/s) build the <code class="docutils literal notranslate"><span class="pre">Opts</span></code> passed as <code class="docutils literal notranslate"><span class="pre">system</span></code>, and the result
+is written with <a class="reference internal" href="../../generated/pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-func docutils literal notranslate"><span class="pre">write()</span></code></a>.</p>
+</section>
+<section id="encoding-labels">
+<span id="id1"></span><h3>Encoding labels<a class="headerlink" href="#encoding-labels" title="Link to this heading">#</a></h3>
+<p>A loop records encoding indices with Pulseq label extensions. The principal
+labels are <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code>, <code class="docutils literal notranslate"><span class="pre">ECO</span></code>, <code class="docutils literal notranslate"><span class="pre">SEG</span></code>, <code class="docutils literal notranslate"><span class="pre">REP</span></code> and <code class="docutils literal notranslate"><span class="pre">SET</span></code>. A label keeps its value
+across blocks until an event changes it, so a block carries the events of the
+labels it changes and no others. <a class="reference internal" href="../../generated/pypulseqpp.sequences.Labels.html#pypulseqpp.sequences.Labels" title="pypulseqpp.sequences.Labels"><code class="xref py py-class docutils literal notranslate"><span class="pre">Labels</span></code></a> holds
+that state: calling it with the new value of each label returns the events to
+add to the block. An unchanged value writes nothing, a change equal to the
+label’s previous change is an INC, and any other change is a SET.
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.evaluate_labels.html#pypulseqpp.Sequence.evaluate_labels" title="pypulseqpp.Sequence.evaluate_labels"><code class="xref py py-meth docutils literal notranslate"><span class="pre">evaluate_labels()</span></code></a> recovers the ADC order directly
+from the sequence, so sampling figures can use the implemented acquisition
+order rather than reconstructing it from the prescription.</p>
+</section>
+<section id="prescans-and-chains">
+<h3>Prescans and chains<a class="headerlink" href="#prescans-and-chains" title="Link to this heading">#</a></h3>
+<p>A prescan is a sequence played before the main sequence, such as a calibration
+acquisition. <a class="reference internal" href="../../generated/pypulseqpp.sequences.write.html#pypulseqpp.sequences.write" title="pypulseqpp.sequences.write"><code class="xref py py-func docutils literal notranslate"><span class="pre">write()</span></code></a> writes the list as separate
+files: the first at the given path, and each later one beside it as
+<code class="docutils literal notranslate"><span class="pre">&lt;stem&gt;_&lt;Name&gt;.seq</span></code>, where <code class="docutils literal notranslate"><span class="pre">Name</span></code> is the sequence’s <code class="docutils literal notranslate"><span class="pre">Name</span></code> definition, or its
+position in the list, counted from 0 at the first, when it has none. A later
+file whose name an earlier file has taken is written as
+<code class="docutils literal notranslate"><span class="pre">&lt;stem&gt;_&lt;Name&gt;_&lt;position&gt;.seq</span></code>, so every sequence has a file of its own. Each
+file but the last names the next with <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>. The chain represents one
+acquisition while each file keeps one period for
+<a class="reference internal" href="../../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a> and the analyses that use it.
+<a class="reference internal" href="../../generated/pypulseqpp.sequences.duration.html#pypulseqpp.sequences.duration" title="pypulseqpp.sequences.duration"><code class="xref py py-func docutils literal notranslate"><span class="pre">duration()</span></code></a> is the sum of the durations of the
+sequences in the chain.</p>
+</section>
+<section id="prescription-checks">
+<h3>Prescription checks<a class="headerlink" href="#prescription-checks" title="Link to this heading">#</a></h3>
+<p>Calling a sequence function designs every block, and the number of blocks grows
+with the matrix. A prescription the design cannot meet, such as an echo time
+shorter than the readout admits, raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. The call does not
+evaluate the waveforms against gradient, PNS or SAR limits, which take the
+designed sequence (<a class="reference internal" href="../../explanations/safety-checks.html"><span class="doc">Safety checks</span></a>).</p>
+<p>The function records the prescription as designed in the definitions it sets
+after the loop. A value the design chooses, such as the shortest echo time for
+<code class="docutils literal notranslate"><span class="pre">te=None</span></code>, is recorded as <code class="docutils literal notranslate"><span class="pre">TE</span></code>, and prescribing the recorded value as <code class="docutils literal notranslate"><span class="pre">te</span></code>
+designs a sequence that records the same <code class="docutils literal notranslate"><span class="pre">TE</span></code>. The receiver bandwidth as
+designed is the reciprocal of the dwell time of the ADC events, which is
+rounded to the ADC raster.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="rf-and-gradient-design.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">RF and gradient design internals</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="sampling-and-ordering.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Sampling and ordering internals</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-modules">Sequence modules</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#construction">Construction</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#publication">Publication</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-interface">Module interface</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#representation-boundary">Representation boundary</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sequence-functions">Sequence functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#protocol">Protocol</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#encoding-labels">Encoding labels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prescans-and-chains">Prescans and chains</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prescription-checks">Prescription checks</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

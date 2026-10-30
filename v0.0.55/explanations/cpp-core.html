@@ -1,0 +1,772 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>C++ core &#8212; pypulseqpp documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=c83e6b79" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/pypulseqpp.css?v=1f2aaf0f" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=504d22b9"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanations/cpp-core';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.55';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="canonical" href="https://pulserver.github.io/pypulseqpp/stable/explanations/cpp-core.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="RF and gradient design" href="rf-and-gradient-design.html" />
+    <link rel="prev" title="Pulseq file format" href="pulseq-file.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="v0.0.55" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/pypulseqpp-mark.svg" class="logo__image only-light" alt="pypulseqpp"/>
+    <img src="../_static/pypulseqpp-mark-dark.svg" class="logo__image only-dark pst-js-only" alt="pypulseqpp"/>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Homepage
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../user-guide/index.html">User guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/from-pypulseq.html">PyPulseq compatibility</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../developer-guide/index.html">Developer guide</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/style.html">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/documentation.html">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guide/terminology.html">Terminology and conventions</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../developer-guide/internals/index.html">Internals</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/pulseq-file.html">Pulseq file format internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/cpp-core.html">C++ core internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/rf-and-gradient-design.html">RF and gradient design internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/sequence-modules.html">Sequence module and function internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/sampling-and-ordering.html">Sampling and ordering internals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/sequence-analysis.html">Sequence-analysis computations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guide/internals/safety-checks.html">Safety-check computations</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Explanations</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pulseq-file.html">Pulseq file format</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">C++ core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rf-and-gradient-design.html">RF and gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence-modules.html">Sequence modules and functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-and-ordering.html">Sampling and ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence-analysis.html">Sequence analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="safety-checks.html">Safety checks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/course.html">Course</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/01_first_gradient_echo.html">1. Your first gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/02_echo_and_repetition_time.html">2. Echo and repetition time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/03_spoiling.html">3. Spoiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/04_labels_and_metadata.html">4. Labels and metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/05_radial_sampling.html">5. Radial sampling and gradient surgery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/06_radial_mprage.html">6. Radial MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/07_hardware_and_safety_checks.html">7. Hardware and safety checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/08_sequence_functions.html">8. Sequence functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/09_sequence_modules.html">9. Sequence modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/01-course/10_custom_sequence_module.html">10. Custom sequence module</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/tours.html">Tours</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/01_fid_and_spin_echo.html">FID and spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/02_slice_selective_excitation.html">Slice-selective excitation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/03_epi.html">Echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/04_multi_echo.html">Multi-echo gradient echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/05_segmented_epi.html">Segmented echo planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/06_spiral.html">Spiral readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/07_ramp_sampled_readout.html">Ramp-sampled readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/08_twisting_radial_readout.html">Twisting radial readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/gallery/02-tours/09_minimum_phase_excitation.html">Minimum-phase excitation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../examples/built-in-sequences/index.html">Built-in sequences</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/gradient-echo.html">Gradient echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/spin-echo.html">Spin echoes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/fast-spin-echo.html">Fast spin echo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/mprage.html">MPRAGE</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/bssfp.html">Balanced SSFP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/epi.html">Echo-planar imaging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/built-in-sequences/zte.html">Zero echo time</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/sequence.html">Sequence and system limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/io.html">Reading and writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/events.html">Events and blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/gradients.html">Gradient design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/rf.html">RF pulse design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/trajectories.html">Trajectory design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/timing.html">Timing and rasterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sampling.html">Sampling and scan-loop schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/modules.html">Sequence modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/sequence-functions.html">Sequence functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/safety.html">Gradient, PNS, acoustic and SAR checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/cli.html">Command-line helpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sequences.html">Sequence catalogue</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../misc/index.html">Miscellaneous</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../misc/license.html">License and third-party notices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../misc/related.html">Related projects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../misc/contributors.html">Contributors</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/edit/main/docs/explanations/cpp-core.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/pulserver/pypulseqpp/issues/new?title=Issue%20on%20page%20%2Fexplanations/cpp-core.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/explanations/cpp-core.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>C++ core</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#capabilities">Capabilities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#division-of-responsibility">Division of responsibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method">Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#block-insertion">Block insertion</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#snapshots-and-revision-counting">Snapshots and revision counting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-interoperability">Event interoperability</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="c-core">
+<h1>C++ core<a class="headerlink" href="#c-core" title="Link to this heading">#</a></h1>
+<div class="tldr admonition">
+<p class="admonition-title">TL;DR</p>
+<ul class="simple">
+<li><p>A script written for PyPulseq runs on a C++ sequence store after one changed import.</p></li>
+<li><p>Block insertion, deduplication, file I/O, timing and analysis run natively; event design and some helpers remain PyPulseq’s.</p></li>
+<li><p>A few upstream names are withheld, each with the reason it is not here.</p></li>
+</ul>
+</div>
+<p>A PyPulseq script builds a sequence in Python objects, which is slow when the
+sequence holds a million blocks. pypulseqpp keeps the PyPulseq vocabulary and
+moves the storage and the heavy loops into a C++ core, so the script you wrote
+for PyPulseq runs unchanged. The mental model: Python hands events across once
+per block, and everything after that happens in compiled code.</p>
+<section id="capabilities">
+<h2>Capabilities<a class="headerlink" href="#capabilities" title="Link to this heading">#</a></h2>
+<div class="capabilities docutils container">
+<ul>
+<li><p><strong>Runs a PyPulseq script after <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pypulseqpp</span> <span class="pre">as</span> <span class="pre">pp</span></code> replaces <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">pypulseq</span> <span class="pre">as</span> <span class="pre">pp</span></code>.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.Opts.html#pypulseqpp.Opts" title="pypulseqpp.Opts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opts</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.make_trapezoid.html#pypulseqpp.make_trapezoid" title="pypulseqpp.make_trapezoid"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_trapezoid()</span></code></a>. Tests: <em>every upstream name a script could write still resolves</em>; <em>the amplitude and slew defaults are upstreams</em> (<code class="docutils literal notranslate"><span class="pre">test_facade.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Registers every event of a block in one native call, bound by hand to skip argument conversion.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.add_block.html#pypulseqpp.Sequence.add_block" title="pypulseqpp.Sequence.add_block"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_block()</span></code></a>. Test: <em>adding a block goes through the fast calling convention</em> (<code class="docutils literal notranslate"><span class="pre">test_sequence.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Stores shapes, events and blocks natively, with 1-based libraries and block indices.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>. Test: <em>the block table is read back without copying</em> (<code class="docutils literal notranslate"><span class="pre">test_sequence.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Returns block-table arrays as snapshots that later edits do not reach.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <code class="docutils literal notranslate"><span class="pre">Sequence.block_durations</span></code>, <code class="docutils literal notranslate"><span class="pre">Sequence.block_events</span></code>. Tests: <em>a view is a snapshot that later writes do not reach</em>; <em>a view stays valid when the block table grows</em>; <em>a view outlives the sequence it was taken from</em> (<code class="docutils literal notranslate"><span class="pre">test_sequence.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Deduplicates equal shapes and events, and detects the repetition from the result.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.remove_duplicates.html#pypulseqpp.Sequence.remove_duplicates" title="pypulseqpp.Sequence.remove_duplicates"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_duplicates()</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a>. Tests: <em>collapsing duplicates makes the answer stale</em>; <em>dedup does not change RF instances</em> (<code class="docutils literal notranslate"><span class="pre">test_repetition.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_rf_instances.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Drops a derived result when the sequence is edited.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a>. Tests: <em>adding a block makes the answer stale</em>; <em>retiming a block that plays events makes the answer stale</em> (<code class="docutils literal notranslate"><span class="pre">test_repetition.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Writes Pulseq text and binary files byte-identical to the reference writer.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.write.html#pypulseqpp.Sequence.write" title="pypulseqpp.Sequence.write"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write()</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.Sequence.write_binary.html#pypulseqpp.Sequence.write_binary" title="pypulseqpp.Sequence.write_binary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_binary()</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.Sequence.read.html#pypulseqpp.Sequence.read" title="pypulseqpp.Sequence.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read()</span></code></a>. Tests: <em>the written file is byte identical to the reference</em>; <em>a file read back writes the same bytes</em> (<code class="docutils literal notranslate"><span class="pre">test_parity.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_read.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Lets PyPulseq’s own functions take and return compiled events.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.calc_duration.html#pypulseqpp.calc_duration" title="pypulseqpp.calc_duration"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_duration()</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.align.html#pypulseqpp.align" title="pypulseqpp.align"><code class="xref py py-func docutils literal notranslate"><span class="pre">align()</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.split_gradient.html#pypulseqpp.split_gradient" title="pypulseqpp.split_gradient"><code class="xref py py-func docutils literal notranslate"><span class="pre">split_gradient()</span></code></a>, <a class="reference internal" href="../generated/pypulseqpp.rotate.html#pypulseqpp.rotate" title="pypulseqpp.rotate"><code class="xref py py-func docutils literal notranslate"><span class="pre">rotate()</span></code></a>. Tests: <em>upstreams own helpers take a compiled event</em>; <em>a helper gives back what the rest of the package wants</em>; <em>calc duration agrees with upstream</em> (<code class="docutils literal notranslate"><span class="pre">test_facade.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Reads and writes files that PyPulseq reads and writes.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <a class="reference internal" href="../generated/pypulseqpp.Sequence.write_binary.html#pypulseqpp.Sequence.write_binary" title="pypulseqpp.Sequence.write_binary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_binary()</span></code></a>. Tests: <em>they read a binary file we wrote</em>; <em>we read a binary file they wrote</em> (<code class="docutils literal notranslate"><span class="pre">test_interoperability.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Refuses a name it withholds with the reason, not a bare <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code>.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <code class="docutils literal notranslate"><span class="pre">add_ramps</span></code>, <code class="docutils literal notranslate"><span class="pre">add_custom_label</span></code>. Test: <em>a name that is not here says why</em> (<code class="docutils literal notranslate"><span class="pre">test_facade.py</span></code>).</p>
+</details>
+</li>
+</ul>
+</div>
+</section>
+<section id="division-of-responsibility">
+<h2>Division of responsibility<a class="headerlink" href="#division-of-responsibility" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Event design that is not reimplemented.</strong> Upstream’s own code answers where
+pypulseqpp has no replacement of its own; the interoperability wrapper
+converts events on the way in and out.</p></li>
+<li><p><strong>Unsupported areas stay unsupported.</strong> Automatic labelling and tiling are not
+implemented, and <code class="docutils literal notranslate"><span class="pre">add_ramps</span></code> is withheld: it needs <code class="docutils literal notranslate"><span class="pre">calc_ramp</span></code>, which raises
+on any join needing intermediate points. <a class="reference internal" href="../generated/pypulseqpp.traj_to_grad.html#pypulseqpp.traj_to_grad" title="pypulseqpp.traj_to_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">traj_to_grad()</span></code></a>
+solves the same problem. <code class="docutils literal notranslate"><span class="pre">add_custom_label</span></code> has no counterpart because
+<a class="reference internal" href="../generated/pypulseqpp.make_label.html#pypulseqpp.make_label" title="pypulseqpp.make_label"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_label()</span></code></a> takes any name.</p></li>
+<li><p><strong>Shape codecs</strong> (<code class="docutils literal notranslate"><span class="pre">compress_shape</span></code>, <code class="docutils literal notranslate"><span class="pre">decompress_shape</span></code>) are imported from
+<code class="docutils literal notranslate"><span class="pre">pypulseq</span></code>.</p></li>
+</ul>
+</section>
+<section id="method">
+<h2>Method<a class="headerlink" href="#method" title="Link to this heading">#</a></h2>
+<figure class="align-default" id="id1">
+<img alt="../_images/block_loop_time.png" src="../_images/block_loop_time.png" />
+<figcaption>
+<p><span class="caption-text">Time of a loop adding one trapezoid block per iteration, as the number of
+blocks grows, in pypulseqpp and in PyPulseq when it is installed. Measured
+when the page is built; the absolute times depend on the machine.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<section id="block-insertion">
+<h3>Block insertion<a class="headerlink" href="#block-insertion" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Sequence.add_block</span></code> converts the events once, registers them and appends the
+row to the block table in a single native call. The loop over blocks is yours;
+every loop over the blocks of a finished sequence, such as timing, waveforms or
+checks, is native. Substantial native work releases the GIL, so other Python
+threads run meanwhile.</p>
+</section>
+<section id="snapshots-and-revision-counting">
+<h3>Snapshots and revision counting<a class="headerlink" href="#snapshots-and-revision-counting" title="Link to this heading">#</a></h3>
+<p>The block table is read back without copying: an array shares the table’s
+buffer, and the core copies the buffer before a later write while an array is
+out. The core also counts its edits. Derived analyses, such as the repetition,
+record the count they were computed at, so a cached result is checked by one
+comparison rather than by a per-block update.</p>
+</section>
+<section id="event-interoperability">
+<h3>Event interoperability<a class="headerlink" href="#event-interoperability" title="Link to this heading">#</a></h3>
+<p>A compiled event is not a PyPulseq namespace and fails PyPulseq’s type checks
+and <code class="docutils literal notranslate"><span class="pre">deepcopy</span></code>. The wrapper converts arguments to namespaces and results back,
+which is what lets the upstream namespace be used without forking it.</p>
+<p>The rules, and how insertion cost is measured, are in
+<a class="reference internal" href="../developer-guide/internals/cpp-core.html"><span class="doc">C++ core internals</span></a>.</p>
+</section>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../generated/gallery/01-course/01_first_gradient_echo.html"><span class="doc">1. Your first gradient echo</span></a>: a PyPulseq-style
+script on the compiled <code class="docutils literal notranslate"><span class="pre">Sequence</span></code>.</p></li>
+<li><p><a class="reference internal" href="../generated/gallery/01-course/02_echo_and_repetition_time.html"><span class="doc">2. Echo and repetition time</span></a>: the
+repetition the core detects.</p></li>
+<li><p><a class="reference internal" href="../api/sequence.html"><span class="doc">Sequence and system limits</span></a>: the container and its methods.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="pulseq-file.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Pulseq file format</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="rf-and-gradient-design.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">RF and gradient design</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#capabilities">Capabilities</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#division-of-responsibility">Division of responsibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method">Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#block-insertion">Block insertion</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#snapshots-and-revision-counting">Snapshots and revision counting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#event-interoperability">Event interoperability</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By pypulseqpp contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026, pypulseqpp contributors.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
