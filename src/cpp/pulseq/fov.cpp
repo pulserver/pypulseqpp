@@ -1375,11 +1375,15 @@ namespace pulseq
                         {
                             /* The pulse's samples run forwards, so the corners
                              * under them are walked once rather than once per
-                             * sample. */
+                             * sample; a dynamic pTx pulse holds its channels one
+                             * after another over one time base, and each channel
+                             * walks them again from the start. */
                             sweeping.restart(played[axis.axis], shift[axis.axis]);
                             for (size_t i = 0; i < moment.size(); ++i)
                             {
                                 double swept_here = 0.0;
+                                if (i > 0 && moment[i] < moment[i - 1])
+                                    sweeping.restart(played[axis.axis], shift[axis.axis]);
                                 sweeping.upto(moment[i] + delay, &swept_here);
                                 added[i] = turns(
                                     added[i] +

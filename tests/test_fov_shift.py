@@ -165,6 +165,37 @@ def test_a_pulse_under_a_moving_gradient_gains_a_profile(system):
     assert sequence._native.num_shapes() == before + 1
 
 
+def test_every_channel_of_a_ptx_pulse_on_a_moving_gradient_gains_the_same_profile(
+    system,
+):
+    """The ramps' corners fall under the pulse, and every channel plays across them."""
+    sequence = pp.Sequence(system)
+    gradient = pp.make_trapezoid(
+        "x",
+        amplitude=2.0e5,
+        rise_time=5e-4,
+        flat_time=5e-4,
+        fall_time=5e-4,
+        system=system,
+    )
+    samples = 1400
+    envelope = np.hanning(samples) * 200.0
+    signal = np.stack(
+        [envelope * np.exp(1j * 0.3 * k) * (1.0 - 0.1 * k) for k in range(3)]
+    ).astype(complex)
+    pulse = pp.make_ptx_pulse(signal, delay=2e-4, system=system, use="excitation")
+    sequence.add_block(pulse, gradient)
+    before = pp.split_ptx_pulse(sequence.get_block(1).rf)
+
+    _ext.apply_fov_shift(sequence._native, shift=(0.011, 0.0, 0.0))
+    after = pp.split_ptx_pulse(sequence.get_block(1).rf)
+    gained = np.angle(after * np.conj(before)) / (2 * np.pi)
+
+    assert apart(gained[0], gained[0][0]) > 0.01
+    for channel in gained[1:]:
+        assert apart(channel, gained[0]) < 1e-6
+
+
 # -- the frame it is written in --------------------------------------------
 
 
