@@ -88,6 +88,13 @@ lesson 7 of the {doc}`Course <../examples/course>`.
   Code: `VopModel.metadata`, `safety_factor=`. Test: *the safety factor multiplies local SAR and its ratio, not global* (`test_sar.py`).
 
   </details>
+- **Applies the VOP file's global safety factor to global SAR only.**
+
+  <details><summary>Show code and tests</summary>
+
+  Code: `VopModel.metadata`, `global_safety_factor=`. Tests: *the global safety factor multiplies global SAR and its ratio, not local*; *scaling the global matrices changes no ratio to the reference* (`test_sar.py`).
+
+  </details>
 - **Expresses SAR as a ratio to a reference pulse, which needs no drive calibration.**
 
   <details><summary>Show code and tests</summary>

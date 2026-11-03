@@ -212,7 +212,8 @@ $\mathbf{v}^{\mathsf H} Q \mathbf{v}$. VOPs $\{Q_k\}$ bound the largest value
 over the body model by $\max_k \mathbf{v}^{\mathsf H} Q_k \mathbf{v}$.[^eichfelder]
 {class}`~pypulseqpp.safety.VopModel` holds the $(N, N_c, N_c)$ stack in W/kg
 per unit drive squared, optional global matrices (one, or one per body model)
-and metadata whose `safety_factor` $M \geq 1$ multiplies local SAR.
+and metadata whose `safety_factor` $M \geq 1$ multiplies local SAR and whose
+`global_safety_factor` $M_G \geq 1$ multiplies global SAR.
 {func}`~pypulseqpp.safety.read_vops` reads `.mat` and `.npz`, point-first and
 channel-first, including mariepy's population files.
 
@@ -265,7 +266,8 @@ $$
 with $L_L$ the local limit. This rests on the scanner's prediction for the
 reference not falling below its true global SAR, and on the VOPs and safety
 factor bounding local SAR. The scale of `drive_per_hz` and of the matrices
-cancels; relative channel gains and the safety factor do not. A report of an
+cancels; relative channel gains and the two safety factors do not, so a
+margin on global SAR is $M_G$, not a scale on the global matrices. A report of an
 earlier call can stand for the reference.
 
 {func}`~pypulseqpp.safety.example_vops` is a synthetic eight-channel loop

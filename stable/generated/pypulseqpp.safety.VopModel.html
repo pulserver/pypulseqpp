@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=504d22b9"></script>
+    <script src="../_static/documentation_options.js?v=4739a2df"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.55';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.56';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.55" />
+  <meta name="docsearch:version" content="v0.0.56" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -533,7 +533,8 @@ channel drive squared.</p></li>
 <li><p><strong>global_matrix</strong> (<em>numpy.ndarray or None</em>) – Global SAR matrix, shape <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> with one
 matrix per body model, in the same unit.</p></li>
 <li><p><strong>metadata</strong> (<em>dict or None</em>) – What the file records about itself, such as the coil, the drive unit,
-the channel order and the <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is
+the channel order, the <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is
+multiplied by and the <code class="docutils literal notranslate"><span class="pre">global_safety_factor</span></code> every global SAR is
 multiplied by.</p></li>
 </ul>
 </dd>

@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=504d22b9"></script>
+    <script src="../_static/documentation_options.js?v=4739a2df"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.55';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.56';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence analysis" href="sequence-analysis.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.55" />
+  <meta name="docsearch:version" content="v0.0.56" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -594,6 +594,11 @@ lesson 7 of the <a class="reference internal" href="../examples/course.html"><sp
 <li><p><strong>Applies the VOP file’s safety factor to local SAR only.</strong></p>
 <details><summary>Show code and tests</summary>
 <p>Code: <code class="docutils literal notranslate"><span class="pre">VopModel.metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">safety_factor=</span></code>. Test: <em>the safety factor multiplies local SAR and its ratio, not global</em> (<code class="docutils literal notranslate"><span class="pre">test_sar.py</span></code>).</p>
+</details>
+</li>
+<li><p><strong>Applies the VOP file’s global safety factor to global SAR only.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <code class="docutils literal notranslate"><span class="pre">VopModel.metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">global_safety_factor=</span></code>. Tests: <em>the global safety factor multiplies global SAR and its ratio, not local</em>; <em>scaling the global matrices changes no ratio to the reference</em> (<code class="docutils literal notranslate"><span class="pre">test_sar.py</span></code>).</p>
 </details>
 </li>
 <li><p><strong>Expresses SAR as a ratio to a reference pulse, which needs no drive calibration.</strong></p>

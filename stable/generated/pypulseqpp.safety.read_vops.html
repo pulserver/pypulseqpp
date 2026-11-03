@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=504d22b9"></script>
+    <script src="../_static/documentation_options.js?v=4739a2df"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.55';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.56';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.55" />
+  <meta name="docsearch:version" content="v0.0.56" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -529,7 +529,7 @@ the array named <code class="docutils literal notranslate"><span class="pre">Sgl
 <code class="docutils literal notranslate"><span class="pre">Q_global</span></code>, a single matrix or one per body model as mariepy’s
 <code class="docutils literal notranslate"><span class="pre">vop.write</span></code> stores a population’s. An <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file’s <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, a
 JSON string, is read onto the model; its <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> multiplies every
-local SAR. MATLAB v7.3 (HDF5) files are not read.</p>
+local SAR and its <code class="docutils literal notranslate"><span class="pre">global_safety_factor</span></code> every global SAR. MATLAB v7.3 (HDF5) files are not read.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.15)"><em>os.PathLike</em></a>) – <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or <code class="docutils literal notranslate"><span class="pre">.npz</span></code> file to read.</p>
@@ -545,7 +545,7 @@ the metadata, for <a class="reference internal" href="pypulseqpp.safety.check_sa
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the file holds no recognised VOP array, or one whose shape is not a
-    stack of square matrices, or the safety factor is below 1.</p></li>
+    stack of square matrices, or a safety factor is below 1.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#OSError" title="(in Python v3.15)"><strong>OSError</strong></a> – If the file cannot be read, a MATLAB v7.3 file among them.</p></li>
 </ul>
 </dd>
