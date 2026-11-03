@@ -1,4 +1,8 @@
-"""An arbitrary gradient sampled every half raster, as it is played and analysed."""
+"""An arbitrary gradient sampled every half raster, as it is played and analysed.
+
+The scanner plays a gradient on its raster, so it plays every other sample: the
+ones at the raster centres.
+"""
 
 import numpy as np
 import pytest
@@ -26,18 +30,27 @@ def half_raster(system):
     return times, samples, gradient
 
 
-def test_a_half_raster_gradient_plays_its_samples_between_its_recorded_edges(system):
+def played_line(system, times, samples):
+    """The raster-centre samples between the recorded zero edges."""
+    edge = INTERVALS * system.grad_raster_time
+    return (
+        np.concatenate(([0.0], times[0::2], [edge])),
+        np.concatenate(([0.0], samples[0::2], [0.0])),
+    )
+
+
+def test_a_half_raster_gradient_plays_its_raster_centre_samples_between_its_edges(
+    system,
+):
     times, samples, gradient = half_raster(system)
     seq = pp.Sequence(system)
     seq.add_block(gradient)
 
     played = seq.waveforms_and_times()[0][0]
 
-    edge = INTERVALS * system.grad_raster_time
-    np.testing.assert_allclose(played[0], np.concatenate(([0.0], times, [edge])))
-    np.testing.assert_allclose(
-        played[1], np.concatenate(([0.0], samples, [0.0])), rtol=1e-6
-    )
+    at, values = played_line(system, times, samples)
+    np.testing.assert_allclose(played[0], at)
+    np.testing.assert_allclose(played[1], values, rtol=1e-6)
 
 
 def test_a_half_raster_gradient_moves_k_space_by_its_area(system):
@@ -46,14 +59,14 @@ def test_a_half_raster_gradient_moves_k_space_by_its_area(system):
     seq.add_block(gradient)
     seq.add_block(pp.make_adc(4, duration=4 * system.grad_raster_time, system=system))
 
-    edge = INTERVALS * system.grad_raster_time
-    area = np.trapezoid(
-        np.concatenate(([0.0], samples, [0.0])), np.concatenate(([0.0], times, [edge]))
-    )
+    at, values = played_line(system, times, samples)
+    area = np.trapezoid(values, at)
     np.testing.assert_allclose(seq.adc_kspace()[0], area, rtol=1e-6)
 
 
-def test_the_gradient_checks_see_a_half_raster_gradients_peak_and_slew(system):
+def test_the_gradient_checks_see_the_peak_and_slew_of_the_raster_centre_samples(
+    system,
+):
     times, samples, gradient = half_raster(system)
     seq = pp.Sequence(system)
     seq.add_block(gradient)
@@ -61,8 +74,9 @@ def test_the_gradient_checks_see_a_half_raster_gradients_peak_and_slew(system):
     _, amplitude = safety.check_max_grad(seq, system)
     _, slew = safety.check_max_slew(seq, system)
 
-    assert amplitude.axes[0].value == pytest.approx(PEAK, rel=1e-6)
-    steepest = np.max(np.abs(np.diff(np.concatenate(([0.0], samples)))) / (times[0]))
+    at, values = played_line(system, times, samples)
+    assert amplitude.axes[0].value == pytest.approx(np.abs(values).max(), rel=1e-6)
+    steepest = np.max(np.abs(np.diff(values) / np.diff(at)))
     assert slew.axes[0].value == pytest.approx(steepest, rel=1e-6)
 
 

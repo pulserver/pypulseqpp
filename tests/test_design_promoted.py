@@ -87,7 +87,8 @@ def test_both_wave_axes_leave_no_net_area():
     sine, cosine = pp.make_wave_gradients(4e-3, 5, 8e-3, system=SYSTEM)
     for event in (sine, cosine):
         waveform = np.asarray(event.waveform)
-        assert abs(waveform.sum()) <= 1e-9 * np.abs(waveform).max() * waveform.size
+        played = waveform.sum() - 0.25 * (waveform[0] + waveform[-1])
+        assert abs(played) <= 1e-9 * np.abs(waveform).max() * waveform.size
         assert event.first == 0.0
         assert event.last == 0.0
 

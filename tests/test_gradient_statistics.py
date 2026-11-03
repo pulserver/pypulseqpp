@@ -83,6 +83,23 @@ def test_an_arbitrary_gradient_is_measured_on_the_waveform_it_plays(
     assert stats.slew_energy[0] == pytest.approx(slew_energy, rel=1e-4)
 
 
+@pytest.mark.parametrize("count", [30, 31])
+def test_a_symmetric_lobe_slews_no_faster_than_the_steps_between_its_samples(
+    system, count
+):
+    """A lobe whose samples start and end at zero is played straight through
+    them, whatever the parity of its sample count."""
+    raster = system.grad_raster_time
+    waveform = 2e4 * np.sin(np.pi * np.arange(count) / (count - 1))
+    seq = pp.Sequence(system)
+    seq.add_block(pp.make_arbitrary_grad("x", waveform, first=0, last=0, system=system))
+
+    stats = seq.gradient_statistics()
+
+    steepest = np.abs(np.diff(waveform)).max() / raster
+    assert stats.peak_slew[0] == pytest.approx(steepest, rel=1e-6)
+
+
 def test_entry_i_is_gradient_id_i_plus_one_across_both_kinds(system):
     seq = pp.Sequence(system)
     trapezoid = pp.make_trapezoid(

@@ -33,9 +33,10 @@ def readout(**kwargs):
 
 
 def moment(event) -> float:
-    """Integrate zero-boundary raster samples in 1/m; endpoint samples have full weight."""
+    """Area in 1/m along the played line: zero at the edges, straight through the raster centres."""
     waveform = np.asarray(event.waveform)
-    return float(waveform.sum()) * SYSTEM.grad_raster_time
+    played = waveform.sum() - 0.25 * (waveform[0] + waveform[-1])
+    return float(played) * SYSTEM.grad_raster_time
 
 
 def steepest(event) -> float:
