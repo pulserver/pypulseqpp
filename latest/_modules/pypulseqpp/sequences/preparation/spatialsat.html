@@ -584,6 +584,16 @@
             <span class="n">use</span><span class="o">=</span><span class="s2">"saturation"</span><span class="p">,</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># The pulse starts at the dead time, or once the selection gradient is</span>
+        <span class="c1"># up, whatever the thickness: pypulseq ceils the gradient's delay in</span>
+        <span class="c1"># floating point and can push the pulse a raster later for some</span>
+        <span class="c1"># thicknesses, which makes bands of different thickness different</span>
+        <span class="c1"># pulses (one pulse is what a scanner's RF listing holds for them).</span>
+        <span class="n">lead</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">,</span> <span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+        <span class="p">)</span>
+        <span class="n">rf_prep</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">lead</span>
+        <span class="n">gz</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="n">lead</span> <span class="o">-</span> <span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">)</span>
         <span class="c1"># Same convention as a selective excitation: the offset places the</span>
         <span class="c1"># slab, and the phase is referenced to the pulse centre.</span>
         <span class="n">rf_prep</span><span class="o">.</span><span class="n">freq_offset</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>

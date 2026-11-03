@@ -241,7 +241,7 @@ blocks in the sequence.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.839 seconds)
+   **Total running time of the script:** (0 minutes 0.990 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:
