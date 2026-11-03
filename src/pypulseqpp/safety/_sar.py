@@ -30,7 +30,8 @@ class VopModel(NamedTuple):
         matrix per body model, in the same unit.
     metadata : dict or None
         What the file records about itself, such as the coil, the drive unit,
-        the channel order and the ``safety_factor`` every local SAR is
+        the channel order, the ``safety_factor`` every local SAR is
+        multiplied by and the ``global_safety_factor`` every global SAR is
         multiplied by.
     """
 
@@ -80,6 +81,7 @@ def _validated(model: VopModel) -> VopModel:
         raise ValueError(f"VOPs are (N, Nc, Nc), not {vops.shape}")
     vops = _hermitian(vops, "every VOP")
     _safety_factor(model.metadata, None)
+    _safety_factor(model.metadata, None, "global_safety_factor")
     global_matrix = model.global_matrix
     if global_matrix is not None:
         one = np.asarray(global_matrix).ndim == 2
@@ -96,11 +98,13 @@ def _validated(model: VopModel) -> VopModel:
     return VopModel(vops, global_matrix, model.metadata)
 
 
-def _safety_factor(metadata: dict | None, given: float | None) -> float:
-    """Return the factor on local SAR: the one given, else the file's, else 1."""
+def _safety_factor(
+    metadata: dict | None, given: float | None, key: str = "safety_factor"
+) -> float:
+    """Return a SAR factor: the one given, else the file's ``key``, else 1."""
     factor = given
     if factor is None:
-        factor = (metadata or {}).get("safety_factor", 1.0)
+        factor = (metadata or {}).get(key, 1.0)
     factor = float(factor)
     if not (np.isfinite(factor) and factor >= 1.0):
         raise ValueError(f"a safety factor is at least 1, not {factor}")
@@ -118,7 +122,7 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     ``Q_global``, a single matrix or one per body model as mariepy's
     ``vop.write`` stores a population's. An ``.npz`` file's ``metadata``, a
     JSON string, is read onto the model; its ``safety_factor`` multiplies every
-    local SAR. MATLAB v7.3 (HDF5) files are not read.
+    local SAR and its ``global_safety_factor`` every global SAR. MATLAB v7.3 (HDF5) files are not read.
 
     Parameters
     ----------
@@ -136,7 +140,7 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     ------
     ValueError
         If the file holds no recognised VOP array, or one whose shape is not a
-        stack of square matrices, or the safety factor is below 1.
+        stack of square matrices, or a safety factor is below 1.
     OSError
         If the file cannot be read, a MATLAB v7.3 file among them.
     """
@@ -316,7 +320,9 @@ def _reference_of(reference, model, drive, shim) -> SimpleNamespace:
         whole = reference.worst_global
         if whole is None:
             raise ValueError("the reference report has no window to compare with")
-        head = np.asarray(whole.per_body, dtype=float)
+        head = np.asarray(whole.per_body, dtype=float) / getattr(
+            reference, "global_safety_factor", 1.0
+        )
         duration = float(reference.windows.duration[whole.window])
     else:
         _, _, found = _evaluate(reference, model.vops, model.global_matrix, drive, shim)
@@ -344,6 +350,7 @@ def check_sar(
     default_shim=None,
     reference=None,
     safety_factor: float | None = None,
+    global_safety_factor: float | None = None,
 ) -> tuple[bool, SimpleNamespace]:
     """Check window-averaged local and global SAR against their limits.
 
@@ -377,6 +384,10 @@ def check_sar(
     safety_factor : float, default=None
         Factor, at least 1, every local SAR is multiplied by; when ``None``,
         the model's ``metadata["safety_factor"]``, else 1.
+    global_safety_factor : float, default=None
+        Factor, at least 1, every global SAR and global SAR ratio is
+        multiplied by; when ``None``, the model's
+        ``metadata["global_safety_factor"]``, else 1.
 
     Returns
     -------
@@ -384,7 +395,7 @@ def check_sar(
         True when every window's largest VOP SAR is within ``local_limit`` and,
         with a global matrix, its global SAR within ``global_limit``.
     report : SimpleNamespace
-        The limits and ``safety_factor``; ``tr_size`` and ``tr_start``
+        The limits, ``safety_factor`` and ``global_safety_factor``; ``tr_size`` and ``tr_start``
         (blocks); ``windows``, arrays ``first``, ``last`` (1-based blocks),
         ``duration`` (s), ``local_sar``, ``vop``, ``global_sar`` (W/kg) and
         ``global_body``, and with a reference ``local_to_head`` and
@@ -410,7 +421,7 @@ def check_sar(
     ValueError
         If a reference sequence plays nothing to compare with, the model has
         no global matrices to compare it through, a shim weighs a different
-        number of channels than the model has, or the safety factor is below
+        number of channels than the model has, or a safety factor is below
         1.
 
     Notes
@@ -430,13 +441,22 @@ def check_sar(
     the global limit, ``local_to_head`` times that limit is the sequence's
     local SAR at the same drive scale. The scale of ``drive_per_hz`` and of
     the matrices cancels in the reference ratios; relative channel gains do
-    not, and the safety factor, which multiplies only the sequence's side,
-    does not. With a reference lasting its minimum TR, the energy ratios scale
+    not, and neither do the two safety factors, which multiply only the
+    sequence's side: a factor on global SAR therefore enters as
+    ``global_safety_factor``, never as a scale on the global matrices. With a reference lasting its minimum TR, the energy ratios scale
     that minimum TR to this sequence's repetition, at the energy each
     repetition deposits.
     """
     model = _validated(model)
     factor = _safety_factor(model.metadata, safety_factor)
+    global_factor = _safety_factor(
+        model.metadata, global_safety_factor, "global_safety_factor"
+    )
+    scaled = (
+        model
+        if model.global_matrix is None
+        else model._replace(global_matrix=global_factor * model.global_matrix)
+    )
     channels = model.vops.shape[1]
     drive = np.broadcast_to(np.asarray(drive_per_hz, dtype=float), (channels,))
     shim = (
@@ -451,7 +471,7 @@ def check_sar(
         None if reference is None else _reference_of(reference, model, drive, shim)
     )
     size, start, found = _evaluate(
-        seq, factor * model.vops, model.global_matrix, drive, shim
+        seq, factor * model.vops, scaled.global_matrix, drive, shim
     )
     local_to_head = global_ratio = None
     if against is not None:
@@ -466,7 +486,7 @@ def check_sar(
                 shim,
                 reference=against.head,
             )
-            global_ratio = each["ratio"]
+            global_ratio = global_factor * each["ratio"]
     windows = SimpleNamespace(
         first=found["first"],
         last=found["last"],
@@ -498,7 +518,7 @@ def check_sar(
                 window=k,
                 first=int(windows.first[k]),
                 last=int(windows.last[k]),
-                per_body=_per_body(seq, model, drive, shim, found),
+                per_body=_per_body(seq, scaled, drive, shim, found),
             )
         if against is not None:
             compared = _compared(windows, against)
@@ -507,6 +527,7 @@ def check_sar(
         local_limit=local_limit,
         global_limit=global_limit,
         safety_factor=factor,
+        global_safety_factor=global_factor,
         tr_size=size,
         tr_start=start,
         windows=windows,

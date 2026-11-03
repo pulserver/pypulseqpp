@@ -624,6 +624,57 @@ def test_the_safety_factor_multiplies_local_sar_and_its_ratio_not_global(system,
     )
 
 
+def test_the_global_safety_factor_multiplies_global_sar_and_its_ratio_not_local(
+    system, model
+):
+    seq, _ = shimmed(system)
+    fid = cp_fid(system)
+    marked = model._replace(metadata={"global_safety_factor": 1.5})
+
+    _, plain = safety.check_sar(seq, model, drive_per_hz=1.0, reference=fid)
+    _, factored = safety.check_sar(seq, marked, drive_per_hz=1.0, reference=fid)
+
+    assert factored.global_safety_factor == 1.5
+    assert factored.worst_global.sar == pytest.approx(1.5 * plain.worst_global.sar)
+    assert factored.reference.global_sar_ratio == pytest.approx(
+        1.5 * plain.reference.global_sar_ratio
+    )
+    assert factored.worst_local.sar == pytest.approx(plain.worst_local.sar)
+    assert factored.reference.local_to_head == pytest.approx(
+        plain.reference.local_to_head
+    )
+
+
+def test_scaling_the_global_matrices_changes_no_ratio_to_the_reference(system, model):
+    seq, _ = shimmed(system)
+    fid = cp_fid(system)
+    scaled = model._replace(global_matrix=1.5 * model.global_matrix)
+
+    _, plain = safety.check_sar(seq, model, drive_per_hz=1.0, reference=fid)
+    _, rescaled = safety.check_sar(seq, scaled, drive_per_hz=1.0, reference=fid)
+
+    assert rescaled.reference.global_sar_ratio == pytest.approx(
+        plain.reference.global_sar_ratio
+    )
+
+
+def test_a_factored_report_stands_for_its_sequence_unfactored(system, model):
+    seq, _ = shimmed(system)
+    fid = cp_fid(system)
+    marked = model._replace(metadata={"global_safety_factor": 1.5})
+    _, earlier = safety.check_sar(fid, marked, drive_per_hz=1.0)
+
+    _, by_sequence = safety.check_sar(seq, marked, drive_per_hz=1.0, reference=fid)
+    _, by_report = safety.check_sar(seq, marked, drive_per_hz=1.0, reference=earlier)
+
+    assert by_report.reference.global_sar_ratio == pytest.approx(
+        by_sequence.reference.global_sar_ratio
+    )
+    assert by_report.reference.local_to_head == pytest.approx(
+        by_sequence.reference.local_to_head
+    )
+
+
 def test_a_given_safety_factor_takes_the_place_of_the_model_s(system, model):
     marked = model._replace(metadata={"safety_factor": 2.0})
     fid = cp_fid(system)
