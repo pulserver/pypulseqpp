@@ -11,6 +11,7 @@ pytest.importorskip(
 )
 
 import convert
+import reference
 
 import pypulseqpp as pp
 
@@ -32,6 +33,8 @@ REPORTED = [
 @pytest.fixture
 def both(reference_name, build_reference):
     """The same sequence as the toolbox holds it and as the core holds it."""
+    if reference_name in reference.DRAWN_THROUGH_THE_SAMPLES:
+        pytest.skip("the toolbox draws these gradients through restored corners")
     theirs = build_reference()
     ours = pp.Sequence(theirs.system)
     ours._native = convert.to_core(theirs)

@@ -228,6 +228,13 @@ def gre_with_soft_delay() -> Sequence:
     return seq
 
 
+#: Sequences the toolbox draws differently: it rebuilds interval corners from
+#: raster-centred gradient samples, where the scanner, and this package, plays
+#: a line through the samples. ``test_safety`` and ``test_gradient_statistics``
+#: hold the drawing to the samples instead.
+DRAWN_THROUGH_THE_SAMPLES = {"arbitrary_gradients"}
+
+
 def arbitrary_gradients() -> Sequence:
     """Waveforms given sample by sample, so the file carries them as shapes."""
     system = pp.Opts()
