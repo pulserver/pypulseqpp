@@ -136,6 +136,16 @@ class SpatialSaturation(RfModule):
             use="saturation",
             system=system,
         )[:2]
+        # The pulse starts at the dead time, or once the selection gradient is
+        # up, whatever the thickness: pypulseq ceils the gradient's delay in
+        # floating point and can push the pulse a raster later for some
+        # thicknesses, which makes bands of different thickness different
+        # pulses (one pulse is what a scanner's RF listing holds for them).
+        lead = pp.ceil_to_raster(
+            max(system.rf_dead_time, gz.rise_time), system.grad_raster_time
+        )
+        rf_prep.delay = lead
+        gz.delay = pp.round_to_raster(lead - gz.rise_time, system.grad_raster_time)
         # Same convention as a selective excitation: the offset places the
         # slab, and the phase is referenced to the pulse centre.
         rf_prep.freq_offset = float(gz.amplitude) * float(position)
