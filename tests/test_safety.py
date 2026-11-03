@@ -389,28 +389,30 @@ def test_a_rotated_sequence_is_weighed_on_the_axes_it_plays(system):
 # -- the shape stored and the shape drawn ----------------------------------
 
 
-def test_a_waveform_is_weighed_where_it_is_drawn_not_where_it_is_sampled(system):
-    """A shape kept at raster centres reaches values none of its samples do.
-
-    The samples say what the gradient is in the middle of each raster
-    interval; the interpreter draws between the interval *boundaries*, which
-    are half a raster away and follow from the samples rather than being any
-    of them. A waveform that curves can pass outside every sample it holds,
-    and it is the drawn waveform the amplifier plays.
-    """
+def test_a_raster_centred_waveform_is_weighed_along_the_line_the_scanner_plays(
+    system,
+):
+    """The scanner plays the samples at the raster centres, entered from the
+    recorded first value and left to the recorded last one, half a raster out."""
     waveform = 1e5 * np.sin(np.linspace(0, math.pi, 40)) ** 3
     sequence = pp.Sequence(system)
-    sequence.add_block(pp.make_arbitrary_grad("x", waveform=waveform, system=system))
+    sequence.add_block(
+        pp.make_arbitrary_grad("x", waveform=waveform, first=0, last=0, system=system)
+    )
 
     drawn = sequence.waveforms()[0]
     _, grad = safety.check_max_grad(sequence)
     _, slew = safety.check_max_slew(sequence)
 
-    # The drawn waveform really does overshoot what is stored, or this test
-    # would hold whichever of the two were weighed.
-    assert np.abs(drawn[1]).max() > np.abs(waveform).max() * 1.001
-
-    assert grad.axes[0].value == pytest.approx(np.abs(drawn[1]).max(), rel=1e-12)
+    raster = system.grad_raster_time
+    centres = (np.arange(waveform.size) + 0.5) * raster
+    np.testing.assert_allclose(
+        drawn[0], np.concatenate(([0.0], centres, [waveform.size * raster]))
+    )
+    np.testing.assert_allclose(
+        drawn[1], np.concatenate(([0.0], waveform, [0.0])), rtol=1e-6, atol=1e-6
+    )
+    assert grad.axes[0].value == pytest.approx(np.abs(waveform).max(), rel=1e-6)
     assert slew.axes[0].value == pytest.approx(
         np.abs(np.diff(drawn[1]) / np.diff(drawn[0])).max(), rel=1e-12
     )

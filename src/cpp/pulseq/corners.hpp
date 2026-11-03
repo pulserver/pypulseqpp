@@ -58,30 +58,6 @@ namespace pulseq
     };
 
     /**
-     * Restore gradient corners from raster-centred samples and recorded endpoints.
-     *
-     * If the boundary recurrence reaches @p last, use its boundaries, replacing
-     * them with adjacent-sample averages where they agree within tolerance,
-     * and remove collinear points. Otherwise retain
-     * the original sample centres with the recorded endpoints added.
-     *
-     * @param waveform  Gradient samples in Hz/m.
-     * @param first     Value at the start of the first interval, in Hz/m.
-     * @param last      Value at the end of the last interval, in Hz/m.
-     * @param raster    Gradient raster in seconds.
-     * @param times     Output times in seconds relative to waveform start.
-     * @param values    Output gradient values in Hz/m.
-     * @return Whether the boundary recurrence reached the recorded last value.
-     */
-    bool restore_shape_corners(
-        const std::vector<double>& waveform,
-        double first,
-        double last,
-        double raster,
-        std::vector<double>& times,
-        std::vector<double>& values);
-
-    /**
      * Per gradient event, statistics of the waveform it plays along its
      * channel axis, indexed by gradient id - 1.
      *

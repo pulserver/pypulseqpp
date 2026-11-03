@@ -344,7 +344,8 @@ def make_wave_gradients(
     >>> import numpy as np
     >>> import pypulseqpp as pp
     >>> gy, gz = pp.make_wave_gradients(3e-3, 4, 10e-3)
-    >>> [abs(round(float(np.sum(g.waveform)), 6)) for g in (gy, gz)]
+    >>> played = [np.asarray(g.waveform) for g in (gy, gz)]
+    >>> [abs(round(float(w.sum() - (w[0] + w[-1]) / 4), 6)) for w in played]
     [0.0, 0.0]
 
     References
@@ -423,36 +424,20 @@ def make_wave_gradients(
 def _area(waveform: np.ndarray) -> float:
     """Area of a raster-centred waveform entered and left at zero, in raster units.
 
-    With the interval boundaries an interpreter restores
-    (`restore_shape_corners`: each boundary twice the preceding sample less
-    the boundary before it), every interval integrates to its own sample, so
-    the area is the plain sum.
+    Integrated along the line the scanner plays: zero at the edges and
+    straight between the samples at the raster centres.
     """
-    return float(waveform.sum())
+    return float(waveform.sum() - 0.25 * (waveform[0] + waveform[-1]))
 
 
 def _steepest(shape: np.ndarray) -> float:
     """Steepest slope of a raster-centred shape entered and left at zero, per raster.
 
-    Through the corners `restore_shape_corners` gives it: each interval
-    boundary from the recurrence, or the mean of its neighbours where the two
-    agree, at half-raster spacing; the samples with zero edges half a raster
-    out where the recurrence does not close.
+    Along the line the scanner plays: zero at the edges, half a raster from
+    the first and last samples, and straight between the samples.
     """
-    count = shape.size
-    threshold = 2e-5 * float(np.abs(shape).max())
-    recurrence = np.zeros(count + 1)
-    for i in range(count):
-        recurrence[i + 1] = 2.0 * shape[i] - recurrence[i]
-    if abs(recurrence[-1]) > threshold:
-        steps = np.concatenate([[2.0 * shape[0]], np.diff(shape), [-2.0 * shape[-1]]])
-        return float(np.abs(steps).max())
-    interpolated = np.concatenate([[0.0], 0.5 * (shape[:-1] + shape[1:]), [0.0]])
-    agree = np.abs(recurrence - interpolated) <= np.finfo(float).eps + threshold
-    boundaries = np.where(agree, interpolated, recurrence)
-    dense = np.empty(2 * count + 1)
-    dense[0::2], dense[1::2] = boundaries, shape
-    return float(np.abs(np.diff(dense)).max() * 2.0)
+    steps = np.concatenate([[2.0 * shape[0]], np.diff(shape), [-2.0 * shape[-1]]])
+    return float(np.abs(steps).max())
 
 
 def _balanced(shape: np.ndarray, envelope: np.ndarray) -> np.ndarray:

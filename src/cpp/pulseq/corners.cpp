@@ -19,6 +19,34 @@ namespace pulseq
     {
         /** A nanosecond: what two times have to differ by to be two times. */
         constexpr double kEps = 1e-9;
+
+        /**
+         * A uniformly sampled gradient as the scanner plays it: @p first at
+         * time 0, every @p stride-th sample at the centre of its raster
+         * interval, and @p last at the edge after the final centre.
+         */
+        void draw_raster_centres(
+            const std::vector<double>& waveform,
+            size_t stride,
+            double first,
+            double last,
+            double raster,
+            std::vector<double>& times,
+            std::vector<double>& values)
+        {
+            const size_t count = (waveform.size() + stride - 1) / stride;
+            times.reserve(count + 2);
+            values.reserve(count + 2);
+            times.push_back(0.0);
+            values.push_back(first);
+            for (size_t i = 0; i < count; ++i)
+            {
+                times.push_back((static_cast<double>(i) + 0.5) * raster);
+                values.push_back(waveform[i * stride]);
+            }
+            times.push_back(static_cast<double>(count) * raster);
+            values.push_back(last);
+        }
     }
 
     void Corners::at(double block_starts, std::vector<double>& into) const
@@ -107,31 +135,14 @@ namespace pulseq
             for (size_t i = 0; i < normalised.size(); ++i)
                 waveform[i] = amplitude * normalised[i];
 
-            if (time_shape == 0)
+            if (time_shape == 0 || time_shape == -1)
             {
-                /* Stored at the centre of each raster interval: the corners
-                 * in between have to be put back. */
-                restore_shape_corners(
-                    waveform, arb[1], arb[2], raster_, made.times, made.values);
-                return made;
-            }
-
-            if (time_shape == -1)
-            {
-                /* Oversampled by two: sample i at i + 1 half rasters, with the
-                 * recorded first and last at the edges, half a raster out. */
-                const size_t count = waveform.size();
-                made.times.reserve(count + 2);
-                made.values.reserve(count + 2);
-                made.times.push_back(0.0);
-                made.values.push_back(arb[1]);
-                for (size_t i = 0; i < count; ++i)
-                {
-                    made.times.push_back(0.5 * raster_ * static_cast<double>(i + 1));
-                    made.values.push_back(waveform[i]);
-                }
-                made.times.push_back(0.5 * raster_ * static_cast<double>(count + 1));
-                made.values.push_back(arb[2]);
+                /* On the raster, or oversampled by two (sample i at i + 1 half
+                 * rasters): drawn as played, through the samples at the raster
+                 * centres, with the recorded first and last at the edges. */
+                const size_t stride = time_shape == -1 ? 2 : 1;
+                draw_raster_centres(
+                    waveform, stride, arb[1], arb[2], raster_, made.times, made.values);
                 return made;
             }
 
@@ -160,92 +171,6 @@ namespace pulseq
                 made.values.push_back(arb[2]);
             }
         return made;
-    }
-
-    bool restore_shape_corners(
-        const std::vector<double>& waveform,
-        double first,
-        double last,
-        double raster,
-        std::vector<double>& times,
-        std::vector<double>& values)
-    {
-        const size_t count = waveform.size();
-        times.clear();
-        values.clear();
-        if (count == 0)
-            return true;
-
-        double peak = 0.0;
-        for (size_t i = 0; i < count; ++i)
-            peak = std::max(peak, std::fabs(waveform[i]));
-        const double threshold = 2e-5 * peak;
-
-        /* Each interval boundary from the one before it: b[i+1] = 2 s[i] - b[i],
-         * starting at the recorded first. Exact for a waveform that really was
-         * sampled at the centres, and drifting otherwise -- which is what the
-         * recorded last value is here to catch. */
-        std::vector<double> recurrence(count + 1);
-        recurrence[0] = first;
-        for (size_t i = 0; i < count; ++i)
-            recurrence[i + 1] = 2.0 * waveform[i] - recurrence[i];
-
-        std::vector<double> interpolated(count + 1);
-        interpolated[0] = first;
-        for (size_t i = 0; i + 1 < count; ++i)
-            interpolated[i + 1] = 0.5 * (waveform[i] + waveform[i + 1]);
-        interpolated[count] = last;
-
-        if (std::fabs(recurrence[count] - last) > threshold)
-        {
-            /* The recurrence did not land where the shape says it should, so
-             * the shape was not sampled the way this assumes. Give back the
-             * samples with the edges on and let the caller draw through them. */
-            times.push_back(0.0);
-            values.push_back(first);
-            for (size_t i = 0; i < count; ++i)
-            {
-                times.push_back((static_cast<double>(i) + 0.5) * raster);
-                values.push_back(waveform[i]);
-            }
-            times.push_back((static_cast<double>(count) - 0.5) * raster + raster / 2.0);
-            values.push_back(last);
-            return false;
-        }
-
-        std::vector<double> boundaries(count + 1);
-        const double tolerance = std::numeric_limits<double>::epsilon() + threshold;
-        for (size_t i = 0; i <= count; ++i)
-        {
-            boundaries[i] = std::fabs(recurrence[i] - interpolated[i]) <= tolerance
-                ? interpolated[i]
-                : recurrence[i];
-        }
-
-        /* Boundary, sample, boundary, sample, ... at half-raster spacing. */
-        std::vector<double> dense;
-        dense.reserve(2 * count + 1);
-        for (size_t i = 0; i < count; ++i)
-        {
-            dense.push_back(boundaries[i]);
-            dense.push_back(waveform[i]);
-        }
-        dense.push_back(boundaries[count]);
-
-        /* Keep the corners: a point its neighbours draw straight through adds
-         * nothing to a waveform played by interpolating. */
-        const size_t dense_count = dense.size();
-        for (size_t i = 0; i < dense_count; ++i)
-        {
-            const bool corner = i == 0 || i + 1 >= dense_count ||
-                std::fabs(dense[i + 1] - 2.0 * dense[i] + dense[i - 1]) > 1e-8;
-            if (corner)
-            {
-                times.push_back(static_cast<double>(i) * raster * 0.5);
-                values.push_back(dense[i]);
-            }
-        }
-        return true;
     }
 
     GradientStatistics gradient_statistics(const Sequence& seq)
