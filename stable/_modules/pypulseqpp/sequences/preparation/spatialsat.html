@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../../_static/documentation_options.js?v=4739a2df"></script>
+    <script src="../../../../_static/documentation_options.js?v=fcc520c2"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.56';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.57';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.56" />
+  <meta name="docsearch:version" content="v0.0.57" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -584,6 +584,16 @@
             <span class="n">use</span><span class="o">=</span><span class="s2">"saturation"</span><span class="p">,</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># The pulse starts at the dead time, or once the selection gradient is</span>
+        <span class="c1"># up, whatever the thickness: pypulseq ceils the gradient's delay in</span>
+        <span class="c1"># floating point and can push the pulse a raster later for some</span>
+        <span class="c1"># thicknesses, which makes bands of different thickness different</span>
+        <span class="c1"># pulses (one pulse is what a scanner's RF listing holds for them).</span>
+        <span class="n">lead</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">rf_dead_time</span><span class="p">,</span> <span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+        <span class="p">)</span>
+        <span class="n">rf_prep</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">lead</span>
+        <span class="n">gz</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="n">lead</span> <span class="o">-</span> <span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">)</span>
         <span class="c1"># Same convention as a selective excitation: the offset places the</span>
         <span class="c1"># slab, and the phase is referenced to the pulse centre.</span>
         <span class="n">rf_prep</span><span class="o">.</span><span class="n">freq_offset</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
