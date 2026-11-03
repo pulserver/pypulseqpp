@@ -596,6 +596,11 @@ lesson 7 of the <a class="reference internal" href="../examples/course.html"><sp
 <p>Code: <code class="docutils literal notranslate"><span class="pre">VopModel.metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">safety_factor=</span></code>. Test: <em>the safety factor multiplies local SAR and its ratio, not global</em> (<code class="docutils literal notranslate"><span class="pre">test_sar.py</span></code>).</p>
 </details>
 </li>
+<li><p><strong>Applies the VOP file’s global safety factor to global SAR only.</strong></p>
+<details><summary>Show code and tests</summary>
+<p>Code: <code class="docutils literal notranslate"><span class="pre">VopModel.metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">global_safety_factor=</span></code>. Tests: <em>the global safety factor multiplies global SAR and its ratio, not local</em>; <em>scaling the global matrices changes no ratio to the reference</em> (<code class="docutils literal notranslate"><span class="pre">test_sar.py</span></code>).</p>
+</details>
+</li>
 <li><p><strong>Expresses SAR as a ratio to a reference pulse, which needs no drive calibration.</strong></p>
 <details><summary>Show code and tests</summary>
 <p>Code: <code class="docutils literal notranslate"><span class="pre">reference=</span></code> of <a class="reference internal" href="../generated/pypulseqpp.safety.check_sar.html#pypulseqpp.safety.check_sar" title="pypulseqpp.safety.check_sar"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_sar()</span></code></a>. Tests: <em>the ratios do not depend on the drive calibration</em>; <em>the global ratio is taken body by body</em> (<code class="docutils literal notranslate"><span class="pre">test_sar.py</span></code>).</p>

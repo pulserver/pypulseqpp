@@ -533,7 +533,8 @@ channel drive squared.</p></li>
 <li><p><strong>global_matrix</strong> (<em>numpy.ndarray or None</em>) – Global SAR matrix, shape <code class="docutils literal notranslate"><span class="pre">(Nc,</span> <span class="pre">Nc)</span></code>, or <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">Nc,</span> <span class="pre">Nc)</span></code> with one
 matrix per body model, in the same unit.</p></li>
 <li><p><strong>metadata</strong> (<em>dict or None</em>) – What the file records about itself, such as the coil, the drive unit,
-the channel order and the <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is
+the channel order, the <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> every local SAR is
+multiplied by and the <code class="docutils literal notranslate"><span class="pre">global_safety_factor</span></code> every global SAR is
 multiplied by.</p></li>
 </ul>
 </dd>

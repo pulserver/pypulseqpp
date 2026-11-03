@@ -544,13 +544,16 @@ SAR gives the reference’s global SAR in each body model and its
 duration. The model needs its global matrices.</p></li>
 <li><p><strong>safety_factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Factor, at least 1, every local SAR is multiplied by; when <code class="docutils literal notranslate"><span class="pre">None</span></code>,
 the model’s <code class="docutils literal notranslate"><span class="pre">metadata[&quot;safety_factor&quot;]</span></code>, else 1.</p></li>
+<li><p><strong>global_safety_factor</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Factor, at least 1, every global SAR and global SAR ratio is
+multiplied by; when <code class="docutils literal notranslate"><span class="pre">None</span></code>, the model’s
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;global_safety_factor&quot;]</span></code>, else 1.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul>
 <li><p><strong>is_ok</strong> (<em>bool</em>) – True when every window’s largest VOP SAR is within <code class="docutils literal notranslate"><span class="pre">local_limit</span></code> and,
 with a global matrix, its global SAR within <code class="docutils literal notranslate"><span class="pre">global_limit</span></code>.</p></li>
-<li><p><strong>report</strong> (<em>SimpleNamespace</em>) – The limits and <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code>; <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> and <code class="docutils literal notranslate"><span class="pre">tr_start</span></code>
+<li><p><strong>report</strong> (<em>SimpleNamespace</em>) – The limits, <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> and <code class="docutils literal notranslate"><span class="pre">global_safety_factor</span></code>; <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> and <code class="docutils literal notranslate"><span class="pre">tr_start</span></code>
 (blocks); <code class="docutils literal notranslate"><span class="pre">windows</span></code>, arrays <code class="docutils literal notranslate"><span class="pre">first</span></code>, <code class="docutils literal notranslate"><span class="pre">last</span></code> (1-based blocks),
 <code class="docutils literal notranslate"><span class="pre">duration</span></code> (s), <code class="docutils literal notranslate"><span class="pre">local_sar</span></code>, <code class="docutils literal notranslate"><span class="pre">vop</span></code>, <code class="docutils literal notranslate"><span class="pre">global_sar</span></code> (W/kg) and
 <code class="docutils literal notranslate"><span class="pre">global_body</span></code>, and with a reference <code class="docutils literal notranslate"><span class="pre">local_to_head</span></code> and
@@ -576,7 +579,7 @@ window counts, a shortened last window included.</p>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a reference sequence plays nothing to compare with, the model has
     no global matrices to compare it through, a shim weighs a different
-    number of channels than the model has, or the safety factor is below
+    number of channels than the model has, or a safety factor is below
     1.</p>
 </dd>
 </dl>
@@ -595,8 +598,9 @@ peak local SAR, times the safety factor. Where the reference is played at
 the global limit, <code class="docutils literal notranslate"><span class="pre">local_to_head</span></code> times that limit is the sequence’s
 local SAR at the same drive scale. The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of
 the matrices cancels in the reference ratios; relative channel gains do
-not, and the safety factor, which multiplies only the sequence’s side,
-does not. With a reference lasting its minimum TR, the energy ratios scale
+not, and neither do the two safety factors, which multiply only the
+sequence’s side: a factor on global SAR therefore enters as
+<code class="docutils literal notranslate"><span class="pre">global_safety_factor</span></code>, never as a scale on the global matrices. With a reference lasting its minimum TR, the energy ratios scale
 that minimum TR to this sequence’s repetition, at the energy each
 repetition deposits.</p>
 </dd></dl>

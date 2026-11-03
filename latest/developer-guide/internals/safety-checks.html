@@ -778,7 +778,8 @@ function from HDF5, per mT/m on its positive bins.</p>
 over the body model by <span class="math notranslate nohighlight">\(\max_k \mathbf{v}^{\mathsf H} Q_k \mathbf{v}\)</span>.<a class="footnote-reference brackets" href="#eichfelder" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>
 <a class="reference internal" href="../../generated/pypulseqpp.safety.VopModel.html#pypulseqpp.safety.VopModel" title="pypulseqpp.safety.VopModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">VopModel</span></code></a> holds the <span class="math notranslate nohighlight">\((N, N_c, N_c)\)</span> stack in W/kg
 per unit drive squared, optional global matrices (one, or one per body model)
-and metadata whose <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> <span class="math notranslate nohighlight">\(M \geq 1\)</span> multiplies local SAR.
+and metadata whose <code class="docutils literal notranslate"><span class="pre">safety_factor</span></code> <span class="math notranslate nohighlight">\(M \geq 1\)</span> multiplies local SAR and whose
+<code class="docutils literal notranslate"><span class="pre">global_safety_factor</span></code> <span class="math notranslate nohighlight">\(M_G \geq 1\)</span> multiplies global SAR.
 <a class="reference internal" href="../../generated/pypulseqpp.safety.read_vops.html#pypulseqpp.safety.read_vops" title="pypulseqpp.safety.read_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_vops()</span></code></a> reads <code class="docutils literal notranslate"><span class="pre">.mat</span></code> and <code class="docutils literal notranslate"><span class="pre">.npz</span></code>, point-first and
 channel-first, including mariepy’s population files.</p>
 <p>Channel <span class="math notranslate nohighlight">\(c\)</span> is driven with <span class="math notranslate nohighlight">\(v_c(t) = d_c\,s_c\,b_c(t)\)</span>: <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code>, the
@@ -825,7 +826,8 @@ T^{\mathrm{ref}} \max\!\left(r^{E}_{\mathrm{global}},\; r^{E}_{\mathrm{local}}\,
 <p>with <span class="math notranslate nohighlight">\(L_L\)</span> the local limit. This rests on the scanner’s prediction for the
 reference not falling below its true global SAR, and on the VOPs and safety
 factor bounding local SAR. The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the matrices
-cancels; relative channel gains and the safety factor do not. A report of an
+cancels; relative channel gains and the two safety factors do not, so a
+margin on global SAR is <span class="math notranslate nohighlight">\(M_G\)</span>, not a scale on the global matrices. A report of an
 earlier call can stand for the reference.</p>
 <p><a class="reference internal" href="../../generated/pypulseqpp.safety.example_vops.html#pypulseqpp.safety.example_vops" title="pypulseqpp.safety.example_vops"><code class="xref py py-func docutils literal notranslate"><span class="pre">example_vops()</span></code></a> is a synthetic eight-channel loop
 array around a uniform cylinder, with no tissue, coupling or conservative
