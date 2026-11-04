@@ -540,7 +540,7 @@ What this Tour built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.168 seconds)
+   **Total running time of the script:** (0 minutes 1.929 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-tours_02_slice_selective_excitation.py:
