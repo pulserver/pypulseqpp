@@ -25,6 +25,9 @@ RF_SPOILING_INCREMENT_DEG = 117.0
 #: Dephasing left on the readout axis at the end of each repetition, in
 #: cycles across one voxel.
 SPOILING_CYCLES = 4.0
+#: The view supports ``sampling`` selects from
+#: (:func:`~pypulseqpp.make_cartesian_plane_sampling`).
+SAMPLINGS = ("lattice", "poisson")
 
 
 def gre_multiecho3d(
@@ -54,6 +57,7 @@ def gre_multiecho3d(
     n_acs_z: int = 16,
     elliptical_sampling: bool = True,
     elliptical_acs: bool = False,
+    sampling: str = "lattice",
     wave: str = "both",
     wave_cycles: int = 8,
     wave_amplitude: float = 0.0,
@@ -68,7 +72,8 @@ def gre_multiecho3d(
     and every echo but the first ``NOPRESCAN``: the receive-gain prescan
     calibrates on the first, the strongest.
     Lines are phase-encoded along y and z over a CAIPIRINHA lattice that always
-    holds the centre of k-space, optionally cropped to an ellipse. Under
+    holds the centre of k-space, or a Poisson-disc draw, optionally cropped to
+    an ellipse. Under
     undersampling the fully sampled calibration region, a rectangle or an
     ellipse, leads, marked ``IMA``; under wave-CAIPI it is first acquired
     wave-free and marked ``REF``. Lines are played in order, each line's
@@ -135,6 +140,11 @@ def gre_multiecho3d(
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
+    sampling : {'lattice', 'poisson'}, default='lattice'
+        Views outside the calibration region: the CAIPIRINHA lattice, or a
+        variable-density Poisson-disc draw (seed 0) at the undersampling
+        ``ry * rz``, for a compressed-sensing reconstruction. ``caipi_shift``
+        applies to the lattice only.
     wave : {'phase', 'partition', 'both'}, default='both'
         Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
         wave-encoding gradients the calibration region is acquired again
@@ -164,9 +174,10 @@ def gre_multiecho3d(
     ValueError
         If ``excitation`` is unknown, a partial Fourier fraction is outside
         ``[0.75, 1]``, an undersampling factor is below one,
-        ``caipi_shift`` is outside ``[0, rz)``, ``wave`` names no wave
-        mode, the TE, TR or echo spacing is shorter than the readout takes,
-        or a bipolar train is given a partial echo or an odd sample count.
+        ``caipi_shift`` is outside ``[0, rz)``, ``sampling`` or ``wave``
+        names no scheme, the TE, TR or echo spacing is shorter than the
+        readout takes, or a bipolar train is given a partial echo or an odd
+        sample count.
 
     Examples
     --------
@@ -197,6 +208,8 @@ def gre_multiecho3d(
         raise ValueError(f"ry and rz must be at least 1, got {ry} and {rz}")
     if not 0 <= caipi_shift < rz:
         raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
+    if sampling not in SAMPLINGS:
+        raise ValueError(f"sampling must be one of {SAMPLINGS}, got {sampling!r}")
 
     fov = (fov_x, fov_y, fov_z)
     matrix = (n_x, n_y, n_z)
@@ -239,6 +252,7 @@ def gre_multiecho3d(
         partial_fourier=(partial_fourier_y, partial_fourier_z),
         elliptical=elliptical_sampling,
         elliptical_acs=elliptical_acs,
+        sampling=sampling,
     )
     # The calibration rectangle leads, so a reconstruction can
     # estimate coil sensitivities while the rest is still arriving.

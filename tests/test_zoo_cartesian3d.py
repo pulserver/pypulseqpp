@@ -39,7 +39,12 @@ def sampled(name, **kwargs):
         partial_fourier=(protocol["partial_fourier_y"], protocol["partial_fourier_z"]),
         elliptical=protocol["elliptical_sampling"],
         elliptical_acs=protocol["elliptical_acs"],
+        sampling=protocol.get("sampling", "lattice"),
     )
+
+
+#: The sequences whose views can be a Poisson-disc draw.
+SAMPLED = ["gre3D_sequence", "gre_multiecho3D_sequence"]
 
 
 def echoes(name):
@@ -244,3 +249,29 @@ def test_a_wave_amplitude_beyond_the_system_limits_is_played_at_the_one_admitted
 def test_an_unknown_wave_mode_is_refused(name):
     with pytest.raises(ValueError, match="wave mode"):
         built(name, wave="corkscrew")
+
+
+@pytest.mark.parametrize("name", SAMPLED)
+def test_poisson_sampling_plays_the_draw_and_as_many_views_as_counted(name):
+    acceleration = {"ry": 2, "rz": 2, "n_acs_y": 4, "n_acs_z": 2}
+    views, _ = played(built(name, sampling="poisson", **acceleration), name)
+    calibrating, imaging = sampled(name, sampling="poisson", **acceleration)
+    protocol = {**SMALL[name], **acceleration}
+    counted = pp.count_cartesian_plane_sampling(
+        (protocol["n_y"], protocol["n_z"]),
+        (2, 2),
+        (4, 2),
+        elliptical=True,
+        sampling="poisson",
+    )
+    lattice, _ = played(built(name, **acceleration), name)
+
+    assert views == [*calibrating, *imaging]
+    assert len(views) == sum(counted)
+    assert set(views) != set(lattice)
+
+
+@pytest.mark.parametrize("name", SAMPLED)
+def test_an_unknown_sampling_scheme_is_refused(name):
+    with pytest.raises(ValueError, match="sampling must be one of"):
+        built(name, sampling="radial")
