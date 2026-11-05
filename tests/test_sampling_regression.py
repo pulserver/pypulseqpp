@@ -35,7 +35,7 @@ ACCELERATED_3D = {
     "n_acs_z": 2,
     "partial_fourier_y": 0.75,
 }
-FSE = {"n_x": 32, "n_y": 16, "n_z": 8, "etl": 8, "te": 20e-3, "tr": 300e-3}
+FSE = {"n_x": 32, "n_y": 16, "n_z": 8, "etl": 8, "te": 10e-3, "tr": 300e-3}
 MPRAGE = {"n_x": 32, "n_y": 16, "n_z": 8, "ti": 100e-3, "tr": 300e-3}
 
 #: ``name: (module, keyword arguments)``.

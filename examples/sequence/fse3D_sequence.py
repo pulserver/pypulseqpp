@@ -21,14 +21,15 @@ MODULATIONS = ("constant", "optimized")
 NAME = "fse_3d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
-#: SLR design of the slab-selective excitation and refocusing.
-PULSE_DURATION = 3e-3
+#: SLR design of the slab-selective excitation.
+PULSE_DURATION = 1e-3
 TIME_BW_PRODUCT = 4.0
-#: Duration of the nonselective hard pulses (s).
+#: Duration of the nonselective hard pulses (s): every refocusing pulse, and
+#: the excitation of a nonselective train.
 HARD_PULSE_DURATION = 0.5e-3
-#: Dephasing each crusher beside a refocusing pulse winds, in cycles
-#: across one voxel; a nonselective train crushes on the readout axis.
-CRUSHER_CYCLES = 4.0
+#: Dephasing each crusher beside a refocusing pulse winds on the readout
+#: axis, in cycles across one voxel.
+CRUSHER_CYCLES = 1.0
 #: Seed of the shuffled order and of its Poisson-disc views.
 SHUFFLE_SEED = 0
 #: Pacing of one three-plane navigator (s), and the most one TR wait
@@ -537,8 +538,9 @@ def fse3d(
         (:func:`~pypulseqpp.sequences.steady_state_dummies`): the radial
         order reads the centre of k-space in the first train acquired.
     excitation : {'slab', 'nonselective'}, default='slab'
-        Slab-selective excitation and refocusing, or hard pulses with
-        readout-axis crushers, which shorten the echo spacing.
+        Slab-selective or hard excitation. The refocusing pulses are hard
+        either way, crushed on the readout axis: spins outside the slab are
+        never excited, and hard pulses keep the echo spacing short.
     readout_oversampling : float, default=2.0
         Readout oversampling factor, at least one.
     esp : float | None, default=None
@@ -639,6 +641,9 @@ def fse3d(
     matrix = (n_x, n_y, n_z)
     etl_max = max(etl, etl_periphery)
 
+    # An even number of block rasters puts each hard pulse centre on the raster.
+    raster = system.block_duration_raster
+    hard = 2 * raster * math.ceil(HARD_PULSE_DURATION / (2 * raster) - 1e-9)
     if excitation == "slab":
         exc = sequences.SpatialSelectiveExcitation(
             system,
@@ -648,21 +653,10 @@ def fse3d(
             time_bw_product=TIME_BW_PRODUCT,
             is_slab=True,
         )
-        refocusing = sequences.SpatialSelectiveRefocusing(
-            system,
-            fov_z,
-            duration_s=PULSE_DURATION,
-            time_bw_product=TIME_BW_PRODUCT,
-            spoiling_cycles=CRUSHER_CYCLES,
-        )
-        rf_ref, gz_ref, read_crushing = refocusing.rf_ref, refocusing.gz, 0.0
     else:
-        # An even number of block rasters puts each pulse centre on the raster.
-        raster = system.block_duration_raster
-        hard = 2 * raster * math.ceil(HARD_PULSE_DURATION / (2 * raster) - 1e-9)
         exc = sequences.NonSelectiveExcitation(system, 90.0, duration_s=hard)
-        rf_ref = sequences.NonSelectiveRefocusing(system, duration_s=hard).rf_ref
-        gz_ref, read_crushing = None, CRUSHER_CYCLES
+    rf_ref = sequences.NonSelectiveRefocusing(system, duration_s=hard).rf_ref
+    gz_ref, read_crushing = None, CRUSHER_CYCLES
     gz = getattr(exc, "gz", None)
     fse = sequences.FseReadout3D(
         system,
