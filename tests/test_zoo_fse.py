@@ -16,7 +16,7 @@ SMALL = {
     "n_y": 16,
     "n_z": 8,
     "etl": 8,
-    "te": 20e-3,
+    "te": 10e-3,
     "tr": 300e-3,
     "n_dummy": 0,
 }
@@ -254,7 +254,7 @@ def test_views_outside_the_inscribed_ellipse_only_fill_the_last_train():
     assert len(lin) < N_Y * N_Z
 
 
-@pytest.mark.parametrize("te", [None, 20e-3, 40e-3])
+@pytest.mark.parametrize("te", [None, 10e-3, 16e-3])
 def test_the_centre_of_k_space_is_read_at_the_te_written(te):
     seq = built(te=te)
     written, esp = definition(seq, "TE"), definition(seq, "EchoSpacing")
@@ -272,7 +272,7 @@ def test_the_centre_of_k_space_is_read_at_the_te_written(te):
 
 
 def test_radial_trains_read_further_out_the_later_the_echo_comes_in_pclo_order():
-    seq = built(te=40e-3)
+    seq = built(te=16e-3)
     lin, par, eco = places(seq)
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
     ring = np.argsort(fse3d.pclo_rings(eco[centre], ETL))
@@ -308,7 +308,7 @@ def blochsim():
     return pytest.importorskip("blochsim")
 
 
-@pytest.mark.parametrize("te", [None, 20e-3, 40e-3])
+@pytest.mark.parametrize("te", [None, 10e-3, 16e-3])
 def test_an_optimized_train_peaks_at_the_prescribed_angle_and_passes_it_at_te(
     blochsim, te
 ):
@@ -442,7 +442,7 @@ def test_individual_trains_read_nothing_past_their_length():
     ("prescription", "match"),
     [
         ({"ordering": "shuffling", **INDIVIDUAL}, "radial"),
-        ({"etl_periphery": 2, "te": 40e-3}, "ends before echo"),
+        ({"etl_periphery": 2, "te": 16e-3}, "ends before echo"),
         ({"tr": 20e-3}, "shorter than"),
         ({"tr_periphery": 20e-3}, "shorter than"),
         ({"flip_modulation": "variable"}, "flip_modulation"),
