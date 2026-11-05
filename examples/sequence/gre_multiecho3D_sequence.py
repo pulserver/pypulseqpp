@@ -142,9 +142,10 @@ def gre_multiecho3d(
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
     sampling : {'lattice', 'poisson'}, default='lattice'
         Views outside the calibration region: the CAIPIRINHA lattice, or a
-        variable-density Poisson-disc draw (seed 0) at the undersampling
-        ``ry * rz``, for a compressed-sensing reconstruction. ``caipi_shift``
-        applies to the lattice only.
+        variable-density Poisson-disc draw at the undersampling ``ry * rz``,
+        for a compressed-sensing reconstruction. The draw is seeded with 0, so
+        a protocol always plays the same views. ``caipi_shift`` applies to the
+        lattice only.
     wave : {'phase', 'partition', 'both'}, default='both'
         Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
         wave-encoding gradients the calibration region is acquired again

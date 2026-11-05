@@ -65,8 +65,8 @@ def gre3d(
 
     One line per repetition, phase-encoded along y and z over a CAIPIRINHA
     lattice that always contains the centre of k-space, or a Poisson-disc
-    draw, optionally cropped to an ellipse. Under undersampling the fully sampled calibration region, a
-    rectangle or an ellipse, leads, marked ``IMA``; under wave-CAIPI it is
+    draw, optionally cropped to an ellipse. Under undersampling the fully
+    sampled calibration region, a rectangle or an ellipse, leads, marked ``IMA``; under wave-CAIPI it is
     first acquired wave-free and marked ``REF``. Lines are played in order,
     each line's partitions one after another.
 
@@ -131,9 +131,10 @@ def gre3d(
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
     sampling : {'lattice', 'poisson'}, default='lattice'
         Views outside the calibration region: the CAIPIRINHA lattice, or a
-        variable-density Poisson-disc draw (seed 0) at the undersampling
-        ``ry * rz``, for a compressed-sensing reconstruction. ``caipi_shift``
-        applies to the lattice only.
+        variable-density Poisson-disc draw at the undersampling ``ry * rz``,
+        for a compressed-sensing reconstruction. The draw is seeded with 0, so
+        a protocol always plays the same views. ``caipi_shift`` applies to the
+        lattice only.
     wave : {'phase', 'partition', 'both'}, default='both'
         Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
         wave-encoding gradients the calibration region is acquired again
