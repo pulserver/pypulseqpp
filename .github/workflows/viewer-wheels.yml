@@ -23,7 +23,7 @@ jobs:
         # The platforms pypulseqpp ships for. Each build job also installs the
         # wheel beside PySide6 and draws a sequence with it: see
         # viewer/tests/smoke.py and [tool.cibuildwheel] in viewer/pyproject.toml.
-        os: [ubuntu-latest, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
