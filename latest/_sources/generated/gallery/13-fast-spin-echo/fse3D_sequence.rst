@@ -22,8 +22,9 @@
 Conventional 3D fast spin echo
 ==============================
 
-A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing
-train, with one Cartesian ``(line, partition)`` view acquired at each echo.
+A slab-selective excitation is followed by a CPMG fast-spin-echo train of hard
+refocusing pulses, with one Cartesian ``(line, partition)`` view acquired at
+each echo.
 Refocusing angles below 180 degrees add stimulated-echo pathways to the echo
 signal [HEN88]_, and variable refocusing angles modulate the T2-dependent
 signal evolution along the train [BUS08a]_. Radial view ordering maps this
@@ -31,7 +32,7 @@ evolution onto the ``(k_y, k_z)`` plane and therefore determines the
 modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for
 T2- and proton-density-weighted structural imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 15-119
+.. GENERATED FROM PYTHON SOURCE LINES 16-120
 
 .. code-block:: Python
 
@@ -86,12 +87,12 @@ T2- and proton-density-weighted structural imaging.
 
  .. code-block:: none
 
-    21 shots; 12.36 ms echo spacing; 123.6 ms effective TE
+    21 shots; 3.48 ms echo spacing; 118.3 ms effective TE
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 120-126
+.. GENERATED FROM PYTHON SOURCE LINES 121-127
 
 Sequence diagram
 ----------------
@@ -100,7 +101,7 @@ Each echo comprises a variable-angle refocusing pulse, phase and partition
 prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
 is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 126-128
+.. GENERATED FROM PYTHON SOURCE LINES 127-129
 
 .. code-block:: Python
 
@@ -118,7 +119,7 @@ is the echo assigned to k-space centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-142
+.. GENERATED FROM PYTHON SOURCE LINES 130-143
 
 Refocusing schedule and echo signal
 -----------------------------------
@@ -134,7 +135,7 @@ contrast between two of the sequence's design tissues at the effective-TE
 echo, and a penalty on RF power above that of the initial schedule. The same
 simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-158
+.. GENERATED FROM PYTHON SOURCE LINES 143-159
 
 .. code-block:: Python
 
@@ -157,7 +158,7 @@ simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-166
+.. GENERATED FROM PYTHON SOURCE LINES 160-167
 
 Echo and shot order
 -------------------
@@ -167,7 +168,7 @@ effective-TE echo and progressively larger radii to echoes farther from it. Echo
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 166-171
+.. GENERATED FROM PYTHON SOURCE LINES 167-172
 
 
 
@@ -181,7 +182,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-179
+.. GENERATED FROM PYTHON SOURCE LINES 173-180
 
 K-space weighting
 -----------------
@@ -191,7 +192,7 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 179-189
+.. GENERATED FROM PYTHON SOURCE LINES 180-190
 
 
 
@@ -205,7 +206,7 @@ image blurring along both phase-encode axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 190-205
+.. GENERATED FROM PYTHON SOURCE LINES 191-206
 
 References
 ----------
@@ -226,7 +227,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.812 seconds)
+   **Total running time of the script:** (0 minutes 0.546 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:

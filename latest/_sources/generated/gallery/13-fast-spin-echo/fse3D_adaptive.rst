@@ -48,7 +48,7 @@ is set by the parameters of the central shots.
         "fov_z": 0.12,
         "etl": 40,
         "etl_periphery": 72,
-        "te": 200e-3,
+        "te": 100e-3,
         "tr": 1.2,
         "tr_periphery": 1.6,
         "refocusing_angle_deg": 120.0,
@@ -164,7 +164,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.329 seconds)
+   **Total running time of the script:** (0 minutes 4.280 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

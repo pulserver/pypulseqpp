@@ -809,7 +809,7 @@ Fast spin echo
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo refocusing train, with one Cartesian (line, partition) view acquired at each echo. Refocusing angles below 180 degrees add stimulated-echo pathways to the echo signal [HEN88]_, and variable refocusing angles modulate the T2-dependent signal evolution along the train [BUS08a]_. Radial view ordering maps this evolution onto the (k_y, k_z) plane and therefore determines the modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for T2- and proton-density-weighted structural imaging.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A slab-selective excitation is followed by a CPMG fast-spin-echo train of hard refocusing pulses, with one Cartesian (line, partition) view acquired at each echo. Refocusing angles below 180 degrees add stimulated-echo pathways to the echo signal [HEN88]_, and variable refocusing angles modulate the T2-dependent signal evolution along the train [BUS08a]_. Radial view ordering maps this evolution onto the (k_y, k_z) plane and therefore determines the modulation transfer function and image blurring [BUS08a]_. 3D FSE is used for T2- and proton-density-weighted structural imaging.">
 
 .. only:: html
 

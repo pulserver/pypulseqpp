@@ -42,7 +42,7 @@ P = {
     "fov_z": 0.12,
     "etl": 40,
     "etl_periphery": 72,
-    "te": 200e-3,
+    "te": 100e-3,
     "tr": 1.2,
     "tr_periphery": 1.6,
     "refocusing_angle_deg": 120.0,
