@@ -575,6 +575,7 @@ def fse3d(
     busse_maximum_angle_deg: float = 120.0,
     busse_startup_echoes: int = 6,
     busse_centre_echo: int | None = None,
+    busse_effective_te: float | None = None,
     busse_initial_decay: float = 1.3,
     busse_optimize: bool = False,
     busse_minimum_angle_periphery_deg: float | None = None,
@@ -722,6 +723,15 @@ def fse3d(
     busse_centre_echo : int | None, default=None
         Zero-based acquired echo index under ``busse``. ``None`` selects
         ``(etl - 1) // 2``. Startup pulses precede this index.
+    busse_effective_te : float | None, default=None
+        Requested contrast-equivalent TE (s) for Busse trains. Select the
+        nearest feasible acquired centre echo by relaxed/relaxation-free EPG
+        with reference T1/T2 of 1.0/0.1 s. The centre-angle constraint follows
+        the selected echo. ``None`` retains the midpoint prescription;
+        an explicit ``busse_centre_echo`` takes precedence. Control fitting
+        preserves the selected reference effective TE within 0.1 ms.
+        The ``TE`` definition remains physical centre time; the achieved
+        reference contrast time is ``EffectiveEchoTime``. Requires ``busse``.
     busse_initial_decay : float, default=1.3
         Initial exponential time constant, measured in echoes, under ``busse``.
     busse_optimize : bool, default=False
@@ -807,6 +817,8 @@ def fse3d(
         raise ValueError(
             "Busse trains require te=None; prescribe busse_centre_echo instead"
         )
+    if busse_effective_te is not None and not busse:
+        raise ValueError("busse_effective_te requires flip_modulation='busse'")
     if busse_optimize and not busse:
         raise ValueError("busse_optimize requires flip_modulation='busse'")
     startup = busse_startup_echoes if busse else 0
@@ -863,10 +875,6 @@ def fse3d(
         busse_centre = (
             (etl - 1) // 2 if busse_centre_echo is None else busse_centre_echo
         )
-        if min(etl, etl_periphery) <= busse_centre + 1:
-            raise ValueError(
-                "busse_centre_echo must precede the final acquired echo of every train"
-            )
         centre_controls = np.array(
             [busse_minimum_angle_deg, busse_centre_angle_deg, busse_maximum_angle_deg]
         )
@@ -892,16 +900,6 @@ def fse3d(
             "startup_echoes": startup,
             "initial_decay": busse_initial_decay,
         }
-        busse_angles = pp.make_busse_schedule(etl + startup, **busse_protocol)
-        pp.make_busse_schedule(
-            etl_periphery + startup,
-            **{
-                **busse_protocol,
-                "minimum_flip_angle": np.deg2rad(periphery_controls[0]),
-                "centre_flip_angle": np.deg2rad(periphery_controls[1]),
-                "maximum_flip_angle": np.deg2rad(periphery_controls[2]),
-            },
-        )
 
     # An even number of block rasters puts each hard pulse centre on the raster.
     raster = system.block_duration_raster
@@ -939,6 +937,44 @@ def fse3d(
         wave_cycles=wave_cycles,
         wave_amplitude=wave_amplitude,
     )
+    if busse:
+        if busse_effective_te is not None and busse_centre_echo is None:
+            from pypulseqpp._fse_contrast import _select_busse_centre
+
+            busse_centre = _select_busse_centre(
+                etl,
+                etl_periphery,
+                startup,
+                centre_controls,
+                periphery_controls,
+                busse_initial_decay,
+                fse.esp,
+                float(fse.echo_times[0]),
+                busse_effective_te,
+            )
+        if min(etl, etl_periphery) <= busse_centre + 1:
+            raise ValueError(
+                "busse_centre_echo must precede the final acquired echo of every train"
+            )
+        busse_protocol["centre_echo"] = startup + busse_centre
+        busse_angles = pp.make_busse_schedule(etl + startup, **busse_protocol)
+        pp.make_busse_schedule(
+            etl_periphery + startup,
+            **{
+                **busse_protocol,
+                "minimum_flip_angle": np.deg2rad(periphery_controls[0]),
+                "centre_flip_angle": np.deg2rad(periphery_controls[1]),
+                "maximum_flip_angle": np.deg2rad(periphery_controls[2]),
+            },
+        )
+        prescribed_effective_te = float(
+            pp.calc_fse_effective_te(
+                busse_angles[: startup + busse_centre + 1],
+                fse.esp,
+                first_echo_time=float(fse.echo_times[0]),
+            )[-1]
+        )
+
     nominal = fse.rf_ref.amplitude
     refocusing_gz = getattr(fse, "gz_ref", None)
     waves = [
@@ -1079,6 +1115,11 @@ def fse3d(
                     b1_scales=DESIGN_B1_SCALES,
                     contrast_pair=DESIGN_CONTRAST,
                     objective="contrast" if individual and endpoint == 0 else "psf",
+                    effective_te=(
+                        prescribed_effective_te
+                        if busse_effective_te is not None and endpoint == 0
+                        else None
+                    ),
                 )
                 endpoint_controls[endpoint] = np.rad2deg(
                     fitted[[np.argmin(fitted), startup + te_echo, -1]]
@@ -1280,6 +1321,15 @@ def fse3d(
     }
     if busse:
         definitions.update(
+            EffectiveEchoTime=float(
+                pp.calc_fse_effective_te(
+                    np.deg2rad(shot_flips[0][: startup + te_echo + 1]),
+                    fse.esp,
+                    first_echo_time=float(fse.echo_times[0]),
+                )[-1]
+            ),
+            EffectiveEchoTimeReferenceT1=1.0,
+            EffectiveEchoTimeReferenceT2=0.1,
             StartupEchoes=startup,
             BusseControlAngles=[
                 busse_minimum_angle_deg,

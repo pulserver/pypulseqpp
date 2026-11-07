@@ -72,3 +72,9 @@ in turn over a shared time base.
 | {obj}`~pypulseqpp.calc_rf_power` | RF event, time step | Energy (Hz² s), peak power (Hz²), RMS amplitude (Hz) | RF power, as MATLAB Pulseq `calcRfPower`. |
 | {obj}`~pypulseqpp.sim_bloch` | Complex B1 (Hz), Bz (Hz), time step | Final magnetisation `(P, 3)` | Hard-pulse Bloch simulation, no relaxation. |
 | {obj}`~pypulseqpp.sim_rf` | RF event, rephase factor | Mz and Mxy profiles, frequency axis (Hz), refocusing efficiency | Off-resonance profile, no relaxation. |
+
+## Fast spin echo contrast
+
+| Object | Description |
+| --- | --- |
+| {obj}`~pypulseqpp.calc_fse_effective_te` | Reference contrast-equivalent echo times from relaxed and relaxation-free CPMG EPG signals. |

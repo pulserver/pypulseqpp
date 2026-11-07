@@ -292,6 +292,7 @@ _SAMPLING = {
         "calc_uniform_angles",
     ),
     "_epi": ("make_epi_shot_offsets",),
+    "_fse_contrast": ("calc_fse_effective_te",),
     "_masks": (
         "calc_cartesian_plane_sampling_probability",
         "count_cartesian_plane_sampling",

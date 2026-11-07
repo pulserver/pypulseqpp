@@ -10,6 +10,7 @@ from scipy.sparse import csr_matrix
 from scipy.spatial import Delaunay, cKDTree
 
 from ._busse import make_busse_schedule
+from ._fse_contrast import calc_fse_effective_te
 
 
 @lru_cache(maxsize=4)
@@ -90,6 +91,7 @@ def optimize_controls(
     b1_scales,
     contrast_pair,
     objective="psf",
+    effective_te=None,
 ):
     """Fit minimum/centre angles within five degrees of their prescription.
 
@@ -99,6 +101,10 @@ def optimize_controls(
     prescribed train. Each B1 case loses at most 4.5% of the magnitude of its
     prescribed signed (bright-minus-dark) contrast.
     The contrast objective maximizes mean contrast relative to the prescription.
+    If effective_te is supplied (seconds), preserve this reference contrast
+    time at the centre within min(0.1 ms, 5% ESP), using relaxed/relaxation-free
+    CPMG EPG at T1/T2 = 1.0/0.1 s. This prevents fitting from undoing a UI
+    effective-TE prescription.
     Returns angles (rad); an unconverged or infeasible fit raises ValueError.
     """
     if objective not in ("psf", "contrast"):
@@ -187,7 +193,8 @@ def optimize_controls(
         def evaluate(u):
             if np.array_equal(cached.get("u"), u):
                 return cached["value"]
-            step = 0.02
+            # Resolve the narrow active contrast boundary of short-TR trains.
+            step = 0.005
             probes = np.r_[u[None, :], u + step * np.eye(2), u - step * np.eye(2)]
             flips = []
             for probe in probes:
@@ -222,6 +229,17 @@ def optimize_controls(
                 (contrast - reference_contrast) / contrast_scale + 0.045,
                 0.999 - np.sum(flips**2, axis=1) / budget,
             ]
+            if effective_te is not None:
+                contrast_te = calc_fse_effective_te(
+                    flips[:, : centre_echo + 1],
+                    esp,
+                    first_echo_time=first_echo_time,
+                )[:, -1]
+                deviation = (contrast_te - effective_te) / esp
+                tolerance = min(1e-4, 0.05 * esp) / esp
+                constraints = np.c_[
+                    constraints, tolerance - deviation, tolerance + deviation
+                ]
             value = (
                 loss[0],
                 (loss[1:3] - loss[3:5]) / (2 * step),

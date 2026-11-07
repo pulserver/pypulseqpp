@@ -1,13 +1,14 @@
 """Illustrate Buonincontri's transition and ordering using a Busse family.
 
 The abstract's Fig. 1 states ETL 45/20, TR 1800/150 ms, TE 28 ms, CAIPI 4,
-and 586 shots, but not ESP or numerical PDvar* controls. This reconstruction
+and 586 shots, but not ESP or numerical PDvar* controls. This illustration
 uses our prescribed-PSS Busse family (25/70/120 degrees, six startup pulses),
-a common ESP of 3.416 ms and S13 first echo timing. Treating TE 28 ms as
-physical timing places the 70-degree centre at the second acquired echo;
-this produces a steep early rise. The abstract does not establish that TE
-convention. This is a transition-method demonstration, not a reconstruction
-of the published PDvar* RF trains. Peripheral TR is raised to
+a common ESP of 3.416 ms and S13 first echo timing. Our TE control means
+contrast-equivalent TE: the requested 28 ms selects the nearest feasible
+centre using relaxed/relaxation-free EPG with reference T1/T2 of 1000/100 ms.
+The abstract does not establish that its TE uses the same convention. This
+is a transition-method demonstration, not a reconstruction of PDvar* RF trains.
+Peripheral TR is raised to
 the duration of the common padded GE layout; the exact scan-time cost is
 reported. Fig. 2 uses an explicitly illustrative 192 x 160 CAIPI plane, since
 the full view list and sorting details are not supplied in the abstract.
@@ -37,7 +38,6 @@ from pypulseqpp._busse_opt import optimize_controls
 ESP = 0.003416
 FIRST = 0.004162
 STARTUP = 6
-CENTRE = 1
 
 
 def hardware():
@@ -103,8 +103,10 @@ def main(output):
         tr=None,
         n_dummy=0,
         flip_modulation="busse",
-        busse_centre_echo=CENTRE,
+        busse_effective_te=0.028,
     )
+    centre = int(timing.definitions["BusseCentreEcho"][0])
+    prescribed_effective = float(timing.definitions["EffectiveEchoTime"][0])
     minimum_tr = float(timing.definitions["TR"][0])
     assert timing.check_timing()[0]
     peripheral_tr = max(0.15, minimum_tr)
@@ -123,7 +125,7 @@ def main(output):
     endpoints = []
     fit_times = []
     for endpoint, (length, period) in enumerate(((45, 1.8), (20, peripheral_tr))):
-        order = pp.make_pclo_order(coordinates, length, center_echo=CENTRE, pad=True)
+        order = pp.make_pclo_order(coordinates, length, center_echo=centre, pad=True)
         _, echo_map = maps(order, sampled, shape)
         plane = np.where(np.isfinite(echo_map), echo_map, -1).astype(np.int32)
         begin = perf_counter()
@@ -132,7 +134,7 @@ def main(output):
             minimum_flip_angle=np.deg2rad(25),
             centre_flip_angle=np.deg2rad(70),
             maximum_flip_angle=np.deg2rad(120),
-            centre_echo=STARTUP + CENTRE,
+            centre_echo=STARTUP + centre,
             startup_echoes=STARTUP,
             initial_decay=1.3,
             esp=ESP,
@@ -144,13 +146,14 @@ def main(output):
             b1_scales=module.DESIGN_B1_SCALES,
             contrast_pair=module.DESIGN_CONTRAST,
             objective="contrast" if endpoint == 0 else "psf",
+            effective_te=prescribed_effective if endpoint == 0 else None,
         )
         fit_times.append(perf_counter() - begin)
-        endpoints.append(np.rad2deg(fitted[[np.argmin(fitted), STARTUP + CENTRE, -1]]))
+        endpoints.append(np.rad2deg(fitted[[np.argmin(fitted), STARTUP + centre, -1]]))
     controls = endpoints[0] + step[:, None] * (endpoints[1] - endpoints[0])
     begin = perf_counter()
     profiles = np.rad2deg(
-        _make_busse_schedules(lengths + STARTUP, controls, STARTUP + CENTRE, 1.3)
+        _make_busse_schedules(lengths + STARTUP, controls, STARTUP + centre, 1.3)
     )
     construction = perf_counter() - begin
     assert np.all(
@@ -158,12 +161,13 @@ def main(output):
         == 0
     )
     report = {
-        "source": "Buonincontri et al., ISMRM 2025, abstract 566-05-007, Figures 1-2",
+        "source": "Buonincontri et al., supplied abstract 566-05-007, Figures 1-2",
         "scope": "Method reproduction with Busse replacement for PDvar*, not an exact numerical reproduction of the proprietary RF train or scan results.",
         "assumptions": {
             "ESP_ms": ESP * 1000,
             "first_echo_ms": FIRST * 1000,
             "startup": STARTUP,
+            "TE_convention": "Our TE 28 ms request is contrast-equivalent, using 1000/100 ms reference T1/T2; the abstract's TE convention is unspecified.",
             "initial_controls_deg": [25, 70, 120],
             "initial_decay_echoes": 1.3,
             "illustrative_view_matrix": shape,
@@ -172,7 +176,17 @@ def main(output):
         "minimum_padded_TR_ms": minimum_tr * 1000,
         "published_TR_endpoints_ms": [1800, 150],
         "feasible_TR_endpoints_ms": [1800, peripheral_tr * 1000],
-        "TE_ms": (FIRST + ESP * (STARTUP + CENTRE)) * 1000,
+        "physical_centre_TE_ms": (FIRST + ESP * (STARTUP + centre)) * 1000,
+        "requested_effective_TE_ms": 28.0,
+        "effective_TE_ms": float(
+            pp.calc_fse_effective_te(
+                np.deg2rad(profiles[0, : STARTUP + centre + 1]),
+                ESP,
+                first_echo_time=FIRST,
+            )[-1]
+        )
+        * 1000,
+        "centre_acquired_zero_based": centre,
         "ETL_endpoints": [45, 20],
         "shots": count,
         "published_transition_seconds": float(paper_tr.sum()),
@@ -215,7 +229,7 @@ def main(output):
     note.text(
         0,
         0.9,
-        f"ESP fixed: {ESP * 1000:.3f} ms\nPhysical TE: {report['TE_ms']:.3f} ms (nearest to 28 ms)\nIndependent CPU fits: {fit_times[0]:.2f} / {fit_times[1]:.2f} s\n586 intermediate trains: {construction:.2f} s",
+        f"ESP fixed: {ESP * 1000:.3f} ms\nEffective TE: {report['effective_TE_ms']:.3f} ms (requested 28)\nPhysical centre TE: {report['physical_centre_TE_ms']:.3f} ms\nIndependent CPU fits: {fit_times[0]:.2f} / {fit_times[1]:.2f} s\n586 intermediate trains: {construction:.2f} s",
         va="top",
     )
     for row, shot in enumerate(np.rint(np.linspace(0, count - 1, 5)).astype(int)):
@@ -224,7 +238,7 @@ def main(output):
         axis.axvspan(0.5, STARTUP + 0.5, color="0.92")
         axis.axvspan(last + 0.5, 51.5, color="#e8eef4")
         axis.plot(np.arange(1, 52), profiles[shot], color="#24669b")
-        axis.axvline(STARTUP + CENTRE + 1, linestyle=":", color="0.6")
+        axis.axvline(STARTUP + centre + 1, linestyle=":", color="0.6")
         axis.set(
             xlim=(0.5, 51.5),
             ylim=(-5, 130),
@@ -254,7 +268,7 @@ def main(output):
         ),
         (
             "C. Buonincontri adapted radial",
-            module.deal_trains(coordinates, variable_lengths, place, CENTRE, 45),
+            module.deal_trains(coordinates, variable_lengths, place, centre, 45),
         ),
     ]
     figure, axes = plt.subplots(3, 2, figsize=(10.5, 12), layout="constrained")
