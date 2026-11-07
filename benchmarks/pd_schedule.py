@@ -185,6 +185,7 @@ def main(output):
     paper_tr = 1.8 - 1.65 * step
     feasible_tr = 1.8 + (peripheral_tr - 1.8) * step
     transition_controls = controls[0] + step[:, None] * (controls[1] - controls[0])
+    assert np.all(transition_controls[:, 0] == 120)
     seed = levels[0] + step[:, None] * (levels[1] - levels[0])
     np.savez(
         output / "pd_transition_inputs.npz",

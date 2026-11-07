@@ -26,11 +26,11 @@ def optimize_pd_controls(
     effective_te=None,
     initial_decay=1.3,
 ):
-    """Fit first angle and signal-tail onset; keep actual peak/final angles fixed.
+    """Fit signal-tail onset; keep actual first/peak/final angles fixed.
 
-    Controls are first/maximum/final degrees and plateau fraction. The first
-    changes by at most five degrees; tail onset by at most 0.1 of the acquired
-    train. Bound RF energy by the prescribed train, retain 95% of centre mean
+    Controls are first/maximum/final degrees and plateau fraction. Tail onset
+    changes by at most 0.1 of the acquired train. Bound RF energy by the
+    prescribed train, retain 95% of centre mean
     signal and signed contrast to 4.5% of its magnitude across the B1 ensemble.
     An explicit reference effective TE is preserved to min(0.1 ms, 5% ESP).
     Return fitted controls, radians and signal levels, or raise on failure.
@@ -46,12 +46,7 @@ def optimize_pd_controls(
         length, *controls, startup, esp, first_echo, 1.0, 0.1, initial_decay
     )
     energy_form, moment_form = psf_weights(echo_map, length - startup)
-    widths = np.array(
-        [
-            min(5.0, controls[0] / 10, (controls[1] - controls[0]) / 2),
-            min(0.1, controls[3] / 2, (1 - controls[3]) / 2),
-        ]
-    )
+    width = min(0.1, controls[3] / 2, (1 - controls[3]) / 2)
 
     class TimedFSE(FSESimulator):
         def layout(
@@ -100,17 +95,17 @@ def optimize_pd_controls(
             if np.array_equal(cache.get("u"), u):
                 return cache["value"]
             step = 0.005
-            probes = np.r_[u[None, :], u + step * np.eye(2), u - step * np.eye(2)]
-            prescribed = np.tile(controls, (5, 1))
-            prescribed[:, [0, 3]] += widths * probes
+            probes = np.array([u[0], u[0] + step, u[0] - step])
+            prescribed = np.tile(controls, (3, 1))
+            prescribed[:, 3] += width * probes
             flips, fitted_levels = _make_pd_schedules(
-                np.full(5, length),
+                np.full(3, length),
                 prescribed,
                 startup,
                 esp,
                 first_echo,
                 decay=initial_decay,
-                seed=np.tile(levels, (5, 1)),
+                seed=np.tile(levels, (3, 1)),
                 return_levels=True,
             )
             signal = simulate(flips)
@@ -122,7 +117,7 @@ def optimize_pd_controls(
                 "bti,ij,btj->bt", image_signal, moment_form, image_signal, optimize=True
             )
             loss = np.sqrt(np.maximum(moment, 0) / np.maximum(energy, 1e-20)).mean(1)
-            tissue = signal.reshape(5, len(b1_scales), len(t1_ms), length)
+            tissue = signal.reshape(3, len(b1_scales), len(t1_ms), length)
             contrast = tissue[:, :, bright, centre] - tissue[:, :, dark, centre]
             centre_signal = tissue[:, :, :, centre].mean(2)
             if objective == "contrast":
@@ -141,9 +136,9 @@ def optimize_pd_controls(
                 constraints = np.c_[constraints, tolerance - delta, tolerance + delta]
             value = (
                 loss[0],
-                (loss[1:3] - loss[3:5]) / (2 * step),
+                np.array([(loss[1] - loss[2]) / (2 * step)]),
                 constraints[0],
-                ((constraints[1:3] - constraints[3:5]) / (2 * step)).T,
+                ((constraints[1] - constraints[2]) / (2 * step))[:, None],
                 prescribed[0],
                 flips[0],
                 fitted_levels[0],
@@ -153,10 +148,10 @@ def optimize_pd_controls(
 
         result = minimize(
             lambda u: evaluate(u)[:2],
-            np.zeros(2),
+            np.zeros(1),
             jac=True,
             method="SLSQP",
-            bounds=((-1, 1), (-1, 1)),
+            bounds=((-1, 1),),
             constraints=[
                 {
                     "type": "ineq",

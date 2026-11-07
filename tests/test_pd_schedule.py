@@ -173,7 +173,7 @@ def test_pd_fse_keeps_common_rf_slots_and_acquired_echo_times():
     assert seq.check_timing()[0]
 
 
-def test_pd_fit_preserves_peak_final_energy_and_effective_te():
+def test_pd_fit_preserves_first_peak_final_energy_and_effective_te():
     pytest.importorskip("blochsim.simulators")
     settings = {
         "system": pp.Opts(rf_dead_time=100e-6, rf_ringdown_time=20e-6),
@@ -191,6 +191,7 @@ def test_pd_fit_preserves_peak_final_energy_and_effective_te():
     fitted = sequences.fse3D_sequence(**settings, pd_optimize=True)
     a = np.asarray(fitted.definitions["RefocusingFlipAngles"])
     b = np.asarray(baseline.definitions["RefocusingFlipAngles"])
+    assert a[0] == pytest.approx(120, abs=1e-10)
     assert a.max() == pytest.approx(140, abs=1e-4)
     assert a[-1] == pytest.approx(100, abs=1e-4)
     assert np.sum(a * a) <= np.sum(b * b) * 1.00011

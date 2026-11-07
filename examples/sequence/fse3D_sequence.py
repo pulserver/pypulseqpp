@@ -787,8 +787,8 @@ def fse3d(
         ``busse_centre_echo`` overrides this choice. ``TE`` remains physical
         centre time; ``EffectiveEchoTime`` records reference contrast time.
     pd_optimize : bool, default=False
-        Fit first angle within five degrees and tail onset within 0.1 of the
-        acquired train using CPU forward EPG, retaining peak/final angles.
+        Fit tail onset within 0.1 of the acquired train using CPU forward
+        EPG, retaining the prescribed first, peak and final angles.
         Bound RF energy and retain centre mean signal and signed contrast.
         Preserve a prescribed reference effective TE to 0.1 ms. Requires
         ``pd`` and the ``design`` extra. As for Busse, fit endpoints separately
