@@ -312,6 +312,7 @@ _SAMPLING = {
         "make_shuffling_order",
         "make_traversal_order",
     ),
+    "_pd": ("make_pd_schedule",),
     "_schedules": (
         "make_busse_schedule",
         "make_phase_cycling_schedule",
