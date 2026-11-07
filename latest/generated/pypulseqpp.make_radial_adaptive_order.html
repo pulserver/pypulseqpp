@@ -528,9 +528,9 @@ centre) and cut into <code class="docutils literal notranslate"><span class="pre
 from it, alternating before and after, so the distance from the centre
 increases monotonically away from the target echo in both directions.
 Within a band the views are dealt across the shots in polar-angle order.
-This is scheme C (modified radial reordering) of Buonincontri et al.,
-Fig. 2C-D, which acquires the k-space centre at a prescribed echo without
-a discontinuity at the centre.</p>
+This is an echo-distance folding rule, with no joint assignment by
+shot-dependent TR or train parameters. <code class="docutils literal notranslate"><span class="pre">make_pclo_order</span></code> provides the
+published PCLO permutation for identical trains and arbitrary centres.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

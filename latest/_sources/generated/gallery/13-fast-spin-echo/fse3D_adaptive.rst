@@ -25,14 +25,14 @@ Individually optimized 3D fast spin echo
 Individually parameterized 3D FSE assigns different echo-train lengths and
 repetition times to the shots that acquire central and peripheral k-space
 [BUO25]_. From the central to the peripheral shots, TR and the minimum
-angle of the refocusing schedule [BUS08b]_ follow a cubic
+and centre angles of a prescribed-PSS refocusing schedule [BUS08b]_ follow a cubic
 smooth-step transition between their two limits; the echo-train length
 follows the same transition, rounded to integer values. The views are
 assigned by an adaptive radial order. Longer trains and a different TR at the
 periphery can reduce scan time, while the contrast at the centre of k-space
 is set by the parameters of the central shots.
 
-.. GENERATED FROM PYTHON SOURCE LINES 16-57
+.. GENERATED FROM PYTHON SOURCE LINES 16-58
 
 .. code-block:: Python
 
@@ -48,13 +48,14 @@ is set by the parameters of the central shots.
         "fov_z": 0.12,
         "etl": 40,
         "etl_periphery": 72,
-        "te": 100e-3,
+        "te": None,
         "tr": 1.2,
         "tr_periphery": 1.6,
         "refocusing_angle_deg": 120.0,
         "n_dummy": 0,
-        "ordering": "radial",
-        "flip_modulation": "optimized",
+        "ordering": "buonincontri",
+        "flip_modulation": "busse",
+        "busse_optimize": True,
         "wave_amplitude": 0.0,
     }
     seq = sequences.fse3D_sequence(**P)
@@ -64,18 +65,10 @@ is set by the parameters of the central shots.
 
 
 
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    /opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:916: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
-    Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
-      first = float(value.reshape(-1)[0])
 
 
 
-
-.. GENERATED FROM PYTHON SOURCE LINES 58-76
+.. GENERATED FROM PYTHON SOURCE LINES 59-78
 
 Train parameters
 ----------------
@@ -83,12 +76,13 @@ Train parameters
 TR and the schedule's minimum angle follow a cubic smooth-step
 transition, :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central)
 shot to 1 at the last (peripheral) shot [BUO25]_; the echo-train length
-follows the same transition rounded to integers. Every schedule peaks at
-the prescribed 120 degrees, which it reaches again at the effective-TE
-echo. The schedules of representative shots are plotted up to each shot's
-own train length:
-the central shots reach lower minimum angles, and the peripheral shots have
-shallower minima and longer trains.
+follows the same transition rounded to integers. The two endpoint trains
+are optimized independently at their own TR and ETL. The central endpoint
+maximizes model contrast; the peripheral endpoint minimizes PSF radius.
+Inverse EPG constructs every intermediate schedule from its interpolated
+controls. All trains share one echo spacing, RF pulse width and centre echo;
+six startup pulses precede the acquired echoes. The first and final pulses
+have the prescribed 120-degree angle.
 
 The schedules are read from the pulses the sequence plays. The flip angle of
 each refocusing pulse is that of its pulse definition scaled by the relative
@@ -96,7 +90,7 @@ amplitude of the instance, which is zero past the shot's own train length.
 The TR of a shot is the interval from its excitation to the next; the last
 shot's is recorded as ``TRPeriphery``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-99
+.. GENERATED FROM PYTHON SOURCE LINES 78-104
 
 .. code-block:: Python
 
@@ -105,7 +99,8 @@ shot's is recorded as ``TRPeriphery``.
     use = np.asarray(rf_times.use)
     flip = np.array([rf.flip_deg for rf in instances.definitions])[instances.definition]
     angles = (flip * instances.amplitude)[use == "refocusing"].reshape(n_shots, -1)
-    lengths = np.count_nonzero(angles, axis=1)
+    rf_counts = np.count_nonzero(angles, axis=1)
+    lengths = rf_counts - 6
     excitations = np.asarray(rf_times.t)[use == "excitation"]
     tr = np.append(np.diff(excitations), seq.get_definition("TRPeriphery")[0])
 
@@ -122,7 +117,7 @@ shot's is recorded as ``TRPeriphery``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 100-109
+.. GENERATED FROM PYTHON SOURCE LINES 105-114
 
 Adaptive radial ordering
 ------------------------
@@ -134,7 +129,7 @@ slots nearest the effective-TE echo of the central shots, and within each group 
 are assigned to shots in order of angle. Colour gives the train length and
 TR of the shot that acquired each view.
 
-.. GENERATED FROM PYTHON SOURCE LINES 109-142
+.. GENERATED FROM PYTHON SOURCE LINES 114-147
 
 
 
@@ -148,7 +143,7 @@ TR of the shot that acquired each view.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 143-153
+.. GENERATED FROM PYTHON SOURCE LINES 148-158
 
 References
 ----------
@@ -164,7 +159,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 4.280 seconds)
+   **Total running time of the script:** (0 minutes 6.381 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_adaptive.py:

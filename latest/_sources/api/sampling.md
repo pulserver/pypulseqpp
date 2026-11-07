@@ -56,6 +56,7 @@ example by the Poisson-disc support of
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.make_linear_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Raster-order bands, one per echo. |
 | {obj}`~pypulseqpp.make_centric_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Distance-ranked bands; centre at echo 0 or `center_echo`. |
+| {obj}`~pypulseqpp.make_pclo_order` | Centred coordinates, train length, centre echo | Indices as `[shot][echo]` | Rydén PCLO radius bands for identical trains and arbitrary centre echoes. |
 | {obj}`~pypulseqpp.make_radial_order` | Centred coordinates, train length | Indices as `[shot][echo]` | One angular wedge per shot, centre-out within it. |
 | {obj}`~pypulseqpp.make_radial_adaptive_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Distance bands folded about `center_echo`. |
 | {obj}`~pypulseqpp.make_shuffling_order` | Centred coordinates, train length, seed | Indices as `[shot][echo]` | Random echo positions within raster-contiguous trains (T2 Shuffling). |
@@ -86,4 +87,6 @@ shot's origin `(y0, z0)`; echo `e` then acquires `(y0, z0) + offsets[e]`.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.make_rf_spoiling_schedule` | Number of repetitions, increment | Phases (rad), one per repetition | Quadratic RF spoiling. |
 | {obj}`~pypulseqpp.make_phase_cycling_schedule` | Number of repetitions, cycle | Phases (rad), one per repetition | Repeated phase cycle. |
+| {obj}`~pypulseqpp.make_pd_schedule` | Total RF count, echo timing, first/maximum/final angles, signal-tail onset | Refocusing angles (rad), including startup | Relaxation-aware prescribed-signal inverse EPG for PD imaging. |
+| {obj}`~pypulseqpp.make_busse_schedule` | Total RF count, minimum/centre/maximum angles, centre echo | Refocusing angles (rad), including startup | Prescribed-PSS envelope inverted with EPG. |
 | {obj}`~pypulseqpp.make_traps_schedule` | Echo-train length, target angle | Refocusing angles (rad), one per echo | Stabilising variable refocusing angles. |

@@ -181,6 +181,7 @@ from.
    calc_rf_power
    sim_bloch
    sim_rf
+   calc_fse_effective_te
 
 .. currentmodule:: pypulseqpp.safety
 
@@ -223,6 +224,7 @@ from.
    make_traversal_order
    make_linear_order
    make_centric_order
+   make_pclo_order
    make_radial_order
    make_radial_adaptive_order
    make_shuffling_order
@@ -235,6 +237,8 @@ from.
    calc_projection_shell
    make_rf_spoiling_schedule
    make_phase_cycling_schedule
+   make_pd_schedule
+   make_busse_schedule
    make_traps_schedule
 
 .. currentmodule:: pypulseqpp.sequences
