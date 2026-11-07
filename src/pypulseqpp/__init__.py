@@ -292,6 +292,7 @@ _SAMPLING = {
         "calc_uniform_angles",
     ),
     "_epi": ("make_epi_shot_offsets",),
+    "_fse_contrast": ("calc_fse_effective_te",),
     "_masks": (
         "calc_cartesian_plane_sampling_probability",
         "count_cartesian_plane_sampling",
@@ -305,12 +306,15 @@ _SAMPLING = {
         "make_centric_order",
         "make_complementary_order",
         "make_linear_order",
+        "make_pclo_order",
         "make_radial_adaptive_order",
         "make_radial_order",
         "make_shuffling_order",
         "make_traversal_order",
     ),
+    "_pd": ("make_pd_schedule",),
     "_schedules": (
+        "make_busse_schedule",
         "make_phase_cycling_schedule",
         "make_rf_spoiling_schedule",
         "make_traps_schedule",

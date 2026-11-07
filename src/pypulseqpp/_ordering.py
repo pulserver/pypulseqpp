@@ -8,8 +8,9 @@ that array, never coordinates. None of them selects views or creates labels.
 
 References
 ----------
-Linear, radial and adaptive radial echo-train reordering follow schemes A-C of
-Buonincontri et al., ISMRM abstract 566-05-007, Fig. 2. Shuffled echo trains
+PCLO follows Rydén et al., Magn Reson Med 2026, doi:10.1002/mrm.70482.
+Joint shot/echo adaptation for varying train parameters is described by
+Buonincontri et al., ISMRM abstract 566-05-007, Fig. 2D. Shuffled echo trains
 follow Tamir et al., Magn Reson Med 2017;77:180-195. Complementary echo
 assignment follows Levine et al., Magn Reson Med 2017;77:1774-1785.
 """
@@ -20,6 +21,7 @@ __all__ = [
     "make_centric_order",
     "make_complementary_order",
     "make_linear_order",
+    "make_pclo_order",
     "make_radial_adaptive_order",
     "make_radial_order",
     "make_shuffling_order",
@@ -528,9 +530,9 @@ def make_radial_adaptive_order(
     from it, alternating before and after, so the distance from the centre
     increases monotonically away from the target echo in both directions.
     Within a band the views are dealt across the shots in polar-angle order.
-    This is scheme C (modified radial reordering) of Buonincontri et al.,
-    Fig. 2C-D, which acquires the k-space centre at a prescribed echo without
-    a discontinuity at the centre.
+    This is an echo-distance folding rule, with no joint assignment by
+    shot-dependent TR or train parameters. ``make_pclo_order`` provides the
+    published PCLO permutation for identical trains and arbitrary centres.
 
     Parameters
     ----------
@@ -844,3 +846,123 @@ def make_complementary_order(
         for shot, index in enumerate(raster[frames[raster] == echo]):
             trains[shot][echo] = int(index)
     return _finish_trains(trains, train_length, pad)
+
+
+def _pclo_rings(te_echo: int, etl: int) -> np.ndarray:
+    """Return the echo each ring of k-space takes, innermost first.
+
+    Pivot centre, linear outer (PCLO; Rydén et al., Magn Reson Med 2026,
+    doi:10.1002/mrm.70482, Eq. 3): the TE echo reads the innermost ring, the
+    rings around it step through the earlier echoes two at a time down to
+    the first and back up through the others, and the outer rings take the
+    remaining echoes in order. Neighbouring rings are at most two echoes
+    apart, so T2 decay modulates k-space without a jump. A TE echo in the
+    second half of the train mirrors the order from the end.
+
+    Parameters
+    ----------
+    te_echo : int
+        The echo read at the centre of k-space, counting from 0.
+    etl : int
+        Echoes in the train.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``(etl,)`` the echo of each ring, counting from 0.
+    """
+    centre = te_echo + 1
+    mirrored = centre > etl / 2
+    if mirrored:
+        centre = etl - centre + 1
+    pivot = centre + centre % 2
+    rings = np.arange(1, etl + 1)
+    inner = rings <= pivot // 2
+    middle = (rings > pivot // 2) & (rings <= pivot)
+    echoes = rings.copy()
+    echoes[inner] = centre - 2 * rings[inner] + 2
+    echoes[middle] = 2 * rings[middle] - centre - 1
+    if mirrored:
+        echoes = etl + 1 - echoes
+    return echoes - 1
+
+
+def make_pclo_order(
+    coords,
+    train_length: int,
+    *,
+    center_echo: int | None = None,
+    pad: bool = False,
+) -> list[list[int | None]]:
+    """Assign radius-ranked bands to identical echo trains in PCLO order.
+
+    Rydén's pivot-centre, linear-outer permutation places the innermost band
+    at an arbitrary centre echo, interleaves the neighbouring inner bands,
+    then acquires the outer bands sequentially [1]_. Each band is sorted by
+    polar angle across shots. At centre echo 0 this is radius-then-angle
+    centric ordering, the basic Busse radial construction [2]_. No parameter
+    distance between shots enters this assignment.
+
+    Parameters
+    ----------
+    coords : array_like
+        Centred view coordinates, shape ``(N, 2)`` or ``(N,)``. Indices in
+        the result refer to these rows. Distances use the supplied units;
+        boolean masks are refused.
+    train_length : int
+        Number of echoes per shot, at least 1. The number of shots is
+        ``ceil(N / train_length)``.
+    center_echo : int | None, default=None
+        Zero-based echo receiving the innermost radial band. ``None`` is 0.
+    pad : bool, default=False
+        Retain ``None`` slots so every row has ``train_length`` entries.
+        With ``False`` empty slots are removed.
+
+    Returns
+    -------
+    list of list of int or None
+        Row indices into ``coords``, indexed by shot and then echo. Every
+        selected view is assigned exactly once; the support is unchanged.
+
+    Raises
+    ------
+    TypeError
+        If coordinates are boolean or not numeric.
+    ValueError
+        If counts, centre echo or coordinate shape are invalid.
+
+    Notes
+    -----
+    PCLO changes echo-to-ring assignment, rather than cyclically shifting
+    whole bands. It therefore avoids a large index wrap near k-space centre.
+    It does not remove relaxation-related PSF broadening. Shot-dependent
+    parameter transitions require a joint shot/echo ordering instead.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> pp.make_pclo_order([0, 1, 2, 3, 4, 5], 6, center_echo=2, pad=True)
+    [[1, 2, 0, 3, 4, 5]]
+
+    References
+    ----------
+    .. [1] Rydén H et al. View order with arbitrary center echoes.
+       Magn Reson Med. 2026;96:2127-2139. Eq. 3.
+       https://doi.org/10.1002/mrm.70482
+    .. [2] Busse RF et al. Effects of refocusing flip angle modulation and view
+       ordering in 3D fast spin echo. Magn Reson Med. 2008;60:640-649.
+       https://doi.org/10.1002/mrm.21680
+    """
+    train_length = _checked_train(train_length, center_echo)
+    centre = 0 if center_echo is None else center_echo
+    if isinstance(centre, (bool, np.bool_)) or int(centre) != centre:
+        raise ValueError("center_echo must be an integer")
+    bands = make_centric_order(coords, train_length, pad=True)
+    if not bands:
+        return []
+    result = [[None] * train_length for _ in bands]
+    echo_of_ring = _pclo_rings(int(centre), train_length)
+    for row, train in enumerate(bands):
+        for ring, view in enumerate(train):
+            result[row][echo_of_ring[ring]] = view
+    return _finish_trains(result, train_length, pad)

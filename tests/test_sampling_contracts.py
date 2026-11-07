@@ -17,6 +17,7 @@ import pypulseqpp as pp
 ORDERINGS = [
     pp.make_linear_order,
     pp.make_centric_order,
+    pp.make_pclo_order,
     pp.make_radial_order,
     pp.make_radial_adaptive_order,
     pp.make_shuffling_order,
