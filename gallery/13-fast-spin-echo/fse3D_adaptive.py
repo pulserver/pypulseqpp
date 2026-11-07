@@ -47,7 +47,7 @@ P = {
     "tr_periphery": 1.6,
     "refocusing_angle_deg": 120.0,
     "n_dummy": 0,
-    "ordering": "adaptive_radial",
+    "ordering": "buonincontri",
     "flip_modulation": "busse",
     "busse_optimize": True,
     "wave_amplitude": 0.0,

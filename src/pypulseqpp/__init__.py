@@ -305,6 +305,7 @@ _SAMPLING = {
         "make_centric_order",
         "make_complementary_order",
         "make_linear_order",
+        "make_pclo_order",
         "make_radial_adaptive_order",
         "make_radial_order",
         "make_shuffling_order",

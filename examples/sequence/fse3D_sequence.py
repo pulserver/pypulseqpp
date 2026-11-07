@@ -13,7 +13,7 @@ from pypulseqpp import cli, sequences
 EXCITATIONS = ("nonselective", "slab")
 
 #: The view orders ``ordering`` selects from.
-ORDERINGS = ("radial", "shuffling", "busse_radial", "adaptive_radial")
+ORDERINGS = ("radial", "shuffling", "busse_radial", "pclo", "buonincontri")
 
 #: The refocusing trains ``flip_modulation`` selects from.
 MODULATIONS = ("constant", "optimized", "busse")
@@ -119,42 +119,10 @@ def shot_parameters(
 
 
 def pclo_rings(te_echo: int, etl: int) -> np.ndarray:
-    """Return the echo each ring of k-space takes, innermost first.
+    """Return the PCLO echo permutation for radius-ranked bands (zero-based)."""
+    from pypulseqpp._ordering import _pclo_rings
 
-    Pivot centre, linear outer (PCLO; Rydén et al., Magn Reson Med 2026,
-    doi:10.1002/mrm.70482, Eq. 3): the TE echo reads the innermost ring, the
-    rings around it step through the earlier echoes two at a time down to
-    the first and back up through the others, and the outer rings take the
-    remaining echoes in order. Neighbouring rings are at most two echoes
-    apart, so T2 decay modulates k-space without a jump. A TE echo in the
-    second half of the train mirrors the order from the end.
-
-    Parameters
-    ----------
-    te_echo : int
-        The echo read at the centre of k-space, counting from 0.
-    etl : int
-        Echoes in the train.
-
-    Returns
-    -------
-    numpy.ndarray
-        ``(etl,)`` the echo of each ring, counting from 0.
-    """
-    centre = te_echo + 1
-    mirrored = centre > etl / 2
-    if mirrored:
-        centre = etl - centre + 1
-    pivot = centre + centre % 2
-    rings = np.arange(1, etl + 1)
-    inner = rings <= pivot // 2
-    middle = (rings > pivot // 2) & (rings <= pivot)
-    echoes = rings.copy()
-    echoes[inner] = centre - 2 * rings[inner] + 2
-    echoes[middle] = 2 * rings[middle] - centre - 1
-    if mirrored:
-        echoes = etl + 1 - echoes
-    return echoes - 1
+    return _pclo_rings(te_echo, etl)
 
 
 def deal_trains(
@@ -621,9 +589,9 @@ def fse3d(
 ) -> pp.Sequence:
     """3D Cartesian fast spin echo: one CPMG train per excitation over a (ky, kz) grid.
 
-    Only views inside the inscribed ky-kz ellipse are sampled. ``radial`` deals
-    them by adaptive radial reordering (:func:`deal_trains`), so the centre of
-    k-space is acquired at the TE echo; ``shuffling`` selects a
+    Only views inside the inscribed ky-kz ellipse are sampled. ``radial``
+    selects PCLO for identical trains and Buonincontri joint ordering for a
+    centre/periphery parameter transition. ``shuffling`` selects a
     variable-density Poisson-disc support and assigns its views to echoes
     with :func:`~pypulseqpp.make_complementary_order`, so that each echo is a
     Poisson-disc pattern of its own and neighbouring echoes complement each
@@ -727,16 +695,17 @@ def fse3d(
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-    ordering : {'radial', 'shuffling', 'busse_radial', 'adaptive_radial'}, default='radial'
-        ``'radial'``: adaptive radial reordering of CAIPIRINHA lattice
-        support. ``'shuffling'``: variable-density Poisson-disc support
-        with complementary Poisson-disc echoes (T2 Shuffling).
-        ``'adaptive_radial'`` explicitly selects the ``'radial'`` algorithm.
-        ``'busse_radial'`` ranks views by radius then polar angle (the basic
-        Busse 2008 radial algorithm), without sorting jitter or consolidation.
-        It requires identical trains and centre echo 0; under ``busse``,
-        explicitly set ``busse_centre_echo=0``. This changes the contrast
-        prescription relative to a midpoint centre.
+    ordering : {'radial', 'shuffling', 'busse_radial', 'pclo', 'buonincontri'}, default='radial'
+        ``'radial'``: choose PCLO for identical trains, or Buonincontri joint
+        shot/echo assignment for a centre/periphery transition. ``'pclo'``
+        explicitly selects Rydén's radius-band permutation for an arbitrary
+        centre echo, with identical trains only. ``'busse_radial'`` uses the
+        basic Busse radius-then-angle order (no sorting jitter/consolidation),
+        with identical trains and centre echo 0; under ``busse``, explicitly
+        set ``busse_centre_echo=0``. ``'buonincontri'`` requires a parameter
+        transition and assigns shots and echoes jointly. ``'adaptive_radial'``
+        is accepted as an alias for ``'buonincontri'``. ``'shuffling'`` uses
+        complementary Poisson-disc echo assignment for identical trains.
     flip_modulation : {'constant', 'optimized', 'busse'}, default='constant'
         Constant refocusing angles, or variable trains designed by direct-angle
         optimization or prescribed-PSS inverse EPG. Forward EPG optimization
@@ -831,6 +800,8 @@ def fse3d(
     >>> busse.check_timing()[0]
     True
     """
+    if ordering == "adaptive_radial":
+        ordering = "buonincontri"
     busse = flip_modulation == "busse"
     if busse and te is not None:
         raise ValueError(
@@ -1010,10 +981,14 @@ def fse3d(
     tr = minimum_tr if tr is None else tr
     tr_periphery = tr if tr_periphery is None else tr_periphery
     individual = tr_periphery != tr or etl_periphery != etl or busse_varied
-    if individual and ordering not in ("radial", "adaptive_radial"):
+    resolved_ordering = (
+        ("buonincontri" if individual else "pclo") if ordering == "radial" else ordering
+    )
+    if individual and resolved_ordering != "buonincontri":
+        raise ValueError("Varying trains require Buonincontri adaptive radial ordering")
+    if not individual and resolved_ordering == "buonincontri":
         raise ValueError(
-            "individually parameterized trains need the radial order, which "
-            "places each view by its distance from the prescription"
+            "Buonincontri ordering requires a centre/periphery parameter transition"
         )
     repetition_time, periphery_repetition_time = (
         pp.round_to_raster(time, system.block_duration_raster)
@@ -1055,6 +1030,8 @@ def fse3d(
         place = np.zeros(len(order))
     elif ordering == "busse_radial":
         order = pp.make_centric_order(coords, etl, pad=True)
+    elif resolved_ordering == "pclo":
+        order = pp.make_pclo_order(coords, etl, center_echo=te_echo, pad=True)
     else:
         order = deal_trains(coords, lengths, place, te_echo, etl_max)
     trains = [[None if i is None else sampled[i] for i in train] for train in order]
@@ -1074,15 +1051,8 @@ def fse3d(
             )
             for endpoint, (count, period) in enumerate(endpoints):
                 if individual:
-                    representative_lengths, _, representative_place = shot_parameters(
-                        len(sampled), count, count, period, period
-                    )
-                    representative = deal_trains(
-                        coords,
-                        representative_lengths,
-                        np.zeros_like(representative_place),
-                        te_echo,
-                        count,
+                    representative = pp.make_pclo_order(
+                        coords, count, center_echo=te_echo, pad=True
                     )
                 else:
                     representative = order
@@ -1297,6 +1267,7 @@ def fse3d(
         "EchoTrainLength": etl,
         "Excitation": excitation,
         "ViewOrdering": ordering,
+        "ResolvedViewOrdering": resolved_ordering,
         "FlipModulation": flip_modulation,
         "RefocusingFlipAngles": [
             float(f) for f in shot_flips[0][: lengths[0] + startup]

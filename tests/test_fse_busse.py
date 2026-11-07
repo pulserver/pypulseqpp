@@ -105,12 +105,7 @@ def test_outer_fit_keeps_family_and_improves_forward_psf(monkeypatch):
     )
     sampled = sorted({*cal, *img})
     coordinates = (np.asarray(sampled) - [16, 8]) / [32, 16]
-    lengths, _, place = module.shot_parameters(
-        len(sampled), acquired, acquired, 3.431, 3.431
-    )
-    order = module.deal_trains(
-        coordinates, lengths, np.zeros_like(place), centre - 6, acquired
-    )
+    order = pp.make_pclo_order(coordinates, acquired, center_echo=centre - 6, pad=True)
     echo_map = np.full((32, 16), -1, dtype=np.int32)
     for train in order:
         for echo, index in enumerate(train):
@@ -184,7 +179,7 @@ def test_outer_fit_keeps_family_and_improves_forward_psf(monkeypatch):
     assert radius(final) <= radius(baseline) * (1 + 1e-4)
 
 
-@pytest.mark.parametrize("ordering", ["busse_radial", "adaptive_radial"])
+@pytest.mark.parametrize("ordering", ["busse_radial", "pclo"])
 def test_busse_and_adaptive_orders_keep_caipi_support_and_declared_centre(ordering):
     from test_zoo_fse import definition, echo_times, places
 
@@ -222,7 +217,7 @@ def test_variable_busse_controls_follow_cubic_transition_and_zero_padding():
     from test_zoo_fse import echo_times, pulses, trains
 
     seq = build(
-        ordering="adaptive_radial",
+        ordering="buonincontri",
         tr_periphery=0.4,
         etl_periphery=28,
         busse_minimum_angle_periphery_deg=30,
@@ -279,3 +274,30 @@ def test_single_shot_variable_train_pads_to_the_common_timing_layout():
     seq = build(ry=16, rz=8, n_acs_y=0, n_acs_z=0, etl_periphery=28)
     assert seq.check_timing()[0]
     assert int(value(seq, "NumShots")) == 1
+
+
+@pytest.mark.parametrize("ordering", ["pclo", "shuffling", "busse_radial"])
+def test_fixed_orderings_refuse_parameter_transitions(ordering):
+    with pytest.raises(ValueError, match="Buonincontri"):
+        build(ordering=ordering, busse_centre_echo=0, tr_periphery=0.4)
+
+
+def test_shared_busse_uses_pclo_without_joint_shot_assignment(monkeypatch):
+    def unexpected(*args, **kwargs):
+        raise AssertionError("shared trains must not use Buonincontri assignment")
+
+    monkeypatch.setattr(sequences.fse3D_sequence, "deal_trains", unexpected)
+    auto = build()
+    explicit = build(ordering="pclo")
+    from test_zoo_fse import places
+
+    for actual, expected in zip(places(auto), places(explicit), strict=True):
+        np.testing.assert_array_equal(actual, expected)
+    assert auto.definitions["ResolvedViewOrdering"] == "pclo"
+
+
+def test_buonincontri_is_reserved_for_parameter_transitions():
+    with pytest.raises(ValueError, match="centre/periphery parameter transition"):
+        build(ordering="buonincontri")
+    seq = build(tr_periphery=0.4)
+    assert seq.definitions["ResolvedViewOrdering"] == "buonincontri"

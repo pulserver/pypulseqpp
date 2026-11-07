@@ -12,6 +12,7 @@ import pytest
 from pypulseqpp import (
     make_centric_order,
     make_linear_order,
+    make_pclo_order,
     make_radial_adaptive_order,
     make_radial_order,
     make_shuffling_order,
@@ -39,6 +40,7 @@ def _centre_echo(trains):
 ALL_ORDERINGS = [
     make_linear_order,
     make_centric_order,
+    make_pclo_order,
     make_radial_order,
     make_radial_adaptive_order,
     make_shuffling_order,
@@ -100,3 +102,28 @@ def test_shuffling_is_reproducible_by_seed():
     c = make_shuffling_order(GRID, ETL, seed=8, pad=True)
     assert a == b
     assert a != c
+
+
+@pytest.mark.parametrize("length", [1, 2, 5, 6, 9, 10])
+def test_pclo_matches_published_ring_permutation_and_preserves_bands(length):
+    from pypulseqpp._ordering import _pclo_rings
+
+    # Two views per ring; strict radial bands must survive echo reassignment.
+    coords = np.arange(2 * length)
+    bands = make_centric_order(coords, length, pad=True)
+    for centre in range(length):
+        rings = _pclo_rings(centre, length)
+        assert sorted(rings) == list(range(length))
+        assert rings[0] == centre
+        assert np.all(np.abs(np.diff(rings)) <= 2)
+        trains = make_pclo_order(coords, length, center_echo=centre, pad=True)
+        for ring, echo in enumerate(rings):
+            assert [row[echo] for row in trains] == [row[ring] for row in bands]
+    assert make_pclo_order(coords, length, center_echo=0, pad=True) == bands
+
+
+def test_pclo_published_equation_three_example():
+    from pypulseqpp._ordering import _pclo_rings
+
+    np.testing.assert_array_equal(_pclo_rings(3, 9), [3, 1, 0, 2, 4, 5, 6, 7, 8])
+    np.testing.assert_array_equal(_pclo_rings(8, 9), np.arange(8, -1, -1))

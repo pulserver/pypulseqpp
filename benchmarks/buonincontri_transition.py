@@ -1,9 +1,13 @@
-"""Reproduce Buonincontri's transition and ordering diagrams with Busse trains.
+"""Illustrate Buonincontri's transition and ordering using a Busse family.
 
 The abstract's Fig. 1 states ETL 45/20, TR 1800/150 ms, TE 28 ms, CAIPI 4,
 and 586 shots, but not ESP or numerical PDvar* controls. This reconstruction
 uses our prescribed-PSS Busse family (25/70/120 degrees, six startup pulses),
-a common ESP of 3.416 ms and S13 first echo timing. Peripheral TR is raised to
+a common ESP of 3.416 ms and S13 first echo timing. Treating TE 28 ms as
+physical timing places the 70-degree centre at the second acquired echo;
+this produces a steep early rise. The abstract does not establish that TE
+convention. This is a transition-method demonstration, not a reconstruction
+of the published PDvar* RF trains. Peripheral TR is raised to
 the duration of the common padded GE layout; the exact scan-time cost is
 reported. Fig. 2 uses an explicitly illustrative 192 x 160 CAIPI plane, since
 the full view list and sorting details are not supplied in the abstract.
@@ -119,10 +123,7 @@ def main(output):
     endpoints = []
     fit_times = []
     for endpoint, (length, period) in enumerate(((45, 1.8), (20, peripheral_tr))):
-        n, _, place = module.shot_parameters(
-            len(sampled), length, length, period, period
-        )
-        order = module.deal_trains(coordinates, n, np.zeros_like(place), CENTRE, length)
+        order = pp.make_pclo_order(coordinates, length, center_echo=CENTRE, pad=True)
         _, echo_map = maps(order, sampled, shape)
         plane = np.where(np.isfinite(echo_map), echo_map, -1).astype(np.int32)
         begin = perf_counter()

@@ -34,8 +34,7 @@ from pypulseqpp._busse_opt import optimize_controls, psf_weights
 
 
 def echo_map(acquired):
-    """Actual adaptive radial view order for the S13 matrix and acceleration."""
-    module = sequences.fse3D_sequence
+    """Actual shared-train PCLO view order for the S13 matrix and acceleration."""
     cal, image = pp.make_cartesian_plane_sampling(
         (276, 140),
         (2, 2),
@@ -46,11 +45,8 @@ def echo_map(acquired):
     )
     sampled = sorted({*cal, *image})
     coordinates = (np.asarray(sampled) - [138, 70]) / [276, 140]
-    lengths, _, place = module.shot_parameters(
-        len(sampled), acquired, acquired, 3.431, 3.431
-    )
-    order = module.deal_trains(
-        coordinates, lengths, np.zeros_like(place), (acquired - 1) // 2, acquired
+    order = pp.make_pclo_order(
+        coordinates, acquired, center_echo=(acquired - 1) // 2, pad=True
     )
     result = np.full((276, 140), -1, dtype=np.int32)
     for train in order:
@@ -63,8 +59,8 @@ def echo_map(acquired):
 
 def validate_fit(prescribed, fitted, plane, centre):
     """Re-evaluate with twice the state count and repetition count."""
-    length = len(fitted)
     module = sequences.fse3D_sequence
+    length = len(fitted)
 
     class TimedFSE(FSESimulator):
         def layout(
