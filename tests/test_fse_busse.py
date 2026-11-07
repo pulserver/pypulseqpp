@@ -74,7 +74,7 @@ def test_played_angles_startup_acquisitions_and_centre_match_prescription(overla
     "kwargs, message",
     [
         ({"te": 0.028}, "te=None"),
-        ({"etl_periphery": 18}, "shared train"),
+        ({"etl_periphery": 8}, "final acquired echo"),
         ({"busse_centre_echo": 20}, "acquired echo"),
     ],
 )
@@ -182,3 +182,100 @@ def test_outer_fit_keeps_family_and_improves_forward_psf(monkeypatch):
         ).mean()
 
     assert radius(final) <= radius(baseline) * (1 + 1e-4)
+
+
+@pytest.mark.parametrize("ordering", ["busse_radial", "adaptive_radial"])
+def test_busse_and_adaptive_orders_keep_caipi_support_and_declared_centre(ordering):
+    from test_zoo_fse import definition, echo_times, places
+
+    centre = 0 if ordering == "busse_radial" else 9
+    seq = build(
+        ordering=ordering,
+        busse_centre_echo=centre,
+        ry=2,
+        rz=2,
+        caipi_shift=1,
+        n_acs_y=4,
+        n_acs_z=2,
+    )
+    assert seq.check_timing()[0]
+    line, partition, echo = places(seq)
+    centre_view = np.flatnonzero((line == 8) & (partition == 4))
+    assert len(centre_view) == 1
+    assert echo[centre_view[0]] == centre + 6
+    np.testing.assert_allclose(
+        echo_times(seq)[centre_view], definition(seq, "TE"), atol=1e-9
+    )
+    calibration, imaging = pp.make_cartesian_plane_sampling(
+        (16, 8), (2, 2), (4, 2), caipi_shift=1, elliptical=True, train_length=20
+    )
+    assert set(zip(line, partition, strict=True)) == {*calibration, *imaging}
+    if ordering == "busse_radial":
+        distance = np.hypot((line - 8) / 16, (partition - 4) / 8)
+        assert all(
+            max(distance[echo == e]) <= min(distance[echo == e + 1]) + 1e-12
+            for e in range(6, 25)
+        )
+
+
+def test_variable_busse_controls_follow_cubic_transition_and_zero_padding():
+    from test_zoo_fse import echo_times, pulses, trains
+
+    seq = build(
+        ordering="adaptive_radial",
+        tr_periphery=0.4,
+        etl_periphery=28,
+        busse_minimum_angle_periphery_deg=30,
+        busse_centre_angle_periphery_deg=65,
+    )
+    assert seq.check_timing()[0]
+    views = trains(seq)[1:]  # Dummy excluded.
+    lengths, _, place = sequences.fse3D_sequence.shot_parameters(
+        sum(len(train) for train in views), 20, 28, 0.5, 0.4
+    )
+    refocusing = [a for _, use, a in pulses(seq) if use == "refocusing"]
+    # All pulses use the same hard-pulse shape and calibration amplitude.
+    actual = np.reshape(refocusing, (-1, 34))[1:]
+    actual *= 120.0 / actual[0, 0]
+    controls = np.array([25.0, 70.0, 120.0]) + sequences.fse3D_sequence.cubic(place)[
+        :, None
+    ] * [5.0, -5.0, 0.0]
+    for row, (length, target) in enumerate(zip(lengths, controls, strict=True)):
+        expected = np.rad2deg(
+            pp.make_busse_schedule(
+                length + 6,
+                minimum_flip_angle=np.deg2rad(target[0]),
+                centre_flip_angle=np.deg2rad(target[1]),
+                maximum_flip_angle=np.deg2rad(target[2]),
+                centre_echo=15,
+            )
+        )
+        np.testing.assert_allclose(actual[row, : length + 6], expected, atol=2e-6)
+        assert np.all(actual[row, length + 6 :] == 0)
+        assert all(6 <= echo < length + 6 for _, _, echo in views[row])
+    played_echo_times = echo_times(seq)
+    offset = 0
+    spacing = value(seq, "EchoSpacing")
+    for train in views:
+        count = len(train)
+        acquired_times = played_echo_times[offset : offset + count]
+        np.testing.assert_allclose(np.diff(acquired_times), spacing, atol=1e-12)
+        expected_times = value(seq, "TE") + spacing * (
+            np.array([echo for _, _, echo in train]) - 15
+        )
+        np.testing.assert_allclose(acquired_times, expected_times, atol=1e-10)
+        offset += count
+    assert np.allclose(np.atleast_1d(seq.definitions["TRPeriphery"]), 0.4)
+
+
+def test_variable_trains_require_adaptive_order_and_busseradial_requires_first_echo():
+    with pytest.raises(ValueError, match="radial"):
+        build(ordering="busse_radial", busse_centre_echo=0, tr_periphery=0.4)
+    with pytest.raises(ValueError, match="centre echo 0"):
+        build(ordering="busse_radial")
+
+
+def test_single_shot_variable_train_pads_to_the_common_timing_layout():
+    seq = build(ry=16, rz=8, n_acs_y=0, n_acs_z=0, etl_periphery=28)
+    assert seq.check_timing()[0]
+    assert int(value(seq, "NumShots")) == 1

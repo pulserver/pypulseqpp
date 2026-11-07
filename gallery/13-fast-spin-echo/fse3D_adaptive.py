@@ -6,7 +6,7 @@ Individually optimized 3D fast spin echo
 Individually parameterized 3D FSE assigns different echo-train lengths and
 repetition times to the shots that acquire central and peripheral k-space
 [BUO25]_. From the central to the peripheral shots, TR and the minimum
-angle of the refocusing schedule [BUS08b]_ follow a cubic
+and centre angles of a prescribed-PSS refocusing schedule [BUS08b]_ follow a cubic
 smooth-step transition between their two limits; the echo-train length
 follows the same transition, rounded to integer values. The views are
 assigned by an adaptive radial order. Longer trains and a different TR at the
@@ -42,13 +42,14 @@ P = {
     "fov_z": 0.12,
     "etl": 40,
     "etl_periphery": 72,
-    "te": 100e-3,
+    "te": None,
     "tr": 1.2,
     "tr_periphery": 1.6,
     "refocusing_angle_deg": 120.0,
     "n_dummy": 0,
-    "ordering": "radial",
-    "flip_modulation": "optimized",
+    "ordering": "adaptive_radial",
+    "flip_modulation": "busse",
+    "busse_optimize": True,
     "wave_amplitude": 0.0,
 }
 seq = sequences.fse3D_sequence(**P)
@@ -61,12 +62,13 @@ n_shots = int(seq.get_definition("NumShots")[0])
 # TR and the schedule's minimum angle follow a cubic smooth-step
 # transition, :math:`3u^2 - 2u^3` with :math:`u` from 0 at the first (central)
 # shot to 1 at the last (peripheral) shot [BUO25]_; the echo-train length
-# follows the same transition rounded to integers. Every schedule peaks at
-# the prescribed 120 degrees, which it reaches again at the effective-TE
-# echo. The schedules of representative shots are plotted up to each shot's
-# own train length:
-# the central shots reach lower minimum angles, and the peripheral shots have
-# shallower minima and longer trains.
+# follows the same transition rounded to integers. The two endpoint trains
+# are optimized independently at their own TR and ETL. The central endpoint
+# maximizes model contrast; the peripheral endpoint minimizes PSF radius.
+# Inverse EPG constructs every intermediate schedule from its interpolated
+# controls. All trains share one echo spacing, RF pulse width and centre echo;
+# six startup pulses precede the acquired echoes. The first and final pulses
+# have the prescribed 120-degree angle.
 #
 # The schedules are read from the pulses the sequence plays. The flip angle of
 # each refocusing pulse is that of its pulse definition scaled by the relative
@@ -78,7 +80,8 @@ instances, rf_times = seq.rf_instances(), seq.rf_times(compat=False)
 use = np.asarray(rf_times.use)
 flip = np.array([rf.flip_deg for rf in instances.definitions])[instances.definition]
 angles = (flip * instances.amplitude)[use == "refocusing"].reshape(n_shots, -1)
-lengths = np.count_nonzero(angles, axis=1)
+rf_counts = np.count_nonzero(angles, axis=1)
+lengths = rf_counts - 6
 excitations = np.asarray(rf_times.t)[use == "excitation"]
 tr = np.append(np.diff(excitations), seq.get_definition("TRPeriphery")[0])
 
@@ -86,10 +89,12 @@ tr = np.append(np.diff(excitations), seq.get_definition("TRPeriphery")[0])
 indices = np.unique(np.linspace(0, n_shots - 1, 4, dtype=int))
 fig, axes = plt.subplots(1, 2, figsize=(PAGE_WIDTH, 3.2), layout="constrained")
 for i in indices:
-    n = lengths[i]
-    label = f"shot {i}: ETL {n}, TR {tr[i] * 1e3:.0f} ms"
+    n = rf_counts[i]
+    label = f"shot {i}: ETL {lengths[i]}, TR {tr[i] * 1e3:.0f} ms"
     axes[0].plot(np.arange(1, n + 1), angles[i, :n], label=label)
-axes[0].set(xlabel="Echo index", ylabel="Refocusing flip angle (degrees)")
+axes[0].set(
+    xlabel="RF pulse including startup", ylabel="Refocusing flip angle (degrees)"
+)
 axes[1].plot(np.arange(n_shots), lengths, label="ETL")
 axes[1].set(xlabel="Shot index", ylabel="Echo-train length")
 handles, labels = axes[0].get_legend_handles_labels()

@@ -13,7 +13,7 @@ from pypulseqpp import cli, sequences
 EXCITATIONS = ("nonselective", "slab")
 
 #: The view orders ``ordering`` selects from.
-ORDERINGS = ("radial", "shuffling")
+ORDERINGS = ("radial", "shuffling", "busse_radial", "adaptive_radial")
 
 #: The refocusing trains ``flip_modulation`` selects from.
 MODULATIONS = ("constant", "optimized", "busse")
@@ -609,6 +609,9 @@ def fse3d(
     busse_centre_echo: int | None = None,
     busse_initial_decay: float = 1.3,
     busse_optimize: bool = False,
+    busse_minimum_angle_periphery_deg: float | None = None,
+    busse_centre_angle_periphery_deg: float | None = None,
+    busse_maximum_angle_periphery_deg: float | None = None,
     tr_periphery: float | None = None,
     etl_periphery: int | None = None,
     wave: str = "both",
@@ -724,10 +727,16 @@ def fse3d(
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-    ordering : {'radial', 'shuffling'}, default='radial'
+    ordering : {'radial', 'shuffling', 'busse_radial', 'adaptive_radial'}, default='radial'
         ``'radial'``: adaptive radial reordering of CAIPIRINHA lattice
         support. ``'shuffling'``: variable-density Poisson-disc support
         with complementary Poisson-disc echoes (T2 Shuffling).
+        ``'adaptive_radial'`` explicitly selects the ``'radial'`` algorithm.
+        ``'busse_radial'`` ranks views by radius then polar angle (the basic
+        Busse 2008 radial algorithm), without sorting jitter or consolidation.
+        It requires identical trains and centre echo 0; under ``busse``,
+        explicitly set ``busse_centre_echo=0``. This changes the contrast
+        prescription relative to a midpoint centre.
     flip_modulation : {'constant', 'optimized', 'busse'}, default='constant'
         Constant refocusing angles, or variable trains designed by direct-angle
         optimization or prescribed-PSS inverse EPG. Forward EPG optimization
@@ -750,10 +759,26 @@ def fse3d(
         Optimize only the minimum and centre controls within five degrees of
         their prescription, using forward EPG over ``DESIGN_T1_MS``,
         ``DESIGN_T2_MS`` and ``DESIGN_B1_SCALES``. Minimize the mean PSF RMS
-        radius for the actual view order, preserving at least 95.5% of the
-        prescribed train's model contrast and bounding its RF energy. The
+        radius for the actual view order, allowing signed contrast to drop by
+        at most 4.5% of its prescribed magnitude and bounding RF energy. The
         startup count, centre echo, maximum angle and initial decay stay fixed.
-        Requires shared ``busse`` trains and the ``design`` extra.
+        Requires ``busse`` trains and the ``design`` extra. With varying train
+        parameters, the centre endpoint maximizes model contrast and the
+        periphery endpoint minimizes PSF radius. Each endpoint is fitted at
+        its own TR/ETL over a representative complete-plane ordering; controls
+        then follow the cubic shot transition. This is an endpoint design,
+        not a joint optimization of the entire varying-TR acquisition.
+    busse_minimum_angle_periphery_deg : float | None, default=None
+        Minimum actual angle at the periphery (degrees). ``None`` inherits
+        ``busse_minimum_angle_deg``. Requires adaptive radial ordering when
+        the endpoints differ.
+    busse_centre_angle_periphery_deg : float | None, default=None
+        Actual centre angle at the periphery (degrees). ``None`` inherits
+        ``busse_centre_angle_deg``.
+    busse_maximum_angle_periphery_deg : float | None, default=None
+        First/final angle at the periphery (degrees). ``None`` inherits
+        ``busse_maximum_angle_deg``. Each shot's controls interpolate cubically;
+        inverse EPG constructs its complete train at its own ETL.
     tr_periphery : float | None, default=None
         Repetition time (s) at the periphery of k-space. ``None`` is
         ``tr``.
@@ -815,6 +840,7 @@ def fse3d(
         raise ValueError("busse_optimize requires flip_modulation='busse'")
     startup = busse_startup_echoes if busse else 0
     busse_angles = None
+    busse_varied = False
     if crusher_cycles < 0:
         raise ValueError("crusher_cycles must be nonnegative")
     if optimize_end_angle and (not rf_overlap or flip_modulation != "optimized"):
@@ -855,10 +881,6 @@ def fse3d(
     matrix = (n_x, n_y, n_z)
     etl_max = max(etl, etl_periphery)
     if busse:
-        if etl_periphery != etl or (tr_periphery is not None and tr_periphery != tr):
-            raise ValueError(
-                "Busse modulation currently requires shared train parameters"
-            )
         if busse_centre_echo is not None and (
             not isinstance(busse_centre_echo, (int, np.integer))
             or isinstance(busse_centre_echo, (bool, np.bool_))
@@ -870,6 +892,27 @@ def fse3d(
         busse_centre = (
             (etl - 1) // 2 if busse_centre_echo is None else busse_centre_echo
         )
+        if min(etl, etl_periphery) <= busse_centre + 1:
+            raise ValueError(
+                "busse_centre_echo must precede the final acquired echo of every train"
+            )
+        centre_controls = np.array(
+            [busse_minimum_angle_deg, busse_centre_angle_deg, busse_maximum_angle_deg]
+        )
+        periphery_controls = np.array(
+            [
+                busse_minimum_angle_deg
+                if busse_minimum_angle_periphery_deg is None
+                else busse_minimum_angle_periphery_deg,
+                busse_centre_angle_deg
+                if busse_centre_angle_periphery_deg is None
+                else busse_centre_angle_periphery_deg,
+                busse_maximum_angle_deg
+                if busse_maximum_angle_periphery_deg is None
+                else busse_maximum_angle_periphery_deg,
+            ]
+        )
+        busse_varied = not np.array_equal(centre_controls, periphery_controls)
         busse_protocol = {
             "minimum_flip_angle": np.deg2rad(busse_minimum_angle_deg),
             "centre_flip_angle": np.deg2rad(busse_centre_angle_deg),
@@ -878,7 +921,16 @@ def fse3d(
             "startup_echoes": startup,
             "initial_decay": busse_initial_decay,
         }
-        busse_angles = pp.make_busse_schedule(etl_max + startup, **busse_protocol)
+        busse_angles = pp.make_busse_schedule(etl + startup, **busse_protocol)
+        pp.make_busse_schedule(
+            etl_periphery + startup,
+            **{
+                **busse_protocol,
+                "minimum_flip_angle": np.deg2rad(periphery_controls[0]),
+                "centre_flip_angle": np.deg2rad(periphery_controls[1]),
+                "maximum_flip_angle": np.deg2rad(periphery_controls[2]),
+            },
+        )
 
     # An even number of block rasters puts each hard pulse centre on the raster.
     raster = system.block_duration_raster
@@ -934,6 +986,10 @@ def fse3d(
         if te is None
         else int(np.argmin(np.abs(fse.echo_times - te)))
     )
+    if ordering == "busse_radial" and te_echo != 0:
+        raise ValueError(
+            "busse_radial requires centre echo 0; set te=None and busse_centre_echo=0 for Busse trains"
+        )
     if min(etl, etl_periphery) <= te_echo:
         raise ValueError(
             f"a train of {min(etl, etl_periphery)} echoes ends before echo "
@@ -953,8 +1009,8 @@ def fse3d(
     )
     tr = minimum_tr if tr is None else tr
     tr_periphery = tr if tr_periphery is None else tr_periphery
-    individual = tr_periphery != tr or etl_periphery != etl
-    if individual and ordering != "radial":
+    individual = tr_periphery != tr or etl_periphery != etl or busse_varied
+    if individual and ordering not in ("radial", "adaptive_radial"):
         raise ValueError(
             "individually parameterized trains need the radial order, which "
             "places each view by its distance from the prescription"
@@ -997,6 +1053,8 @@ def fse3d(
         lengths = [etl] * len(order)
         times = [repetition_time] * len(order)
         place = np.zeros(len(order))
+    elif ordering == "busse_radial":
+        order = pp.make_centric_order(coords, etl, pad=True)
     else:
         order = deal_trains(coords, lengths, place, te_echo, etl_max)
     trains = [[None if i is None else sampled[i] for i in train] for train in order]
@@ -1005,27 +1063,82 @@ def fse3d(
     # pulses play at zero amplitude.
     played = np.arange(etl_max)[None, :] < np.asarray(lengths)[:, None]
     if busse:
+        endpoint_controls = np.array([centre_controls, periphery_controls])
         if busse_optimize:
             from pypulseqpp._busse_opt import optimize_controls
 
-            echo_map = np.full((n_y, n_z), -1, dtype=np.int32)
-            for train in trains:
-                for echo, view in enumerate(train):
-                    if view is not None:
-                        echo_map[view] = echo
-            busse_angles = optimize_controls(
-                etl_max + startup,
-                **busse_protocol,
-                esp=fse.esp,
-                first_echo_time=float(fse.echo_times[0]),
-                tr=repetition_time,
-                echo_map=echo_map,
-                t1_ms=DESIGN_T1_MS,
-                t2_ms=DESIGN_T2_MS,
-                b1_scales=DESIGN_B1_SCALES,
-                contrast_pair=DESIGN_CONTRAST,
+            endpoints = (
+                ((etl, repetition_time), (etl_periphery, periphery_repetition_time))
+                if individual
+                else ((etl, repetition_time),)
             )
-        shot_flips = np.tile(np.rad2deg(busse_angles), (len(trains), 1))
+            for endpoint, (count, period) in enumerate(endpoints):
+                if individual:
+                    representative_lengths, _, representative_place = shot_parameters(
+                        len(sampled), count, count, period, period
+                    )
+                    representative = deal_trains(
+                        coords,
+                        representative_lengths,
+                        np.zeros_like(representative_place),
+                        te_echo,
+                        count,
+                    )
+                else:
+                    representative = order
+                echo_map = np.full((n_y, n_z), -1, dtype=np.int32)
+                for train in representative:
+                    for echo, index in enumerate(train):
+                        if index is not None:
+                            echo_map[sampled[index]] = echo
+                controls = np.deg2rad(endpoint_controls[endpoint])
+                fitted = optimize_controls(
+                    count + startup,
+                    **{
+                        **busse_protocol,
+                        "minimum_flip_angle": controls[0],
+                        "centre_flip_angle": controls[1],
+                        "maximum_flip_angle": controls[2],
+                    },
+                    esp=fse.esp,
+                    first_echo_time=float(fse.echo_times[0]),
+                    tr=period,
+                    echo_map=echo_map,
+                    t1_ms=DESIGN_T1_MS,
+                    t2_ms=DESIGN_T2_MS,
+                    b1_scales=DESIGN_B1_SCALES,
+                    contrast_pair=DESIGN_CONTRAST,
+                    objective="contrast" if individual and endpoint == 0 else "psf",
+                )
+                endpoint_controls[endpoint] = np.rad2deg(
+                    fitted[[np.argmin(fitted), startup + te_echo, -1]]
+                )
+                if not individual:
+                    busse_angles = fitted
+        if individual:
+            from pypulseqpp._busse import _make_busse_schedules
+
+            controls = endpoint_controls[0] + cubic(place)[:, None] * (
+                endpoint_controls[1] - endpoint_controls[0]
+            )
+            prescriptions, inverse = np.unique(
+                np.column_stack((np.asarray(lengths) + startup, controls)),
+                axis=0,
+                return_inverse=True,
+            )
+            profiles = _make_busse_schedules(
+                prescriptions[:, 0].astype(int),
+                prescriptions[:, 1:],
+                startup + te_echo,
+                busse_initial_decay,
+            )
+            profiles = np.pad(
+                profiles, ((0, 0), (0, etl_max + startup - profiles.shape[1]))
+            )
+            shot_flips = np.rad2deg(profiles[inverse])
+        else:
+            endpoint_controls[1] = endpoint_controls[0]
+            shot_flips = np.tile(np.rad2deg(busse_angles), (len(trains), 1))
         trains = [[None] * startup + train for train in trains]
     elif flip_modulation == "optimized":
         shot_flips = design_trains(
@@ -1205,6 +1318,10 @@ def fse3d(
             BusseCentreEcho=te_echo,
             BusseInitialDecay=busse_initial_decay,
             BusseOptimized=int(busse_optimize),
+            BusseEndpointControlAngles=endpoint_controls.ravel().tolist(),
+            RefocusingFlipAnglesPeriphery=[
+                float(f) for f in shot_flips[-1][: lengths[-1] + startup]
+            ],
         )
     if individual:
         definitions["TRPeriphery"] = periphery_repetition_time

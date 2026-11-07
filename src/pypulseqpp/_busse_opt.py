@@ -89,15 +89,20 @@ def optimize_controls(
     t2_ms,
     b1_scales,
     contrast_pair,
+    objective="psf",
 ):
     """Fit minimum/centre angles within five degrees of their prescription.
 
     The maximum/first/final angle, centre pulse, startup count and initial
     decay remain fixed. The objective is mean ideal-interpolation PSF RMS
     radius over the supplied tissue/B1 ensemble. RF energy is bounded by the
-    prescribed train and each B1 case retains 95.5% of its prescribed contrast.
+    prescribed train. Each B1 case loses at most 4.5% of the magnitude of its
+    prescribed signed (bright-minus-dark) contrast.
+    The contrast objective maximizes mean contrast relative to the prescription.
     Returns angles (rad); an unconverged or infeasible fit raises ValueError.
     """
+    if objective not in ("psf", "contrast"):
+        raise ValueError("objective must be psf or contrast")
     try:
         import torch
         from blochsim._execution import execution
@@ -165,6 +170,7 @@ def optimize_controls(
                 .abs()
                 .detach()
                 .numpy()
+                .astype(np.float64, copy=False)
             )
 
         reference = simulate(baseline).reshape(len(b1_scales), len(t1_ms), length)
@@ -172,10 +178,9 @@ def optimize_controls(
         reference_contrast = (
             reference[:, bright, centre_echo] - reference[:, dark, centre_echo]
         )
-        if np.any(reference_contrast <= 0):
-            raise ValueError(
-                "Busse optimization requires positive prescribed model contrast"
-            )
+        if not np.all(np.isfinite(reference_contrast)):
+            raise ValueError("The prescribed model contrast must be finite")
+        contrast_scale = np.maximum(abs(reference_contrast), 1e-8)
         budget = np.sum(baseline**2)
         cached = {}
 
@@ -211,8 +216,10 @@ def optimize_controls(
             contrast = (
                 tissue[:, :, bright, centre_echo] - tissue[:, :, dark, centre_echo]
             )
+            if objective == "contrast":
+                loss = -(contrast / contrast_scale).mean(1)
             constraints = np.c_[
-                contrast / reference_contrast - 0.955,
+                (contrast - reference_contrast) / contrast_scale + 0.045,
                 0.999 - np.sum(flips**2, axis=1) / budget,
             ]
             value = (

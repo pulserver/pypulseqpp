@@ -91,3 +91,23 @@ def test_invalid_prescriptions_raise(kwargs):
     arguments.update(kwargs)
     with pytest.raises(ValueError):
         pp.make_busse_schedule(**arguments)
+
+
+def test_batched_variable_trains_match_independent_scalar_shooting():
+    from pypulseqpp._busse import _make_busse_schedules
+
+    lengths = np.array([46, 51, 66, 86, 106])
+    controls = np.array(
+        [[25, 70, 120], [27, 68, 118], [30, 65, 115], [22, 74, 125], [20, 75, 130]]
+    )
+    profiles = _make_busse_schedules(lengths, controls, 25, 1.3)
+    for row, (length, requested) in enumerate(zip(lengths, controls, strict=True)):
+        reference = pp.make_busse_schedule(
+            int(length),
+            minimum_flip_angle=np.deg2rad(requested[0]),
+            centre_flip_angle=np.deg2rad(requested[1]),
+            maximum_flip_angle=np.deg2rad(requested[2]),
+            centre_echo=25,
+        )
+        np.testing.assert_allclose(profiles[row, :length], reference, atol=2e-8, rtol=0)
+        assert np.all(profiles[row, length:] == 0)
