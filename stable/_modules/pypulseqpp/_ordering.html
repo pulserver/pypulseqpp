@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=fcc520c2"></script>
+    <script src="../../_static/documentation_options.js?v=76ea90e3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.57';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.61';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.57" />
+  <meta name="docsearch:version" content="v0.0.61" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -452,8 +452,9 @@
 
 <span class="sd">References</span>
 <span class="sd">----------</span>
-<span class="sd">Linear, radial and adaptive radial echo-train reordering follow schemes A-C of</span>
-<span class="sd">Buonincontri et al., ISMRM abstract 566-05-007, Fig. 2. Shuffled echo trains</span>
+<span class="sd">PCLO follows Rydén et al., Magn Reson Med 2026, doi:10.1002/mrm.70482.</span>
+<span class="sd">Joint shot/echo adaptation for varying train parameters is described by</span>
+<span class="sd">Buonincontri et al., ISMRM abstract 566-05-007, Fig. 2D. Shuffled echo trains</span>
 <span class="sd">follow Tamir et al., Magn Reson Med 2017;77:180-195. Complementary echo</span>
 <span class="sd">assignment follows Levine et al., Magn Reson Med 2017;77:1774-1785.</span>
 <span class="sd">"""</span>
@@ -464,6 +465,7 @@
     <span class="s2">"make_centric_order"</span><span class="p">,</span>
     <span class="s2">"make_complementary_order"</span><span class="p">,</span>
     <span class="s2">"make_linear_order"</span><span class="p">,</span>
+    <span class="s2">"make_pclo_order"</span><span class="p">,</span>
     <span class="s2">"make_radial_adaptive_order"</span><span class="p">,</span>
     <span class="s2">"make_radial_order"</span><span class="p">,</span>
     <span class="s2">"make_shuffling_order"</span><span class="p">,</span>
@@ -986,9 +988,9 @@
 <span class="sd">    from it, alternating before and after, so the distance from the centre</span>
 <span class="sd">    increases monotonically away from the target echo in both directions.</span>
 <span class="sd">    Within a band the views are dealt across the shots in polar-angle order.</span>
-<span class="sd">    This is scheme C (modified radial reordering) of Buonincontri et al.,</span>
-<span class="sd">    Fig. 2C-D, which acquires the k-space centre at a prescribed echo without</span>
-<span class="sd">    a discontinuity at the centre.</span>
+<span class="sd">    This is an echo-distance folding rule, with no joint assignment by</span>
+<span class="sd">    shot-dependent TR or train parameters. ``make_pclo_order`` provides the</span>
+<span class="sd">    published PCLO permutation for identical trains and arbitrary centres.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1308,6 +1310,129 @@
         <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">raster</span><span class="p">[</span><span class="n">frames</span><span class="p">[</span><span class="n">raster</span><span class="p">]</span> <span class="o">==</span> <span class="n">echo</span><span class="p">]):</span>
             <span class="n">trains</span><span class="p">[</span><span class="n">shot</span><span class="p">][</span><span class="n">echo</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">trains</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pclo_rings</span><span class="p">(</span><span class="n">te_echo</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">etl</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the echo each ring of k-space takes, innermost first.</span>
+
+<span class="sd">    Pivot centre, linear outer (PCLO; Rydén et al., Magn Reson Med 2026,</span>
+<span class="sd">    doi:10.1002/mrm.70482, Eq. 3): the TE echo reads the innermost ring, the</span>
+<span class="sd">    rings around it step through the earlier echoes two at a time down to</span>
+<span class="sd">    the first and back up through the others, and the outer rings take the</span>
+<span class="sd">    remaining echoes in order. Neighbouring rings are at most two echoes</span>
+<span class="sd">    apart, so T2 decay modulates k-space without a jump. A TE echo in the</span>
+<span class="sd">    second half of the train mirrors the order from the end.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    te_echo : int</span>
+<span class="sd">        The echo read at the centre of k-space, counting from 0.</span>
+<span class="sd">    etl : int</span>
+<span class="sd">        Echoes in the train.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        ``(etl,)`` the echo of each ring, counting from 0.</span>
+<span class="sd">    """</span>
+    <span class="n">centre</span> <span class="o">=</span> <span class="n">te_echo</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">mirrored</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">&gt;</span> <span class="n">etl</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">mirrored</span><span class="p">:</span>
+        <span class="n">centre</span> <span class="o">=</span> <span class="n">etl</span> <span class="o">-</span> <span class="n">centre</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">pivot</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">+</span> <span class="n">centre</span> <span class="o">%</span> <span class="mi">2</span>
+    <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">etl</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">inner</span> <span class="o">=</span> <span class="n">rings</span> <span class="o">&lt;=</span> <span class="n">pivot</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">middle</span> <span class="o">=</span> <span class="p">(</span><span class="n">rings</span> <span class="o">&gt;</span> <span class="n">pivot</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rings</span> <span class="o">&lt;=</span> <span class="n">pivot</span><span class="p">)</span>
+    <span class="n">echoes</span> <span class="o">=</span> <span class="n">rings</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">echoes</span><span class="p">[</span><span class="n">inner</span><span class="p">]</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rings</span><span class="p">[</span><span class="n">inner</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">echoes</span><span class="p">[</span><span class="n">middle</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rings</span><span class="p">[</span><span class="n">middle</span><span class="p">]</span> <span class="o">-</span> <span class="n">centre</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">mirrored</span><span class="p">:</span>
+        <span class="n">echoes</span> <span class="o">=</span> <span class="n">etl</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">echoes</span>
+    <span class="k">return</span> <span class="n">echoes</span> <span class="o">-</span> <span class="mi">1</span>
+
+
+<div class="viewcode-block" id="make_pclo_order">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_pclo_order.html#pypulseqpp.make_pclo_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_pclo_order</span><span class="p">(</span>
+    <span class="n">coords</span><span class="p">,</span>
+    <span class="n">train_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">center_echo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Assign radius-ranked bands to identical echo trains in PCLO order.</span>
+
+<span class="sd">    Rydén's pivot-centre, linear-outer permutation places the innermost band</span>
+<span class="sd">    at an arbitrary centre echo, interleaves the neighbouring inner bands,</span>
+<span class="sd">    then acquires the outer bands sequentially [1]_. Each band is sorted by</span>
+<span class="sd">    polar angle across shots. At centre echo 0 this is radius-then-angle</span>
+<span class="sd">    centric ordering, the basic Busse radial construction [2]_. No parameter</span>
+<span class="sd">    distance between shots enters this assignment.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords : array_like</span>
+<span class="sd">        Centred view coordinates, shape ``(N, 2)`` or ``(N,)``. Indices in</span>
+<span class="sd">        the result refer to these rows. Distances use the supplied units;</span>
+<span class="sd">        boolean masks are refused.</span>
+<span class="sd">    train_length : int</span>
+<span class="sd">        Number of echoes per shot, at least 1. The number of shots is</span>
+<span class="sd">        ``ceil(N / train_length)``.</span>
+<span class="sd">    center_echo : int | None, default=None</span>
+<span class="sd">        Zero-based echo receiving the innermost radial band. ``None`` is 0.</span>
+<span class="sd">    pad : bool, default=False</span>
+<span class="sd">        Retain ``None`` slots so every row has ``train_length`` entries.</span>
+<span class="sd">        With ``False`` empty slots are removed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of list of int or None</span>
+<span class="sd">        Row indices into ``coords``, indexed by shot and then echo. Every</span>
+<span class="sd">        selected view is assigned exactly once; the support is unchanged.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If coordinates are boolean or not numeric.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If counts, centre echo or coordinate shape are invalid.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    PCLO changes echo-to-ring assignment, rather than cyclically shifting</span>
+<span class="sd">    whole bands. It therefore avoids a large index wrap near k-space centre.</span>
+<span class="sd">    It does not remove relaxation-related PSF broadening. Shot-dependent</span>
+<span class="sd">    parameter transitions require a joint shot/echo ordering instead.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; pp.make_pclo_order([0, 1, 2, 3, 4, 5], 6, center_echo=2, pad=True)</span>
+<span class="sd">    [[1, 2, 0, 3, 4, 5]]</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Rydén H et al. View order with arbitrary center echoes.</span>
+<span class="sd">       Magn Reson Med. 2026;96:2127-2139. Eq. 3.</span>
+<span class="sd">       https://doi.org/10.1002/mrm.70482</span>
+<span class="sd">    .. [2] Busse RF et al. Effects of refocusing flip angle modulation and view</span>
+<span class="sd">       ordering in 3D fast spin echo. Magn Reson Med. 2008;60:640-649.</span>
+<span class="sd">       https://doi.org/10.1002/mrm.21680</span>
+<span class="sd">    """</span>
+    <span class="n">train_length</span> <span class="o">=</span> <span class="n">_checked_train</span><span class="p">(</span><span class="n">train_length</span><span class="p">,</span> <span class="n">center_echo</span><span class="p">)</span>
+    <span class="n">centre</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">center_echo</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">center_echo</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">centre</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">centre</span><span class="p">)</span> <span class="o">!=</span> <span class="n">centre</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"center_echo must be an integer"</span><span class="p">)</span>
+    <span class="n">bands</span> <span class="o">=</span> <span class="n">make_centric_order</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bands</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">train_length</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">bands</span><span class="p">]</span>
+    <span class="n">echo_of_ring</span> <span class="o">=</span> <span class="n">_pclo_rings</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">centre</span><span class="p">),</span> <span class="n">train_length</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">train</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bands</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ring</span><span class="p">,</span> <span class="n">view</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">train</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">echo_of_ring</span><span class="p">[</span><span class="n">ring</span><span class="p">]]</span> <span class="o">=</span> <span class="n">view</span>
+    <span class="k">return</span> <span class="n">_finish_trains</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">train_length</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span></div>
 
 </pre></div>
 

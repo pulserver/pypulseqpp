@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=fcc520c2"></script>
+    <script src="../_static/documentation_options.js?v=76ea90e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.57';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.61';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="Timing and rasterization" href="timing.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.57" />
+  <meta name="docsearch:version" content="v0.0.61" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -650,22 +650,27 @@ example by the Poisson-disc support of
 <td><p>Indices as <code class="docutils literal notranslate"><span class="pre">[shot][echo]</span></code></p></td>
 <td><p>Distance-ranked bands; centre at echo 0 or <code class="docutils literal notranslate"><span class="pre">center_echo</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_order</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_pclo_order.html#pypulseqpp.make_pclo_order" title="pypulseqpp.make_pclo_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_pclo_order</span></code></a></p></td>
+<td><p>Centred coordinates, train length, centre echo</p></td>
+<td><p>Indices as <code class="docutils literal notranslate"><span class="pre">[shot][echo]</span></code></p></td>
+<td><p>Rydén PCLO radius bands for identical trains and arbitrary centre echoes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_radial_order.html#pypulseqpp.make_radial_order" title="pypulseqpp.make_radial_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_order</span></code></a></p></td>
 <td><p>Centred coordinates, train length</p></td>
 <td><p>Indices as <code class="docutils literal notranslate"><span class="pre">[shot][echo]</span></code></p></td>
 <td><p>One angular wedge per shot, centre-out within it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_radial_adaptive_order.html#pypulseqpp.make_radial_adaptive_order" title="pypulseqpp.make_radial_adaptive_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_adaptive_order</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_radial_adaptive_order.html#pypulseqpp.make_radial_adaptive_order" title="pypulseqpp.make_radial_adaptive_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_radial_adaptive_order</span></code></a></p></td>
 <td><p>Centred coordinates, train length</p></td>
 <td><p>Indices as <code class="docutils literal notranslate"><span class="pre">[shot][echo]</span></code></p></td>
 <td><p>Distance bands folded about <code class="docutils literal notranslate"><span class="pre">center_echo</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_shuffling_order</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_shuffling_order.html#pypulseqpp.make_shuffling_order" title="pypulseqpp.make_shuffling_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_shuffling_order</span></code></a></p></td>
 <td><p>Centred coordinates, train length, seed</p></td>
 <td><p>Indices as <code class="docutils literal notranslate"><span class="pre">[shot][echo]</span></code></p></td>
 <td><p>Random echo positions within raster-contiguous trains (T2 Shuffling).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_complementary_order.html#pypulseqpp.make_complementary_order" title="pypulseqpp.make_complementary_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_complementary_order</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_complementary_order.html#pypulseqpp.make_complementary_order" title="pypulseqpp.make_complementary_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_complementary_order</span></code></a></p></td>
 <td><p>Centred integer coordinates, train length, seed</p></td>
 <td><p>Indices as <code class="docutils literal notranslate"><span class="pre">[shot][echo]</span></code></p></td>
 <td><p>Echo positions forming a complementary Poisson-disc pattern per echo (Levine et al.).</p></td>
@@ -756,6 +761,16 @@ shot’s origin <code class="docutils literal notranslate"><span class="pre">(y0
 <td><p>Number of repetitions, cycle</p></td>
 <td><p>Phases (rad), one per repetition</p></td>
 <td><p>Repeated phase cycle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_pd_schedule.html#pypulseqpp.make_pd_schedule" title="pypulseqpp.make_pd_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_pd_schedule</span></code></a></p></td>
+<td><p>Total RF count, echo timing, first/maximum/final angles, signal-tail onset</p></td>
+<td><p>Refocusing angles (rad), including startup</p></td>
+<td><p>Relaxation-aware prescribed-signal inverse EPG for PD imaging.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_busse_schedule.html#pypulseqpp.make_busse_schedule" title="pypulseqpp.make_busse_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_busse_schedule</span></code></a></p></td>
+<td><p>Total RF count, minimum/centre/maximum angles, centre echo</p></td>
+<td><p>Refocusing angles (rad), including startup</p></td>
+<td><p>Prescribed-PSS envelope inverted with EPG.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.make_traps_schedule.html#pypulseqpp.make_traps_schedule" title="pypulseqpp.make_traps_schedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_traps_schedule</span></code></a></p></td>
 <td><p>Echo-train length, target angle</p></td>

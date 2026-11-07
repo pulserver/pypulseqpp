@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=fcc520c2"></script>
+    <script src="../../_static/documentation_options.js?v=76ea90e3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.57';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.61';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.57" />
+  <meta name="docsearch:version" content="v0.0.61" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -544,9 +544,9 @@
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">gre3D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.gre3D_sequence" title="Link to this definition">#</a></dt>
 <dd><p>RF-spoiled 3D Cartesian gradient echo.</p>
 <p>One line per repetition, phase-encoded along y and z over a CAIPIRINHA
-lattice that always contains the centre of k-space, optionally cropped to
-an ellipse. Under undersampling the fully sampled calibration region, a
-rectangle or an ellipse, leads, marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>; under wave-CAIPI it is
+lattice that always contains the centre of k-space, or a Poisson-disc
+draw, optionally cropped to an ellipse. Under undersampling the fully
+sampled calibration region, a rectangle or an ellipse, leads, marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>; under wave-CAIPI it is
 first acquired wave-free and marked <code class="docutils literal notranslate"><span class="pre">REF</span></code>. Lines are played in order,
 each line’s partitions one after another.</p>
 <dl class="field-list simple">
@@ -590,6 +590,11 @@ encode, acquired ahead of the rest when undersampled.</p></li>
 acquired whole either way.</p></li>
 <li><p><strong>elliptical_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Make the calibration region the ellipse inscribed in the
 <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle rather than the rectangle.</p></li>
+<li><p><strong>sampling</strong> (<em>{'lattice'</em><em>, </em><em>'poisson'}</em><em>, </em><em>default='lattice'</em>) – Views outside the calibration region: the CAIPIRINHA lattice, or a
+variable-density Poisson-disc draw at the undersampling <code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">*</span> <span class="pre">rz</span></code>,
+for a compressed-sensing reconstruction. The draw is seeded with 0, so
+a protocol always plays the same views. <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> applies to the
+lattice only.</p></li>
 <li><p><strong>wave</strong> (<em>{'phase'</em><em>, </em><em>'partition'</em><em>, </em><em>'both'}</em><em>, </em><em>default='both'</em>) – Wave-CAIPI channels: a sine on y, a cosine on z, or both. With
 wave-encoding gradients the calibration region is acquired again
 first without them, marked <code class="docutils literal notranslate"><span class="pre">REF</span></code>, and no wave-encoded view is
@@ -608,8 +613,8 @@ default, plays no wave. The slew rate may lower it.</p></li>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">excitation</span></code> is unknown, a partial Fourier fraction is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, an undersampling factor is below one,
-    <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">rz)</span></code>, <code class="docutils literal notranslate"><span class="pre">wave</span></code> names no wave
-    mode, or the TE or TR is shorter than the readout takes.</p>
+    <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">rz)</span></code>, <code class="docutils literal notranslate"><span class="pre">sampling</span></code> or <code class="docutils literal notranslate"><span class="pre">wave</span></code>
+    names no scheme, or the TE or TR is shorter than the readout takes.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

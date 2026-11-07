@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=fcc520c2"></script>
+    <script src="../_static/documentation_options.js?v=76ea90e3"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.57';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.61';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.57" />
+  <meta name="docsearch:version" content="v0.0.61" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -528,9 +528,9 @@ centre) and cut into <code class="docutils literal notranslate"><span class="pre
 from it, alternating before and after, so the distance from the centre
 increases monotonically away from the target echo in both directions.
 Within a band the views are dealt across the shots in polar-angle order.
-This is scheme C (modified radial reordering) of Buonincontri et al.,
-Fig. 2C-D, which acquires the k-space centre at a prescribed echo without
-a discontinuity at the centre.</p>
+This is an echo-distance folding rule, with no joint assignment by
+shot-dependent TR or train parameters. <code class="docutils literal notranslate"><span class="pre">make_pclo_order</span></code> provides the
+published PCLO permutation for identical trains and arbitrary centres.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=fcc520c2"></script>
+    <script src="../../_static/documentation_options.js?v=76ea90e3"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.57';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.61';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.57" />
+  <meta name="docsearch:version" content="v0.0.61" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -802,7 +802,8 @@
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
 <span class="sd">    &gt;&gt;&gt; gy, gz = pp.make_wave_gradients(3e-3, 4, 10e-3)</span>
-<span class="sd">    &gt;&gt;&gt; [abs(round(float(np.sum(g.waveform)), 6)) for g in (gy, gz)]</span>
+<span class="sd">    &gt;&gt;&gt; played = [np.asarray(g.waveform) for g in (gy, gz)]</span>
+<span class="sd">    &gt;&gt;&gt; [abs(round(float(w.sum() - (w[0] + w[-1]) / 4), 6)) for w in played]</span>
 <span class="sd">    [0.0, 0.0]</span>
 
 <span class="sd">    References</span>
@@ -882,36 +883,20 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_area</span><span class="p">(</span><span class="n">waveform</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Area of a raster-centred waveform entered and left at zero, in raster units.</span>
 
-<span class="sd">    With the interval boundaries an interpreter restores</span>
-<span class="sd">    (`restore_shape_corners`: each boundary twice the preceding sample less</span>
-<span class="sd">    the boundary before it), every interval integrates to its own sample, so</span>
-<span class="sd">    the area is the plain sum.</span>
+<span class="sd">    Integrated along the line the scanner plays: zero at the edges and</span>
+<span class="sd">    straight between the samples at the raster centres.</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">waveform</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">waveform</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="p">(</span><span class="n">waveform</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">waveform</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_steepest</span><span class="p">(</span><span class="n">shape</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Steepest slope of a raster-centred shape entered and left at zero, per raster.</span>
 
-<span class="sd">    Through the corners `restore_shape_corners` gives it: each interval</span>
-<span class="sd">    boundary from the recurrence, or the mean of its neighbours where the two</span>
-<span class="sd">    agree, at half-raster spacing; the samples with zero edges half a raster</span>
-<span class="sd">    out where the recurrence does not close.</span>
+<span class="sd">    Along the line the scanner plays: zero at the edges, half a raster from</span>
+<span class="sd">    the first and last samples, and straight between the samples.</span>
 <span class="sd">    """</span>
-    <span class="n">count</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">size</span>
-    <span class="n">threshold</span> <span class="o">=</span> <span class="mf">2e-5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-    <span class="n">recurrence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
-        <span class="n">recurrence</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">recurrence</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">recurrence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">:</span>
-        <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="p">[</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]])</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
-    <span class="n">interpolated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">],</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]])</span>
-    <span class="n">agree</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">recurrence</span> <span class="o">-</span> <span class="n">interpolated</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span> <span class="o">+</span> <span class="n">threshold</span>
-    <span class="n">boundaries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">agree</span><span class="p">,</span> <span class="n">interpolated</span><span class="p">,</span> <span class="n">recurrence</span><span class="p">)</span>
-    <span class="n">dense</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">dense</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span> <span class="n">dense</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">shape</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">dense</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="p">[</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]])</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_balanced</span><span class="p">(</span><span class="n">shape</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">envelope</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
