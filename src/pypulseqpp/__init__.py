@@ -311,6 +311,7 @@ _SAMPLING = {
         "make_traversal_order",
     ),
     "_schedules": (
+        "make_busse_schedule",
         "make_phase_cycling_schedule",
         "make_rf_spoiling_schedule",
         "make_traps_schedule",

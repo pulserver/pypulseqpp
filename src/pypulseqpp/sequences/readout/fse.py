@@ -4,6 +4,8 @@ from __future__ import annotations
 
 __all__ = ["FseReadout2D", "FseReadout3D"]
 
+import math
+from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
@@ -27,11 +29,10 @@ class _FseReadout(SequenceModule):
     """One excitation and a CPMG echo train, to the end of the TR.
 
     Each refocusing pulse is centred midway between the preceding RF centre
-    or echo and the following echo, and echoes are ``esp`` apart from the
-    excitation on: the excitation is half a spacing before the first
-    refocusing pulse, and the pulses are a spacing apart. The spin echoes and
-    the stimulated echoes of a refocusing angle below 180 degrees then
-    coincide. The phase encodes and the
+    or echo and the following echo. The default layout uses uniform echo
+    spacing from the excitation onward. With ``rf_overlap``, the initial
+    interval may be longer and must be included in the refocusing design.
+    The phase encodes and the
     refocusing amplitude are templates that the caller may scale per echo; the
     sampling order sets the effective TE.
 
@@ -69,6 +70,11 @@ class _FseReadout(SequenceModule):
         Echo spacing (s). ``None`` is as short as possible, including the
         excitation, its rephaser and the read prephaser in the first half
         spacing.
+    rf_overlap : bool, default=False
+        Overlap rewinders with refocusing RF dead time. Requires 3D,
+        nonselective refocusing, full echoes, and no separate excitation
+        rephaser or trigger. The first echo may have a longer interval;
+        the caller must model that interval and its refocusing angle.
     tr : float, default=None
         Repetition time (s), over the whole module. ``None`` is as short as
         possible.
@@ -144,7 +150,11 @@ class _FseReadout(SequenceModule):
     wait_tr : DelayEvent
         Present only when ``tr`` exceeds the minimum.
     esp : float
-        Echo spacing (s), and the time from the RF centre to the first echo.
+        Echo spacing (s).
+    esp_first : float
+        Initial echo interval (s), before gradient-raster rounding.
+    layout : RfOverlapLayout
+        Reusable event templates, present when ``rf_overlap`` is true.
     echo_times : numpy.ndarray
         Echo time of each echo (s) from the RF centre.
     bandwidth_hz : float
@@ -187,6 +197,7 @@ class _FseReadout(SequenceModule):
         matrix: Any,
         etl: int = 8,
         esp: float | None = None,
+        rf_overlap: bool = False,
         tr: float | None = None,
         partial_echo: float = 1.0,
         oversampling: float = 1.0,
@@ -200,6 +211,25 @@ class _FseReadout(SequenceModule):
         wave_amplitude: float = 8e-3,
     ) -> None:
         ndim = self._ndim
+        overlap = 0.0
+        if rf_overlap:
+            if ndim != 3 or gz_ref is not None or partial_echo != 1.0:
+                raise ValueError(
+                    "RF overlap requires 3D nonselective refocusing and full echoes"
+                )
+            if gz_reph is not None or trigger is not None:
+                raise ValueError(
+                    "RF overlap does not support a separate excitation rephaser or trigger"
+                )
+            overlap = system.block_duration_raster * math.floor(
+                max(0.0, float(rf_ref.delay) - system.rf_ringdown_time)
+                / system.block_duration_raster
+                + 1e-9
+            )
+            if overlap <= 0:
+                raise ValueError(
+                    "RF overlap requires dead time longer than RF ringdown"
+                )
         if wave is not None:
             wave_channels(wave)
         if wave_cycles < 0 or wave_amplitude < 0:
@@ -354,17 +384,14 @@ class _FseReadout(SequenceModule):
         )
 
         # Twice a raster-rounded half, so that each half lands on the raster.
-        esp_min = 2.0 * pp.ceil_to_raster(
-            max(
-                lead_fixed + lead_floor,
-                pre_fixed + pre_floor,
-                post_fixed + post_floor,
-            ),
-            raster,
-        )
+        half_min = max(pre_fixed + pre_floor, post_fixed + post_floor)
+        if not rf_overlap:
+            half_min = max(half_min, lead_fixed + lead_floor)
+        esp_min = 2.0 * pp.ceil_to_raster(half_min, raster)
         if esp is None:
             esp = esp_min
         else:
+            esp += 2 * overlap
             esp = pp.round_to_raster(float(esp), raster)
             if esp < esp_min - 1e-12:
                 raise ValueError(
@@ -372,7 +399,15 @@ class _FseReadout(SequenceModule):
                     f"{esp_min * 1e3:.3f} ms this train can achieve"
                 )
 
-        lead_span = max(lead_floor, pp.round_to_raster(0.5 * esp - lead_fixed, raster))
+        esp_first = esp
+        if rf_overlap:
+            esp_first += 2 * pp.ceil_to_raster(
+                max(0.0, lead_fixed + lead_floor - esp / 2), raster
+            )
+        wait_first = (esp_first - esp) / 2
+        lead_span = max(
+            lead_floor, pp.round_to_raster(0.5 * esp_first - lead_fixed, raster)
+        )
         pre_span = pp.round_to_raster(0.5 * esp - pre_fixed, raster)
         pre_span = min(
             max(pre_span, pre_floor), esp - ref_span - flat_span - post_floor
@@ -402,15 +437,43 @@ class _FseReadout(SequenceModule):
         ]
 
         self.seq = pp.Sequence(system)
-        self.seq.add_block(rf, *present(gz))
-        self.seq.add_block(gx_pre, *present(gz_reph), *present(trigger))
-        for _ in range(etl):
-            self.seq.add_block(rf_ref, *present(gz_ref))
-            self.seq.add_block(gx_bridge_pre, gy_pre, *present(gz_pre))
-            self.seq.add_block(
-                gx, adc, *present(gy_wave), *present(gz_wave), *adc_labels
+        if rf_overlap:
+            from ._fse_layout import RfOverlapLayout
+
+            templates = SimpleNamespace(
+                rf=rf,
+                gz=gz,
+                rf_ref=rf_ref,
+                gx_pre=gx_pre,
+                gx_bridge_pre=gx_bridge_pre,
+                gx_bridge_post=gx_bridge_post,
+                gy_pre=gy_pre,
+                gz_pre=gz_pre,
+                gy_rew=gy_rew,
+                gz_rew=gz_rew,
             )
-            self.seq.add_block(gx_bridge_post, gy_rew, *present(gz_rew))
+            self.layout = RfOverlapLayout(templates, system)
+            self.layout.excitation(self.seq, [])
+            for echo in range(etl):
+                self.layout.refocusing(self.seq, echo == 0, 1.0, 1.0)
+                if echo == 0 and wait_first:
+                    self.seq.add_block(pp.make_delay(wait_first))
+                self.layout.encoding(self.seq, 1.0, 1.0)
+                self.seq.add_block(
+                    gx, adc, *present(gy_wave), *present(gz_wave), *adc_labels
+                )
+                self.layout.rewinding(self.seq, 1.0, 1.0, echo == etl - 1)
+            self.register(**vars(templates))
+        else:
+            self.seq.add_block(rf, *present(gz))
+            self.seq.add_block(gx_pre, *present(gz_reph), *present(trigger))
+            for _ in range(etl):
+                self.seq.add_block(rf_ref, *present(gz_ref))
+                self.seq.add_block(gx_bridge_pre, gy_pre, *present(gz_pre))
+                self.seq.add_block(
+                    gx, adc, *present(gy_wave), *present(gz_wave), *adc_labels
+                )
+                self.seq.add_block(gx_bridge_post, gy_rew, *present(gz_rew))
 
         tr_min = self.seq.duration()[0]
         tr_delay = solve_delay(tr, tr_min, "TR", system)
@@ -418,10 +481,19 @@ class _FseReadout(SequenceModule):
             wait_tr = pp.make_delay(tr_delay)
             self.seq.add_block(wait_tr)
 
-        first_echo = exc_span + lead_span + ref_span + pre_span + echo_offset
+        first_echo = (
+            exc_span
+            + lead_span
+            + ref_span
+            + wait_first
+            + pre_span
+            + echo_offset
+            - 2 * overlap
+        )
         self.center = first_echo
-        self.echo_times = first_echo - rf_center + esp * np.arange(etl)
-        self.esp = esp
+        self.esp = esp - 2 * overlap
+        self.esp_first = esp_first - 2 * overlap
+        self.echo_times = first_echo - rf_center + self.esp * np.arange(etl)
         self.etl = etl
         self.bandwidth_hz = 1.0 / dwell
         self.n_samples = n_samples

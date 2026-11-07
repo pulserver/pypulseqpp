@@ -16,7 +16,7 @@ EXCITATIONS = ("nonselective", "slab")
 ORDERINGS = ("radial", "shuffling")
 
 #: The refocusing trains ``flip_modulation`` selects from.
-MODULATIONS = ("constant", "optimized")
+MODULATIONS = ("constant", "optimized", "busse")
 
 NAME = "fse_3d"
 MAX_GRAD = 80.0
@@ -53,6 +53,7 @@ DESIGN_MIN_DEG = 20.0
 DESIGN_STATES = 12
 DESIGN_ITERATIONS = 25
 DESIGN_LEARNING_RATE = 0.3
+DESIGN_B1_SCALES = (0.8, 1.0, 1.2)
 
 
 def cubic(fraction):
@@ -234,15 +235,22 @@ def design_trains(
     te_echo: int,
     etl_max: int,
     esp: float,
+    *,
+    first_refocusing_angle_deg: float | None = None,
+    first_echo_time: float | None = None,
+    b1_scales: tuple[float, ...] = (1.0,),
+    optimize_end_angle: bool = False,
 ) -> np.ndarray:
     """Design the refocusing angles (degrees) of every shot, ``(shots, etl_max)``.
 
-    A train falls from the prescribed angle to its minimum over the first five
-    echoes, rises to the prescribed angle at the TE echo and holds it to its
-    end (Busse et al., Magn Reson Med 2008;60:640); a TE echo among the first
-    five holds the prescribed angle up to it and falls to the minimum after.
-    The prescribed angle is the train's peak, so a constant train at that
-    angle bounds its RF power. The minimum is designed with blochsim against
+    Cubic transitions connect the early control angle, the angle at the
+    prescribed TE and the final angle. By default only the early minimum is
+    optimized and the centre and final angles equal the prescription.
+    ``optimize_end_angle`` also fits the final angle; the global minimum may
+    then occur at the end. This parameterization is fitted directly with EPG,
+    rather than inverting a prescribed signal envelope. The prescribed angle
+    bounds every pulse except an explicitly stated first refocusing pulse.
+    The controls are designed with blochsim against
     the sharpness of the periphery of k-space, the contrast at the centre
     between the tissues ``DESIGN_CONTRAST`` names, and the RF power of the
     starting trains. Trains that are not individually parameterized share one
@@ -274,6 +282,16 @@ def design_trains(
         Echoes the longest train holds.
     esp : float
         Echo spacing, in s.
+    first_refocusing_angle_deg : float | None, default=None
+        First refocusing angle (degrees), included in every cost evaluation.
+        ``None`` uses the parameterized profile at the first pulse.
+    first_echo_time : float | None, default=None
+        First echo time (s). ``None`` uses ``esp``.
+    b1_scales : tuple of float, default=(1.0,)
+        Relative transmit amplitudes averaged in the objective.
+    optimize_end_angle : bool, default=False
+        Optimize the final angle as well as the early control angle for a
+        shared train, under the starting profile's RF-energy budget.
 
     Returns
     -------
@@ -300,6 +318,9 @@ def design_trains(
     angle = float(refocusing_angle_deg)
     echo = torch.arange(1, etl_max + 1, dtype=dtype)
     centre = float(te_echo + 1)
+    optimized_end = None
+    if optimize_end_angle and individual:
+        raise ValueError("End-angle optimization requires a shared refocusing train")
 
     def column(values):
         return torch.as_tensor(np.asarray(values, dtype=float), dtype=dtype)[:, None]
@@ -316,36 +337,84 @@ def design_trains(
             out = torch.where(echo <= knots[k + 1], ramp, out)
         return out
 
-    def trains(low, length):
+    def trains(low, length, end=None):
         """Return the trains of ``length`` echoes whose minimum is ``low``, one row each."""
         one = torch.ones_like(length)
+        final = end if end is not None else optimized_end
+        final = angle * one if final is None else final * one
         if centre > 5.0:
             knots = [one, 5.0 * one, centre * one, length]
-            values = [angle * one, low, angle * one, angle * one]
+            values = [angle * one, low, angle * one, final]
         else:
             fallen = torch.minimum((centre + 4.0) * one, length)
             knots = [centre * one, fallen, length]
-            values = [angle * one, low, angle * one]
-        return smooth(knots, values, one) * (echo <= length).to(dtype)
+            values = [angle * one, low, final]
+        profile = smooth(knots, values, one)
+        if first_refocusing_angle_deg is not None:
+            first = torch.full_like(profile[:, :1], first_refocusing_angle_deg)
+            profile = torch.cat((first, profile[:, 1:]), dim=-1)
+        return profile * (echo <= length).to(dtype)
 
-    simulator = FSESimulator(
+    if not b1_scales or any(b <= 0 for b in b1_scales):
+        raise ValueError("b1_scales must contain positive relative transmit amplitudes")
+    first_echo = esp if first_echo_time is None else first_echo_time
+    if first_echo <= 0:
+        raise ValueError("The first echo time must be positive")
+    matched = first_refocusing_angle_deg is not None or first_echo != esp
+
+    class TimedFSE(FSESimulator):
+        def layout(
+            self, *, flip, ESP, phases=0.0, exc_flip=90.0, exc_phase=90.0, TR=1e6
+        ):
+            parts = super().layout(
+                flip=flip,
+                ESP=ESP,
+                phases=phases,
+                exc_flip=exc_flip,
+                exc_phase=exc_phase,
+                TR=TR,
+            )
+            extra = first_echo - esp
+            return [
+                (t + (extra / 2 if i == 1 else extra if i > 1 else 0.0), op)
+                for i, (t, op) in enumerate(parts)
+            ]
+
+    n_b1 = len(b1_scales)
+    nonunit_b1 = any(b != 1.0 for b in b1_scales)
+    tissues = len(DESIGN_T1_MS)
+    simulator = (TimedFSE if matched else FSESimulator)(
         ESP=esp * 1e3,
-        states=DESIGN_STATES,
-        T1=list(DESIGN_T1_MS),
-        T2=list(DESIGN_T2_MS),
+        states=max(DESIGN_STATES, etl_max + 1)
+        if matched or nonunit_b1
+        else DESIGN_STATES,
+        T1=list(DESIGN_T1_MS) * n_b1,
+        T2=list(DESIGN_T2_MS) * n_b1,
+        B1=np.repeat(b1_scales, tissues).tolist(),
     )
     bright, dark = DESIGN_CONTRAST
 
-    def measure(low, length, tr_ms):
+    def measure(low, length, tr_ms, end=None):
         """Return the sharpness, contrast and RF power of each train."""
-        flip = trains(low, length)
+        flip = trains(low, length, end)
         acquired = (echo <= length).to(dtype)
-        signal = simulator.simulate(flip=flip, TR=tr_ms).abs()
+        repetitions = 8 if nonunit_b1 else 2
+        if (matched or nonunit_b1) and flip.shape[0] == 1:
+            signal = simulator.simulate(
+                flip=flip[0], TR=float(tr_ms[0, 0]), repetitions=repetitions
+            ).abs()[None]
+        else:
+            signal = simulator.simulate(
+                flip=flip, TR=tr_ms, repetitions=repetitions
+            ).abs()
         pair = acquired[:, None, :-1] * acquired[:, None, 1:]
         slope = (torch.diff(signal, dim=-1) * pair).square().sum(-1)
         energy = (signal * acquired[:, None, :]).square().sum(-1).clamp_min(1e-12)
         blur = (length / (2 * torch.pi) * (slope / energy).sqrt()).mean(-1)
-        contrast = signal[:, bright, te_echo] - signal[:, dark, te_echo]
+        samples = signal.reshape(signal.shape[0], n_b1, tissues, etl_max)
+        contrast = (samples[:, :, bright, te_echo] - samples[:, :, dark, te_echo]).mean(
+            -1
+        )
         power = ((flip / 180.0).square() * acquired).sum(-1) / (tr_ms[:, 0] * 1e-3)
         return blur, contrast, power
 
@@ -364,6 +433,7 @@ def design_trains(
         power of each train, ``sharp`` its sharpness and ``contrasted`` its
         contrast.
         """
+        nonlocal optimized_end
         count = max(parameter) + 1
         if angle - lowest <= 1.0:
             return torch.full((count,), angle, dtype=dtype)
@@ -376,6 +446,80 @@ def design_trains(
 
         initial = {name: bound.initial for name, bound in bounds.items()}
         budget = mean(measure(lows(initial), length, tr_ms)[2], shots)
+
+        if optimize_end_angle:
+            from scipy.optimize import minimize
+
+            cache = {}
+
+            def evaluate(values):
+                if np.array_equal(cache.get("point"), values):
+                    return cache["result"]
+                controls = torch.tensor(values, dtype=dtype, requires_grad=True)
+                low = controls[0].expand(len(parameter), 1)
+                end = controls[1].expand(len(parameter), 1)
+                blur, contrast, power = measure(low, length, tr_ms, end)
+                loss = mean(blur, sharp) - DESIGN_CONTRAST_WEIGHT * mean(
+                    contrast, contrasted
+                )
+                energy = mean(power, shots)
+                (gradient,) = torch.autograd.grad(loss, controls, retain_graph=True)
+                (energy_gradient,) = torch.autograd.grad(energy, controls)
+                result = (
+                    loss.detach().item(),
+                    gradient.detach().numpy(),
+                    energy.detach().item(),
+                    energy_gradient.detach().numpy(),
+                )
+                cache.update(point=np.array(values), result=result)
+                return result
+
+            allowed = budget.detach().item()
+            result = minimize(
+                lambda values: evaluate(values)[:2],
+                [0.5 * (lowest + angle), angle],
+                method="SLSQP",
+                jac=True,
+                bounds=((lowest, angle), (lowest, angle)),
+                constraints=[
+                    {
+                        "type": "ineq",
+                        "fun": lambda values: allowed - evaluate(values)[2],
+                        "jac": lambda values: -evaluate(values)[3],
+                    }
+                ],
+                options={"maxiter": DESIGN_ITERATIONS, "ftol": 1e-6},
+            )
+            if not result.success or evaluate(result.x)[2] > allowed + 1e-5:
+                raise ValueError(f"End-angle optimization failed: {result.message}")
+            optimized_end = torch.tensor(result.x[1], dtype=dtype)
+            return torch.tensor([result.x[0]], dtype=dtype)
+
+        if matched and count == 1:
+            from scipy.optimize import minimize_scalar
+
+            def scalar_cost(value):
+                low = torch.full((len(parameter), 1), value, dtype=dtype)
+                with torch.no_grad():
+                    blur, contrast, power = measure(low, length, tr_ms)
+                    return float(
+                        mean(blur, sharp)
+                        - DESIGN_CONTRAST_WEIGHT * mean(contrast, contrasted)
+                        + DESIGN_POWER_WEIGHT
+                        * torch.relu(mean(power, shots) / budget - 1.0)
+                    )
+
+            result = minimize_scalar(
+                scalar_cost,
+                bounds=(lowest, angle),
+                method="bounded",
+                options={"xatol": 0.02, "maxiter": DESIGN_ITERATIONS},
+            )
+            if not result.success:
+                raise ValueError(
+                    f"Refocusing optimization did not converge: {result.message}"
+                )
+            return torch.tensor([result.x], dtype=dtype)
 
         def cost(**values):
             blur, contrast, power = measure(lows(values), length, tr_ms)
@@ -450,11 +594,21 @@ def fse3d(
     excitation: str = "slab",
     readout_oversampling: float = 2.0,
     esp: float | None = None,
+    rf_overlap: bool = False,
+    crusher_cycles: float = 1.0,
+    optimize_end_angle: bool = False,
     n_acs_y: int = 24,
     n_acs_z: int = 16,
     elliptical_acs: bool = False,
     ordering: str = "radial",
     flip_modulation: str = "constant",
+    busse_minimum_angle_deg: float = 25.0,
+    busse_centre_angle_deg: float = 70.0,
+    busse_maximum_angle_deg: float = 120.0,
+    busse_startup_echoes: int = 6,
+    busse_centre_echo: int | None = None,
+    busse_initial_decay: float = 1.3,
+    busse_optimize: bool = False,
     tr_periphery: float | None = None,
     etl_periphery: int | None = None,
     wave: str = "both",
@@ -479,7 +633,10 @@ def fse3d(
     trains of its own, marked ``REF``.
 
     The refocusing angle is constant, or, under ``optimized``, the angle at the
-    TE echo of a train :func:`design_trains` shapes around it. Giving the
+    TE echo of a train :func:`design_trains` shapes around it. ``busse`` uses
+    :func:`~pypulseqpp.make_busse_schedule`: prescribed PSS coherence and inverse
+    EPG, with six unacquired startup echoes by default. Its centre is halfway
+    through the acquired train unless explicitly prescribed. Giving the
     periphery of k-space its own TR or train length individually parameterizes
     the trains (Buonincontri et al., ISMRM 2025, abstract 566-05-007): every
     shot moves from the centre values to the periphery ones along
@@ -507,17 +664,19 @@ def fse3d(
     te : float | None, default=0.028
         Effective echo time (s): the echo the centre of k-space is read
         at, rounded onto the echo grid. ``None`` is the first echo.
-        Meaningless under ``shuffling``.
+        Meaningless under ``shuffling``. Under ``busse``, pass ``None`` and
+        prescribe the centre with ``busse_centre_echo`` instead.
     tr : float, default=1.8
         Repetition time (s), one per train; at the centre of k-space when
         the trains are individually parameterized.
     etl : int, default=45
         Echo train length; at the centre of k-space when the trains are
-        individually parameterized.
+        individually parameterized. Under ``busse`` this counts acquired
+        echoes; startup pulses are additional.
     refocusing_angle_deg : float, default=180.0
         Refocusing flip angle (degrees): of every pulse under
         ``constant``; at the TE echo, and the peak of the train, under
-        ``optimized``.
+        ``optimized``. Unused under ``busse``.
     readout_bandwidth_hz : float, default=250000.0
         Requested receiver bandwidth (Hz).
     ry, rz : int, default=1
@@ -545,6 +704,17 @@ def fse3d(
         Readout oversampling factor, at least one.
     esp : float | None, default=None
         Echo spacing (s). ``None`` is as short as the train admits.
+    rf_overlap : bool, default=False
+        Overlap rewinders with RF dead time and construct the train directly
+        from reusable templates. Requires full echoes. The first refocusing
+        pulse is 180 degrees under ``constant`` and ``optimized``; ``busse``
+        retains its prescribed maximum angle. The first echo time enters
+        the forward EPG model together with ``DESIGN_B1_SCALES``.
+    crusher_cycles : float, default=1.0
+        Read-axis crusher area in cycles across one native readout voxel.
+    optimize_end_angle : bool, default=False
+        Optimize the final refocusing angle under the starting profile's RF
+        energy budget. Requires ``rf_overlap`` and optimized, shared trains.
     n_acs_y : int, default=24
         Extent of the fully sampled calibration region along the phase encode,
         acquired ahead of the rest when undersampled.
@@ -558,9 +728,32 @@ def fse3d(
         ``'radial'``: adaptive radial reordering of CAIPIRINHA lattice
         support. ``'shuffling'``: variable-density Poisson-disc support
         with complementary Poisson-disc echoes (T2 Shuffling).
-    flip_modulation : {'constant', 'optimized'}, default='constant'
-        Constant refocusing angles, or trains designed with blochsim,
-        which the ``design`` extra installs.
+    flip_modulation : {'constant', 'optimized', 'busse'}, default='constant'
+        Constant refocusing angles, or variable trains designed by direct-angle
+        optimization or prescribed-PSS inverse EPG. Forward EPG optimization
+        requires the ``design`` extra.
+    busse_minimum_angle_deg : float, default=25.0
+        Minimum actual refocusing angle (degrees), under ``busse``.
+    busse_centre_angle_deg : float, default=70.0
+        Actual refocusing angle at the centre echo (degrees), under ``busse``.
+    busse_maximum_angle_deg : float, default=120.0
+        Actual first and final angle (degrees), under ``busse``.
+    busse_startup_echoes : int, default=6
+        Leading unacquired refocusing pulses, additional to ``etl``, under
+        ``busse``. They play in imaging, calibration and dummy trains.
+    busse_centre_echo : int | None, default=None
+        Zero-based acquired echo index under ``busse``. ``None`` selects
+        ``(etl - 1) // 2``. Startup pulses precede this index.
+    busse_initial_decay : float, default=1.3
+        Initial exponential time constant, measured in echoes, under ``busse``.
+    busse_optimize : bool, default=False
+        Optimize only the minimum and centre controls within five degrees of
+        their prescription, using forward EPG over ``DESIGN_T1_MS``,
+        ``DESIGN_T2_MS`` and ``DESIGN_B1_SCALES``. Minimize the mean PSF RMS
+        radius for the actual view order, preserving at least 95.5% of the
+        prescribed train's model contrast and bounding its RF energy. The
+        startup count, centre echo, maximum angle and initial decay stay fixed.
+        Requires shared ``busse`` trains and the ``design`` extra.
     tr_periphery : float | None, default=None
         Repetition time (s) at the periphery of k-space. ``None`` is
         ``tr``.
@@ -606,7 +799,28 @@ def fse3d(
     ... )
     >>> seq.check_timing()[0]
     True
+    >>> busse = sequences.fse3D_sequence(
+    ...     n_x=32, n_y=16, n_z=8, etl=20, te=None, tr=0.5, n_dummy=0,
+    ...     flip_modulation="busse", busse_optimize=False
+    ... )
+    >>> busse.check_timing()[0]
+    True
     """
+    busse = flip_modulation == "busse"
+    if busse and te is not None:
+        raise ValueError(
+            "Busse trains require te=None; prescribe busse_centre_echo instead"
+        )
+    if busse_optimize and not busse:
+        raise ValueError("busse_optimize requires flip_modulation='busse'")
+    startup = busse_startup_echoes if busse else 0
+    busse_angles = None
+    if crusher_cycles < 0:
+        raise ValueError("crusher_cycles must be nonnegative")
+    if optimize_end_angle and (not rf_overlap or flip_modulation != "optimized"):
+        raise ValueError(
+            "End-angle optimization requires RF overlap and optimized refocusing"
+        )
     system = pp.cap_system(
         pp.Opts() if system is None else system,
         max_grad=MAX_GRAD,
@@ -640,6 +854,31 @@ def fse3d(
     fov = (fov_x, fov_y, fov_z)
     matrix = (n_x, n_y, n_z)
     etl_max = max(etl, etl_periphery)
+    if busse:
+        if etl_periphery != etl or (tr_periphery is not None and tr_periphery != tr):
+            raise ValueError(
+                "Busse modulation currently requires shared train parameters"
+            )
+        if busse_centre_echo is not None and (
+            not isinstance(busse_centre_echo, (int, np.integer))
+            or isinstance(busse_centre_echo, (bool, np.bool_))
+            or not 0 <= busse_centre_echo < etl
+        ):
+            raise ValueError(
+                "busse_centre_echo must be an acquired echo index in [0, etl)"
+            )
+        busse_centre = (
+            (etl - 1) // 2 if busse_centre_echo is None else busse_centre_echo
+        )
+        busse_protocol = {
+            "minimum_flip_angle": np.deg2rad(busse_minimum_angle_deg),
+            "centre_flip_angle": np.deg2rad(busse_centre_angle_deg),
+            "maximum_flip_angle": np.deg2rad(busse_maximum_angle_deg),
+            "centre_echo": startup + busse_centre,
+            "startup_echoes": startup,
+            "initial_decay": busse_initial_decay,
+        }
+        busse_angles = pp.make_busse_schedule(etl_max + startup, **busse_protocol)
 
     # An even number of block rasters puts each hard pulse centre on the raster.
     raster = system.block_duration_raster
@@ -656,7 +895,7 @@ def fse3d(
     else:
         exc = sequences.NonSelectiveExcitation(system, 90.0, duration_s=hard)
     rf_ref = sequences.NonSelectiveRefocusing(system, duration_s=hard).rf_ref
-    gz_ref, read_crushing = None, CRUSHER_CYCLES
+    gz_ref, read_crushing = None, crusher_cycles
     gz = getattr(exc, "gz", None)
     fse = sequences.FseReadout3D(
         system,
@@ -666,8 +905,9 @@ def fse3d(
         gz_ref=gz_ref,
         fov=fov,
         matrix=matrix,
-        etl=etl_max,
+        etl=etl_max + startup,
         esp=esp,
+        rf_overlap=rf_overlap,
         partial_echo=partial_fourier_x,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
@@ -687,7 +927,13 @@ def fse3d(
         if gradient is not None
     ]
     no_waves = [pp.scale_grad(g, 0.0) for g in waves]
-    te_echo = 0 if te is None else int(np.argmin(np.abs(fse.echo_times - te)))
+    te_echo = (
+        busse_centre
+        if busse
+        else 0
+        if te is None
+        else int(np.argmin(np.abs(fse.echo_times - te)))
+    )
     if min(etl, etl_periphery) <= te_echo:
         raise ValueError(
             f"a train of {min(etl, etl_periphery)} echoes ends before echo "
@@ -758,7 +1004,30 @@ def fse3d(
     # Refocusing angles, one row per shot; past its own length a shot's
     # pulses play at zero amplitude.
     played = np.arange(etl_max)[None, :] < np.asarray(lengths)[:, None]
-    if flip_modulation == "optimized":
+    if busse:
+        if busse_optimize:
+            from pypulseqpp._busse_opt import optimize_controls
+
+            echo_map = np.full((n_y, n_z), -1, dtype=np.int32)
+            for train in trains:
+                for echo, view in enumerate(train):
+                    if view is not None:
+                        echo_map[view] = echo
+            busse_angles = optimize_controls(
+                etl_max + startup,
+                **busse_protocol,
+                esp=fse.esp,
+                first_echo_time=float(fse.echo_times[0]),
+                tr=repetition_time,
+                echo_map=echo_map,
+                t1_ms=DESIGN_T1_MS,
+                t2_ms=DESIGN_T2_MS,
+                b1_scales=DESIGN_B1_SCALES,
+                contrast_pair=DESIGN_CONTRAST,
+            )
+        shot_flips = np.tile(np.rad2deg(busse_angles), (len(trains), 1))
+        trains = [[None] * startup + train for train in trains]
+    elif flip_modulation == "optimized":
         shot_flips = design_trains(
             refocusing_angle_deg,
             individual,
@@ -768,9 +1037,15 @@ def fse3d(
             te_echo,
             etl_max,
             fse.esp,
+            first_refocusing_angle_deg=180.0 if rf_overlap else None,
+            first_echo_time=float(fse.echo_times[0]) if rf_overlap else None,
+            b1_scales=DESIGN_B1_SCALES if rf_overlap else (1.0,),
+            optimize_end_angle=optimize_end_angle,
         )
     else:
         shot_flips = refocusing_angle_deg * played.astype(float)
+        if rf_overlap:
+            shot_flips[:, 0] = 180.0
 
     # A wave-encoded view calibrates nothing, so with the wave on the
     # calibration region is acquired again wave-free, in trains of its own
@@ -791,7 +1066,7 @@ def fse3d(
             region += nearest[: -len(region) % etl]
         for start in range(0, len(region), lengths[0]):
             chunk = region[start : start + lengths[0]]
-            reference.append(chunk + [None] * (etl_max - len(chunk)))
+            reference.append([None] * startup + chunk + [None] * (etl_max - len(chunk)))
 
     # Navigators ride after each train, where they cost no scan time; the
     # closing delay makes every shot's own TR.
@@ -834,35 +1109,51 @@ def fse3d(
             if waves:
                 flags["REF"] = int(kind == "reference")
 
-        seq.add_block(fse.rf, *([] if gz is None else [gz]), *labels(**flags))
-        seq.add_block(fse.gx_pre)
+        if rf_overlap:
+            fse.layout.excitation(seq, list(labels(**flags)))
+        else:
+            seq.add_block(fse.rf, *([] if gz is None else [gz]), *labels(**flags))
+            seq.add_block(fse.gx_pre)
+        previous_ky = previous_kz = 0.0
         for echo, (view, flip) in enumerate(zip(views, flips, strict=True)):
             fse.rf_ref.amplitude = nominal * float(flip) / 180.0
-            seq.add_block(
-                fse.rf_ref, *([] if refocusing_gz is None else [refocusing_gz])
-            )
+            if rf_overlap:
+                fse.layout.refocusing(seq, echo == 0, previous_ky, previous_kz)
+                if echo == 0 and fse.esp_first > fse.esp:
+                    seq.add_block(pp.make_delay((fse.esp_first - fse.esp) / 2))
+            else:
+                seq.add_block(
+                    fse.rf_ref, *([] if refocusing_gz is None else [refocusing_gz])
+                )
             line, partition = (n_y // 2, n_z // 2) if view is None else view
             ky = (line - n_y // 2) / (n_y / 2)
             kz = (partition - n_z // 2) / (n_z / 2)
-            seq.add_block(
-                fse.gx_bridge_pre,
-                pp.scale_grad(fse.gy_pre, ky),
-                pp.scale_grad(fse.gz_pre, kz),
-            )
+            if rf_overlap:
+                fse.layout.encoding(seq, ky, kz)
+            else:
+                seq.add_block(
+                    fse.gx_bridge_pre,
+                    pp.scale_grad(fse.gy_pre, ky),
+                    pp.scale_grad(fse.gz_pre, kz),
+                )
             if kind != "dummy" and view is not None:
                 is_calibration = not waves and view in calibration
                 counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
                 if ordering == "shuffling":
-                    counters["ECO"] = echo
+                    counters["ECO"] = echo - startup
                 label_events = labels(**counters)
                 seq.add_block(fse.gx, *wave_events, fse.adc, *label_events)
             else:
                 seq.add_block(fse.gx, *wave_events)
-            seq.add_block(
-                fse.gx_bridge_post,
-                pp.scale_grad(fse.gy_rew, ky),
-                pp.scale_grad(fse.gz_rew, kz),
-            )
+            if rf_overlap:
+                fse.layout.rewinding(seq, ky, kz, echo == fse.etl - 1)
+            else:
+                seq.add_block(
+                    fse.gx_bridge_post,
+                    pp.scale_grad(fse.gy_rew, ky),
+                    pp.scale_grad(fse.gz_rew, kz),
+                )
+            previous_ky, previous_kz = ky, kz
         fse.rf_ref.amplitude = nominal
         for _ in range(n_navigators):
             for block in spiral_navigator.blocks:
@@ -884,20 +1175,37 @@ def fse3d(
         "FOV": list(fov),
         "Matrix": [n_x, n_y, n_z],
         "Name": NAME,
-        "TE": float(fse.echo_times[te_echo]),
+        "TE": float(fse.echo_times[te_echo + startup]),
         "TR": repetition_time,
         "EchoSpacing": fse.esp,
+        "FirstEchoSpacing": fse.esp_first,
+        "RfDeadTimeOverlap": int(rf_overlap),
+        "RefocusingEndOptimized": int(optimize_end_angle),
         "EchoTrainLength": etl,
         "Excitation": excitation,
         "ViewOrdering": ordering,
         "FlipModulation": flip_modulation,
-        "RefocusingFlipAngles": [float(f) for f in shot_flips[0][: lengths[0]]],
+        "RefocusingFlipAngles": [
+            float(f) for f in shot_flips[0][: lengths[0] + startup]
+        ],
         "NumShots": len(trains),
         "kSpaceCenterLine": n_y // 2,
         "kSpaceCenterPartition": n_z // 2,
         "kSpaceCenterSample": fse.center_sample,
         "SliceThickness": fov[2],
     }
+    if busse:
+        definitions.update(
+            StartupEchoes=startup,
+            BusseControlAngles=[
+                busse_minimum_angle_deg,
+                busse_centre_angle_deg,
+                busse_maximum_angle_deg,
+            ],
+            BusseCentreEcho=te_echo,
+            BusseInitialDecay=busse_initial_decay,
+            BusseOptimized=int(busse_optimize),
+        )
     if individual:
         definitions["TRPeriphery"] = periphery_repetition_time
         definitions["EchoTrainLengthPeriphery"] = etl_periphery

@@ -8,6 +8,7 @@ views and emit no labels.
 from __future__ import annotations
 
 __all__ = [
+    "make_busse_schedule",
     "make_phase_cycling_schedule",
     "make_rf_spoiling_schedule",
     "make_traps_schedule",
@@ -16,6 +17,8 @@ __all__ = [
 from collections.abc import Sequence
 
 import numpy as np
+
+from ._busse import make_busse_schedule
 
 
 def make_rf_spoiling_schedule(
