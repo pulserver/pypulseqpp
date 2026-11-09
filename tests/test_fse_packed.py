@@ -229,3 +229,92 @@ def test_end_angle_optimization_keeps_the_starting_profiles_rf_budget():
     assert flips[16] == pytest.approx(100.0)
     assert np.all((flips[1:] >= 20.0) & (flips[1:] <= 100.0))
     assert np.sum(flips**2) <= np.sum(initial**2) * (1 + 1e-6)
+
+
+#: Every design slew rate a 7 T system takes, 1 T/m/s apart.
+SLEWS = range(40, 201)
+
+
+def seven_tesla(slew):
+    """A 7 T system designed to ``slew`` T/m/s, after the usual design derates."""
+    return pp.cap_system(
+        pp.apply_system_derates(
+            pp.Opts(
+                gamma=42575900.0,
+                B0=7.0,
+                max_grad=100.0,
+                grad_unit="mT/m",
+                max_slew=200.0,
+                slew_unit="T/m/s",
+                max_b1=25.0,
+                b1_unit="uT",
+                rf_dead_time=232e-6,
+                rf_ringdown_time=4e-6,
+                rf_raster_time=2e-6,
+                grad_raster_time=4e-6,
+                adc_raster_time=2e-6,
+                block_duration_raster=4e-6,
+            )
+        ),
+        max_grad=100.0,
+        max_slew=float(slew),
+    )
+
+
+@pytest.mark.parametrize(
+    ("fov", "matrix", "bandwidth", "crushing"),
+    [
+        ((0.21, 0.1596, 0.112), (276, 276, 140), 500e3, 0.5),
+        ((0.22, 0.2, 0.08), (64, 48, 16), 250e3, 1.0),
+    ],
+    ids=["7T-0.8mm", "small"],
+)
+def test_the_packed_train_is_laid_out_at_every_slew_rate(
+    fov, matrix, bandwidth, crushing
+):
+    """The encode window keeps room for the overlap, so no band of slew rates is infeasible.
+
+    Without it, the window left after the overlap fell below the shortest
+    phase encode wherever the rewinders did not outlast the encodes by the
+    overlap, which the raster rounding of both turns on and off with the
+    slew rate.
+    """
+    for slew in SLEWS:
+        system = seven_tesla(slew)
+        excitation = sequences.SpatialSelectiveExcitation(
+            system, 90.0, fov[2], duration_s=0.001, time_bw_product=4.0, is_slab=True
+        )
+        refocusing = sequences.NonSelectiveRefocusing(system, duration_s=528e-6)
+        fse = sequences.FseReadout3D(
+            system,
+            excitation.rf,
+            excitation.gz,
+            rf_ref=refocusing.rf_ref,
+            fov=fov,
+            matrix=matrix,
+            etl=3,
+            oversampling=2.0,
+            readout_bandwidth_hz=bandwidth,
+            spoiling_cycles=crushing,
+        )
+        assert fse.check_timing()[0], slew
+
+
+def test_the_shipped_3d_fse_is_designed_at_every_slew_rate():
+    for slew in SLEWS:
+        seq = sequences.fse3D_sequence(
+            seven_tesla(slew),
+            n_x=64,
+            n_y=48,
+            n_z=16,
+            fov_x=0.22,
+            fov_y=0.2,
+            fov_z=0.08,
+            etl=8,
+            te=None,
+            tr=0.5,
+            n_dummy=0,
+            readout_bandwidth_hz=500e3,
+            crusher_cycles=0.5,
+        )
+        assert seq.check_timing()[0], slew
