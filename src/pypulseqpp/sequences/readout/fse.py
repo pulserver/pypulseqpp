@@ -29,12 +29,18 @@ class _FseReadout(SequenceModule):
     """One excitation and a CPMG echo train, to the end of the TR.
 
     Each refocusing pulse is centred midway between the preceding RF centre
-    or echo and the following echo. The default layout uses uniform echo
-    spacing from the excitation onward. With ``rf_overlap``, the initial
-    interval may be longer and must be included in the refocusing design.
-    The phase encodes and the
-    refocusing amplitude are templates that the caller may scale per echo; the
-    sampling order sets the effective TE.
+    or echo and the following echo. The phase encodes and the refocusing
+    amplitude are templates that the caller may scale per echo; the sampling
+    order sets the effective TE.
+
+    A 2D train spaces its echoes uniformly from the excitation onward. A 3D
+    train is packed: the read prephaser shares the excitation block, and the
+    tail of the prephaser and of each echo's rewinders plays in the next
+    refocusing pulse's dead time, beyond its ringdown, so every refocusing
+    block opens on the gradient of the block before it and the echo spacing
+    is shorter by twice that overlap. Its first interval may be longer than
+    the others (``esp_first``); a caller designing the refocusing angles
+    models it.
 
     Parameters
     ----------
@@ -46,7 +52,7 @@ class _FseReadout(SequenceModule):
         Selection gradient played with ``rf``.
     gz_reph : GradEvent, default=None
         Rephaser of ``gz``. ``None`` for a slab excitation (``is_slab=True``),
-        which carries it in ``gz``.
+        which carries it in ``gz``; a 3D train takes none.
     rf_ref : RfEvent
         Refocusing pulse, built with ``use="refocusing"``: the ``rf_ref`` of a
         :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing` for a
@@ -69,12 +75,7 @@ class _FseReadout(SequenceModule):
     esp : float, default=None
         Echo spacing (s). ``None`` is as short as possible, including the
         excitation, its rephaser and the read prephaser in the first half
-        spacing.
-    rf_overlap : bool, default=False
-        Overlap rewinders with refocusing RF dead time. Requires 3D,
-        nonselective refocusing, full echoes, and no separate excitation
-        rephaser or trigger. The first echo may have a longer interval;
-        the caller must model that interval and its refocusing angle.
+        spacing in 2D; in 3D they set ``esp_first`` instead.
     tr : float, default=None
         Repetition time (s), over the whole module. ``None`` is as short as
         possible.
@@ -97,7 +98,8 @@ class _FseReadout(SequenceModule):
         Labels set to 0 on the acquisition block, to be changed per shot by the
         caller.
     trigger : TriggerEvent or DigitalOutputEvent, default=None
-        Event armed on the prephaser block.
+        Event armed on the prephaser block. 2D only: a 3D train's prephaser
+        shares the excitation block.
     wave : {'phase', 'partition', 'both'}, default=None
         Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
         on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude`` is
@@ -152,9 +154,11 @@ class _FseReadout(SequenceModule):
     esp : float
         Echo spacing (s).
     esp_first : float
-        Initial echo interval (s), before gradient-raster rounding.
+        Initial echo interval (s): ``esp`` in 2D, and in 3D wherever the
+        excitation and the read prephaser fit in half an echo spacing.
     layout : RfOverlapLayout
-        Reusable event templates, present when ``rf_overlap`` is true.
+        The packed train's events, 3D only, each echo's played through
+        ``excitation``, ``refocusing``, ``encoding`` and ``rewinding``.
     echo_times : numpy.ndarray
         Echo time of each echo (s) from the RF centre.
     bandwidth_hz : float
@@ -177,8 +181,9 @@ class _FseReadout(SequenceModule):
     ValueError
         If a count or fraction is out of range, ``wave`` is not a wave mode or
         would build wave gradients on a 2D train, ``gz_reph`` is on the read
-        channel, ``rf_ref`` is not a refocusing pulse, or ``esp`` or ``tr`` is
-        shorter than the train can achieve.
+        channel or given to a 3D train, a 3D train is given a ``trigger``,
+        ``rf_ref`` is not a refocusing pulse, or ``esp`` or ``tr`` is shorter
+        than the train can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped FSE readouts.
@@ -197,7 +202,6 @@ class _FseReadout(SequenceModule):
         matrix: Any,
         etl: int = 8,
         esp: float | None = None,
-        rf_overlap: bool = False,
         tr: float | None = None,
         partial_echo: float = 1.0,
         oversampling: float = 1.0,
@@ -211,25 +215,27 @@ class _FseReadout(SequenceModule):
         wave_amplitude: float = 8e-3,
     ) -> None:
         ndim = self._ndim
+        packed = ndim == 3
         overlap = 0.0
-        if rf_overlap:
-            if ndim != 3 or gz_ref is not None or partial_echo != 1.0:
+        if packed:
+            if gz_reph is not None:
                 raise ValueError(
-                    "RF overlap requires 3D nonselective refocusing and full echoes"
+                    "a 3D train's read prephaser shares the excitation block, which "
+                    "leaves no room for a separate rephaser: excite a slab "
+                    "(is_slab=True), which carries its own"
                 )
-            if gz_reph is not None or trigger is not None:
+            if trigger is not None:
                 raise ValueError(
-                    "RF overlap does not support a separate excitation rephaser or trigger"
+                    "a 3D train has no prephaser block for a trigger: its read "
+                    "prephaser shares the excitation block"
                 )
+            # The refocusing pulse's dead time beyond its ringdown, on the
+            # block raster: the previous echo's rewinders end in it.
             overlap = system.block_duration_raster * math.floor(
                 max(0.0, float(rf_ref.delay) - system.rf_ringdown_time)
                 / system.block_duration_raster
                 + 1e-9
             )
-            if overlap <= 0:
-                raise ValueError(
-                    "RF overlap requires dead time longer than RF ringdown"
-                )
         if wave is not None:
             wave_channels(wave)
         if wave_cycles < 0 or wave_amplitude < 0:
@@ -371,21 +377,32 @@ class _FseReadout(SequenceModule):
         pre_floor = _span(
             system, gx_bridge_pre, *_encodes(system, encode_resolution, 1.0, None)
         )
+        rewinds = [
+            encode
+            for encode in _encodes(system, encode_resolution, -1.0, None)
+            if encode is not None
+        ]
         post_floor = pp.ceil_to_raster(
-            max(
-                float(post_times[-1]),
-                *(
-                    pp.calc_duration(encode)
-                    for encode in _encodes(system, encode_resolution, -1.0, None)
-                    if encode is not None
-                ),
-            ),
+            max(float(post_times[-1]), *(pp.calc_duration(e) for e in rewinds)),
             raster,
         )
+        if packed:
+            # The overlap is carved from the prephaser, which it may take
+            # whole, and from the rewinders, which keep a block of their own.
+            overlap = max(0.0, min(overlap, lead_floor, post_floor - raster))
+        if packed and gz_ref is not None:
+            # A selective pulse holds the partition axis through its block,
+            # so the partition rewinder ends before it.
+            post_floor = max(
+                post_floor,
+                pp.ceil_to_raster(pp.calc_duration(rewinds[-1]) + overlap, raster),
+            )
 
         # Twice a raster-rounded half, so that each half lands on the raster.
-        half_min = max(pre_fixed + pre_floor, post_fixed + post_floor)
-        if not rf_overlap:
+        # A packed train gives the overlap back on both sides of the
+        # refocusing pulse, so the encode window keeps room for it.
+        half_min = max(pre_fixed + pre_floor + overlap, post_fixed + post_floor)
+        if not packed:
             half_min = max(half_min, lead_fixed + lead_floor)
         esp_min = 2.0 * pp.ceil_to_raster(half_min, raster)
         if esp is None:
@@ -400,7 +417,7 @@ class _FseReadout(SequenceModule):
                 )
 
         esp_first = esp
-        if rf_overlap:
+        if packed:
             esp_first += 2 * pp.ceil_to_raster(
                 max(0.0, lead_fixed + lead_floor - esp / 2), raster
             )
@@ -437,13 +454,14 @@ class _FseReadout(SequenceModule):
         ]
 
         self.seq = pp.Sequence(system)
-        if rf_overlap:
+        if packed:
             from ._fse_layout import RfOverlapLayout
 
             templates = SimpleNamespace(
                 rf=rf,
                 gz=gz,
                 rf_ref=rf_ref,
+                gz_ref=gz_ref,
                 gx_pre=gx_pre,
                 gx_bridge_pre=gx_bridge_pre,
                 gx_bridge_post=gx_bridge_post,
@@ -452,7 +470,7 @@ class _FseReadout(SequenceModule):
                 gy_rew=gy_rew,
                 gz_rew=gz_rew,
             )
-            self.layout = RfOverlapLayout(templates, system)
+            self.layout = RfOverlapLayout(templates, overlap, system)
             self.layout.excitation(self.seq, [])
             for echo in range(etl):
                 self.layout.refocusing(self.seq, echo == 0, 1.0, 1.0)

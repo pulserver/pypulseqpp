@@ -95,7 +95,6 @@ def main(output):
         fov_z=0.112,
         readout_bandwidth_hz=500000,
         crusher_cycles=0.5,
-        rf_overlap=True,
         esp=ESP,
         etl=45,
         etl_periphery=20,

@@ -1,4 +1,4 @@
-"""Gradient continuity and timing of nonselective 3D FSE with RF overlap."""
+"""Gradient continuity and timing of the packed 3D FSE train."""
 
 import numpy as np
 import pytest
@@ -53,8 +53,8 @@ def readout(system, **kwargs):
     )
 
 
-def test_rf_overlap_preserves_echo_locations_and_rf_midpoints(system):
-    fse = readout(system, rf_overlap=True)
+def test_packing_preserves_echo_locations_and_rf_midpoints(system):
+    fse = readout(system)
     assert fse.esp == pytest.approx(0.003416)
     assert fse.esp_first == pytest.approx(0.004160)
     assert fse.check_timing()[0]
@@ -72,8 +72,8 @@ def test_rf_overlap_preserves_echo_locations_and_rf_midpoints(system):
     np.testing.assert_allclose(np.asarray(gradients.gradient)[1:], 0.0, atol=0.01)
 
 
-def test_reusing_overlap_templates_starts_each_train_at_zero_phase_gradient(system):
-    fse = readout(system, rf_overlap=True)
+def test_reusing_packed_templates_starts_each_train_at_zero_phase_gradient(system):
+    fse = readout(system)
     seq = pp.Sequence(system)
     for _ in range(2):
         fse.layout.excitation(seq, [])
@@ -91,15 +91,76 @@ def test_reusing_overlap_templates_starts_each_train_at_zero_phase_gradient(syst
     assert ok, errors
 
 
-def test_rf_overlap_requested_spacing_is_the_played_spacing(system):
-    fse = readout(system, rf_overlap=True, esp=0.0038)
+def test_a_requested_spacing_is_the_played_spacing(system):
+    fse = readout(system, esp=0.0038)
     assert fse.esp == pytest.approx(0.0038)
     assert fse.check_timing()[0]
 
 
-def test_rf_overlap_requires_full_echoes(system):
-    with pytest.raises(ValueError, match="full echoes"):
-        readout(system, rf_overlap=True, partial_echo=0.75)
+def test_a_partial_echo_packs_with_the_echo_where_the_line_crosses_zero(system):
+    fse = readout(system, partial_echo=416 / 552)
+    assert fse.check_timing()[0]
+    count = int(fse.adc.num_samples)
+    k, _, excitation, refocusing, time = fse.calculate_kspace()
+    lines = np.asarray(k).reshape(3, 3, count)
+    # k is zero half a sample before the centre sample, as for a full echo.
+    np.testing.assert_allclose(
+        lines[0, :, fse.center_sample], 0.5 * fse.delta_kx, atol=1e-3
+    )
+    echoes = np.asarray(time).reshape(3, count)[:, fse.center_sample]
+    np.testing.assert_allclose(np.diff(echoes), fse.esp, atol=1e-6)
+    previous = np.r_[float(excitation[0]), echoes[:-1]]
+    np.testing.assert_allclose(refocusing, (previous + echoes) / 2, atol=2e-6)
+
+
+def test_each_refocusing_block_opens_on_the_previous_rewinder(system):
+    """A join into a refocusing pulse carries gradient, so the train is one segment."""
+    fse = readout(system)
+    blocks = [fse.seq.get_block(i) for i in range(1, len(fse.seq.block_events) + 1)]
+    refocusing = [b for b in blocks if b.rf is not None and b.rf.use == "refocusing"]
+    assert len(refocusing) == 3
+    # The first opens on the read prephaser, the others on the rewinders.
+    assert all(abs(block.gx.first) > 0.0 for block in refocusing)
+
+
+def test_a_selective_refocusing_pulse_packs_on_the_other_axes(system):
+    selective = sequences.SpatialSelectiveRefocusing(system, 0.112)
+    excitation = sequences.SpatialSelectiveExcitation(
+        system, 90.0, 0.112, duration_s=0.001, time_bw_product=4.0, is_slab=True
+    )
+    fse = sequences.FseReadout3D(
+        system,
+        excitation.rf,
+        excitation.gz,
+        rf_ref=selective.rf_ref,
+        gz_ref=selective.gz,
+        fov=(0.21, 0.1596, 0.112),
+        matrix=(64, 64, 32),
+        etl=4,
+    )
+    assert fse.check_timing()[0]
+    k, _, _, _, _ = fse.calculate_kspace()
+    lines = np.asarray(k).reshape(3, 4, int(fse.adc.num_samples))
+    np.testing.assert_allclose(
+        lines[2, :, fse.center_sample], 32 / (2 * 0.112), atol=0.01
+    )
+
+
+def test_a_3d_train_refuses_a_separate_rephaser_and_a_trigger(system):
+    slice_ = sequences.SpatialSelectiveExcitation(system, 90.0, 0.005)
+    hard = sequences.NonSelectiveRefocusing(system, duration_s=504e-6)
+    common = {
+        "rf_ref": hard.rf_ref,
+        "fov": (0.2, 0.2, 0.1),
+        "matrix": (32, 32, 8),
+        "etl": 2,
+    }
+    with pytest.raises(ValueError, match="rephaser"):
+        sequences.FseReadout3D(system, slice_.rf, slice_.gz, slice_.gz_reph, **common)
+    with pytest.raises(ValueError, match="trigger"):
+        sequences.FseReadout3D(
+            system, slice_.rf, trigger=pp.make_trigger("physio1"), **common
+        )
 
 
 def test_refocusing_cost_uses_the_first_pulse_and_first_echo(monkeypatch):

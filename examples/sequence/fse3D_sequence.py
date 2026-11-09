@@ -125,6 +125,11 @@ def pclo_rings(te_echo: int, etl: int) -> np.ndarray:
     return _pclo_rings(te_echo, etl)
 
 
+#: The fractional part of the golden ratio, which spreads consecutive
+#: integers evenly around a turn.
+_GOLDEN = (5**0.5 - 1) / 2
+
+
 def deal_trains(
     coords: np.ndarray,
     lengths: list[int],
@@ -139,11 +144,14 @@ def deal_trains(
     (:func:`pclo_rings`), and how far the shot is along the transition. The
     views are ranked by radius. Both are cut into sections of one slot per
     shot, the innermost views filling the nearest slots, and within a section
-    the views, sorted by angle, fill the slots in shot order (Buonincontri et
-    al., abstract 566-05-007, Fig. 2D); the centre of k-space, which has no
-    angle, takes the nearest slot. With identical trains the shot term
-    vanishes and a section is one echo, so the rings of k-space take the
-    echoes in PCLO order.
+    the views are sorted by angle (Buonincontri et al., abstract 566-05-007,
+    Fig. 2D); the centre of k-space, which has no angle, takes the nearest
+    slot. Each shot holds one place around the turn, the golden-ratio
+    fraction of its rank along the transition, and a section's slots take
+    its angles in that order. A shot thus keeps to one angle, and every arc
+    of a ring holds the whole range of TRs and train lengths rather than one
+    end of it: a TR that turns with the angle modulates the periphery of
+    k-space azimuthally (Buonincontri et al., Fig. 3D).
 
     Parameters
     ----------
@@ -179,6 +187,10 @@ def deal_trains(
             slot[0],
         ),
     )
+    # Each shot's place around the turn: the golden-ratio fraction of its
+    # rank along the transition.
+    rank = np.argsort(np.argsort(place, kind="stable"), kind="stable")
+    turn = (rank * _GOLDEN) % 1.0
     trains: list[list[int | None]] = [[None] * etl_max for _ in range(n_shots)]
     # The centre of k-space, which has no angle, takes the nearest slot.
     if len(views) and radius[views[0]] == 0.0:
@@ -187,9 +199,10 @@ def deal_trains(
     for start in range(0, len(views), n_shots):
         section = sorted(views[start : start + n_shots], key=lambda i: angle[i])
         # The last section may hold fewer views than it has slots.
-        for (s, e), view in zip(
-            sorted(slots[start : start + n_shots]), section, strict=False
-        ):
+        held = sorted(
+            slots[start : start + n_shots], key=lambda slot: (turn[slot[0]], slot)
+        )
+        for (s, e), view in zip(held, section, strict=False):
             trains[s][e] = view
     return trains
 
@@ -562,7 +575,6 @@ def fse3d(
     excitation: str = "slab",
     readout_oversampling: float = 2.0,
     esp: float | None = None,
-    rf_overlap: bool = False,
     crusher_cycles: float = 1.0,
     optimize_end_angle: bool = False,
     n_acs_y: int = 24,
@@ -686,17 +698,11 @@ def fse3d(
         Readout oversampling factor, at least one.
     esp : float | None, default=None
         Echo spacing (s). ``None`` is as short as the train admits.
-    rf_overlap : bool, default=False
-        Overlap rewinders with RF dead time and construct the train directly
-        from reusable templates. Requires full echoes. The first refocusing
-        pulse is 180 degrees under ``constant`` and ``optimized``; ``busse``
-        retains its prescribed maximum angle. The first echo time enters
-        the forward EPG model together with ``DESIGN_B1_SCALES``.
     crusher_cycles : float, default=1.0
         Read-axis crusher area in cycles across one native readout voxel.
     optimize_end_angle : bool, default=False
         Optimize the final refocusing angle under the starting profile's RF
-        energy budget. Requires ``rf_overlap`` and optimized, shared trains.
+        energy budget. Requires optimized, shared trains.
     n_acs_y : int, default=24
         Extent of the fully sampled calibration region along the phase encode,
         acquired ahead of the rest when undersampled.
@@ -875,10 +881,8 @@ def fse3d(
     controls_varied = False
     if crusher_cycles < 0:
         raise ValueError("crusher_cycles must be nonnegative")
-    if optimize_end_angle and (not rf_overlap or flip_modulation != "optimized"):
-        raise ValueError(
-            "End-angle optimization requires RF overlap and optimized refocusing"
-        )
+    if optimize_end_angle and flip_modulation != "optimized":
+        raise ValueError("End-angle optimization requires optimized refocusing")
     system = pp.cap_system(
         pp.Opts() if system is None else system,
         max_grad=MAX_GRAD,
@@ -1004,7 +1008,6 @@ def fse3d(
         matrix=matrix,
         etl=etl_max + startup,
         esp=esp,
-        rf_overlap=rf_overlap,
         partial_echo=partial_fourier_x,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
@@ -1092,7 +1095,6 @@ def fse3d(
         prescribed_pd_te = float(equivalent[startup + pd_centre])
 
     nominal = fse.rf_ref.amplitude
-    refocusing_gz = getattr(fse, "gz_ref", None)
     waves = [
         gradient
         for gradient in (
@@ -1134,6 +1136,16 @@ def fse3d(
     )
     tr = minimum_tr if tr is None else tr
     tr_periphery = tr if tr_periphery is None else tr_periphery
+    # Every train holds the longest one's echoes, so both ends of the
+    # transition are refused here, before the shots are dealt: a design of
+    # a few views, as an evaluation makes, refuses what the whole scan would.
+    longest = fse.duration + system.block_duration_raster
+    for time in (tr, tr_periphery):
+        if pp.round_to_raster(time, system.block_duration_raster) < longest - 1e-9:
+            raise ValueError(
+                f"the TR of {time * 1e3:.1f} ms is shorter than the "
+                f"{longest * 1e3:.1f} ms the longest train takes"
+            )
     individual = tr_periphery != tr or etl_periphery != etl or controls_varied
     resolved_ordering = (
         ("buonincontri" if individual else "pclo") if ordering == "radial" else ordering
@@ -1348,15 +1360,14 @@ def fse3d(
             te_echo,
             etl_max,
             fse.esp,
-            first_refocusing_angle_deg=180.0 if rf_overlap else None,
-            first_echo_time=float(fse.echo_times[0]) if rf_overlap else None,
-            b1_scales=DESIGN_B1_SCALES if rf_overlap else (1.0,),
+            first_refocusing_angle_deg=180.0,
+            first_echo_time=float(fse.echo_times[0]),
+            b1_scales=DESIGN_B1_SCALES,
             optimize_end_angle=optimize_end_angle,
         )
     else:
         shot_flips = refocusing_angle_deg * played.astype(float)
-        if rf_overlap:
-            shot_flips[:, 0] = 180.0
+        shot_flips[:, 0] = 180.0
 
     # A wave-encoded view calibrates nothing, so with the wave on the
     # calibration region is acquired again wave-free, in trains of its own
@@ -1420,33 +1431,17 @@ def fse3d(
             if waves:
                 flags["REF"] = int(kind == "reference")
 
-        if rf_overlap:
-            fse.layout.excitation(seq, list(labels(**flags)))
-        else:
-            seq.add_block(fse.rf, *([] if gz is None else [gz]), *labels(**flags))
-            seq.add_block(fse.gx_pre)
+        fse.layout.excitation(seq, list(labels(**flags)))
         previous_ky = previous_kz = 0.0
         for echo, (view, flip) in enumerate(zip(views, flips, strict=True)):
             fse.rf_ref.amplitude = nominal * float(flip) / 180.0
-            if rf_overlap:
-                fse.layout.refocusing(seq, echo == 0, previous_ky, previous_kz)
-                if echo == 0 and fse.esp_first > fse.esp:
-                    seq.add_block(pp.make_delay((fse.esp_first - fse.esp) / 2))
-            else:
-                seq.add_block(
-                    fse.rf_ref, *([] if refocusing_gz is None else [refocusing_gz])
-                )
+            fse.layout.refocusing(seq, echo == 0, previous_ky, previous_kz)
+            if echo == 0 and fse.esp_first > fse.esp:
+                seq.add_block(pp.make_delay((fse.esp_first - fse.esp) / 2))
             line, partition = (n_y // 2, n_z // 2) if view is None else view
             ky = (line - n_y // 2) / (n_y / 2)
             kz = (partition - n_z // 2) / (n_z / 2)
-            if rf_overlap:
-                fse.layout.encoding(seq, ky, kz)
-            else:
-                seq.add_block(
-                    fse.gx_bridge_pre,
-                    pp.scale_grad(fse.gy_pre, ky),
-                    pp.scale_grad(fse.gz_pre, kz),
-                )
+            fse.layout.encoding(seq, ky, kz)
             if kind != "dummy" and view is not None:
                 is_calibration = not waves and view in calibration
                 counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
@@ -1456,14 +1451,7 @@ def fse3d(
                 seq.add_block(fse.gx, *wave_events, fse.adc, *label_events)
             else:
                 seq.add_block(fse.gx, *wave_events)
-            if rf_overlap:
-                fse.layout.rewinding(seq, ky, kz, echo == fse.etl - 1)
-            else:
-                seq.add_block(
-                    fse.gx_bridge_post,
-                    pp.scale_grad(fse.gy_rew, ky),
-                    pp.scale_grad(fse.gz_rew, kz),
-                )
+            fse.layout.rewinding(seq, ky, kz, echo == fse.etl - 1)
             previous_ky, previous_kz = ky, kz
         fse.rf_ref.amplitude = nominal
         for _ in range(n_navigators):
@@ -1490,7 +1478,6 @@ def fse3d(
         "TR": repetition_time,
         "EchoSpacing": fse.esp,
         "FirstEchoSpacing": fse.esp_first,
-        "RfDeadTimeOverlap": int(rf_overlap),
         "RefocusingEndOptimized": int(optimize_end_angle),
         "EchoTrainLength": etl,
         "Excitation": excitation,
