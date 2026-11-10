@@ -629,7 +629,9 @@ encode, acquired ahead of the rest when undersampled.</p></li>
 <li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'</em><em>, </em><em>'busse_radial'</em><em>, </em><em>'pclo'</em><em>, </em><em>'buonincontri'}</em><em>, </em><em>default='radial'</em>) – <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: choose PCLO for identical trains, or Buonincontri joint
 shot/echo assignment for a centre/periphery transition. <code class="docutils literal notranslate"><span class="pre">'pclo'</span></code>
 explicitly selects Rydén’s radius-band permutation for an arbitrary
-centre echo, with identical trains only. <code class="docutils literal notranslate"><span class="pre">'busse_radial'</span></code> uses the
+centre echo, with identical trains only; for a centre echo in the
+second half of the train the echoes after it take the outer bands in
+order instead of Rydén’s mirrored order. <code class="docutils literal notranslate"><span class="pre">'busse_radial'</span></code> uses the
 basic Busse radius-then-angle order (no sorting jitter/consolidation),
 with identical trains and centre echo 0; under <code class="docutils literal notranslate"><span class="pre">busse</span></code>, explicitly
 set <code class="docutils literal notranslate"><span class="pre">busse_centre_echo=0</span></code>. <code class="docutils literal notranslate"><span class="pre">'buonincontri'</span></code> requires a parameter

@@ -636,9 +636,7 @@ support; neither is an acquisition order.</p>
 <p>With <span class="math notranslate nohighlight">\(R\)</span> = <code class="docutils literal notranslate"><span class="pre">acceleration</span></code>, the lattice of
 <a class="reference internal" href="../../generated/pypulseqpp.make_cartesian_axis_sampling.html#pypulseqpp.make_cartesian_axis_sampling" title="pypulseqpp.make_cartesian_axis_sampling"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_cartesian_axis_sampling()</span></code></a> is</p>
 <div class="math notranslate nohighlight">
-\[
-\{\, i : (i - \lfloor n/2 \rfloor) \bmod R = 0 \,\},
-\]</div>
+\[\{\, i : (i - \lfloor n/2 \rfloor) \bmod R = 0 \,\},\]</div>
 <p>so the centre view is acquired for every <span class="math notranslate nohighlight">\(R\)</span>. Partial Fourier removes the
 indices below <span class="math notranslate nohighlight">\(n - \mathrm{round}(\text{partial\_fourier}\cdot n)\)</span>, keeping the
 centre and the far edge; <code class="docutils literal notranslate"><span class="pre">partial_fourier</span></code> lies in <span class="math notranslate nohighlight">\((0.5, 1]\)</span>. The

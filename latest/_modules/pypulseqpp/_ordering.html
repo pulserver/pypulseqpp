@@ -1321,8 +1321,17 @@
 <span class="sd">    rings around it step through the earlier echoes two at a time down to</span>
 <span class="sd">    the first and back up through the others, and the outer rings take the</span>
 <span class="sd">    remaining echoes in order. Neighbouring rings are at most two echoes</span>
-<span class="sd">    apart, so T2 decay modulates k-space without a jump. A TE echo in the</span>
-<span class="sd">    second half of the train mirrors the order from the end.</span>
+<span class="sd">    apart, so T2 decay modulates k-space without a jump.</span>
+
+<span class="sd">    The same rule holds for a TE echo in the second half of the train: the</span>
+<span class="sd">    echoes up to the TE echo fill the inner rings, and every later echo</span>
+<span class="sd">    reads a ring further out than every earlier one, in order. The published</span>
+<span class="sd">    permutation instead mirrors the order from the end for such a centre,</span>
+<span class="sd">    which sends the latest echoes to the inner rings and the earliest to the</span>
+<span class="sd">    edge of k-space. With a train whose signal is flat before the TE echo and</span>
+<span class="sd">    decays after it, as a Busse schedule is, that weights k-space with a dip</span>
+<span class="sd">    at mid radius and full signal at the edge, and the image rings along the</span>
+<span class="sd">    phase encodes; the order here weights it flat, then decaying outwards.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1337,9 +1346,6 @@
 <span class="sd">        ``(etl,)`` the echo of each ring, counting from 0.</span>
 <span class="sd">    """</span>
     <span class="n">centre</span> <span class="o">=</span> <span class="n">te_echo</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="n">mirrored</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">&gt;</span> <span class="n">etl</span> <span class="o">/</span> <span class="mi">2</span>
-    <span class="k">if</span> <span class="n">mirrored</span><span class="p">:</span>
-        <span class="n">centre</span> <span class="o">=</span> <span class="n">etl</span> <span class="o">-</span> <span class="n">centre</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">pivot</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">+</span> <span class="n">centre</span> <span class="o">%</span> <span class="mi">2</span>
     <span class="n">rings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">etl</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">inner</span> <span class="o">=</span> <span class="n">rings</span> <span class="o">&lt;=</span> <span class="n">pivot</span> <span class="o">//</span> <span class="mi">2</span>
@@ -1347,8 +1353,6 @@
     <span class="n">echoes</span> <span class="o">=</span> <span class="n">rings</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">echoes</span><span class="p">[</span><span class="n">inner</span><span class="p">]</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rings</span><span class="p">[</span><span class="n">inner</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span>
     <span class="n">echoes</span><span class="p">[</span><span class="n">middle</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rings</span><span class="p">[</span><span class="n">middle</span><span class="p">]</span> <span class="o">-</span> <span class="n">centre</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="n">mirrored</span><span class="p">:</span>
-        <span class="n">echoes</span> <span class="o">=</span> <span class="n">etl</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">echoes</span>
     <span class="k">return</span> <span class="n">echoes</span> <span class="o">-</span> <span class="mi">1</span>
 
 
@@ -1404,6 +1408,11 @@
 <span class="sd">    whole bands. It therefore avoids a large index wrap near k-space centre.</span>
 <span class="sd">    It does not remove relaxation-related PSF broadening. Shot-dependent</span>
 <span class="sd">    parameter transitions require a joint shot/echo ordering instead.</span>
+
+<span class="sd">    A centre echo in the second half of the train keeps the same rule: the</span>
+<span class="sd">    echoes after it take the outer bands in order. Rydén et al. mirror the</span>
+<span class="sd">    permutation from the end of the train for such a centre, which puts the</span>
+<span class="sd">    earliest echoes at the edge of k-space; this function does not.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>

@@ -559,6 +559,10 @@ selected view is assigned exactly once; the support is unchanged.</p>
 whole bands. It therefore avoids a large index wrap near k-space centre.
 It does not remove relaxation-related PSF broadening. Shot-dependent
 parameter transitions require a joint shot/echo ordering instead.</p>
+<p>A centre echo in the second half of the train keeps the same rule: the
+echoes after it take the outer bands in order. Rydén et al. mirror the
+permutation from the end of the train for such a centre, which puts the
+earliest echoes at the edge of k-space; this function does not.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">make_pclo_order</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="mi">6</span><span class="p">,</span> <span class="n">center_echo</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
