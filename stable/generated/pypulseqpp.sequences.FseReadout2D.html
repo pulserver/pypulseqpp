@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=76ea90e3"></script>
+    <script src="../_static/documentation_options.js?v=619e1085"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.61';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.61" />
+  <meta name="docsearch:version" content="v0.0.62" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -524,12 +524,17 @@
 <p>A slice-selective CPMG train, frequency-encoded along x.</p>
 <p><code class="docutils literal notranslate"><span class="pre">fov</span></code> and <code class="docutils literal notranslate"><span class="pre">matrix</span></code> take two values, readout first.</p>
 <p>Each refocusing pulse is centred midway between the preceding RF centre
-or echo and the following echo. The default layout uses uniform echo
-spacing from the excitation onward. With <code class="docutils literal notranslate"><span class="pre">rf_overlap</span></code>, the initial
-interval may be longer and must be included in the refocusing design.
-The phase encodes and the
-refocusing amplitude are templates that the caller may scale per echo; the
-sampling order sets the effective TE.</p>
+or echo and the following echo. The phase encodes and the refocusing
+amplitude are templates that the caller may scale per echo; the sampling
+order sets the effective TE.</p>
+<p>A 2D train spaces its echoes uniformly from the excitation onward. A 3D
+train is packed: the read prephaser shares the excitation block, and the
+tail of the prephaser and of each echo’s rewinders plays in the next
+refocusing pulse’s dead time, beyond its ringdown, so every refocusing
+block opens on the gradient of the block before it and the echo spacing
+is shorter by twice that overlap. Its first interval may be longer than
+the others (<code class="docutils literal notranslate"><span class="pre">esp_first</span></code>); a caller designing the refocusing angles
+models it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -537,7 +542,7 @@ sampling order sets the effective TE.</p>
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The excitation that opens the repetition.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em><em>, </em><em>default=None</em>) – Selection gradient played with <code class="docutils literal notranslate"><span class="pre">rf</span></code>.</p></li>
 <li><p><strong>gz_reph</strong> (<em>GradEvent</em><em>, </em><em>default=None</em>) – Rephaser of <code class="docutils literal notranslate"><span class="pre">gz</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> for a slab excitation (<code class="docutils literal notranslate"><span class="pre">is_slab=True</span></code>),
-which carries it in <code class="docutils literal notranslate"><span class="pre">gz</span></code>.</p></li>
+which carries it in <code class="docutils literal notranslate"><span class="pre">gz</span></code>; a 3D train takes none.</p></li>
 <li><p><strong>rf_ref</strong> (<em>RfEvent</em>) – Refocusing pulse, built with <code class="docutils literal notranslate"><span class="pre">use=&quot;refocusing&quot;</span></code>: the <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code> of a
 <a class="reference internal" href="pypulseqpp.sequences.SpatialSelectiveRefocusing.html#pypulseqpp.sequences.SpatialSelectiveRefocusing" title="pypulseqpp.sequences.SpatialSelectiveRefocusing"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialSelectiveRefocusing</span></code></a> for a
 selective train, or of a
@@ -554,11 +559,7 @@ number and order of acquired lines.</p></li>
 <li><p><strong>etl</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=8</em>) – Echo train length: refocusing pulses and encoded lines per repetition.</p></li>
 <li><p><strong>esp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Echo spacing (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible, including the
 excitation, its rephaser and the read prephaser in the first half
-spacing.</p></li>
-<li><p><strong>rf_overlap</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Overlap rewinders with refocusing RF dead time. Requires 3D,
-nonselective refocusing, full echoes, and no separate excitation
-rephaser or trigger. The first echo may have a longer interval;
-the caller must model that interval and its refocusing angle.</p></li>
+spacing in 2D; in 3D they set <code class="docutils literal notranslate"><span class="pre">esp_first</span></code> instead.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Repetition time (s), over the whole module. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as
 possible.</p></li>
 <li><p><strong>partial_echo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Fraction of the full echo acquired, in (0.5, 1]. The samples before
@@ -573,7 +574,8 @@ every acquisition.</p></li>
 resolution.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels set to 0 on the acquisition block, to be changed per shot by the
 caller.</p></li>
-<li><p><strong>trigger</strong> (<em>TriggerEvent</em><em> or </em><em>DigitalOutputEvent</em><em>, </em><em>default=None</em>) – Event armed on the prephaser block.</p></li>
+<li><p><strong>trigger</strong> (<em>TriggerEvent</em><em> or </em><em>DigitalOutputEvent</em><em>, </em><em>default=None</em>) – Event armed on the prephaser block. 2D only: a 3D train’s prephaser
+shares the excitation block.</p></li>
 <li><p><strong>wave</strong> (<em>{'phase'</em><em>, </em><em>'partition'</em><em>, </em><em>'both'}</em><em>, </em><em>default=None</em>) – Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
 on z, or both. 3D only, unless <code class="docutils literal notranslate"><span class="pre">wave_cycles</span></code> or <code class="docutils literal notranslate"><span class="pre">wave_amplitude</span></code> is
 zero, which builds no wave gradients.</p></li>
@@ -609,8 +611,10 @@ scaling one to zero changes nothing else. Only the channels driven by
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
 <li><p><strong>wait_tr</strong> (<em>DelayEvent</em>) – Present only when <code class="docutils literal notranslate"><span class="pre">tr</span></code> exceeds the minimum.</p></li>
 <li><p><strong>esp</strong> (<em>float</em>) – Echo spacing (s).</p></li>
-<li><p><strong>esp_first</strong> (<em>float</em>) – Initial echo interval (s), before gradient-raster rounding.</p></li>
-<li><p><strong>layout</strong> (<em>RfOverlapLayout</em>) – Reusable event templates, present when <code class="docutils literal notranslate"><span class="pre">rf_overlap</span></code> is true.</p></li>
+<li><p><strong>esp_first</strong> (<em>float</em>) – Initial echo interval (s): <code class="docutils literal notranslate"><span class="pre">esp</span></code> in 2D, and in 3D wherever the
+excitation and the read prephaser fit in half an echo spacing.</p></li>
+<li><p><strong>layout</strong> (<em>RfOverlapLayout</em>) – The packed train’s events, 3D only, each echo’s played through
+<code class="docutils literal notranslate"><span class="pre">excitation</span></code>, <code class="docutils literal notranslate"><span class="pre">refocusing</span></code>, <code class="docutils literal notranslate"><span class="pre">encoding</span></code> and <code class="docutils literal notranslate"><span class="pre">rewinding</span></code>.</p></li>
 <li><p><strong>echo_times</strong> (<em>numpy.ndarray</em>) – Echo time of each echo (s) from the RF centre.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<em>float</em>) – Achieved ADC sampling rate <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz).</p></li>
 <li><p><strong>n_samples</strong> (<em>int</em>) – ADC samples per echo.</p></li>
@@ -625,8 +629,9 @@ the slew rate binds; zero without <code class="docutils literal notranslate"><sp
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a count or fraction is out of range, <code class="docutils literal notranslate"><span class="pre">wave</span></code> is not a wave mode or
     would build wave gradients on a 2D train, <code class="docutils literal notranslate"><span class="pre">gz_reph</span></code> is on the read
-    channel, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code> is not a refocusing pulse, or <code class="docutils literal notranslate"><span class="pre">esp</span></code> or <code class="docutils literal notranslate"><span class="pre">tr</span></code> is
-    shorter than the train can achieve.</p>
+    channel or given to a 3D train, a 3D train is given a <code class="docutils literal notranslate"><span class="pre">trigger</span></code>,
+    <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code> is not a refocusing pulse, or <code class="docutils literal notranslate"><span class="pre">esp</span></code> or <code class="docutils literal notranslate"><span class="pre">tr</span></code> is shorter
+    than the train can achieve.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

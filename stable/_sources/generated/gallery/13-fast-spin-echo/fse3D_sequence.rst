@@ -87,24 +87,24 @@ T2- and proton-density-weighted structural imaging.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:916: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
-    Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
-      first = float(value.reshape(-1)[0])
     21 shots; 3.48 ms echo spacing; 118.3 ms effective TE
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 121-127
+.. GENERATED FROM PYTHON SOURCE LINES 121-130
 
 Sequence diagram
 ----------------
 
 Each echo comprises a variable-angle refocusing pulse, phase and partition
-prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
-is the echo assigned to k-space centre.
+prephasing, one frequency-encoded ADC event, and rephasing, whose tail plays
+in the next refocusing pulse's dead time. The read prephaser shares the
+excitation block; where it and the excitation take more than half an echo
+spacing, the first interval alone is longer, and its refocusing pulse is
+180 degrees. The effective TE is the echo assigned to k-space centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 127-129
+.. GENERATED FROM PYTHON SOURCE LINES 130-132
 
 .. code-block:: Python
 
@@ -122,13 +122,14 @@ is the echo assigned to k-space centre.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 130-143
+.. GENERATED FROM PYTHON SOURCE LINES 133-147
 
 Refocusing schedule and echo signal
 -----------------------------------
 
-The refocusing schedule has the form of [BUS08a]_: the angle decreases from
-the prescribed angle to a minimum over the first five echoes, increases to
+The refocusing schedule has the form of [BUS08a]_ after a first pulse of 180
+degrees: the angle decreases from the prescribed angle to a minimum over the
+first five echoes, increases to
 the prescribed angle at the effective-TE echo and holds it to the end of the
 train. The prescribed angle is the peak of the schedule. The minimum angle,
 bounded by the prescribed angle, is optimized with the extended phase graph
@@ -138,7 +139,7 @@ contrast between two of the sequence's design tissues at the effective-TE
 echo, and a penalty on RF power above that of the initial schedule. The same
 simulator evaluates the resulting T2-dependent echo envelope.
 
-.. GENERATED FROM PYTHON SOURCE LINES 143-159
+.. GENERATED FROM PYTHON SOURCE LINES 147-163
 
 .. code-block:: Python
 
@@ -161,7 +162,7 @@ simulator evaluates the resulting T2-dependent echo envelope.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 160-167
+.. GENERATED FROM PYTHON SOURCE LINES 164-171
 
 Echo and shot order
 -------------------
@@ -171,7 +172,7 @@ effective-TE echo and progressively larger radii to echoes farther from it. Echo
 position within a train; shot index identifies views acquired after the same
 excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 167-172
+.. GENERATED FROM PYTHON SOURCE LINES 171-176
 
 
 
@@ -185,7 +186,7 @@ excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 173-180
+.. GENERATED FROM PYTHON SOURCE LINES 177-184
 
 K-space weighting
 -----------------
@@ -195,7 +196,7 @@ Radial assignment converts temporal signal evolution into a predominantly
 radial modulation transfer function; its Fourier transform contributes to
 image blurring along both phase-encode axes.
 
-.. GENERATED FROM PYTHON SOURCE LINES 180-190
+.. GENERATED FROM PYTHON SOURCE LINES 184-194
 
 
 
@@ -209,7 +210,7 @@ image blurring along both phase-encode axes.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 191-206
+.. GENERATED FROM PYTHON SOURCE LINES 195-210
 
 References
 ----------
@@ -230,7 +231,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.673 seconds)
+   **Total running time of the script:** (0 minutes 0.817 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_13-fast-spin-echo_fse3D_sequence.py:
