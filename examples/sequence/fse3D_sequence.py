@@ -713,8 +713,8 @@ def fse3d(
     flip_modulation : {'constant', 'optimized', 'busse', 'pd'}, default='constant'
         Constant refocusing angles, or variable trains designed by direct-angle
         optimization, prescribed-PSS Busse inverse EPG or relaxation-aware
-        prescribed-signal PD inverse EPG. Forward EPG optimization
-        requires the ``design`` extra.
+        prescribed-signal PD inverse EPG. Every variable train is designed
+        with blochsim, which the ``design`` extra installs.
     busse_minimum_angle_deg : float, default=25.0
         Minimum actual refocusing angle (degrees), under ``busse``.
     busse_centre_angle_deg : float, default=70.0
@@ -829,7 +829,7 @@ def fse3d(
         mode, individually parameterized trains are shuffled, a train ends
         before the TE echo, or a TR is shorter than the longest train.
     ImportError
-        If ``optimized`` is asked for without blochsim.
+        If a variable train is asked for without blochsim.
 
     Examples
     --------

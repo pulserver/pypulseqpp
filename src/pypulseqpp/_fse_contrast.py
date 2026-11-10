@@ -1,10 +1,8 @@
 """Contrast-equivalent echo times for ideal CPMG refocusing trains."""
 
-from functools import lru_cache
-
 import numpy as np
 
-from ._busse import _rotate, _shift, make_busse_schedule
+from ._busse import _trains
 
 
 def calc_fse_effective_te(
@@ -42,6 +40,8 @@ def calc_fse_effective_te(
     ------
     ValueError
         If angles, timing or reference relaxation times are invalid.
+    ImportError
+        If blochsim is not installed.
 
     Notes
     -----
@@ -51,7 +51,9 @@ def calc_fse_effective_te(
     [1]_. No RF-pulse duration, slice profile, off-resonance, transmit-field
     variation or inter-shot steady state is modeled. This is a reference
     contrast annotation, not a tissue-independent prediction. At 180-degree
-    refocusing it equals physical echo time. No Torch dependency is required.
+    refocusing it equals physical echo time. The echoes are computed by
+    ``blochsim.trains.effective_te``, which the ``design`` extra installs;
+    PyTorch is not imported.
 
     Examples
     --------
@@ -83,46 +85,12 @@ def calc_fse_effective_te(
         raise ValueError(
             "echo spacing, first echo time and reference T1/T2 must be positive and finite"
         )
-    shape = angles.shape[:-1]
-    count = angles.shape[-1]
-    state = np.zeros((3, 2, *shape, count + 1), dtype=complex)
-    state[:2, ..., 0] = 1.0
-    result = np.empty_like(angles)
-    for echo in range(count):
-        half = (first if echo == 0 else echo_spacing) / 2
-        e1 = np.exp(-half / reference_t1)
-        e2 = np.exp(-half / reference_t2)
-        relaxation1 = np.array([e1, 1.0]).reshape(2, *([1] * (len(shape) + 1)))
-        relaxation2 = np.array([e2, 1.0]).reshape(2, *([1] * (len(shape) + 1)))
-        for after_rf in (False, True):
-            if after_rf:
-                state = _rotate(state, angles[..., echo, None])
-            state[:2] *= relaxation2
-            state[2] *= relaxation1
-            state[2, 0, ..., 0] += 1 - e1
-            _shift(state)
-        signal = abs(state[0, ..., 0])
-        with np.errstate(invalid="ignore", divide="ignore"):
-            equivalent = -reference_t2 * np.log(signal[0] / signal[1])
-        result[..., echo] = np.where(signal[1] > 1e-12, equivalent, np.nan)
-    return result
-
-
-@lru_cache(maxsize=512)
-def _busse_centre_te(length, startup, centre, controls, decay, esp, first):
-    angles = make_busse_schedule(
-        length,
-        minimum_flip_angle=np.deg2rad(controls[0]),
-        centre_flip_angle=np.deg2rad(controls[1]),
-        maximum_flip_angle=np.deg2rad(controls[2]),
-        centre_echo=startup + centre,
-        startup_echoes=startup,
-        initial_decay=decay,
-    )
-    return float(
-        calc_fse_effective_te(
-            angles[: startup + centre + 1], esp, first_echo_time=first
-        )[-1]
+    return 1e-3 * _trains().effective_te(
+        np.rad2deg(angles),
+        1e3 * echo_spacing,
+        first_ESP=1e3 * first,
+        T1=1e3 * reference_t1,
+        T2=1e3 * reference_t2,
     )
 
 
@@ -139,49 +107,29 @@ def _select_busse_centre(
 ):
     """Locate the nearest feasible centre by its reference contrast-equivalent TE.
 
-    Rebuild the prescribed train at each candidate centre; the centre-angle
-    constraint therefore follows the k-space centre. Bisection uses the
-    increasing centre-time relation of this fixed-control Busse family.
-    Infeasible shooting candidates are excluded, not used as timing estimates.
+    ``blochsim.trains.busse_centre_echo`` rebuilds the prescribed train at
+    every candidate centre in one batch; the centre-angle constraint therefore
+    follows the k-space centre. A centre is feasible when both the central and
+    the peripheral train can be designed for it. Of two centres equally near,
+    the earlier is returned.
     """
     if not np.isfinite(target) or target <= 0:
         raise ValueError("busse_effective_te must be positive and finite")
-    low, high = max(0, 6 - startup), min(etl, peripheral_etl) - 2
-    candidates = {}
-    while low <= high:
-        midpoint = (low + high) // 2
-        # A failed local inverse solve must not discard the whole bracket.
-        choices = sorted(range(low, high + 1), key=lambda c: abs(c - midpoint))
-        for centre in choices:
-            try:
-                effective = _busse_centre_te(
-                    etl + startup, startup, centre, tuple(controls), decay, esp, first
-                )
-                if etl != peripheral_etl or not np.array_equal(
-                    controls, peripheral_controls
-                ):
-                    _busse_centre_te(
-                        peripheral_etl + startup,
-                        startup,
-                        centre,
-                        tuple(peripheral_controls),
-                        decay,
-                        esp,
-                        first,
-                    )
-            except ValueError:
-                continue
-            if np.isfinite(effective):
-                break
-        else:
-            break
-        candidates[centre] = effective
-        if effective < target:
-            low = centre + 1
-        else:
-            high = centre - 1
-    if not candidates:
+    prescriptions = np.asarray([controls, peripheral_controls], dtype=float)
+    try:
+        centre, _ = _trains().busse_centre_echo(
+            1e3 * target,
+            [etl + startup, peripheral_etl + startup],
+            1e3 * esp,
+            first_ESP=1e3 * first,
+            min_flip=prescriptions[:, 0],
+            centre_flip=prescriptions[:, 1],
+            max_flip=prescriptions[:, 2],
+            startup_echoes=startup,
+            initial_decay=decay,
+        )
+    except ValueError as error:
         raise ValueError(
             "No feasible Busse centre echo for the requested effective TE and endpoint controls"
-        )
-    return min(candidates, key=lambda c: (abs(candidates[c] - target), c))
+        ) from error
+    return centre - startup

@@ -6,6 +6,9 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import sequences
 
+# The schedules and their effective TE are computed by blochsim.trains.
+pytest.importorskip("blochsim.trains")
+
 
 def value(seq, name):
     return float(np.atleast_1d(seq.definitions[name])[0])

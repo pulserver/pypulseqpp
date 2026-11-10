@@ -40,9 +40,12 @@ plot = ["pypulseqpp-seqeyes>=0.3.3,<0.4"]
 # check uses the pocketfft compiled into the extension. Intel publishes no
 # wheel for ARM.
 mkl = ["mkl; platform_machine == 'x86_64' or platform_machine == 'AMD64'"]
-# The simulator the 3D fast spin echo designs its refocusing trains with, under
-# flip_modulation="optimized". It brings PyTorch, so no other path imports it.
-design = ["blochsim>=0.0.17"]
+# The simulator the fast spin echo designs its refocusing trains with: the
+# prescribed-signal schedules (make_busse_schedule, make_pd_schedule), the
+# effective TE (calc_fse_effective_te) and flip_modulation="optimized". It
+# brings PyTorch as a dependency; only the optimized trains import it, the
+# schedules run in blochsim.trains, which is NumPy over a compiled kernel.
+design = ["blochsim>=0.0.18"]
 doc = [
   "sphinx>=7.0",
   "sphinx-book-theme>=1.1",

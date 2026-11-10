@@ -5,62 +5,19 @@ from operator import index
 
 import numpy as np
 
-from pypulseqpp._busse import _rotate, _shift
+from pypulseqpp._busse import _trains
 
 
 def _inverse_pd(target, first, esp, first_echo, t1=1.0, t2=0.1):
-    count, n = target.shape
-    s = np.zeros((3, count, n + 1), complex)
-    s[:2, :, 0] = 1
-    angles = np.empty_like(target)
-    signal = np.empty_like(target)
-    rows = np.arange(count)
-    for i in range(n):
-        half = (first_echo if i == 0 else esp) / 2
-        e1 = np.exp(-half / t1)
-        e2 = np.exp(-half / t2)
-        s[:2] *= e2
-        s[2] *= e1
-        s[2, :, 0] += 1 - e1
-        _shift(s)
-        if i == 0:
-            a = np.deg2rad(first)
-        else:
-            plus, minus, z = s[:, :, 1]
-            v = 0.5 * (plus.real + minus.real)
-            b = 0.5 * (minus.real - plus.real)
-            c = -z.imag
-            phase = np.arctan2(c, b)
-            r = np.hypot(b, c)
-            turn = np.arccos(
-                np.clip((target[:, i] / e2 - v) / np.maximum(r, 1e-16), -1, 1)
-            )
-            cs = np.column_stack(
-                (
-                    np.zeros(count),
-                    np.full(count, np.pi),
-                    phase,
-                    phase + np.pi,
-                    phase - turn,
-                    phase + turn,
-                    phase - turn + 2 * np.pi,
-                    phase + turn + 2 * np.pi,
-                )
-            )
-            err = abs(
-                (v[:, None] + b[:, None] * np.cos(cs) + c[:, None] * np.sin(cs)) * e2
-                - target[:, i, None]
-            )
-            err[(cs < 0) | (cs > np.pi)] = np.inf
-            a = cs[rows, np.argmin(err + 1e-12 * cs, axis=1)]
-        s = _rotate(s, a[:, None])
-        s[:2] *= e2
-        s[2] *= e1
-        s[2, :, 0] += 1 - e1
-        _shift(s)
-        angles[:, i] = np.rad2deg(a)
-        signal[:, i] = s[0, :, 0].real
-    return angles, signal
+    """Flip angles (deg) and achieved echoes of prescribed relaxed echo signals."""
+    return _trains().prescribed_flips(
+        target,
+        first_flip=first,
+        ESP=1e3 * esp,
+        first_ESP=1e3 * first_echo,
+        T1=1e3 * t1,
+        T2=1e3 * t2,
+    )
 
 
 def _solve_pd(lengths, controls, startup, esp, first_echo, t1, t2, decay, seed=None):
@@ -313,6 +270,8 @@ def make_pd_schedule(
     ValueError
         If counts, controls or timing are invalid, or no feasible envelope
         realizes the prescribed maximum/final angles and initial signal drop.
+    ImportError
+        If blochsim, which inverts the phase graph, is not installed.
 
     Notes
     -----

@@ -39,7 +39,7 @@ Three extras add optional features:
 | --- | --- | --- |
 | `plot` | `pip install 'pypulseqpp[plot]'` | The interactive SeqEyes viewer, distributed separately under the GPL. |
 | `mkl` | `pip install 'pypulseqpp[mkl]'` | Intel MKL as the FFT backend of `mech_resonance_spectrum`, on x86-64. |
-| `design` | `pip install 'pypulseqpp[design]'` | `blochsim`, which designs the optimized refocusing schedules of the fast spin echo. |
+| `design` | `pip install 'pypulseqpp[design]'` | `blochsim`, which designs the refocusing schedules of the fast spin echo: Busse and PD trains, their effective TE, and the optimized trains. |
 
 To work on pypulseqpp itself, follow {doc}`../developer-guide/installation`.
 

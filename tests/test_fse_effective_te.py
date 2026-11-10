@@ -8,6 +8,9 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import sequences
 
+# The schedules and their effective TE are computed by blochsim.trains.
+pytest.importorskip("blochsim.trains")
+
 
 @pytest.mark.parametrize("t1,t2", [(1.0, 0.1), (2.0, 0.05)])
 def test_180_degree_refocusing_has_physical_echo_times(t1, t2):
@@ -82,16 +85,21 @@ def test_invalid_effective_te_models_raise(kwargs):
 
 @pytest.mark.parametrize("target", [0.02, 0.054, 0.08])
 def test_centre_search_matches_exhaustive_feasible_search(target):
-    from pypulseqpp._fse_contrast import _busse_centre_te, _select_busse_centre
+    from pypulseqpp._fse_contrast import _select_busse_centre
 
     etl, startup = 40, 6
     controls = (25.0, 70.0, 120.0)
     feasible = {}
     for centre in range(etl - 1):
         with suppress(ValueError):
-            feasible[centre] = _busse_centre_te(
-                etl + startup, startup, centre, controls, 1.3, 0.003416, 0.004162
+            angles = pp.make_busse_schedule(
+                etl + startup,
+                centre_echo=startup + centre,
+                startup_echoes=startup,
             )
+            feasible[centre] = pp.calc_fse_effective_te(
+                angles[: startup + centre + 1], 0.003416, first_echo_time=0.004162
+            )[-1]
     expected = min(feasible, key=lambda c: (abs(feasible[c] - target), c))
     assert (
         _select_busse_centre(
