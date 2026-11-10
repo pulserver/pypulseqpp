@@ -580,24 +580,25 @@ T2- and proton-density-weighted structural imaging.</p>
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">spacing; </span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.get_definition.html#pypulseqpp.Sequence.get_definition" title="pypulseqpp.Sequence.get_definition"><span class="n">seq</span><span class="o">.</span><span class="n">get_definition</span></a><span class="p">(</span><span class="s1">'</span><span class="s1">TE</span><span class="s1">'</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms effective TE</span><span class="s2">&quot;</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/blochsim/sequence/_accelerators.py:916: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
-Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
-  first = float(value.reshape(-1)[0])
-21 shots; 3.48 ms echo spacing; 118.3 ms effective TE
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>21 shots; 3.48 ms echo spacing; 118.3 ms effective TE
 </pre></div>
 </div>
 <section id="sequence-diagram">
 <h2>Sequence diagram<a class="headerlink" href="#sequence-diagram" title="Link to this heading">#</a></h2>
 <p>Each echo comprises a variable-angle refocusing pulse, phase and partition
-prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
-is the echo assigned to k-space centre.</p>
+prephasing, one frequency-encoded ADC event, and rephasing, whose tail plays
+in the next refocusing pulse’s dead time. The read prephaser shares the
+excitation block; where it and the excitation take more than half an echo
+spacing, the first interval alone is longer, and its refocusing pulse is
+180 degrees. The effective TE is the echo assigned to k-space centre.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.paper_plot.html#pypulseqpp.Sequence.paper_plot" title="pypulseqpp.Sequence.paper_plot"><span class="n">diagram</span><span class="o">.</span><span class="n">paper_plot</span></a><span class="p">(</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <img src="../../../_images/sphx_glr_fse3D_sequence_001.png" srcset="../../../_images/sphx_glr_fse3D_sequence_001.png" alt="fse3D sequence" class = "sphx-glr-single-img"/></section>
 <section id="refocusing-schedule-and-echo-signal">
 <h2>Refocusing schedule and echo signal<a class="headerlink" href="#refocusing-schedule-and-echo-signal" title="Link to this heading">#</a></h2>
-<p>The refocusing schedule has the form of <a class="reference internal" href="#bus08a" id="id4"><span>[BUS08a]</span></a>: the angle decreases from
-the prescribed angle to a minimum over the first five echoes, increases to
+<p>The refocusing schedule has the form of <a class="reference internal" href="#bus08a" id="id4"><span>[BUS08a]</span></a> after a first pulse of 180
+degrees: the angle decreases from the prescribed angle to a minimum over the
+first five echoes, increases to
 the prescribed angle at the effective-TE echo and holds it to the end of the
 train. The prescribed angle is the peak of the schedule. The minimum angle,
 bounded by the prescribed angle, is optimized with the extended phase graph
@@ -653,7 +654,7 @@ view ordering in 3D fast spin echo. <em>Magnetic Resonance in Medicine</em>.
 2008;60(3):640-649. <a class="reference external" href="https://doi.org/10.1002/mrm.21680">https://doi.org/10.1002/mrm.21680</a></p>
 </div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.020 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.876 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-13-fast-spin-echo-fse3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/8bc2fac9ceb4db7715b228005f1736a6/fse3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">fse3D_sequence.ipynb</span></code></a></p>

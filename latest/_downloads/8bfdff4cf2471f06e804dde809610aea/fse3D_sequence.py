@@ -122,16 +122,20 @@ print(
 # ----------------
 #
 # Each echo comprises a variable-angle refocusing pulse, phase and partition
-# prephasing, one frequency-encoded ADC event, and rephasing. The effective TE
-# is the echo assigned to k-space centre.
+# prephasing, one frequency-encoded ADC event, and rephasing, whose tail plays
+# in the next refocusing pulse's dead time. The read prephaser shares the
+# excitation block; where it and the excitation take more than half an echo
+# spacing, the first interval alone is longer, and its refocusing pulse is
+# 180 degrees. The effective TE is the echo assigned to k-space centre.
 diagram.paper_plot()
 
 # %%
 # Refocusing schedule and echo signal
 # -----------------------------------
 #
-# The refocusing schedule has the form of [BUS08a]_: the angle decreases from
-# the prescribed angle to a minimum over the first five echoes, increases to
+# The refocusing schedule has the form of [BUS08a]_ after a first pulse of 180
+# degrees: the angle decreases from the prescribed angle to a minimum over the
+# first five echoes, increases to
 # the prescribed angle at the effective-TE echo and holds it to the end of the
 # train. The prescribed angle is the peak of the schedule. The minimum angle,
 # bounded by the prescribed angle, is optimized with the extended phase graph

@@ -473,12 +473,18 @@
 <span class="w">    </span><span class="sd">"""One excitation and a CPMG echo train, to the end of the TR.</span>
 
 <span class="sd">    Each refocusing pulse is centred midway between the preceding RF centre</span>
-<span class="sd">    or echo and the following echo. The default layout uses uniform echo</span>
-<span class="sd">    spacing from the excitation onward. With ``rf_overlap``, the initial</span>
-<span class="sd">    interval may be longer and must be included in the refocusing design.</span>
-<span class="sd">    The phase encodes and the</span>
-<span class="sd">    refocusing amplitude are templates that the caller may scale per echo; the</span>
-<span class="sd">    sampling order sets the effective TE.</span>
+<span class="sd">    or echo and the following echo. The phase encodes and the refocusing</span>
+<span class="sd">    amplitude are templates that the caller may scale per echo; the sampling</span>
+<span class="sd">    order sets the effective TE.</span>
+
+<span class="sd">    A 2D train spaces its echoes uniformly from the excitation onward. A 3D</span>
+<span class="sd">    train is packed: the read prephaser shares the excitation block, and the</span>
+<span class="sd">    tail of the prephaser and of each echo's rewinders plays in the next</span>
+<span class="sd">    refocusing pulse's dead time, beyond its ringdown, so every refocusing</span>
+<span class="sd">    block opens on the gradient of the block before it and the echo spacing</span>
+<span class="sd">    is shorter by twice that overlap. Its first interval may be longer than</span>
+<span class="sd">    the others (``esp_first``); a caller designing the refocusing angles</span>
+<span class="sd">    models it.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -490,7 +496,7 @@
 <span class="sd">        Selection gradient played with ``rf``.</span>
 <span class="sd">    gz_reph : GradEvent, default=None</span>
 <span class="sd">        Rephaser of ``gz``. ``None`` for a slab excitation (``is_slab=True``),</span>
-<span class="sd">        which carries it in ``gz``.</span>
+<span class="sd">        which carries it in ``gz``; a 3D train takes none.</span>
 <span class="sd">    rf_ref : RfEvent</span>
 <span class="sd">        Refocusing pulse, built with ``use="refocusing"``: the ``rf_ref`` of a</span>
 <span class="sd">        :class:`~pypulseqpp.sequences.SpatialSelectiveRefocusing` for a</span>
@@ -513,12 +519,7 @@
 <span class="sd">    esp : float, default=None</span>
 <span class="sd">        Echo spacing (s). ``None`` is as short as possible, including the</span>
 <span class="sd">        excitation, its rephaser and the read prephaser in the first half</span>
-<span class="sd">        spacing.</span>
-<span class="sd">    rf_overlap : bool, default=False</span>
-<span class="sd">        Overlap rewinders with refocusing RF dead time. Requires 3D,</span>
-<span class="sd">        nonselective refocusing, full echoes, and no separate excitation</span>
-<span class="sd">        rephaser or trigger. The first echo may have a longer interval;</span>
-<span class="sd">        the caller must model that interval and its refocusing angle.</span>
+<span class="sd">        spacing in 2D; in 3D they set ``esp_first`` instead.</span>
 <span class="sd">    tr : float, default=None</span>
 <span class="sd">        Repetition time (s), over the whole module. ``None`` is as short as</span>
 <span class="sd">        possible.</span>
@@ -541,7 +542,8 @@
 <span class="sd">        Labels set to 0 on the acquisition block, to be changed per shot by the</span>
 <span class="sd">        caller.</span>
 <span class="sd">    trigger : TriggerEvent or DigitalOutputEvent, default=None</span>
-<span class="sd">        Event armed on the prephaser block.</span>
+<span class="sd">        Event armed on the prephaser block. 2D only: a 3D train's prephaser</span>
+<span class="sd">        shares the excitation block.</span>
 <span class="sd">    wave : {'phase', 'partition', 'both'}, default=None</span>
 <span class="sd">        Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine</span>
 <span class="sd">        on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude`` is</span>
@@ -596,9 +598,11 @@
 <span class="sd">    esp : float</span>
 <span class="sd">        Echo spacing (s).</span>
 <span class="sd">    esp_first : float</span>
-<span class="sd">        Initial echo interval (s), before gradient-raster rounding.</span>
+<span class="sd">        Initial echo interval (s): ``esp`` in 2D, and in 3D wherever the</span>
+<span class="sd">        excitation and the read prephaser fit in half an echo spacing.</span>
 <span class="sd">    layout : RfOverlapLayout</span>
-<span class="sd">        Reusable event templates, present when ``rf_overlap`` is true.</span>
+<span class="sd">        The packed train's events, 3D only, each echo's played through</span>
+<span class="sd">        ``excitation``, ``refocusing``, ``encoding`` and ``rewinding``.</span>
 <span class="sd">    echo_times : numpy.ndarray</span>
 <span class="sd">        Echo time of each echo (s) from the RF centre.</span>
 <span class="sd">    bandwidth_hz : float</span>
@@ -621,8 +625,9 @@
 <span class="sd">    ValueError</span>
 <span class="sd">        If a count or fraction is out of range, ``wave`` is not a wave mode or</span>
 <span class="sd">        would build wave gradients on a 2D train, ``gz_reph`` is on the read</span>
-<span class="sd">        channel, ``rf_ref`` is not a refocusing pulse, or ``esp`` or ``tr`` is</span>
-<span class="sd">        shorter than the train can achieve.</span>
+<span class="sd">        channel or given to a 3D train, a 3D train is given a ``trigger``,</span>
+<span class="sd">        ``rf_ref`` is not a refocusing pulse, or ``esp`` or ``tr`` is shorter</span>
+<span class="sd">        than the train can achieve.</span>
 <span class="sd">    """</span>
 
     <span class="c1">#: 2 or 3. The only thing that separates the two shipped FSE readouts.</span>
@@ -641,7 +646,6 @@
         <span class="n">matrix</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">etl</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
         <span class="n">esp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">rf_overlap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">tr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">partial_echo</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
         <span class="n">oversampling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
@@ -655,25 +659,27 @@
         <span class="n">wave_amplitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8e-3</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndim</span>
+        <span class="n">packed</span> <span class="o">=</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
         <span class="n">overlap</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">if</span> <span class="n">rf_overlap</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">gz_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">partial_echo</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">packed</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">"RF overlap requires 3D nonselective refocusing and full echoes"</span>
+                    <span class="s2">"a 3D train's read prephaser shares the excitation block, which "</span>
+                    <span class="s2">"leaves no room for a separate rephaser: excite a slab "</span>
+                    <span class="s2">"(is_slab=True), which carries its own"</span>
                 <span class="p">)</span>
-            <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">"RF overlap does not support a separate excitation rephaser or trigger"</span>
+                    <span class="s2">"a 3D train has no prephaser block for a trigger: its read "</span>
+                    <span class="s2">"prephaser shares the excitation block"</span>
                 <span class="p">)</span>
+            <span class="c1"># The refocusing pulse's dead time beyond its ringdown, on the</span>
+            <span class="c1"># block raster: the previous echo's rewinders end in it.</span>
             <span class="n">overlap</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
                 <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf_ref</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">-</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_ringdown_time</span><span class="p">)</span>
                 <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
                 <span class="o">+</span> <span class="mf">1e-9</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">overlap</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">"RF overlap requires dead time longer than RF ringdown"</span>
-                <span class="p">)</span>
         <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">wave_channels</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">wave_cycles</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">wave_amplitude</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -815,21 +821,32 @@
         <span class="n">pre_floor</span> <span class="o">=</span> <span class="n">_span</span><span class="p">(</span>
             <span class="n">system</span><span class="p">,</span> <span class="n">gx_bridge_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">_encodes</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">encode_resolution</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="p">)</span>
+        <span class="n">rewinds</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">encode</span>
+            <span class="k">for</span> <span class="n">encode</span> <span class="ow">in</span> <span class="n">_encodes</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">encode_resolution</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">encode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">]</span>
         <span class="n">post_floor</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="nb">max</span><span class="p">(</span>
-                <span class="nb">float</span><span class="p">(</span><span class="n">post_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
-                <span class="o">*</span><span class="p">(</span>
-                    <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">encode</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">encode</span> <span class="ow">in</span> <span class="n">_encodes</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">encode_resolution</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">encode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="p">),</span>
-            <span class="p">),</span>
+            <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">post_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="o">*</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">rewinds</span><span class="p">)),</span>
             <span class="n">raster</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="n">packed</span><span class="p">:</span>
+            <span class="c1"># The overlap is carved from the prephaser, which it may take</span>
+            <span class="c1"># whole, and from the rewinders, which keep a block of their own.</span>
+            <span class="n">overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">overlap</span><span class="p">,</span> <span class="n">lead_floor</span><span class="p">,</span> <span class="n">post_floor</span> <span class="o">-</span> <span class="n">raster</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">packed</span> <span class="ow">and</span> <span class="n">gz_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># A selective pulse holds the partition axis through its block,</span>
+            <span class="c1"># so the partition rewinder ends before it.</span>
+            <span class="n">post_floor</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="n">post_floor</span><span class="p">,</span>
+                <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rewinds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">raster</span><span class="p">),</span>
+            <span class="p">)</span>
 
         <span class="c1"># Twice a raster-rounded half, so that each half lands on the raster.</span>
-        <span class="n">half_min</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pre_fixed</span> <span class="o">+</span> <span class="n">pre_floor</span><span class="p">,</span> <span class="n">post_fixed</span> <span class="o">+</span> <span class="n">post_floor</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">rf_overlap</span><span class="p">:</span>
+        <span class="c1"># A packed train gives the overlap back on both sides of the</span>
+        <span class="c1"># refocusing pulse, so the encode window keeps room for it.</span>
+        <span class="n">half_min</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pre_fixed</span> <span class="o">+</span> <span class="n">pre_floor</span> <span class="o">+</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">post_fixed</span> <span class="o">+</span> <span class="n">post_floor</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">packed</span><span class="p">:</span>
             <span class="n">half_min</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">half_min</span><span class="p">,</span> <span class="n">lead_fixed</span> <span class="o">+</span> <span class="n">lead_floor</span><span class="p">)</span>
         <span class="n">esp_min</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">half_min</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">esp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -844,7 +861,7 @@
                 <span class="p">)</span>
 
         <span class="n">esp_first</span> <span class="o">=</span> <span class="n">esp</span>
-        <span class="k">if</span> <span class="n">rf_overlap</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">packed</span><span class="p">:</span>
             <span class="n">esp_first</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
                 <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">lead_fixed</span> <span class="o">+</span> <span class="n">lead_floor</span> <span class="o">-</span> <span class="n">esp</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">raster</span>
             <span class="p">)</span>
@@ -881,13 +898,14 @@
         <span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">rf_overlap</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">packed</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">._fse_layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfOverlapLayout</span>
 
             <span class="n">templates</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
                 <span class="n">rf</span><span class="o">=</span><span class="n">rf</span><span class="p">,</span>
                 <span class="n">gz</span><span class="o">=</span><span class="n">gz</span><span class="p">,</span>
                 <span class="n">rf_ref</span><span class="o">=</span><span class="n">rf_ref</span><span class="p">,</span>
+                <span class="n">gz_ref</span><span class="o">=</span><span class="n">gz_ref</span><span class="p">,</span>
                 <span class="n">gx_pre</span><span class="o">=</span><span class="n">gx_pre</span><span class="p">,</span>
                 <span class="n">gx_bridge_pre</span><span class="o">=</span><span class="n">gx_bridge_pre</span><span class="p">,</span>
                 <span class="n">gx_bridge_post</span><span class="o">=</span><span class="n">gx_bridge_post</span><span class="p">,</span>
@@ -896,7 +914,7 @@
                 <span class="n">gy_rew</span><span class="o">=</span><span class="n">gy_rew</span><span class="p">,</span>
                 <span class="n">gz_rew</span><span class="o">=</span><span class="n">gz_rew</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">RfOverlapLayout</span><span class="p">(</span><span class="n">templates</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">RfOverlapLayout</span><span class="p">(</span><span class="n">templates</span><span class="p">,</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="p">,</span> <span class="p">[])</span>
             <span class="k">for</span> <span class="n">echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">etl</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">refocusing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="p">,</span> <span class="n">echo</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>

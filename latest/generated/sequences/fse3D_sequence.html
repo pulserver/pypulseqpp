@@ -617,14 +617,9 @@ either way, crushed on the readout axis: spins outside the slab are
 never excited, and hard pulses keep the echo spacing short.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>esp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Echo spacing (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as the train admits.</p></li>
-<li><p><strong>rf_overlap</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Overlap rewinders with RF dead time and construct the train directly
-from reusable templates. Requires full echoes. The first refocusing
-pulse is 180 degrees under <code class="docutils literal notranslate"><span class="pre">constant</span></code> and <code class="docutils literal notranslate"><span class="pre">optimized</span></code>; <code class="docutils literal notranslate"><span class="pre">busse</span></code>
-retains its prescribed maximum angle. The first echo time enters
-the forward EPG model together with <code class="docutils literal notranslate"><span class="pre">DESIGN_B1_SCALES</span></code>.</p></li>
 <li><p><strong>crusher_cycles</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Read-axis crusher area in cycles across one native readout voxel.</p></li>
 <li><p><strong>optimize_end_angle</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Optimize the final refocusing angle under the starting profile’s RF
-energy budget. Requires <code class="docutils literal notranslate"><span class="pre">rf_overlap</span></code> and optimized, shared trains.</p></li>
+energy budget. Requires optimized, shared trains.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Extent of the fully sampled calibration region along the phase encode,
 acquired ahead of the rest when undersampled.</p></li>
 <li><p><strong>n_acs_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=16</em>) – Extent of the fully sampled calibration region along the partition
