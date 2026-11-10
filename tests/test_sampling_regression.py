@@ -7,7 +7,9 @@ lattice calls were first recorded from the sampling routines before their
 rename and are unchanged by it. The Poisson calls were recorded again after
 two support fixes: ``elliptical=False`` no longer crops the draw to the
 inscribed ellipse, and an elliptical calibration region no longer fills its
-bounding rectangle.
+bounding rectangle. The ``fse3D-radial`` and ``fse3D-individual`` fingerprints
+were recorded again when the PCLO ring order stopped mirroring a centre echo
+in the second half of the train; their TE falls on echo 5 of 8.
 
 A deliberate change to one of these sequences is recorded again with
 

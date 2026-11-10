@@ -856,8 +856,17 @@ def _pclo_rings(te_echo: int, etl: int) -> np.ndarray:
     rings around it step through the earlier echoes two at a time down to
     the first and back up through the others, and the outer rings take the
     remaining echoes in order. Neighbouring rings are at most two echoes
-    apart, so T2 decay modulates k-space without a jump. A TE echo in the
-    second half of the train mirrors the order from the end.
+    apart, so T2 decay modulates k-space without a jump.
+
+    The same rule holds for a TE echo in the second half of the train: the
+    echoes up to the TE echo fill the inner rings, and every later echo
+    reads a ring further out than every earlier one, in order. The published
+    permutation instead mirrors the order from the end for such a centre,
+    which sends the latest echoes to the inner rings and the earliest to the
+    edge of k-space. With a train whose signal is flat before the TE echo and
+    decays after it, as a Busse schedule is, that weights k-space with a dip
+    at mid radius and full signal at the edge, and the image rings along the
+    phase encodes; the order here weights it flat, then decaying outwards.
 
     Parameters
     ----------
@@ -872,9 +881,6 @@ def _pclo_rings(te_echo: int, etl: int) -> np.ndarray:
         ``(etl,)`` the echo of each ring, counting from 0.
     """
     centre = te_echo + 1
-    mirrored = centre > etl / 2
-    if mirrored:
-        centre = etl - centre + 1
     pivot = centre + centre % 2
     rings = np.arange(1, etl + 1)
     inner = rings <= pivot // 2
@@ -882,8 +888,6 @@ def _pclo_rings(te_echo: int, etl: int) -> np.ndarray:
     echoes = rings.copy()
     echoes[inner] = centre - 2 * rings[inner] + 2
     echoes[middle] = 2 * rings[middle] - centre - 1
-    if mirrored:
-        echoes = etl + 1 - echoes
     return echoes - 1
 
 
@@ -937,6 +941,11 @@ def make_pclo_order(
     whole bands. It therefore avoids a large index wrap near k-space centre.
     It does not remove relaxation-related PSF broadening. Shot-dependent
     parameter transitions require a joint shot/echo ordering instead.
+
+    A centre echo in the second half of the train keeps the same rule: the
+    echoes after it take the outer bands in order. Rydén et al. mirror the
+    permutation from the end of the train for such a centre, which puts the
+    earliest echoes at the edge of k-space; this function does not.
 
     Examples
     --------

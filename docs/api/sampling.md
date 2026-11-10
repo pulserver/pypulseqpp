@@ -56,7 +56,7 @@ example by the Poisson-disc support of
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.make_linear_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Raster-order bands, one per echo. |
 | {obj}`~pypulseqpp.make_centric_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Distance-ranked bands; centre at echo 0 or `center_echo`. |
-| {obj}`~pypulseqpp.make_pclo_order` | Centred coordinates, train length, centre echo | Indices as `[shot][echo]` | Rydén PCLO radius bands for identical trains and arbitrary centre echoes. |
+| {obj}`~pypulseqpp.make_pclo_order` | Centred coordinates, train length, centre echo | Indices as `[shot][echo]` | Rydén PCLO radius bands for identical trains and arbitrary centre echoes; a centre in the second half of the train is not mirrored, so the later echoes read the outer bands. |
 | {obj}`~pypulseqpp.make_radial_order` | Centred coordinates, train length | Indices as `[shot][echo]` | One angular wedge per shot, centre-out within it. |
 | {obj}`~pypulseqpp.make_radial_adaptive_order` | Centred coordinates, train length | Indices as `[shot][echo]` | Distance bands folded about `center_echo`. |
 | {obj}`~pypulseqpp.make_shuffling_order` | Centred coordinates, train length, seed | Indices as `[shot][echo]` | Random echo positions within raster-contiguous trains (T2 Shuffling). |
