@@ -1,43 +1,62 @@
-"""Prescribed PD signal envelopes, independent Bloch evolution and padded FSE trains."""
+"""PD trains are relaxation-aware inverse EPG of a parametric target signal."""
+
+import json
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 import pypulseqpp as pp
 from pypulseqpp import sequences
+from pypulseqpp._pd import (
+    PD_CENTRE,
+    PD_MAXIMUM_ANGLE_DEG,
+    PD_PERIPHERY,
+    _pd_targets,
+    _pd_trains,
+)
+
+ESP, FIRST = 0.003416, 0.004162
+FIGURE = json.loads(
+    (Path(__file__).parent / "fixtures" / "buonincontri_figure1.json").read_text()
+)["angles_deg"]
 
 
-@pytest.mark.parametrize("acquired", [20, 40, 45, 80, 120, 160])
-def test_pd_first_peak_final_are_independent_actual_angles(acquired):
-    angles = np.rad2deg(
-        pp.make_pd_schedule(acquired + 6, 0.003416, first_echo_time=0.004162)
-    )
-    np.testing.assert_allclose(angles[[0, -1]], [120, 100], atol=1e-4)
-    assert angles.max() == pytest.approx(140, abs=1e-4)
-    assert 6 <= np.argmax(angles) < len(angles) - 1
-    assert np.all(angles > 0)
+def designed(lengths, controls, maximum=PD_MAXIMUM_ANGLE_DEG):
+    return _pd_trains(lengths, controls, maximum, ESP, FIRST)
 
 
-def test_equal_peak_and_final_reaches_a_late_rf_plateau():
-    angles = pp.make_pd_schedule(
-        51, 0.003416, first_echo_time=0.004162, final_flip_angle=np.deg2rad(140)
-    )
-    assert angles[-1] == pytest.approx(angles.max(), abs=1e-6)
-    assert np.rad2deg(angles.min()) < 40
+@pytest.mark.parametrize(
+    ("name", "bound"),
+    [
+        ("centre", 1.5),
+        ("inter_3", 4.0),
+        ("inter_2", 4.0),
+        ("inter_1", 4.5),
+        ("periphery", 3.0),
+    ],
+)
+def test_the_default_trains_come_within_reading_error_of_the_published_figure(
+    name, bound
+):
+    """Each published train against the target signal at its place in the transition."""
+    published = np.asarray(FIGURE[name])
+    first, last = len(FIGURE["centre"]), len(FIGURE["periphery"])
+    place = (first - len(published)) / (first - last)
+    controls = np.add(PD_CENTRE, place * np.subtract(PD_PERIPHERY, PD_CENTRE))
+    angles = np.rad2deg(designed([len(published)], [controls])[0][0])
+    assert np.sqrt(np.mean((angles - published) ** 2)) < bound
 
 
-def test_independent_bloch_evolution_tracks_relaxation_aware_target():
-    from pypulseqpp._pd import _pd_schedule
-
-    angles, levels = _pd_schedule(
-        26, 120.0, 140.0, 100.0, 0.7, 6, 0.003416, 0.004162, 1.0, 0.1, 1.3
-    )
+def test_independent_bloch_evolution_reaches_the_target_signal():
+    angles, _ = designed([40], [PD_CENTRE])
+    angles = angles[0]
     phase = np.exp(2j * np.pi * np.arange(2048) / 2048)
     transverse = np.ones(2048, complex)
     longitudinal = np.zeros(2048)
     signal = []
     for echo, angle in enumerate(angles):
-        half = (0.004162 if echo == 0 else 0.003416) / 2
+        half = (FIRST if echo == 0 else ESP) / 2
         e1, e2 = np.exp(-half), np.exp(-half / 0.1)
         transverse *= phase * e2
         longitudinal = longitudinal * e1 + 1 - e1
@@ -49,73 +68,57 @@ def test_independent_bloch_evolution_tracks_relaxation_aware_target():
         transverse *= phase * e2
         longitudinal = longitudinal * e1 + 1 - e1
         signal.append(transverse.mean())
-    x = np.arange(26)
-    cut = 6 + 0.7 * (26 - 1 - 6)
-    tail = np.clip((x - cut) / (25 - cut), 0, 1)
-    tail = tail**2
-    initial = np.sin(np.deg2rad(120) / 2) ** 2 * np.exp(-0.004162 / 0.1)
-    target = levels[0] * (1 + (levels[1] - 1) * tail) + (initial - levels[0]) * np.exp(
-        -x / 1.3
-    )
-    np.testing.assert_allclose(np.real(signal), target, atol=2e-11)
-    assert max(target[6:18]) - min(target[6:18]) < 0.003
-    assert target[-1] < target[18]
+    target = _pd_targets([40], [PD_CENTRE])[0]
+    np.testing.assert_allclose(np.real(signal)[1:], target[1:], atol=1e-10)
 
 
-def test_pd_cached_arrays_are_independent():
-    a = pp.make_pd_schedule(26, 0.003416)
-    a[:] = 0
-    assert pp.make_pd_schedule(26, 0.003416).min() > 0
+def test_a_pulse_the_target_would_push_past_the_maximum_plays_the_maximum():
+    (angles,), (signal,) = designed([40], [PD_CENTRE], maximum=110.0)
+    target = _pd_targets([40], [PD_CENTRE])[0]
+    capped = np.isclose(np.rad2deg(angles), 110.0)
+    assert np.rad2deg(angles).max() <= 110.0 + 1e-9
+    assert capped.any()
+    assert np.all(signal[capped] < target[capped])
+
+
+def test_a_batch_designs_each_train_as_alone_and_pads_with_zero():
+    lengths = [51, 40, 26]
+    controls = [PD_CENTRE, np.add(PD_CENTRE, PD_PERIPHERY) / 2, PD_PERIPHERY]
+    batch, _ = designed(lengths, controls)
+    for row, length, control in zip(batch, lengths, controls, strict=True):
+        alone = pp.make_pd_schedule(
+            length,
+            ESP,
+            first_echo_time=FIRST,
+            first_flip_angle=np.deg2rad(control[0]),
+            plateau_signal=control[1],
+            plateau_slope=control[2],
+            plateau_fraction=control[3],
+            tail_signal=control[4],
+            tail_exponent=control[5],
+            initial_signal=control[6],
+            initial_decay=control[7],
+        )
+        np.testing.assert_allclose(row[:length], alone, atol=1e-12)
+        assert np.all(row[length:] == 0)
 
 
 @pytest.mark.parametrize(
     "changes",
     [
-        {"length": 6},
-        {"length": 26.5},
-        {"length": True},
-        {"startup_echoes": -1},
-        {"first_flip_angle": 3.0},
-        {"final_flip_angle": 3.0},
+        {"length": 1},
+        {"first_flip_angle": np.deg2rad(160.0)},
         {"maximum_flip_angle": np.pi},
-        {"plateau_fraction": 0.0},
+        {"plateau_signal": 0.0},
         {"plateau_fraction": 1.0},
+        {"tail_exponent": 0.0},
+        {"initial_decay": 0.0},
         {"echo_spacing": 0.0},
-        {"reference_t1": np.inf},
-        {"reference_t2": -1.0},
-        {"initial_decay": np.nan},
     ],
 )
-def test_invalid_pd_controls_raise(changes):
+def test_invalid_pd_parameters_raise(changes):
     with pytest.raises(ValueError):
-        pp.make_pd_schedule(**({"length": 26, "echo_spacing": 0.003416} | changes))
-
-
-def test_batched_variable_pd_profiles_match_scalar_and_pad_with_zero():
-    from pypulseqpp._pd import _make_pd_schedules
-
-    lengths = np.array([26, 31, 41, 51])
-    controls = np.array(
-        [
-            [120, 140, 100, 0.7],
-            [121, 140, 110, 0.71],
-            [119, 140, 130, 0.69],
-            [120, 140, 140, 0.7],
-        ]
-    )
-    profiles = _make_pd_schedules(lengths, controls, 6, 0.003416, 0.004162)
-    for row, (length, control) in enumerate(zip(lengths, controls, strict=True)):
-        actual = pp.make_pd_schedule(
-            int(length),
-            0.003416,
-            first_echo_time=0.004162,
-            first_flip_angle=np.deg2rad(control[0]),
-            maximum_flip_angle=np.deg2rad(control[1]),
-            final_flip_angle=np.deg2rad(control[2]),
-            plateau_fraction=control[3],
-        )
-        np.testing.assert_allclose(profiles[row, :length], actual, atol=2e-7)
-        assert np.all(profiles[row, length:] == 0)
+        pp.make_pd_schedule(**({"length": 26, "echo_spacing": ESP} | changes))
 
 
 def test_pd_fse_keeps_common_rf_slots_and_acquired_echo_times():
@@ -134,7 +137,7 @@ def test_pd_fse_keeps_common_rf_slots_and_acquired_echo_times():
         "n_dummy": 0,
         "flip_modulation": "pd",
         "pd_effective_te": 0.028,
-        "pd_final_angle_periphery_deg": 140.0,
+        "pd_plateau_signal_periphery": PD_PERIPHERY[1],
     }
     seq = sequences.fse3D_sequence(**settings)
     views = trains(seq)
@@ -173,7 +176,7 @@ def test_pd_fse_keeps_common_rf_slots_and_acquired_echo_times():
     assert seq.check_timing()[0]
 
 
-def test_pd_fit_preserves_first_peak_final_energy_and_effective_te():
+def test_pd_fit_moves_only_the_tail_onset_and_keeps_energy_and_effective_te():
     pytest.importorskip("blochsim.simulators")
     settings = {
         "system": pp.Opts(rf_dead_time=100e-6, rf_ringdown_time=20e-6),
@@ -191,30 +194,26 @@ def test_pd_fit_preserves_first_peak_final_energy_and_effective_te():
     fitted = sequences.fse3D_sequence(**settings, pd_optimize=True)
     a = np.asarray(fitted.definitions["RefocusingFlipAngles"])
     b = np.asarray(baseline.definitions["RefocusingFlipAngles"])
-    assert a[0] == pytest.approx(120, abs=1e-10)
-    assert a.max() == pytest.approx(140, abs=1e-4)
-    assert a[-1] == pytest.approx(100, abs=1e-4)
+    before = np.reshape(baseline.definitions["PDEndpointControls"], (2, 8))[0]
+    after = np.reshape(fitted.definitions["PDEndpointControls"], (2, 8))[0]
+    moved = np.flatnonzero(before != after)
+    assert set(moved) <= {3}
+    assert a[0] == pytest.approx(PD_CENTRE[0], abs=1e-9)
     assert np.sum(a * a) <= np.sum(b * b) * 1.00011
     assert float(fitted.definitions["EffectiveEchoTime"][0]) == pytest.approx(
         float(baseline.definitions["EffectiveEchoTime"][0]), abs=1.01e-4
     )
 
 
-def test_dense_pd_transition_is_continuous_at_equal_peak_and_final():
-    from pypulseqpp._pd import _make_pd_schedules
-
-    place = np.linspace(0, 1, 128)
+def test_a_dense_transition_changes_little_between_neighbouring_shots():
+    place = np.linspace(0, 1, 586)
     fraction = place**2 * (3 - 2 * place)
     lengths = np.rint(51 - 25 * fraction).astype(int)
-    controls = np.array([120, 140, 140, 0.7]) + fraction[:, None] * np.array(
-        [5, 0, -40, 0.01]
+    controls = np.add(
+        PD_CENTRE, fraction[:, None] * np.subtract(PD_PERIPHERY, PD_CENTRE)
     )
-    profiles = _make_pd_schedules(lengths, controls, 6, 0.003416, 0.004162)
+    profiles, _ = designed(lengths, controls)
     active = np.arange(51)[None, :] < lengths[:, None]
     assert np.all(profiles[~active] == 0)
-    np.testing.assert_allclose(np.rad2deg(profiles.max(1)), 140, atol=1e-4)
-    np.testing.assert_allclose(
-        np.rad2deg(profiles[np.arange(128), lengths - 1]), controls[:, 2], atol=1e-4
-    )
     same_length = lengths[1:] == lengths[:-1]
     assert np.rad2deg(abs(np.diff(profiles, axis=0))[same_length]).max() < 2.0

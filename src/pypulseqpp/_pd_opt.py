@@ -5,13 +5,14 @@ from scipy.optimize import minimize
 
 from ._busse_opt import psf_weights
 from ._fse_contrast import calc_fse_effective_te
-from ._pd import _make_pd_schedules, _pd_schedule
+from ._pd import _pd_trains
 
 
 def optimize_pd_controls(
     length,
     controls,
     *,
+    maximum,
     startup,
     esp,
     first_echo,
@@ -24,16 +25,15 @@ def optimize_pd_controls(
     contrast_pair,
     objective="psf",
     effective_te=None,
-    initial_decay=1.3,
 ):
-    """Fit signal-tail onset; keep actual first/peak/final angles fixed.
+    """Fit the signal-tail onset of a PD target signal; keep the other parameters.
 
-    Controls are first/maximum/final degrees and plateau fraction. Tail onset
-    changes by at most 0.1 of the acquired train. Bound RF energy by the
-    prescribed train, retain 95% of centre mean
-    signal and signed contrast to 4.5% of its magnitude across the B1 ensemble.
-    An explicit reference effective TE is preserved to min(0.1 ms, 5% ESP).
-    Return fitted controls, radians and signal levels, or raise on failure.
+    ``controls`` is one row of ``_pd_trains`` and ``maximum`` its angle bound
+    (degrees). The tail onset changes by at most 0.1 of the train. Bound RF
+    energy by the prescribed train, retain 95% of centre mean signal and
+    signed contrast to 4.5% of its magnitude across the B1 ensemble. An
+    explicit reference effective TE is preserved to min(0.1 ms, 5% ESP).
+    Return the fitted controls and radians, or raise on failure.
     """
     import torch
     from blochsim._execution import execution
@@ -42,9 +42,7 @@ def optimize_pd_controls(
     if objective not in ("psf", "contrast"):
         raise ValueError("PD objective must be psf or contrast")
     controls = np.asarray(controls, dtype=float)
-    baseline, levels = _pd_schedule(
-        length, *controls, startup, esp, first_echo, 1.0, 0.1, initial_decay
-    )
+    baseline = _pd_trains([length], [controls], maximum, esp, first_echo)[0][0]
     energy_form, moment_form = psf_weights(echo_map, length - startup)
     width = min(0.1, controls[3] / 2, (1 - controls[3]) / 2)
 
@@ -98,16 +96,9 @@ def optimize_pd_controls(
             probes = np.array([u[0], u[0] + step, u[0] - step])
             prescribed = np.tile(controls, (3, 1))
             prescribed[:, 3] += width * probes
-            flips, fitted_levels = _make_pd_schedules(
-                np.full(3, length),
-                prescribed,
-                startup,
-                esp,
-                first_echo,
-                decay=initial_decay,
-                seed=np.tile(levels, (3, 1)),
-                return_levels=True,
-            )
+            flips = _pd_trains(
+                np.full(3, length), prescribed, maximum, esp, first_echo
+            )[0]
             signal = simulate(flips)
             image_signal = signal[:, :, startup:]
             energy = np.einsum(
@@ -141,7 +132,6 @@ def optimize_pd_controls(
                 ((constraints[1] - constraints[2]) / (2 * step))[:, None],
                 prescribed[0],
                 flips[0],
-                fitted_levels[0],
             )
             cache.update(u=u.copy(), value=value)
             return value
@@ -166,4 +156,4 @@ def optimize_pd_controls(
             raise ValueError(
                 f"PD control optimization did not converge: {result.message}"
             )
-        return final[4].copy(), final[5].copy(), final[6].copy()
+        return final[4].copy(), final[5].copy()
