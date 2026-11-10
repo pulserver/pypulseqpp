@@ -105,7 +105,7 @@ def test_shuffling_is_reproducible_by_seed():
 
 
 @pytest.mark.parametrize("length", [1, 2, 5, 6, 9, 10])
-def test_pclo_matches_published_ring_permutation_and_preserves_bands(length):
+def test_pclo_ring_permutation_preserves_bands(length):
     from pypulseqpp._ordering import _pclo_rings
 
     # Two views per ring; strict radial bands must survive echo reassignment.

@@ -703,7 +703,9 @@ def fse3d(
         ``'radial'``: choose PCLO for identical trains, or Buonincontri joint
         shot/echo assignment for a centre/periphery transition. ``'pclo'``
         explicitly selects Rydén's radius-band permutation for an arbitrary
-        centre echo, with identical trains only. ``'busse_radial'`` uses the
+        centre echo, with identical trains only; for a centre echo in the
+        second half of the train the echoes after it take the outer bands in
+        order instead of Rydén's mirrored order. ``'busse_radial'`` uses the
         basic Busse radius-then-angle order (no sorting jitter/consolidation),
         with identical trains and centre echo 0; under ``busse``, explicitly
         set ``busse_centre_echo=0``. ``'buonincontri'`` requires a parameter
