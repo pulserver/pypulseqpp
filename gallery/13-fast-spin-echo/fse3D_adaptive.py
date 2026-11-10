@@ -108,10 +108,9 @@ fig.legend(handles, labels, ncols=2, loc="outside upper center")
 # The ordering ranks ``(shot, echo)`` slots jointly by distance from the
 # effective-TE echo and by position in the central-to-peripheral transition
 # [BUO25]_. Views are ranked by k-space radius; the innermost views fill the
-# slots nearest the effective-TE echo of the central shots. Each shot keeps one
-# angle, the golden-ratio fraction of its place in the transition, so every
-# arc of a ring holds the same range of train lengths and TRs. Colour gives
-# the train length and TR of the shot that acquired each view.
+# slots nearest the effective-TE echo of the central shots, and within each group of one view per shot the views
+# are assigned to shots in order of angle. Colour gives the train length and
+# TR of the shot that acquired each view.
 
 # sphinx_gallery_start_ignore
 labels = seq.evaluate_labels(evolution="adc")

@@ -125,11 +125,6 @@ def pclo_rings(te_echo: int, etl: int) -> np.ndarray:
     return _pclo_rings(te_echo, etl)
 
 
-#: The fractional part of the golden ratio, which spreads consecutive
-#: integers evenly around a turn.
-_GOLDEN = (5**0.5 - 1) / 2
-
-
 def deal_trains(
     coords: np.ndarray,
     lengths: list[int],
@@ -144,14 +139,11 @@ def deal_trains(
     (:func:`pclo_rings`), and how far the shot is along the transition. The
     views are ranked by radius. Both are cut into sections of one slot per
     shot, the innermost views filling the nearest slots, and within a section
-    the views are sorted by angle (Buonincontri et al., abstract 566-05-007,
-    Fig. 2D); the centre of k-space, which has no angle, takes the nearest
-    slot. Each shot holds one place around the turn, the golden-ratio
-    fraction of its rank along the transition, and a section's slots take
-    its angles in that order. A shot thus keeps to one angle, and every arc
-    of a ring holds the whole range of TRs and train lengths rather than one
-    end of it: a TR that turns with the angle modulates the periphery of
-    k-space azimuthally (Buonincontri et al., Fig. 3D).
+    the views, sorted by angle, fill the slots in shot order (Buonincontri et
+    al., abstract 566-05-007, Fig. 2D); the centre of k-space, which has no
+    angle, takes the nearest slot. With identical trains the shot term
+    vanishes and a section is one echo, so the rings of k-space take the
+    echoes in PCLO order.
 
     Parameters
     ----------
@@ -187,10 +179,6 @@ def deal_trains(
             slot[0],
         ),
     )
-    # Each shot's place around the turn: the golden-ratio fraction of its
-    # rank along the transition.
-    rank = np.argsort(np.argsort(place, kind="stable"), kind="stable")
-    turn = (rank * _GOLDEN) % 1.0
     trains: list[list[int | None]] = [[None] * etl_max for _ in range(n_shots)]
     # The centre of k-space, which has no angle, takes the nearest slot.
     if len(views) and radius[views[0]] == 0.0:
@@ -199,10 +187,9 @@ def deal_trains(
     for start in range(0, len(views), n_shots):
         section = sorted(views[start : start + n_shots], key=lambda i: angle[i])
         # The last section may hold fewer views than it has slots.
-        held = sorted(
-            slots[start : start + n_shots], key=lambda slot: (turn[slot[0]], slot)
-        )
-        for (s, e), view in zip(held, section, strict=False):
+        for (s, e), view in zip(
+            sorted(slots[start : start + n_shots]), section, strict=False
+        ):
             trains[s][e] = view
     return trains
 
