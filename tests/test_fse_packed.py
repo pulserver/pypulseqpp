@@ -1,0 +1,320 @@
+"""Gradient continuity and timing of the packed 3D FSE train."""
+
+import numpy as np
+import pytest
+
+import pypulseqpp as pp
+from pypulseqpp import sequences
+
+
+@pytest.fixture
+def system():
+    return pp.cap_system(
+        pp.apply_system_derates(
+            pp.Opts(
+                gamma=42575900.0,
+                B0=7.001091,
+                max_grad=100.0,
+                grad_unit="mT/m",
+                max_slew=115.0,
+                slew_unit="T/m/s",
+                max_b1=25.0,
+                b1_unit="uT",
+                rf_dead_time=232e-6,
+                rf_ringdown_time=4e-6,
+                rf_raster_time=2e-6,
+                grad_raster_time=4e-6,
+                adc_raster_time=2e-6,
+                block_duration_raster=4e-6,
+            )
+        ),
+        max_grad=80.0,
+        max_slew=200.0,
+    )
+
+
+def readout(system, **kwargs):
+    excitation = sequences.SpatialSelectiveExcitation(
+        system, 90.0, 0.112, duration_s=0.001, time_bw_product=4.0, is_slab=True
+    )
+    refocusing = sequences.NonSelectiveRefocusing(system, duration_s=504e-6)
+    return sequences.FseReadout3D(
+        system,
+        excitation.rf,
+        excitation.gz,
+        rf_ref=refocusing.rf_ref,
+        fov=(0.21, 0.1596, 0.112),
+        matrix=(276, 276, 140),
+        etl=3,
+        oversampling=2.0,
+        readout_bandwidth_hz=500000.0,
+        spoiling_cycles=0.5,
+        **kwargs,
+    )
+
+
+def test_packing_preserves_echo_locations_and_rf_midpoints(system):
+    fse = readout(system)
+    assert fse.esp == pytest.approx(0.003416)
+    assert fse.esp_first == pytest.approx(0.004160)
+    assert fse.check_timing()[0]
+    k, _, excitation, refocusing, time = fse.calculate_kspace()
+    lines = np.asarray(k).reshape(3, 3, 552)
+    centres = (lines[:, :, 275] + lines[:, :, 276]) / 2
+    np.testing.assert_allclose(centres[0], 0.0, atol=0.01)
+    np.testing.assert_allclose(centres[1], 276 / (2 * 0.1596), atol=0.01)
+    np.testing.assert_allclose(centres[2], 140 / (2 * 0.112), atol=0.01)
+    echoes = np.asarray(time).reshape(3, 552)[:, [275, 276]].mean(1)
+    np.testing.assert_allclose(np.diff(echoes), fse.esp, atol=1e-12)
+    previous = np.r_[float(excitation[0]), echoes[:-1]]
+    np.testing.assert_allclose(refocusing, (previous + echoes) / 2, atol=2e-6)
+    gradients = fse.seq.rf_gradients()
+    np.testing.assert_allclose(np.asarray(gradients.gradient)[1:], 0.0, atol=0.01)
+
+
+def test_reusing_packed_templates_starts_each_train_at_zero_phase_gradient(system):
+    fse = readout(system)
+    seq = pp.Sequence(system)
+    for _ in range(2):
+        fse.layout.excitation(seq, [])
+        previous = (0.0, 0.0)
+        for echo, (ky, kz) in enumerate(((0.5, -0.25), (-0.8, 0.6), (0.0, 0.0))):
+            fse.layout.refocusing(seq, echo == 0, *previous)
+            if echo == 0:
+                seq.add_block(pp.make_delay((fse.esp_first - fse.esp) / 2))
+            fse.layout.encoding(seq, ky, kz)
+            seq.add_block(fse.gx, fse.adc)
+            fse.layout.rewinding(seq, ky, kz, echo == 2)
+            previous = (ky, kz)
+        seq.add_block(pp.make_delay(0.001))
+    ok, errors = seq.check_timing()
+    assert ok, errors
+
+
+def test_a_requested_spacing_is_the_played_spacing(system):
+    fse = readout(system, esp=0.0038)
+    assert fse.esp == pytest.approx(0.0038)
+    assert fse.check_timing()[0]
+
+
+def test_a_partial_echo_packs_with_the_echo_where_the_line_crosses_zero(system):
+    fse = readout(system, partial_echo=416 / 552)
+    assert fse.check_timing()[0]
+    count = int(fse.adc.num_samples)
+    k, _, excitation, refocusing, time = fse.calculate_kspace()
+    lines = np.asarray(k).reshape(3, 3, count)
+    # k is zero half a sample before the centre sample, as for a full echo.
+    np.testing.assert_allclose(
+        lines[0, :, fse.center_sample], 0.5 * fse.delta_kx, atol=1e-3
+    )
+    echoes = np.asarray(time).reshape(3, count)[:, fse.center_sample]
+    np.testing.assert_allclose(np.diff(echoes), fse.esp, atol=1e-6)
+    previous = np.r_[float(excitation[0]), echoes[:-1]]
+    np.testing.assert_allclose(refocusing, (previous + echoes) / 2, atol=2e-6)
+
+
+def test_each_refocusing_block_opens_on_the_previous_rewinder(system):
+    """A join into a refocusing pulse carries gradient, so the train is one segment."""
+    fse = readout(system)
+    blocks = [fse.seq.get_block(i) for i in range(1, len(fse.seq.block_events) + 1)]
+    refocusing = [b for b in blocks if b.rf is not None and b.rf.use == "refocusing"]
+    assert len(refocusing) == 3
+    # The first opens on the read prephaser, the others on the rewinders.
+    assert all(abs(block.gx.first) > 0.0 for block in refocusing)
+
+
+def test_a_selective_refocusing_pulse_packs_on_the_other_axes(system):
+    selective = sequences.SpatialSelectiveRefocusing(system, 0.112)
+    excitation = sequences.SpatialSelectiveExcitation(
+        system, 90.0, 0.112, duration_s=0.001, time_bw_product=4.0, is_slab=True
+    )
+    fse = sequences.FseReadout3D(
+        system,
+        excitation.rf,
+        excitation.gz,
+        rf_ref=selective.rf_ref,
+        gz_ref=selective.gz,
+        fov=(0.21, 0.1596, 0.112),
+        matrix=(64, 64, 32),
+        etl=4,
+    )
+    assert fse.check_timing()[0]
+    k, _, _, _, _ = fse.calculate_kspace()
+    lines = np.asarray(k).reshape(3, 4, int(fse.adc.num_samples))
+    np.testing.assert_allclose(
+        lines[2, :, fse.center_sample], 32 / (2 * 0.112), atol=0.01
+    )
+
+
+def test_a_3d_train_refuses_a_separate_rephaser_and_a_trigger(system):
+    slice_ = sequences.SpatialSelectiveExcitation(system, 90.0, 0.005)
+    hard = sequences.NonSelectiveRefocusing(system, duration_s=504e-6)
+    common = {
+        "rf_ref": hard.rf_ref,
+        "fov": (0.2, 0.2, 0.1),
+        "matrix": (32, 32, 8),
+        "etl": 2,
+    }
+    with pytest.raises(ValueError, match="rephaser"):
+        sequences.FseReadout3D(system, slice_.rf, slice_.gz, slice_.gz_reph, **common)
+    with pytest.raises(ValueError, match="trigger"):
+        sequences.FseReadout3D(
+            system, slice_.rf, trigger=pp.make_trigger("physio1"), **common
+        )
+
+
+def test_refocusing_cost_uses_the_first_pulse_and_first_echo(monkeypatch):
+    torch = pytest.importorskip("torch")
+    simulators = pytest.importorskip("blochsim.simulators")
+    from blochsim._execution import execution
+
+    original = simulators.FSESimulator.simulate
+    seen = []
+
+    def record(self, **kwargs):
+        seen.append(
+            (kwargs["flip"].detach().clone(), self.layout(flip=kwargs["flip"], ESP=4.0))
+        )
+        return original(self, **kwargs)
+
+    monkeypatch.setattr(simulators.FSESimulator, "simulate", record)
+    with execution("cpu"):
+        flips = sequences.fse3D_sequence.design_trains(
+            100.0,
+            False,
+            [8],
+            [1.0],
+            np.zeros(1),
+            5,
+            8,
+            0.004,
+            first_refocusing_angle_deg=180.0,
+            first_echo_time=0.008,
+        )
+    assert flips[0, 0] == 180.0
+    assert seen
+    for flip, program in seen:
+        assert torch.all(flip[..., 0] == 180.0)
+        assert program[1][0] == pytest.approx(0.004)
+        assert program[2][0] == pytest.approx(0.008)
+        assert program[4][0] - program[2][0] == pytest.approx(0.004)
+
+
+def test_end_angle_optimization_keeps_the_starting_profiles_rf_budget():
+    pytest.importorskip("blochsim.simulators")
+    from blochsim._execution import execution
+    from scipy.interpolate import CubicHermiteSpline
+
+    with execution("cpu"):
+        flips = sequences.fse3D_sequence.design_trains(
+            100.0,
+            False,
+            [80],
+            [3.431],
+            np.zeros(1),
+            16,
+            80,
+            0.003416,
+            first_refocusing_angle_deg=180.0,
+            first_echo_time=0.004162,
+            b1_scales=(0.8, 1.0, 1.2),
+            optimize_end_angle=True,
+        )[0]
+    # Independent Hermite interpolation of the stated initial control points.
+    initial = CubicHermiteSpline([1, 5, 17, 80], [100, 60, 100, 100], [0, 0, 0, 0])(
+        np.arange(1, 81)
+    )
+    initial[0] = 180.0
+    assert flips[0] == 180.0
+    assert flips[16] == pytest.approx(100.0)
+    assert np.all((flips[1:] >= 20.0) & (flips[1:] <= 100.0))
+    assert np.sum(flips**2) <= np.sum(initial**2) * (1 + 1e-6)
+
+
+#: Every design slew rate a 7 T system takes, 1 T/m/s apart.
+SLEWS = range(40, 201)
+
+
+def seven_tesla(slew):
+    """A 7 T system designed to ``slew`` T/m/s, after the usual design derates."""
+    return pp.cap_system(
+        pp.apply_system_derates(
+            pp.Opts(
+                gamma=42575900.0,
+                B0=7.0,
+                max_grad=100.0,
+                grad_unit="mT/m",
+                max_slew=200.0,
+                slew_unit="T/m/s",
+                max_b1=25.0,
+                b1_unit="uT",
+                rf_dead_time=232e-6,
+                rf_ringdown_time=4e-6,
+                rf_raster_time=2e-6,
+                grad_raster_time=4e-6,
+                adc_raster_time=2e-6,
+                block_duration_raster=4e-6,
+            )
+        ),
+        max_grad=100.0,
+        max_slew=float(slew),
+    )
+
+
+@pytest.mark.parametrize(
+    ("fov", "matrix", "bandwidth", "crushing"),
+    [
+        ((0.21, 0.1596, 0.112), (276, 276, 140), 500e3, 0.5),
+        ((0.22, 0.2, 0.08), (64, 48, 16), 250e3, 1.0),
+    ],
+    ids=["7T-0.8mm", "small"],
+)
+def test_the_packed_train_is_laid_out_at_every_slew_rate(
+    fov, matrix, bandwidth, crushing
+):
+    """The encode window keeps room for the overlap, so no band of slew rates is infeasible.
+
+    Without it, the window left after the overlap fell below the shortest
+    phase encode wherever the rewinders did not outlast the encodes by the
+    overlap, which the raster rounding of both turns on and off with the
+    slew rate.
+    """
+    for slew in SLEWS:
+        system = seven_tesla(slew)
+        excitation = sequences.SpatialSelectiveExcitation(
+            system, 90.0, fov[2], duration_s=0.001, time_bw_product=4.0, is_slab=True
+        )
+        refocusing = sequences.NonSelectiveRefocusing(system, duration_s=528e-6)
+        fse = sequences.FseReadout3D(
+            system,
+            excitation.rf,
+            excitation.gz,
+            rf_ref=refocusing.rf_ref,
+            fov=fov,
+            matrix=matrix,
+            etl=3,
+            oversampling=2.0,
+            readout_bandwidth_hz=bandwidth,
+            spoiling_cycles=crushing,
+        )
+        assert fse.check_timing()[0], slew
+
+
+def test_the_shipped_3d_fse_is_designed_at_every_slew_rate():
+    for slew in SLEWS:
+        seq = sequences.fse3D_sequence(
+            seven_tesla(slew),
+            n_x=64,
+            n_y=48,
+            n_z=16,
+            fov_x=0.22,
+            fov_y=0.2,
+            fov_z=0.08,
+            etl=8,
+            te=None,
+            tr=0.5,
+            n_dummy=0,
+            readout_bandwidth_hz=500e3,
+            crusher_cycles=0.5,
+        )
+        assert seq.check_timing()[0], slew

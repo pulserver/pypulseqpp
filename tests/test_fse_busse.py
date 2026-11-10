@@ -26,9 +26,8 @@ def build(**protocol):
     )
 
 
-@pytest.mark.parametrize("overlap", [False, True])
-def test_played_angles_startup_acquisitions_and_centre_match_prescription(overlap):
-    seq = build(rf_overlap=overlap)
+def test_played_angles_startup_acquisitions_and_centre_match_prescription():
+    seq = build()
     assert seq.check_timing()[0]
     expected = pp.make_busse_schedule(26)
     time = 0.0

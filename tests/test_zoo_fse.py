@@ -291,16 +291,15 @@ def test_radial_trains_read_further_out_the_later_the_echo_comes_in_pclo_order()
 
 
 def test_constant_trains_refocus_at_the_angle_asked_for():
+    """The first pulse of the packed train refocuses at 180 degrees."""
     seq = built(refocusing_angle_deg=140.0)
-    refocusing = [a for _, use, a in pulses(seq) if use == "refocusing"]
-    full = [
-        a
-        for _, use, a in pulses(built(refocusing_angle_deg=180.0))
-        if use == "refocusing"
-    ]
+    flips = refocusing_flips(seq)
 
-    assert np.asarray(refocusing) == pytest.approx(np.asarray(full) * 140.0 / 180.0)
-    assert seq.definitions["RefocusingFlipAngles"] == pytest.approx([140.0] * ETL)
+    assert flips[:, 0] == pytest.approx(180.0)
+    assert flips[:, 1:] == pytest.approx(140.0)
+    assert seq.definitions["RefocusingFlipAngles"] == pytest.approx(
+        [180.0] + [140.0] * (ETL - 1)
+    )
 
 
 @pytest.fixture
@@ -317,10 +316,12 @@ def test_an_optimized_train_peaks_at_the_prescribed_angle_and_passes_it_at_te(
     (centre,) = np.flatnonzero((lin == N_Y // 2) & (par == N_Z // 2))
     flips = refocusing_flips(seq)[0]
 
-    assert flips[eco[centre]] == pytest.approx(120.0)
-    assert flips.min() >= min(fse3d.DESIGN_MIN_DEG, 60.0) - 1e-9
-    assert flips.max() == pytest.approx(120.0)
-    assert not np.allclose(flips, 120.0)
+    assert flips[0] == pytest.approx(180.0)
+    # The shortest TE falls on the first echo, which the 180 degree pulse makes.
+    assert flips[eco[centre]] == pytest.approx(180.0 if eco[centre] == 0 else 120.0)
+    assert flips[1:].min() >= min(fse3d.DESIGN_MIN_DEG, 60.0) - 1e-9
+    assert flips[1:].max() == pytest.approx(120.0)
+    assert not np.allclose(flips[1:], 120.0)
     assert seq.definitions["RefocusingFlipAngles"] == pytest.approx(flips)
 
 
@@ -376,7 +377,8 @@ def test_optimized_individual_trains_are_silent_past_their_length(blochsim):
 
     assert np.all(flips[~played] == 0.0)
     assert np.all(flips[played] > 0.0)
-    assert flips.max() <= 120.0 + 1e-9
+    assert flips[:, 0] == pytest.approx(180.0)
+    assert flips[:, 1:].max() <= 120.0 + 1e-9
     assert seq.check_timing()[0]
 
 
@@ -443,8 +445,8 @@ def test_individual_trains_read_nothing_past_their_length():
     [
         ({"ordering": "shuffling", **INDIVIDUAL}, "radial"),
         ({"etl_periphery": 2, "te": 16e-3}, "ends before echo"),
-        ({"tr": 20e-3}, "shorter than"),
-        ({"tr_periphery": 20e-3}, "shorter than"),
+        ({"tr": 10e-3}, "shorter than"),
+        ({"tr_periphery": 10e-3}, "shorter than"),
         ({"flip_modulation": "variable"}, "flip_modulation"),
         ({"excitation": "spsp"}, "excitation"),
     ],

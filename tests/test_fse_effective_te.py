@@ -107,7 +107,7 @@ def test_played_centre_echo_uses_effective_te_without_changing_spacing():
         n_x=32,
         n_y=16,
         n_z=8,
-        etl=40,
+        etl=64,
         tr=1.8,
         te=None,
         n_dummy=0,

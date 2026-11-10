@@ -125,7 +125,8 @@ def test_the_readout_block_is_the_lobe_and_the_adc(system, slice_, selective):
 def test_a_3d_train_encodes_a_partition_axis_as_well(system, slab, hard):
     fse = readout3d(system, slab, hard)
     assert (fse.gy_pre.channel, fse.gz_pre.channel) == ("y", "z")
-    assert fse.blocks[-3] == (fse.gx_bridge_pre, fse.gy_pre, fse.gz_pre)
+    encode = fse.seq.get_block(len(fse.blocks) - 2)
+    assert (encode.gy.channel, encode.gz.channel) == ("y", "z")
 
 
 def test_a_2d_train_has_no_partition_encode(system, slice_, selective):
@@ -276,6 +277,11 @@ def test_stimulated_echoes_coincide_with_the_spin_echoes(
     and recalled by the second, refocuses at the second pulse plus the
     excitation-to-first-pulse interval; the spin echo refocuses at the second
     pulse plus half a spacing. They meet only when the two are equal.
+
+    A packed 3D train meets it from the second pulse on: an excitation and
+    read prephaser longer than half a spacing lengthen the first interval,
+    ``esp_first``, alone, and a path the first pulse stores refocuses
+    ``(esp_first - esp) / 2`` away from its spin echo.
     """
     if dims == 2:
         fse = readout2d(system, slice_, selective)
@@ -283,8 +289,13 @@ def test_stimulated_echoes_coincide_with_the_spin_echoes(
         fse = readout3d(system, slab, hard)
     _, excitation, refocusing = _lines(fse)
     tolerance = system.block_duration_raster
-    assert refocusing[0] - excitation == pytest.approx(0.5 * fse.esp, abs=tolerance)
-    assert np.diff(refocusing) == pytest.approx(fse.esp, abs=tolerance)
+    assert refocusing[0] - excitation == pytest.approx(
+        0.5 * fse.esp_first, abs=tolerance
+    )
+    assert refocusing[1] - refocusing[0] == pytest.approx(
+        0.5 * (fse.esp_first + fse.esp), abs=tolerance
+    )
+    assert np.diff(refocusing[1:]) == pytest.approx(fse.esp, abs=tolerance)
 
 
 def test_the_train_lasts_one_spacing_per_echo(system, slice_, selective):
@@ -370,23 +381,21 @@ def test_a_bare_train_bridges_the_readout_with_its_own_ramps(system, slab, hard)
 # ----------------------------------------------------------------------
 
 
-def test_a_long_excitation_lengthens_every_spacing(system, slab, hard):
+def test_a_long_excitation_lengthens_the_first_interval_alone(system, slab, hard):
     short_rf = design.NonSelectiveExcitation(system, 90.0, duration_s=0.5e-3)
     short = design.FseReadout3D(
         system, short_rf.rf, rf_ref=hard.rf_ref, fov=FOV, matrix=MATRIX, etl=ETL
     )
     long = readout3d(system, slab, hard, spoiling_cycles=0.0)
-    assert long.esp > short.esp
+    assert long.esp == pytest.approx(short.esp)
+    assert long.esp_first > short.esp_first
     assert np.diff(long.echo_times) == pytest.approx(long.esp)
 
 
-def test_a_spacing_too_short_for_the_excitation_is_refused(system, slab, hard):
-    short_rf = design.NonSelectiveExcitation(system, 90.0, duration_s=0.5e-3)
-    short = design.FseReadout3D(
-        system, short_rf.rf, rf_ref=hard.rf_ref, fov=FOV, matrix=MATRIX, etl=ETL
-    )
+def test_a_spacing_too_short_for_the_repeated_echo_is_refused(system, slab, hard):
+    shortest = readout3d(system, slab, hard).esp
     with pytest.raises(ValueError, match="echo spacing"):
-        readout3d(system, slab, hard, spoiling_cycles=0.0, esp=short.esp)
+        readout3d(system, slab, hard, esp=shortest - system.block_duration_raster * 2)
 
 
 # ----------------------------------------------------------------------
@@ -432,23 +441,18 @@ def test_a_scan_loop_reproduces_the_timing_the_module_reports(system, slab, hard
     """The published events, replayed, are the module -- to the nanosecond."""
     fse = readout3d(system, slab, hard)
     seq = pp.Sequence(system)
-    seq.add_block(fse.rf, fse.gz)
-    seq.add_block(fse.gx_pre)
+    fse.layout.excitation(seq, [])
+    previous = (0.0, 0.0)
     for echo in range(fse.etl):
         ky = (echo - 0.5 * fse.etl) / (0.5 * fse.etl)
         kz = ((echo * 7) % MATRIX[2] - 0.5 * MATRIX[2]) / (0.5 * MATRIX[2])
-        seq.add_block(fse.rf_ref)
-        seq.add_block(
-            fse.gx_bridge_pre,
-            pp.scale_grad(fse.gy_pre, ky),
-            pp.scale_grad(fse.gz_pre, kz),
-        )
+        fse.layout.refocusing(seq, echo == 0, *previous)
+        if echo == 0 and fse.esp_first > fse.esp:
+            seq.add_block(pp.make_delay((fse.esp_first - fse.esp) / 2))
+        fse.layout.encoding(seq, ky, kz)
         seq.add_block(fse.gx, fse.adc)
-        seq.add_block(
-            fse.gx_bridge_post,
-            pp.scale_grad(fse.gy_rew, ky),
-            pp.scale_grad(fse.gz_rew, kz),
-        )
+        fse.layout.rewinding(seq, ky, kz, echo == fse.etl - 1)
+        previous = (ky, kz)
     assert seq.duration()[0] == pytest.approx(fse.duration, abs=1e-12)
     assert seq.check_timing()[0]
 
