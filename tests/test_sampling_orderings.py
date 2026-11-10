@@ -126,4 +126,39 @@ def test_pclo_published_equation_three_example():
     from pypulseqpp._ordering import _pclo_rings
 
     np.testing.assert_array_equal(_pclo_rings(3, 9), [3, 1, 0, 2, 4, 5, 6, 7, 8])
-    np.testing.assert_array_equal(_pclo_rings(8, 9), np.arange(8, -1, -1))
+    # A centre in the first half of a 60-echo train, as a 44 ms Busse TE puts it.
+    np.testing.assert_array_equal(
+        _pclo_rings(21, 60),
+        [*range(21, -1, -2), *range(0, 21, 2), *range(22, 60)],
+    )
+
+
+def test_pclo_late_centre_is_not_mirrored():
+    from pypulseqpp._ordering import _pclo_rings
+
+    np.testing.assert_array_equal(_pclo_rings(8, 9), [8, 6, 4, 2, 0, 1, 3, 5, 7])
+    np.testing.assert_array_equal(
+        _pclo_rings(32, 60),
+        [*range(32, -1, -2), *range(1, 32, 2), *range(33, 60)],
+    )
+
+
+@pytest.mark.parametrize("length", [9, 10, 45, 60, 61])
+def test_pclo_echoes_after_the_centre_read_further_out_the_later_they_come(length):
+    from pypulseqpp._ordering import _pclo_rings
+
+    for centre in range(length // 2, length):
+        rings = _pclo_rings(centre, length)
+        assert sorted(rings) == list(range(length))
+        assert rings[0] == centre
+        assert np.all(np.abs(np.diff(rings)) <= 2)
+        # The echo index rises with radius outside the rings the earlier
+        # echoes fill, and the last echo reads the outermost ring.
+        later = np.flatnonzero(rings > centre + 1)
+        assert np.all(np.diff(rings[later]) == 1)
+        assert np.all(later > np.flatnonzero(rings <= centre).max())
+        # A train flat up to the centre and decaying after it, as a Busse
+        # schedule is, weights k-space without rising from centre to edge.
+        echo = np.arange(length)
+        signal = np.where(echo <= centre, 1.0, np.exp(-(echo - centre) / 10.0))
+        assert np.all(np.diff(signal[rings]) <= 1e-12)
