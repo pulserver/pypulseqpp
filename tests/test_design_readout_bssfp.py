@@ -509,3 +509,95 @@ def test_a_hard_pulse_needs_no_rephasers(system):
     assert bssfp.gz_partition.type == "trap"
     assert bssfp.check_timing()[0]
     assert bssfp.te == pytest.approx(0.5 * bssfp.tr)
+
+
+def _slice_of(readout, repetitions=4):
+    """A bridged slice as a caller plays it: opened from rest, its last rewind closed to it."""
+    seq = pp.Sequence(readout.seq.system)
+    seq.add_block(readout.rf, readout.gz_open)
+    seq.add_block(readout.wait_prep, readout.gz_prep)
+    for index in range(repetitions):
+        seq.add_block(readout.rf, readout.gz)
+        seq.add_block(readout.gx, readout.adc, readout.gy_pre, readout.gz_pre)
+        last = index == repetitions - 1
+        seq.add_block(
+            readout.gx_rew,
+            readout.gy_rew,
+            *([readout.gz_close] if last and readout.gz_close else []),
+            *([] if last else [readout.gz_rew]),
+        )
+    return seq
+
+
+def _edges(event):
+    """The amplitude a gradient event starts and ends its block at."""
+    if event is None:
+        return 0.0, 0.0
+    if event.type == "trap":
+        return 0.0, 0.0
+    return (0.0 if event.delay > 0 else float(event.first)), float(event.last)
+
+
+def test_no_join_inside_a_bridged_slice_has_every_gradient_at_rest(system, slice_):
+    """A scanner that prepares a segment between blocks at rest plays the slice as one."""
+    readout = readout2d(system, slice_, bridge=True)
+    assert readout.bridged
+    seq = _slice_of(readout)
+    blocks = [seq.get_block(b) for b in range(1, seq.num_blocks + 1)]
+    for before, after in itertools.pairwise(blocks):
+        leaving = max(abs(_edges(g)[1]) for g in (before.gx, before.gy, before.gz))
+        entering = max(abs(_edges(g)[0]) for g in (after.gx, after.gy, after.gz))
+        assert leaving > 4e3 and entering > 4e3
+    assert (
+        max(abs(_edges(g)[0]) for g in (blocks[0].gx, blocks[0].gy, blocks[0].gz))
+        == 0.0
+    )
+    assert (
+        max(abs(_edges(g)[1]) for g in (blocks[-1].gx, blocks[-1].gy, blocks[-1].gz))
+        == 0.0
+    )
+
+
+def test_a_bridged_slice_is_valid_pulseq(system, slice_):
+    assert _slice_of(readout2d(system, slice_, bridge=True)).check_timing()[0]
+
+
+def test_bridging_keeps_the_slice_axis_balanced_between_pulse_centres(system, slice_):
+    """What the plateau plays either side of the pulse centre, its rephasers unwind exactly."""
+    readout = readout2d(system, slice_, bridge=True)
+    centre = float(readout.rf.delay) + float(readout.rf.center)
+    times = np.asarray(readout.gz.tt, dtype=float)
+    levels = np.asarray(readout.gz.waveform, dtype=float)
+    at = float(np.interp(centre, times, levels))
+    early = times < centre
+    before = np.trapezoid(np.append(levels[early], at), np.append(times[early], centre))
+    after = np.trapezoid(
+        np.append(at, levels[~early]), np.append(centre, times[~early])
+    )
+    area = lambda event: float(np.trapezoid(event.waveform, event.tt))  # noqa: E731
+    assert area(readout.gz_rew) == pytest.approx(-before, abs=1e-6)
+    assert area(readout.gz_pre) == pytest.approx(-after, abs=1e-6)
+    assert area(readout.gz_prep) == pytest.approx(-(before + after), abs=1e-6)
+
+
+@pytest.mark.parametrize("bandwidth", [50e3, 125e3, 250e3])
+@pytest.mark.parametrize("matrix", [64, 128, 256])
+def test_a_bridged_repetition_has_the_timing_of_one_at_rest(
+    system, slice_, bandwidth, matrix
+):
+    kwargs = {"matrix": (matrix, matrix), "readout_bandwidth_hz": bandwidth}
+    try:
+        rest = readout2d(system, slice_, **kwargs)
+    except ValueError:
+        pytest.skip("the prescription has no half-flip preparation")
+    bridged = readout2d(system, slice_, bridge=True, **kwargs)
+    assert bridged.tr == pytest.approx(rest.tr, abs=1e-12)
+    assert bridged.te == pytest.approx(bridged.tr / 2)
+    assert [
+        pytest.approx(duration) for duration in rest.seq.block_durations.values()
+    ] == list(bridged.seq.block_durations.values())
+
+
+def test_bridging_is_refused_for_a_slab(system, slab):
+    with pytest.raises(ValueError, match="bridge"):
+        readout3d(system, slab, bridge=True)

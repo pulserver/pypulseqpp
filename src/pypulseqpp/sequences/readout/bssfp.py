@@ -16,6 +16,10 @@ from ._common import as_tuple, present, solve_delay
 
 #: Fraction of ``max_grad`` the readout plateau may reach.
 _READOUT_GRAD_MARGIN = 0.8
+#: Fraction of the selection amplitude a bridged slice axis is at where one
+#: block of a slice meets the next, so that no join inside the slice has every
+#: gradient at rest.
+_BRIDGE_FRACTION = 0.0625
 
 
 class _BssfpReadout(SequenceModule):
@@ -64,6 +68,18 @@ class _BssfpReadout(SequenceModule):
         caller.
     trigger : TriggerEvent or DigitalOutputEvent, default=None
         Event armed on the rewind block.
+    bridge : bool, default=False
+        Join the blocks of a slice on the slice axis, 2D with a trapezoidal
+        ``gz`` only: the ramps of the selection plateau run through zero to
+        a fraction of its amplitude where the excitation block meets the
+        rewind before it and the acquisition after it, and the rephasers end
+        and start there. No join between two repetitions then has every
+        gradient at rest, so a scanner that prepares a segment between blocks
+        at rest plays the slice as one. The timing is that of a slice axis
+        that rests; where bridging would lengthen the repetition, the slice
+        is left unbridged and ``bridged`` is False. The caller opens a bridged
+        slice with ``gz_open`` in place of ``gz`` and closes it with
+        ``gz_close`` in place of ``gz_rew``.
 
 
     Attributes
@@ -84,6 +100,12 @@ class _BssfpReadout(SequenceModule):
         Slice rephasers: ``gz_pre`` in the acquisition block after the pulse,
         ``gz_rew`` in the rewind block before the next pulse. Absent for a
         hard pulse.
+    bridged : bool
+        Whether the blocks of a slice join on the slice axis.
+    gz_open, gz_close : GradEvent
+        Bridged only: the selection gradient of a slice's first excitation
+        block, which opens from rest, and the rephaser of its last rewind,
+        which ends at rest.
     gz_partition, gz_partition_rew : TrapEvent
         Partition encode at its largest step, and the same negated, sharing
         the window of ``gz_pre`` and ``gz_rew`` respectively. 3D only.
@@ -118,7 +140,9 @@ class _BssfpReadout(SequenceModule):
     ------
     ValueError
         If a size or rate is out of range, the ``half_flip_prep`` condition
-        fails, or the requested TR is shorter than the module can achieve.
+        fails, the requested TR is shorter than the module can achieve, or
+        ``bridge`` is asked of a 3D readout or of a ``gz`` that is not a
+        trapezoid.
     """
 
     #: 2 or 3. The only thing that separates the two shipped bSSFP readouts.
@@ -138,8 +162,14 @@ class _BssfpReadout(SequenceModule):
         readout_bandwidth_hz: float = 250e3,
         labels: tuple[str, ...] | None = None,
         trigger: Any = None,
+        bridge: bool = False,
     ) -> None:
         ndim = self._ndim
+        if bridge and (ndim != 2 or gz is None or gz.type != "trap"):
+            raise ValueError(
+                "bridge joins the blocks of a slice on its selection gradient: it "
+                "takes a 2D readout and a trapezoidal gz"
+            )
         if oversampling < 1.0:
             raise ValueError("oversampling must be >= 1")
         if readout_bandwidth_hz <= 0:
@@ -227,6 +257,64 @@ class _BssfpReadout(SequenceModule):
             if half_flip_prep
             else 0.0
         )
+        gz_open = gz_close = None
+        if bridge:
+            # The slice axis never rests where two blocks of a slice meet: the
+            # ramps of the selection plateau run through zero to a fraction of
+            # its amplitude on the other side, where the slew rate allows, so
+            # the rephasers either side have less to unwind and stop short of
+            # rest. Where it does not, they stop short of rest on the
+            # plateau's side. The first excitation of a slice opens from rest.
+            plateau = float(gz.amplitude)
+            level = _BRIDGE_FRACTION * abs(plateau)
+            sign = math.copysign(1.0, plateau)
+            top = float(gz.delay) + float(gz.rise_time)
+            end = top + float(gz.flat_time)
+            step = system.grad_raster_time
+            # The ramp up may start in the pulse's dead time, as early as it
+            # must to reach the plateau from the far side within the slew rate.
+            start = step * math.floor(
+                (top - (abs(plateau) + level) / system.max_slew) / step + 1e-9
+            )
+            if start >= -1e-12:
+                start = min(max(start, 0.0), float(gz.delay))
+                lead = -sign * level
+            else:
+                start, lead = float(gz.delay), sign * level
+            tail = (
+                -sign * level
+                if (abs(plateau) + level) / (excite_span - end) <= system.max_slew
+                else sign * level
+            )
+            times = [0.0, start, top, end, excite_span]
+            levels = [lead, lead, plateau, plateau, tail]
+            opening = [0.0, float(gz.delay), top, end, excite_span]
+            opened = [0.0, 0.0, plateau, plateau, tail]
+            if start < 0.5 * step:
+                times, levels = times[1:], levels[1:]
+            if gz.delay < 0.5 * step:
+                opening, opened = opening[1:], opened[1:]
+            before, after = _areas_about(times, levels, rf_center)
+            # Each rephaser is the fastest lobe between rest and the level the
+            # excitation block opens or closes on; the half-flip gap holds
+            # the two in one lobe.
+            pre_times, pre_levels = _vertices(system, -before, 0.0, lead, "z")
+            post_times, post_levels = _vertices(system, -after, tail, 0.0, "z")
+            held = float(_vertices(system, -(before + after), tail, lead, "z")[0][-1])
+            # A bridged slice shares its timing with one whose slice axis
+            # rests, or is not bridged: the repetition is never longer for it.
+            bridge = (
+                max(float(pre_times[-1]), float(post_times[-1])) <= z_floor + 1e-12
+                and held - prep_span <= prep_floor + 1e-12
+            )
+        if bridge:
+            gz_open = pp.make_extended_trapezoid(
+                channel="z", times=opening, amplitudes=opened, system=system
+            )
+            gz = pp.make_extended_trapezoid(
+                channel="z", times=times, amplitudes=levels, system=system
+            )
+            post_area, pre_area = -after, -before
         y_floor = _span(
             raster, pp.make_phase_encoding("y", fov[1] / n[1], system=system)
         )
@@ -257,8 +345,19 @@ class _BssfpReadout(SequenceModule):
             ),
             -1.0,
         )
-        gz_pre = _lobe(system, post_area, encode_span, ramp)
-        gz_rew = _lobe(system, pre_area, rewind_span, ramp)
+        if bridge:
+            gz_pre = pp.make_extended_trapezoid(
+                channel="z", times=post_times, amplitudes=post_levels, system=system
+            )
+            gz_rew = pp.make_extended_trapezoid(
+                channel="z", times=pre_times, amplitudes=pre_levels, system=system
+            )
+            gz_rew.delay = rewind_span - float(pre_times[-1])
+            # The rewind that ends a slice brings the slice axis to rest.
+            gz_close = _lobe(system, pre_area, rewind_span, ramp)
+        else:
+            gz_pre = _lobe(system, post_area, encode_span, ramp)
+            gz_rew = _lobe(system, pre_area, rewind_span, ramp)
         if ndim == 3:
             gz_partition = _lobe(system, step_z, encode_span, ramp)
             gz_partition_rew = _lobe(system, -step_z, rewind_span, ramp)
@@ -277,9 +376,22 @@ class _BssfpReadout(SequenceModule):
 
         if half_flip_prep:
             wait_prep = pp.make_delay(prep_span + rewind_span)
-            gz_prep = _lobe(
-                system, pre_area + post_area, prep_span + rewind_span, prep_ramp
-            )
+            if bridge:
+                gz_prep = pp.make_extended_trapezoid(
+                    channel="z",
+                    **_held_lobe(
+                        system,
+                        pre_area + post_area,
+                        tail,
+                        lead,
+                        prep_span + rewind_span,
+                    ),
+                    system=system,
+                )
+            else:
+                gz_prep = _lobe(
+                    system, pre_area + post_area, prep_span + rewind_span, prep_ramp
+                )
 
         adc_labels = [
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
@@ -291,9 +403,17 @@ class _BssfpReadout(SequenceModule):
         # One repetition of the centre partition, laid out from the pulse so
         # that it starts and ends with every axis at rest.
         self.seq = pp.Sequence(system)
-        self.seq.add_block(rf, *present(gz))
-        self.seq.add_block(gx, adc, gy_pre, *present(gz_pre), *adc_labels)
-        self.seq.add_block(gx_rew, gy_rew, *present(gz_rew), *present(trigger))
+        if bridge:
+            # Laid out as a slice of one repetition: opened from rest and
+            # closed to it.
+            self.seq.add_block(rf, gz_open)
+            self.seq.add_block(gx, adc, gy_pre, gz_pre, *adc_labels)
+            self.seq.add_block(gx_rew, gy_rew, *present(gz_close), *present(trigger))
+            self.register(gz=gz, gz_rew=gz_rew, gz_close=gz_close)
+        else:
+            self.seq.add_block(rf, *present(gz))
+            self.seq.add_block(gx, adc, gy_pre, *present(gz_pre), *adc_labels)
+            self.seq.add_block(gx_rew, gy_rew, *present(gz_rew), *present(trigger))
         self.register(
             prep_labels=prep_labels,
             train_labels=train_labels,
@@ -301,6 +421,7 @@ class _BssfpReadout(SequenceModule):
             **({"wait_prep": wait_prep, "gz_prep": gz_prep} if half_flip_prep else {}),
         )
 
+        self.bridged = bridge
         self.tr = rewind_span + excite_span + encode_span + flat_span
         self.te = 0.5 * self.tr
         self.center = excite_span + encode_span + 0.5 * readout_duration
@@ -325,11 +446,60 @@ def _span(raster: float, *events: Any) -> float:
     return pp.ceil_to_raster(pp.calc_duration(*events), raster) if events else 0.0
 
 
-def _vertices(system: pp.Opts, area: float, grad_start: float, grad_end: float):
+def _vertices(
+    system: pp.Opts, area: float, grad_start: float, grad_end: float, channel: str = "x"
+):
     _, times, amplitudes = pp.make_extended_trapezoid_area(
-        area=area, channel="x", grad_start=grad_start, grad_end=grad_end, system=system
+        area=area,
+        channel=channel,
+        grad_start=grad_start,
+        grad_end=grad_end,
+        system=system,
     )
     return np.asarray(times, dtype=float), np.asarray(amplitudes, dtype=float)
+
+
+def _held_lobe(
+    system: pp.Opts, area: float, start: float, end: float, window: float
+) -> dict:
+    """Return the vertices of a z lobe of ``area`` over ``window``, from ``start`` to ``end``.
+
+    The fastest lobe, held at ``end`` to the end of the window; the lobe
+    carries ``area`` less what the hold adds, which depends on its own
+    duration, so the two are solved together.
+    """
+    step = system.grad_raster_time
+    times, levels = _vertices(system, area, start, end, "z")
+    for _ in range(32):
+        duration = float(times[-1])
+        times, levels = _vertices(
+            system, area - end * (window - duration), start, end, "z"
+        )
+        if abs(float(times[-1]) - duration) < 0.5 * step:
+            break
+    else:
+        raise ValueError(
+            f"no lobe of {area:.1f} 1/m held to {window * 1e6:.0f} us was found"
+        )
+    hold = window - float(times[-1])
+    if hold < -0.5 * step:
+        raise ValueError(f"a lobe of {area:.1f} 1/m does not fit {window * 1e6:.0f} us")
+    if hold > 0.5 * step:
+        times, levels = np.append(times, window), np.append(levels, end)
+    return {"times": times, "amplitudes": levels}
+
+
+def _areas_about(times: Any, levels: Any, centre: float) -> tuple[float, float]:
+    """Return the areas of a piecewise-linear waveform before and after ``centre``."""
+    times = np.asarray(times, dtype=float)
+    levels = np.asarray(levels, dtype=float)
+    at = float(np.interp(centre, times, levels))
+    early = times < centre
+    before = np.trapezoid(np.append(levels[early], at), np.append(times[early], centre))
+    after = np.trapezoid(
+        np.append(at, levels[~early]), np.append(centre, times[~early])
+    )
+    return float(before), float(after)
 
 
 def _lobe(system: pp.Opts, area: float, duration: float, ramp: float):

@@ -195,7 +195,17 @@ def bssfp2d(
         tr=tr,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
+        bridge=gating == "none" and n_slices > 1,
     )
+    # The slices of a free-running scan are bridged: the blocks of a slice
+    # join on the slice axis, so that a scanner preparing segments between
+    # blocks at rest plays the slice as one, with nothing between its
+    # repetitions. A slice opens from rest and its last rewind closes to rest.
+    # A gated train rests where it waits for the heartbeat, and a single
+    # slice is no repetition of the scan, whose receive calibration then
+    # plays one repetition alone, from rest to rest.
+    gz_open = ro.gz_open if ro.bridged else ro.gz
+    gz_close = ro.gz_close if ro.bridged else ro.gz_rew
     nominal = ro.rf.amplitude
     rr = 60.0 / heart_rate_bpm
     if n_dummy is None:
@@ -298,9 +308,9 @@ def bssfp2d(
             rf.phase_offset = centre_phase
             if gating == "prospective":
                 seq.add_block(trigger_event, *ro.prep_labels)
-                seq.add_block(rf, ro.gz)
+                seq.add_block(rf, gz_open)
             else:
-                seq.add_block(rf, ro.gz, *ro.prep_labels)
+                seq.add_block(rf, gz_open, *ro.prep_labels)
             seq.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
             rf.amplitude = nominal
         else:
@@ -329,7 +339,10 @@ def bssfp2d(
             )
         if last:
             seq.add_block(
-                ro.gx_rew, pp.scale_grad(ro.gy_rew, ky), ro.gz_rew, *ro.end_labels
+                ro.gx_rew,
+                pp.scale_grad(ro.gy_rew, ky),
+                *([] if gz_close is None else [gz_close]),
+                *ro.end_labels,
             )
 
     # Each slice's whole train is played before the next slice's.
