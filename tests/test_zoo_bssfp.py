@@ -174,7 +174,7 @@ def test_a_retrospective_cycle_reads_every_line_when_the_last_segment_is_short()
         assert sorted(lin[phs == cycle]) == list(range(16))
 
 
-def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
+def test_a_prospective_slice_waits_for_one_trigger_then_reads_every_phase():
     seq = built_2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
     triggers = [block.trig for block in blocks(seq) if getattr(block, "trig", None)]
@@ -186,10 +186,35 @@ def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
     ]
 
     assert list(zip(lin, seg, phs, strict=True)) == expected
-    assert len(triggers) == 4
-    assert all(t[0].channel == "physio1" for t in triggers)
-    assert all(t[0].duration == pytest.approx(5e-3) for t in triggers)
+    assert len(triggers) == 1
+    assert triggers[0][0].channel == "physio1"
+    assert triggers[0][0].duration == pytest.approx(5e-3)
     assert seq.definitions["CardiacPhases"] == pytest.approx([3])
+
+
+def test_a_prospective_heartbeat_starts_a_nominal_heartbeat_after_the_one_before():
+    """The slice runs free after its trigger: repetitions that do not acquire fill each heartbeat."""
+    seq = built_2d(gating="prospective", n_phases=3, n_dummy=2, **CINE)
+    tr = np.atleast_1d(seq.definitions["TR"])[0]
+    reads = [
+        getattr(block, "adc", None) is not None
+        for block in blocks(seq)
+        if getattr(block, "rf", None) is None and getattr(block, "gx", None) is not None
+    ]
+    # One entry per repetition's acquisition block and one per rewind.
+    acquiring = np.flatnonzero(np.asarray(reads[::2]))
+    first = acquiring[::12]
+
+    assert first.tolist() == bssfp2d.prospective_starts([4] * 4, 3, 2, 0.2, tr)
+    # Counted from the first excitation, half a repetition after the half flip.
+    assert (first[1:] + 0.5) * tr == pytest.approx(
+        0.2 * np.arange(1, 4), abs=0.5 * tr + 1e-9
+    )
+
+
+def test_the_prospective_starts_never_overlap_the_heartbeat_before():
+    assert bssfp2d.prospective_starts([12, 12, 4], 10, 10, 1.0, 5e-3) == [10, 200, 400]
+    assert bssfp2d.prospective_starts([12, 12], 10, 10, 0.5, 5e-3) == [10, 130]
 
 
 @pytest.mark.parametrize("n_dummy", [0, 3])
