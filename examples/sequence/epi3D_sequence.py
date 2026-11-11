@@ -154,6 +154,15 @@ SPOILING_CYCLES = 4.0
 #: long it lasts (s); it never outlasts the excitation block it rides.
 OUTPUT_CHANNEL = "ext1"
 OUTPUT_DURATION = 1e-3
+#: Flip angle of the gradient-echo calibration (degrees), whatever the
+#: imaging flip. Its views follow one another at its shortest TR, from
+#: relaxed magnetization, so a large imaging flip would leave the centre of
+#: k-space, read halfway through, at a small steady-state signal, and each
+#: view's RF alone can exceed the SAR limit. Ten degrees, near the Ernst angle
+#: of that TR, plays a fraction of the imaging pulse's RF power. The
+#: calibration measures coil sensitivities, which do not depend on the
+#: contrast.
+CALIBRATION_FLIP_DEG = 10.0
 
 
 def epi3d(
@@ -204,8 +213,9 @@ def epi3d(
 
     Two prescans are linked ahead of the imaging: the ``calibration``, when
     undersampled, a Cartesian gradient echo over the central ``n_acs_y x
-    n_acs_z`` rectangle (``REF``); and the ``reference``, one volume with the
-    phase encode reversed (``SET = 1``), for distortion correction.
+    n_acs_z`` rectangle (``REF``) at ``CALIBRATION_FLIP_DEG``; and the
+    ``reference``, one volume with the phase encode reversed (``SET = 1``),
+    for distortion correction.
 
     Parameters
     ----------
@@ -226,7 +236,8 @@ def epi3d(
     n_z : int, default=32
         Matrix size along the partition encode.
     flip_angle_deg : float, default=20.0
-        Excitation flip angle (degrees).
+        Excitation flip angle (degrees) of the imaging and the reference; the
+        calibration plays ``CALIBRATION_FLIP_DEG``.
     te : float | None, default=None
         Echo time of the centre line (s). ``None`` is as short as the
         navigator and the train admit.
@@ -409,10 +420,24 @@ def epi3d(
         ]
     gre = None
     if calibration:
+        # The imaging pulse at the calibration's flip angle and at its
+        # duration, so both play one waveform, scaled.
+        held = getattr(exc, "pulse_duration", None)
+        weak = sequences.make_excitation(
+            system,
+            excitation,
+            CALIBRATION_FLIP_DEG,
+            fov_z,
+            duration_s=held or PULSE_DURATION,
+            time_bw_product=TIME_BW_PRODUCT,
+            hard_duration_s=held or HARD_PULSE_DURATION,
+            fat_shift_ppm=FAT_SHIFT_PPM,
+        )
+        weak_gz = getattr(weak, "gz", None)
         gre = sequences.LineReadout3D(
             system,
-            exc.rf,
-            gz,
+            weak.rf,
+            weak_gz,
             fov=fov,
             matrix=matrix,
             oversampling=readout_oversampling,
@@ -441,7 +466,7 @@ def epi3d(
         gre.adc_labels[0].value, gre.adc_labels[1].value = line, partition
         ky = (line - n_y // 2) / (n_y / 2)
         kz = (partition - n_z // 2) / (n_z / 2)
-        seq.add_block(gre.rf, *([] if gz is None else [gz]), *labels(REF=1))
+        seq.add_block(gre.rf, *([] if weak_gz is None else [weak_gz]), *labels(REF=1))
         wait_te = getattr(gre, "wait_te", None)
         if wait_te is not None:
             seq.add_block(wait_te)

@@ -135,6 +135,15 @@ SPOILING_CYCLES = 4.0
 #: long it lasts (s); it never outlasts the excitation block it rides.
 OUTPUT_CHANNEL = "ext1"
 OUTPUT_DURATION = 1e-3
+#: Flip angle of the gradient-echo calibration (degrees), whatever the
+#: imaging flip. Its lines follow one another at its shortest TR, from relaxed
+#: magnetization: at an imaging flip such as 70 degrees the signal falls
+#: within a few lines to a hundredth of the first line's, and each line's RF
+#: alone can exceed the SAR limit. Near the Ernst angle of that TR, ten degrees
+#: keeps most of the first line's signal across the calibration region and
+#: plays a fiftieth of a 70 degree pulse's RF power. The calibration measures
+#: coil sensitivities, which do not depend on the contrast.
+CALIBRATION_FLIP_DEG = 10.0
 
 
 def epi2d(
@@ -179,9 +188,9 @@ def epi2d(
 
     Two prescans are linked ahead of the imaging: the ``calibration``, a
     single-band gradient echo per slice over the central ``n_acs_y`` lines
-    (``REF``), when undersampled or multiband; and the ``reference``, one
-    volume with the phase encode reversed (``SET = 1``), for distortion
-    correction.
+    (``REF``) at ``CALIBRATION_FLIP_DEG``, when undersampled or multiband;
+    and the ``reference``, one volume with the phase encode reversed
+    (``SET = 1``), for distortion correction.
 
     Parameters
     ----------
@@ -201,7 +210,8 @@ def epi2d(
     slice_spacing : float, default=0.0
         Gap between adjacent slices (m); zero is contiguous.
     flip_angle_deg : float, default=70.0
-        Excitation flip angle (degrees).
+        Excitation flip angle (degrees) of the imaging and the reference; the
+        calibration plays ``CALIBRATION_FLIP_DEG``.
     te : float | None, default=None
         Echo time of the centre line (s). ``None`` is as short as the
         navigator and the train admit.
@@ -450,9 +460,23 @@ def epi2d(
         calibration = list(range(max(low, 0), min(low + n_acs_y, n_y)))
     gre = None
     if calibration:
+        # The single-band pulse's samples scaled to the calibration's flip
+        # angle, a small-tip pulse's profile being its waveform's: one
+        # waveform and one timing for both, with no second design.
+        weak = pp.make_arbitrary_rf(
+            signal=np.asarray(single.rf.signal)
+            * (CALIBRATION_FLIP_DEG / flip_angle_deg),
+            flip_angle=0.0,
+            no_signal_scaling=True,
+            delay=single.rf.delay,
+            dwell=float(single.rf.t[1] - single.rf.t[0]),
+            system=system,
+            use=single.rf.use,
+            center=single.rf.center,
+        )
         gre = sequences.LineReadout2D(
             system,
-            single.rf,
+            weak,
             single.gz,
             single.gz_reph,
             fov=fov,

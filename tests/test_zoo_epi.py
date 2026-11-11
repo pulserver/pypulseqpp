@@ -466,6 +466,38 @@ def test_an_undersampled_2d_scan_calibrates_every_slice_with_a_gradient_echo():
 
 
 @pytest.mark.parametrize(
+    "make",
+    [
+        lambda flip: scan2d(n_slices=2, ry=2, n_acs_y=4, flip_angle_deg=flip),
+        lambda flip: scan2d(n_slices=2, multiband=2, flip_angle_deg=flip),
+        *(
+            lambda flip, excitation=excitation: scan3d(
+                ry=2, n_acs_y=4, n_acs_z=2, excitation=excitation, flip_angle_deg=flip
+            )
+            for excitation in sequences.EXCITATIONS
+        ),
+    ],
+    ids=["2D", "2D multiband", *(f"3D {e}" for e in sequences.EXCITATIONS)],
+)
+@pytest.mark.parametrize("flip", [20.0, 90.0])
+def test_the_calibration_plays_the_imaging_pulse_at_its_own_flip_angle(make, flip):
+    scan = make(flip)
+    calibration = scan.prescan("calibration").rf_instances()
+    # A multiband scan calibrates single-band, with the pulse of one band.
+    imaging = scan.main if scan.prescription.get("multiband", 1) == 1 else None
+    (pulse,) = calibration.definitions
+
+    assert pulse.flip_deg * calibration.amplitude == pytest.approx(
+        scan.module.CALIBRATION_FLIP_DEG, rel=1e-4
+    )
+    if imaging is not None:
+        instances = imaging.rf_instances()
+        excitation = next(d for d in instances.definitions if d.use == "excitation")
+        assert pulse.time == pytest.approx(excitation.time)
+        assert pulse.waveform == pytest.approx(excitation.waveform)
+
+
+@pytest.mark.parametrize(
     "prescription",
     [
         {"partial_fourier_y": 0.4},
