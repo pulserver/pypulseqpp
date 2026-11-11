@@ -67,9 +67,10 @@ def make_busse_schedule(
     """Construct a prescribed-PSS refocusing train with inverse EPG.
 
     The train is designed by ``blochsim.trains.busse_flips``, which the
-    ``design`` extra installs. The first and final pulses use the maximum angle. An initial asymptotic
-    approach establishes the low-angle state; PSS coherence then increases
-    through the centre control toward the final control. A shooting correction
+    ``design`` extra installs. The first and final pulses use the maximum
+    angle. An initial asymptotic approach establishes the low-angle state; PSS
+    coherence then increases through the centre control toward the final
+    control. A shooting correction
     enforces the actual minimum, centre and final RF angles. The output is
     independent of echo spacing: relaxation belongs to the forward EPG model.
 

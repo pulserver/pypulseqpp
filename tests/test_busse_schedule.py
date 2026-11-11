@@ -156,7 +156,7 @@ def test_played_trains_are_reproduced_in_angle_and_signal(played, name):
     )
     reference = np.deg2rad(train["angles_deg"])
     np.testing.assert_allclose(
-        np.rad2deg(angles), train["angles_deg"], atol=1e-7, rtol=0
+        np.rad2deg(angles), train["angles_deg"], atol=1e-9, rtol=0
     )
     np.testing.assert_allclose(
         static_signal(angles), static_signal(reference), atol=1e-9, rtol=0
@@ -188,3 +188,26 @@ def test_played_centre_echo_and_its_effective_te_are_reproduced(played, name):
     assert effective[startup + centre] == pytest.approx(
         train["centre_effective_te"], abs=1e-9
     )
+
+
+@pytest.mark.parametrize(
+    "design",
+    [
+        lambda: pp.make_busse_schedule(47),
+        lambda: pp.make_pd_schedule(27, 0.003416),
+        lambda: pp.calc_fse_effective_te([np.pi] * 3, 0.004),
+    ],
+)
+def test_a_design_without_blochsim_names_the_extra(monkeypatch, design):
+    import sys
+
+    from pypulseqpp._busse import _schedule
+    from pypulseqpp._pd import _pd_schedule
+
+    # A schedule designed earlier would be answered from the cache.
+    _schedule.cache_clear()
+    _pd_schedule.cache_clear()
+    # A None entry makes ``import blochsim`` fail as if it were not installed.
+    monkeypatch.setitem(sys.modules, "blochsim", None)
+    with pytest.raises(ImportError, match=r"pypulseqpp\[design\]"):
+        design()
