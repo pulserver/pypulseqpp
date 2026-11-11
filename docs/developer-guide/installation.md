@@ -16,11 +16,13 @@ rather than changing the runtime dependency set.
 git submodule update --init --recursive
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[dev]' -r tests/requirements.txt
+python -m pip install -e '.[dev,design]' -r tests/requirements.txt
 ```
 
-The `dev` extra contains lint, test and documentation tools. Gallery builds
-also require the `examples` extra because optimized FSE examples use
+The `dev` extra contains lint, test and documentation tools. The `design`
+extra brings `blochsim`, which computes the Busse and PD refocusing schedules
+and the FSE effective TE; their tests skip without it. Gallery builds
+also require the `examples` extra because the FSE examples use
 `blochsim`:
 
 ```bash

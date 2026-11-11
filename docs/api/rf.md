@@ -77,4 +77,4 @@ in turn over a shared time base.
 
 | Object | Description |
 | --- | --- |
-| {obj}`~pypulseqpp.calc_fse_effective_te` | Reference contrast-equivalent echo times from relaxed and relaxation-free CPMG EPG signals. |
+| {obj}`~pypulseqpp.calc_fse_effective_te` | Reference contrast-equivalent echo times from relaxed and relaxation-free CPMG EPG signals. Needs the `design` extra. |

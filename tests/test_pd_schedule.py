@@ -6,6 +6,9 @@ import pytest
 import pypulseqpp as pp
 from pypulseqpp import sequences
 
+# The schedules and their effective TE are computed by blochsim.trains.
+pytest.importorskip("blochsim.trains")
+
 
 @pytest.mark.parametrize("acquired", [20, 40, 45, 80, 120, 160])
 def test_pd_first_peak_final_are_independent_actual_angles(acquired):

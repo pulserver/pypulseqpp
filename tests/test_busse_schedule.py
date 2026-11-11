@@ -8,6 +8,9 @@ import pytest
 
 import pypulseqpp as pp
 
+# The schedules and their effective TE are computed by blochsim.trains.
+pytest.importorskip("blochsim.trains")
+
 
 @pytest.fixture(scope="module")
 def reference():
@@ -111,3 +114,100 @@ def test_batched_variable_trains_match_independent_scalar_shooting():
         )
         np.testing.assert_allclose(profiles[row, :length], reference, atol=2e-8, rtol=0)
         assert np.all(profiles[row, length:] == 0)
+
+
+@pytest.fixture(scope="module")
+def played():
+    return json.loads(
+        (Path(__file__).parent / "fixtures/fse3d_busse_trains.json").read_text()
+    )["trains"]
+
+
+def static_signal(angles):
+    """Echoes of a train without relaxation, by isochromat summation."""
+    phase = np.exp(2j * np.pi * np.arange(2048) / 2048)
+    transverse = np.ones(2048, dtype=complex)
+    longitudinal = np.zeros(2048)
+    signal = []
+    for angle in angles:
+        transverse *= phase
+        sine, cosine = np.sin(angle), np.cos(angle)
+        imaginary = transverse.imag.copy()
+        transverse = transverse.real + 1j * (cosine * imaginary - sine * longitudinal)
+        longitudinal = sine * imaginary + cosine * longitudinal
+        transverse *= phase
+        signal.append(transverse.mean())
+    return np.array(signal)
+
+
+@pytest.mark.parametrize("name", ["te60", "te44"])
+def test_played_trains_are_reproduced_in_angle_and_signal(played, name):
+    train = played[name]
+    startup = train["startup_echoes"]
+    low, centre, high = np.deg2rad(train["played_controls_deg"])
+    angles = pp.make_busse_schedule(
+        train["echo_train_length"] + startup,
+        minimum_flip_angle=low,
+        centre_flip_angle=centre,
+        maximum_flip_angle=high,
+        centre_echo=startup + train["centre_echo"],
+        startup_echoes=startup,
+        initial_decay=train["initial_decay"],
+    )
+    reference = np.deg2rad(train["angles_deg"])
+    np.testing.assert_allclose(
+        np.rad2deg(angles), train["angles_deg"], atol=1e-9, rtol=0
+    )
+    np.testing.assert_allclose(
+        static_signal(angles), static_signal(reference), atol=1e-9, rtol=0
+    )
+
+
+@pytest.mark.parametrize("name", ["te60", "te44"])
+def test_played_centre_echo_and_its_effective_te_are_reproduced(played, name):
+    from pypulseqpp._fse_contrast import _select_busse_centre
+
+    train = played[name]
+    startup, etl = train["startup_echoes"], train["echo_train_length"]
+    timing = (train["echo_spacing"], train["first_echo_time"])
+    controls = np.array(train["prescribed_controls_deg"])
+    centre = _select_busse_centre(
+        etl,
+        etl,
+        startup,
+        controls,
+        controls,
+        train["initial_decay"],
+        *timing,
+        train["requested_effective_te"],
+    )
+    assert centre == train["centre_echo"]
+    effective = pp.calc_fse_effective_te(
+        np.deg2rad(train["angles_deg"]), timing[0], first_echo_time=timing[1]
+    )
+    assert effective[startup + centre] == pytest.approx(
+        train["centre_effective_te"], abs=1e-9
+    )
+
+
+@pytest.mark.parametrize(
+    "design",
+    [
+        lambda: pp.make_busse_schedule(47),
+        lambda: pp.make_pd_schedule(27, 0.003416),
+        lambda: pp.calc_fse_effective_te([np.pi] * 3, 0.004),
+    ],
+)
+def test_a_design_without_blochsim_names_the_extra(monkeypatch, design):
+    import sys
+
+    from pypulseqpp._busse import _schedule
+    from pypulseqpp._pd import _pd_schedule
+
+    # A schedule designed earlier would be answered from the cache.
+    _schedule.cache_clear()
+    _pd_schedule.cache_clear()
+    # A None entry makes ``import blochsim`` fail as if it were not installed.
+    monkeypatch.setitem(sys.modules, "blochsim", None)
+    with pytest.raises(ImportError, match=r"pypulseqpp\[design\]"):
+        design()

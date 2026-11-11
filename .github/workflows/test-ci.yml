@@ -40,10 +40,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      # blochsim, from the design extra, computes the fast-spin-echo
+      # refocusing schedules; it depends on PyTorch, whose default Linux
+      # wheel carries CUDA libraries nothing here uses.
+      - name: Install PyTorch (CPU)
+        if: runner.os == 'Linux'
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install .[dev] -r tests/requirements.txt
+          python -m pip install '.[dev,design]' -r tests/requirements.txt
 
       # One worker per core. The thread pools are held to one thread each, or
       # every worker's pool spreads over every core and they contend.

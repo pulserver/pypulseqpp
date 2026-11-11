@@ -87,6 +87,6 @@ shot's origin `(y0, z0)`; echo `e` then acquires `(y0, z0) + offsets[e]`.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.make_rf_spoiling_schedule` | Number of repetitions, increment | Phases (rad), one per repetition | Quadratic RF spoiling. |
 | {obj}`~pypulseqpp.make_phase_cycling_schedule` | Number of repetitions, cycle | Phases (rad), one per repetition | Repeated phase cycle. |
-| {obj}`~pypulseqpp.make_pd_schedule` | Total RF count, echo timing, first/maximum/final angles, signal-tail onset | Refocusing angles (rad), including startup | Relaxation-aware prescribed-signal inverse EPG for PD imaging. |
-| {obj}`~pypulseqpp.make_busse_schedule` | Total RF count, minimum/centre/maximum angles, centre echo | Refocusing angles (rad), including startup | Prescribed-PSS envelope inverted with EPG. |
+| {obj}`~pypulseqpp.make_pd_schedule` | Total RF count, echo timing, first/maximum/final angles, signal-tail onset | Refocusing angles (rad), including startup | Relaxation-aware prescribed-signal inverse EPG for PD imaging. Needs the `design` extra. |
+| {obj}`~pypulseqpp.make_busse_schedule` | Total RF count, minimum/centre/maximum angles, centre echo | Refocusing angles (rad), including startup | Prescribed-PSS envelope inverted with EPG. Needs the `design` extra. |
 | {obj}`~pypulseqpp.make_traps_schedule` | Echo-train length, target angle | Refocusing angles (rad), one per echo | Stabilising variable refocusing angles. |

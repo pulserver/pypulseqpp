@@ -1,4 +1,4 @@
-"""Prescribed-PSS refocusing schedules with inverse EPG."""
+"""Prescribed-PSS refocusing schedules, designed by blochsim's train kernels."""
 
 from __future__ import annotations
 
@@ -6,125 +6,40 @@ from functools import lru_cache
 from operator import index
 
 import numpy as np
-from scipy.optimize import root
-from scipy.special import eval_legendre
 
 
-def _pss(angle_deg):
-    angle = np.deg2rad(angle_deg)
-    sine = np.sin(angle / 2)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        return np.sqrt(sine) * eval_legendre(
-            -0.5, sine * (1 + np.sin(angle) ** 2 / (8 * sine**4))
-        )
+def _trains():
+    """``blochsim.trains``, imported when a schedule is designed.
 
-
-def _shift(state):
-    state[0, ..., 1:] = state[0, ..., :-1]
-    state[1, ..., :-1] = state[1, ..., 1:]
-    state[1, ..., -1] = 0
-    state[0, ..., 0] = state[1, ..., 0].conjugate()
-
-
-def _rotate(state, angle):
-    plus, minus, longitudinal = state
-    cosine, sine = np.cos(angle), np.sin(angle)
-    return np.array(
-        (
-            0.5 * (1 + cosine) * plus
-            + 0.5 * (1 - cosine) * minus
-            - 1j * sine * longitudinal,
-            0.5 * (1 - cosine) * plus
-            + 0.5 * (1 + cosine) * minus
-            + 1j * sine * longitudinal,
-            -0.5j * sine * plus + 0.5j * sine * minus + cosine * longitudinal,
-        )
-    )
-
-
-def _inverse(target, first_deg):
-    state = np.zeros((3, len(target) + 1), dtype=complex)
-    state[:2, 0] = 1
-    angles = np.empty(len(target))
-    achieved = np.empty(len(target))
-    for echo, desired in enumerate(target):
-        _shift(state)
-        if echo == 0:
-            angle = np.deg2rad(first_deg)
-        else:
-            plus, minus, longitudinal = state[:, 1]
-            a = 0.5 * (plus.real + minus.real)
-            b = 0.5 * (minus.real - plus.real)
-            c = -longitudinal.imag
-            delta = np.arctan2(c, b)
-            radius = np.hypot(b, c)
-            turn = np.arccos(np.clip((desired - a) / max(radius, 1e-16), -1, 1))
-            candidates = np.array(
-                [
-                    0,
-                    np.pi,
-                    delta,
-                    delta + np.pi,
-                    delta - turn,
-                    delta + turn,
-                    delta - turn + 2 * np.pi,
-                    delta + turn + 2 * np.pi,
-                ]
-            )
-            candidates = candidates[(candidates >= 0) & (candidates <= np.pi)]
-            errors = abs(a + b * np.cos(candidates) + c * np.sin(candidates) - desired)
-            # Equivalent echo solutions use the smaller RF rotation. Bounds
-            # and extrema diagnose infeasible trials; accepted targets must
-            # subsequently agree with the complete forward state evolution.
-            angle = candidates[np.argmin(errors + 1e-12 * candidates)]
-        state = _rotate(state, angle)
-        _shift(state)
-        achieved[echo] = state[0, 0].real
-        angles[echo] = np.rad2deg(angle)
-    return angles, achieved
-
-
-def _target(controls, length, centre, first_signal, decay):
-    low, middle, final = _pss(controls)
-    echo = np.arange(length)
-    signal = low + (middle - low) * np.clip((echo - 5) / (centre - 5), 0, 1) ** 1.5
-    after = echo > centre
-    signal[after] = middle + (final - middle) * (echo[after] - centre) / (
-        length - 1 - centre
-    )
-    signal += (first_signal - low) * np.exp(-echo / decay)
-    return signal
+    The module is NumPy over a compiled kernel; importing it does not import
+    PyTorch.
+    """
+    try:
+        from blochsim import trains
+    except ImportError as error:
+        raise ImportError(
+            "Busse and PD refocusing schedules and the FSE effective TE are "
+            "computed by blochsim>=0.0.18: pip install 'pypulseqpp[design]'"
+        ) from error
+    return trains
 
 
 @lru_cache(maxsize=128)
 def _schedule(length, minimum_deg, centre_deg, maximum_deg, centre, decay):
-    requested = np.array([minimum_deg, centre_deg, maximum_deg])
-    first_signal = np.sin(np.deg2rad(maximum_deg / 2)) ** 2
-    last = {}
-
-    def evaluate(controls):
-        if np.array_equal(last.get("controls"), controls):
-            return last["value"]
-        target = _target(controls, length, centre, first_signal, decay)
-        angles, achieved = _inverse(target, maximum_deg)
-        residual = np.array([angles[1:centre].min(), angles[centre], angles[-1]])
-        value = residual - requested, angles, achieved, target
-        last.update(controls=np.array(controls), value=value)
-        return value
-
-    solution = root(lambda controls: evaluate(controls)[0], requested, tol=1e-9)
-    residual, angles, achieved, target = evaluate(solution.x)
-    if (
-        not np.all(np.isfinite(angles))
-        or np.max(abs(residual)) > 1e-6
-        or np.max(abs(achieved - target)) > 1e-10
-        or angles[1:].min() < minimum_deg - 1e-6
-        or angles.max() > maximum_deg + 1e-6
-        or not (0 < solution.x[0] < solution.x[1] < solution.x[2] < 180)
-    ):
+    try:
+        angles = _trains().busse_flips(
+            length,
+            min_flip=minimum_deg,
+            centre_flip=centre_deg,
+            max_flip=maximum_deg,
+            centre_echo=centre,
+            startup_echoes=0,
+            initial_decay=decay,
+        )
+    except ValueError as error:
         raise ValueError(
             "The prescribed Busse controls do not give a feasible refocusing train"
-        )
+        ) from error
     result = np.deg2rad(angles)
     result.flags.writeable = False
     return result
@@ -151,9 +66,11 @@ def make_busse_schedule(
 ) -> np.ndarray:
     """Construct a prescribed-PSS refocusing train with inverse EPG.
 
-    The first and final pulses use the maximum angle. An initial asymptotic
-    approach establishes the low-angle state; PSS coherence then increases
-    through the centre control toward the final control. A shooting correction
+    The train is designed by ``blochsim.trains.busse_flips``, which the
+    ``design`` extra installs. The first and final pulses use the maximum
+    angle. An initial asymptotic approach establishes the low-angle state; PSS
+    coherence then increases through the centre control toward the final
+    control. A shooting correction
     enforces the actual minimum, centre and final RF angles. The output is
     independent of echo spacing: relaxation belongs to the forward EPG model.
 
@@ -188,6 +105,8 @@ def make_busse_schedule(
     ValueError
         If counts or controls are invalid, the centre is not after RF6 and
         before the final pulse, or the prescribed train is infeasible.
+    ImportError
+        If blochsim is not installed.
 
     Notes
     -----
@@ -235,138 +154,28 @@ def make_busse_schedule(
     return _schedule(length, *np.rad2deg(controls), centre, float(initial_decay)).copy()
 
 
-def _inverse_many(target, first_deg):
-    count, length = target.shape
-    state = np.zeros((3, count, length + 1), dtype=complex)
-    state[:2, :, 0] = 1
-    angles = np.empty_like(target)
-    achieved = np.empty_like(target)
-    rows = np.arange(count)
-    for echo in range(length):
-        _shift(state)
-        if echo == 0:
-            angle = np.deg2rad(first_deg)
-        else:
-            plus, minus, longitudinal = state[:, :, 1]
-            a = 0.5 * (plus.real + minus.real)
-            b = 0.5 * (minus.real - plus.real)
-            c = -longitudinal.imag
-            delta = np.arctan2(c, b)
-            turn = np.arccos(
-                np.clip(
-                    (target[:, echo] - a) / np.maximum(np.hypot(b, c), 1e-16), -1, 1
-                )
-            )
-            candidates = np.column_stack(
-                (
-                    np.zeros(count),
-                    np.full(count, np.pi),
-                    delta,
-                    delta + np.pi,
-                    delta - turn,
-                    delta + turn,
-                    delta - turn + 2 * np.pi,
-                    delta + turn + 2 * np.pi,
-                )
-            )
-            errors = abs(
-                a[:, None]
-                + b[:, None] * np.cos(candidates)
-                + c[:, None] * np.sin(candidates)
-                - target[:, echo, None]
-            )
-            errors[(candidates < 0) | (candidates > np.pi)] = np.inf
-            angle = candidates[rows, np.argmin(errors + 1e-12 * candidates, axis=1)]
-        state = _rotate(state, angle[:, None])
-        _shift(state)
-        achieved[:, echo] = state[0, :, 0].real
-        angles[:, echo] = np.rad2deg(angle)
-    return angles, achieved
-
-
 def _make_busse_schedules(lengths, controls_deg, centre, decay):
-    """Batch shooting for variable trains; controls are actual RF degrees.
+    """Design variable trains in one batch; controls are actual RF degrees.
 
     Every row uses the same prescribed-PSS family as make_busse_schedule.
     Lengths include startup. Padding after each row's final pulse is zero.
-    Batched finite-difference Newton steps avoid a scalar EPG solve per shot.
     """
     lengths = np.asarray(lengths, dtype=int)
     requested = np.asarray(controls_deg, dtype=float)
-    maximum = int(lengths.max())
     if np.any(lengths <= centre + 1) or centre <= 5:
         raise ValueError("The Busse centre must precede the final pulse of every train")
-    count = len(lengths)
-    echo = np.arange(maximum)[None, :]
-
-    def evaluate(controls, repeats=1):
-        active = np.tile(lengths, repeats)
-        wanted = np.tile(requested, (repeats, 1))
-        low, middle, final = _pss(controls.T)[:, :, None]
-        signal = low + (middle - low) * np.clip((echo - 5) / (centre - 5), 0, 1) ** 1.5
-        signal = np.where(
-            echo > centre,
-            middle
-            + (final - middle) * (echo - centre) / (active[:, None] - 1 - centre),
-            signal,
+    try:
+        angles = _trains().busse_flips(
+            lengths,
+            min_flip=requested[:, 0],
+            centre_flip=requested[:, 1],
+            max_flip=requested[:, 2],
+            centre_echo=int(centre),
+            startup_echoes=0,
+            initial_decay=decay,
         )
-        first = np.sin(np.deg2rad(wanted[:, 2, None] / 2)) ** 2
-        signal += (first - low) * np.exp(-echo / decay)
-        angles, achieved = _inverse_many(signal, wanted[:, 2])
-        actual = np.column_stack(
-            (
-                angles[:, 1:centre].min(1),
-                angles[:, centre],
-                angles[np.arange(len(active)), active - 1],
-            )
-        )
-        return actual - wanted, angles, achieved, signal
-
-    controls = requested.copy()
-    step = 1e-3
-    for _ in range(12):
-        probes = np.concatenate(
-            [controls, *(controls + step * axis for axis in np.eye(3))]
-        )
-        residual, angles, achieved, target = evaluate(probes, 4)
-        base = residual[:count]
-        if np.max(abs(base)) < 1e-7:
-            break
-        jacobian = np.stack(
-            [
-                (residual[(i + 1) * count : (i + 2) * count] - base) / step
-                for i in range(3)
-            ],
-            axis=-1,
-        )
-        try:
-            correction = np.linalg.solve(jacobian, base[..., None])[..., 0]
-        except np.linalg.LinAlgError:
-            break
-        controls -= np.clip(correction, -10, 10)
-    residual, angles, achieved, target = evaluate(controls)
-    played = echo < lengths[:, None]
-    valid = (
-        (abs(residual).max(1) < 1e-6)
-        & np.all(np.where(played, abs(achieved - target), 0) < 1e-10, axis=1)
-        & np.all(np.where(played, angles >= requested[:, :1] - 1e-6, True), axis=1)
-        & np.all(np.where(played, angles <= requested[:, 2:] + 1e-6, True), axis=1)
-        & (controls[:, 0] > 0)
-        & np.all(np.diff(controls, axis=1) > 0, axis=1)
-        & (controls[:, 2] < 180)
-    )
-    angles[~played] = 0
-    # Exceptional nonsmooth roots use the canonical scalar shooting solver.
-    for row in np.flatnonzero(~valid):
-        angles[row, : lengths[row]] = np.rad2deg(
-            make_busse_schedule(
-                int(lengths[row]),
-                minimum_flip_angle=np.deg2rad(requested[row, 0]),
-                centre_flip_angle=np.deg2rad(requested[row, 1]),
-                maximum_flip_angle=np.deg2rad(requested[row, 2]),
-                centre_echo=centre,
-                startup_echoes=0,
-                initial_decay=decay,
-            )
-        )
+    except ValueError as error:
+        raise ValueError(
+            "The prescribed Busse controls do not give a feasible refocusing train"
+        ) from error
     return np.deg2rad(angles)
