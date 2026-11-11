@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = ["BssfpReadout2D", "BssfpReadout3D"]
 
+import math
 from typing import Any
 
 import numpy as np
@@ -209,32 +210,38 @@ class _BssfpReadout(SequenceModule):
         post_area = -0.5 * selection_area
         pre_area = -(selection_area + post_area)
 
-        # Every z lobe is built on the same ramp, which is what makes a
+        # The z lobes of one window share their ramp, which is what makes a
         # rephaser and a partition encode add up to a single trapezoid instead
-        # of an arbitrary waveform.
-        ramp = pp.ceil_to_raster(
-            system.max_grad / system.max_slew, system.grad_raster_time
-        )
+        # of an arbitrary waveform. The ramp is the one on which the largest
+        # sum is fastest at the slew rate: a small sum is a short triangle, not
+        # a lobe on the full-scale ramp max_grad / max_slew.
         step_z = 0.5 * n[2] / fov[2] if ndim == 3 else 0.0
-        # The half-flip gap holds both rephasers in one lobe.
+        z_area = max(abs(pre_area), abs(post_area)) + step_z
+        ramp = _z_ramp(system, z_area)
+        z_floor = _z_floor(system, z_area, ramp, raster)
+        # The half-flip gap holds both rephasers in one lobe, on its own ramp.
+        prep_area = abs(pre_area + post_area)
+        prep_ramp = _z_ramp(system, prep_area)
         prep_floor = (
-            _z_floor(system, abs(pre_area + post_area), ramp, raster) - prep_span
+            _z_floor(system, prep_area, prep_ramp, raster) - prep_span
             if half_flip_prep
             else 0.0
         )
-        floor = max(
-            _z_floor(system, max(abs(pre_area), abs(post_area)) + step_z, ramp, raster),
-            prep_floor,
-            _span(raster, gx_rew, trigger),
-            _span(raster, pp.make_phase_encoding("y", fov[1] / n[1], system=system)),
-            pp.ceil_to_raster(float(entry_times[-1]), raster),
+        y_floor = _span(
+            raster, pp.make_phase_encoding("y", fov[1] / n[1], system=system)
         )
+        encode_floor = max(
+            pp.ceil_to_raster(float(entry_times[-1]), raster), y_floor, z_floor
+        )
+        rewind_floor = max(_span(raster, gx_rew, trigger), y_floor, z_floor, prep_floor)
 
         # TE = TR/2 puts the echo as far after the pulse centre as the next
         # pulse centre is after the echo, which is one equation between the two
         # windows either side of the excitation block.
         offset = (flat_span - readout_duration) + 2.0 * rf_center - excite_span
-        rewind_span = pp.ceil_to_raster(max(floor, floor - offset), raster)
+        rewind_span = pp.ceil_to_raster(
+            max(rewind_floor, encode_floor - offset), raster
+        )
         tr_min = 2.0 * rewind_span + offset + flat_span + excite_span
         rewind_span += pp.round_to_raster(
             0.5 * solve_delay(tr, tr_min, "TR", system), raster
@@ -270,7 +277,9 @@ class _BssfpReadout(SequenceModule):
 
         if half_flip_prep:
             wait_prep = pp.make_delay(prep_span + rewind_span)
-            gz_prep = _lobe(system, pre_area + post_area, prep_span + rewind_span, ramp)
+            gz_prep = _lobe(
+                system, pre_area + post_area, prep_span + rewind_span, prep_ramp
+            )
 
         adc_labels = [
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
@@ -336,13 +345,24 @@ def _lobe(system: pp.Opts, area: float, duration: float, ramp: float):
     )
 
 
+def _z_ramp(system: pp.Opts, area: float) -> float:
+    """Return the ramp of the fastest z trapezoid of ``area``: a triangle below full scale, else the full-scale ramp."""
+    peak = min(system.max_grad, math.sqrt(abs(area) * system.max_slew))
+    return max(
+        pp.ceil_to_raster(peak / system.max_slew, system.grad_raster_time),
+        system.grad_raster_time,
+    )
+
+
 def _z_floor(system: pp.Opts, area: float, ramp: float, raster: float) -> float:
     """Return the shortest window holding a z trapezoid of ``area`` on ramps of ``ramp``.
 
     ``area`` is a rephaser plus the largest partition step: the caller adds
-    the two into one trapezoid, whose amplitude must stay within ``max_grad``.
+    the two into one trapezoid, whose amplitude must stay within ``max_grad``
+    and reach it no faster than ``max_slew`` allows over ``ramp``.
     """
-    return pp.ceil_to_raster(max(2.0 * ramp, ramp + area / system.max_grad), raster)
+    peak = min(system.max_grad, system.max_slew * ramp)
+    return pp.ceil_to_raster(max(2.0 * ramp, ramp + abs(area) / peak), raster)
 
 
 class BssfpReadout2D(_BssfpReadout):

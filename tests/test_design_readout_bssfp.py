@@ -263,11 +263,82 @@ def test_summing_them_stays_a_trapezoid_at_every_partition(system, slab):
 
 def test_the_summed_lobe_stays_inside_the_gradient_limit(system, slab):
     bssfp = readout3d(system, slab)
-    for sign in (1.0, -1.0):
-        lobe = pp.add_gradients(
-            [bssfp.gz_pre, pp.scale_grad(bssfp.gz_partition, sign)], system=system
-        )
-        assert abs(lobe.amplitude) <= system.max_grad * (1 + 1e-9)
+    for rephaser, encode in (
+        (bssfp.gz_pre, bssfp.gz_partition),
+        (bssfp.gz_rew, bssfp.gz_partition_rew),
+    ):
+        for sign in (1.0, -1.0):
+            lobe = pp.add_gradients(
+                [rephaser, pp.scale_grad(encode, sign)], system=system
+            )
+            assert abs(lobe.amplitude) <= system.max_grad * (1 + 1e-9)
+            assert abs(lobe.amplitude) / lobe.rise_time <= system.max_slew * (1 + 1e-9)
+
+
+@pytest.fixture
+def scanner():
+    """A 7 T head gradient held to 80 mT/m and slewed at 132.6 T/m/s, on its rasters."""
+    return pp.Opts(
+        max_grad=80,
+        grad_unit="mT/m",
+        max_slew=132.6,
+        slew_unit="T/m/s",
+        rf_dead_time=232e-6,
+        rf_ringdown_time=4e-6,
+        adc_dead_time=10e-6,
+        grad_raster_time=4e-6,
+        block_duration_raster=4e-6,
+        rf_raster_time=2e-6,
+        adc_raster_time=2e-6,
+    )
+
+
+def test_a_slice_rephaser_ramps_at_the_slew_rate_not_on_the_full_scale_ramp(scanner):
+    """The full-scale ramp, max_grad / max_slew, is 604 us here; a slice rephaser is a triangle a fraction as long."""
+    excitation = design.SpatialSelectiveExcitation(
+        scanner, 45.0, 8e-3, 0.6e-3, rephase=False
+    )
+    bssfp = design.BssfpReadout2D(
+        scanner,
+        excitation.rf,
+        excitation.gz,
+        fov=(0.3, 0.3),
+        matrix=(192, 192),
+        readout_bandwidth_hz=125e3,
+    )
+    full_scale = pp.ceil_to_raster(
+        scanner.max_grad / scanner.max_slew, scanner.grad_raster_time
+    )
+    assert bssfp.gz_rew.rise_time < 0.5 * full_scale
+    assert pp.calc_duration(bssfp.gx_rew, bssfp.gy_rew, bssfp.gz_rew) < full_scale
+    for lobe in (bssfp.gz_pre, bssfp.gz_rew, bssfp.gz_prep):
+        slew = abs(lobe.amplitude) / lobe.rise_time
+        assert slew <= scanner.max_slew * (1 + 1e-9)
+    assert bssfp.tr < 4e-3
+
+
+def test_the_rewind_is_as_short_as_its_slowest_lobe(scanner):
+    """No lobe sets a window it does not need: the rewind lasts as long as the longest of its rewinders at the slew rate."""
+    excitation = design.SpatialSelectiveExcitation(
+        scanner, 45.0, 8e-3, 0.6e-3, rephase=False
+    )
+    bssfp = design.BssfpReadout2D(
+        scanner,
+        excitation.rf,
+        excitation.gz,
+        fov=(0.3, 0.3),
+        matrix=(192, 192),
+        readout_bandwidth_hz=125e3,
+    )
+    fastest = max(
+        pp.calc_duration(pp.make_phase_encoding("y", 0.3 / 192, system=scanner)),
+        pp.calc_duration(bssfp.gx_rew),
+        pp.calc_duration(
+            pp.make_trapezoid("z", area=bssfp.gz_rew.area, system=scanner)
+        ),
+    )
+    rewind = pp.calc_duration(bssfp.gx_rew, bssfp.gy_rew, bssfp.gz_rew)
+    assert rewind <= fastest + 4 * scanner.grad_raster_time
 
 
 def test_the_partition_encode_reaches_the_edge_of_k_space(system, slab):

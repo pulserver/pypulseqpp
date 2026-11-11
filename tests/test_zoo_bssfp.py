@@ -122,17 +122,32 @@ def test_the_phase_alternates_after_an_opposite_half_flip():
 
 
 @pytest.mark.parametrize("ry", [1, 2])
-def test_every_line_of_every_slice_is_read_once_when_ungated(ry):
-    seq = built_2d(n_slices=2, ry=ry, n_acs_y=4)
-    lin, slc, ima = labels(seq, "LIN", "SLC", "IMA")
+def test_every_line_of_every_slice_is_read_once_per_frame_when_ungated(ry):
+    seq = built_2d(n_slices=2, ry=ry, n_acs_y=4, n_phases=3)
+    lin, slc, phs, ima = labels(seq, "LIN", "SLC", "PHS", "IMA")
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         16, ry, 4, partial_fourier=1.0
     )
 
-    assert list(zip(lin, slc, strict=True)) == [
-        (line, s) for s in range(2) for line in [*calibrating, *imaging]
+    assert list(zip(lin, slc, phs, strict=True)) == [
+        (line, s, f)
+        for s in range(2)
+        for f in range(3)
+        for line in [*calibrating, *imaging]
     ]
     assert list(ima) == [int(line in calibrating) for line in lin]
+
+
+def test_ungated_frames_follow_one_another_one_repetition_apart():
+    """A free-running series: no dummies and no gap between frames, every excitation a TR after the last."""
+    seq = built_2d(n_phases=3)
+    tr = recorded(seq, "TR")
+    rows = excitations(seq)
+    times = [time for time, _, _ in rows]
+
+    # The half flip, the dummies, then three frames of 16 lines.
+    assert len(rows) == 1 + SMALL_2D["n_dummy"] + 3 * 16
+    assert np.diff(times[1:]) == pytest.approx(tr, abs=1e-9)
 
 
 def test_a_retrospective_heartbeat_cycles_its_segment():

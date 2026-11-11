@@ -61,7 +61,10 @@ def bssfp2d(
     rewind (2), so the whole slice is one repetition of the scan. Slices play
     one after another, since a steady state does not survive interleaving.
 
-    The phase-encode lines are played ``views_per_segment`` at a time. Under
+    Without gating, each slice's lines are played ``n_phases`` times in a
+    row, the steady state carried from one frame into the next with no
+    dummies between them, the frame counted in ``PHS``. With gating, the
+    phase-encode lines are played ``views_per_segment`` at a time. Under
     ``retrospective`` gating each segment is cycled as many times as a full
     segment fits in a heartbeat, the same number for every segment, so each
     cycle samples every line; the interpreter's ECG log bins them into cardiac
@@ -70,8 +73,8 @@ def bssfp2d(
     phase; the first heartbeat's trigger precedes the half flip, so the whole
     train is timed from the R wave, and a slice held in one heartbeat is a
     triggered single shot. Acquisitions carry ``LIN``, ``SLC``, the segment as
-    ``SEG`` and the cardiac phase, or the cycle within the heartbeat, as
-    ``PHS``; calibration lines are marked ``IMA``.
+    ``SEG`` and the frame, the cardiac phase or the cycle within the
+    heartbeat as ``PHS``; calibration lines are marked ``IMA``.
 
     Parameters
     ----------
@@ -104,7 +107,10 @@ def bssfp2d(
     partial_fourier_y : float, default=1.0
         Fraction of the phase-encode extent acquired, in ``[0.75, 1]``.
     n_phases : int, default=25
-        Cardiac phases a prospective heartbeat acquires.
+        Frames. Without gating, the times each slice's k-space is acquired
+        back to back, a free-running dynamic series; under ``prospective``
+        gating, the cardiac phases each heartbeat acquires. Unused under
+        ``retrospective`` gating, where the heartbeat sets the cycles.
     n_dummy : int | None, default=None
         Repetitions played without acquiring after the half flip. ``None``
         is as many as bring the balanced steady state within 1 %
@@ -230,7 +236,9 @@ def bssfp2d(
     cycles = max(1, round(rr / (views_per_segment * ro.tr)))
     for s, segment in enumerate(segments):
         if gating == "none":
-            train += [(line, 0, 0) for line in segment]
+            # A free-running series: the frames follow one another with the
+            # steady state kept, so no dummies between them.
+            train += [(line, 0, f) for f in range(n_phases) for line in segment]
         elif gating == "retrospective":
             train += [(line, s, c) for c in range(cycles) for line in segment]
         else:
