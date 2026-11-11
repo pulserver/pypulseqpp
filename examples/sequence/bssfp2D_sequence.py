@@ -195,15 +195,13 @@ def bssfp2d(
         tr=tr,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
-        bridge=gating == "none" and n_slices > 1,
+        bridge=gating == "none",
     )
-    # The slices of a free-running scan are bridged: the blocks of a slice
-    # join on the slice axis, so that a scanner preparing segments between
-    # blocks at rest plays the slice as one, with nothing between its
-    # repetitions. A slice opens from rest and its last rewind closes to rest.
-    # A gated train rests where it waits for the heartbeat, and a single
-    # slice is no repetition of the scan, whose receive calibration then
-    # plays one repetition alone, from rest to rest.
+    # A free-running slice is bridged: its blocks join on the slice axis, so
+    # that a scanner preparing segments between blocks at rest plays the slice
+    # as one, with nothing between its repetitions. A slice opens from rest
+    # and its last rewind closes to rest. A gated train rests where it waits
+    # for the heartbeat.
     gz_open = ro.gz_open if ro.bridged else ro.gz
     gz_close = ro.gz_close if ro.bridged else ro.gz_rew
     nominal = ro.rf.amplitude
