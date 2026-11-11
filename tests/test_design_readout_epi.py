@@ -328,7 +328,7 @@ def test_a_wider_step_costs_a_longer_blip_window(system, excitation):
     narrow = readout(system, excitation, etl=8, acceleration=1)
     wide = readout(system, excitation, etl=8, acceleration=4)
     assert wide.blip_span > narrow.blip_span
-    assert wide.esp > narrow.esp
+    assert wide.esp >= narrow.esp
 
 
 # ----------------------------------------------------------------------
@@ -644,10 +644,90 @@ def test_a_repetition_with_echo_shifts_still_lasts_the_time_asked_for(
 def test_oversampling_widens_the_read_field_of_view_not_the_resolution(
     system, excitation
 ):
-    plain = readout(system, excitation)
-    wide = readout(system, excitation, oversampling=2.0)
+    plain = readout(system, excitation, readout_bandwidth_hz=20e3)
+    wide = readout(system, excitation, oversampling=2.0, readout_bandwidth_hz=20e3)
     kx_plain, kx_wide = lines(plain)[0, 0, :, 0], lines(wide)[0, 0, :, 0]
 
     assert wide.n_samples == 2 * plain.n_samples
     assert wide.delta_kx == pytest.approx(plain.delta_kx / 2)
     assert np.ptp(kx_wide) == pytest.approx(np.ptp(kx_plain), rel=0.05)
+
+
+@pytest.mark.parametrize("dimension", [2, 3])
+@pytest.mark.parametrize("slew", [50.0, 90.0])
+def test_a_gradient_limited_epi_adds_samples_at_the_requested_dwell(dimension, slew):
+    def design_readout(limit):
+        system = pp.Opts(
+            max_grad=100,
+            grad_unit="mT/m",
+            max_slew=slew,
+            slew_unit="T/m/s",
+            grad_raster_time=4e-6,
+            block_duration_raster=4e-6,
+            adc_raster_time=2e-6,
+            adc_samples_limit=limit,
+        )
+        exc = design.SpatialSelectiveExcitation(
+            system,
+            30.0,
+            0.005 if dimension == 2 else 0.12,
+            is_slab=dimension == 3,
+        )
+        cls = design.EpiReadout2D if dimension == 2 else design.EpiReadout3D
+        return cls(
+            system,
+            exc.rf,
+            exc.gz,
+            getattr(exc, "gz_reph", None),
+            fov=0.22 if dimension == 2 else (0.22, 0.22, 0.12),
+            matrix=(192, 8) if dimension == 2 else (192, 8, 4),
+            oversampling=2.0,
+            readout_bandwidth_hz=500e3,
+        )
+
+    adaptive = design_readout(0)
+    bounded = design_readout(384)
+
+    assert adaptive.n_samples > 384
+    assert adaptive.adc.dwell == pytest.approx(2e-6)
+    assert adaptive.esp < bounded.esp
+    assert bounded.n_samples == 384
+    assert bounded.adc.dwell > adaptive.adc.dwell
+    assert adaptive.check_timing()[0]
+    assert bounded.check_timing()[0]
+    for epi in (adaptive, bounded):
+        kx = lines(epi)[0, 0, :, 0]
+        assert kx[0] == pytest.approx(-kx[-1], abs=1e-6)
+        assert np.ptp(kx) == pytest.approx(192 / 0.22, rel=0.01)
+        assert np.max(np.abs(np.diff(kx))) < 1.0 / 0.22
+
+
+@pytest.mark.parametrize("grad_raster", [4e-6, 10e-6, 20e-6])
+@pytest.mark.parametrize("divisor", [4, 7])
+def test_epi_sample_count_obeys_both_rasters_and_the_sample_divisor(
+    grad_raster, divisor
+):
+    system = pp.Opts(
+        grad_raster_time=grad_raster,
+        block_duration_raster=grad_raster,
+        adc_samples_divisor=divisor,
+    )
+    exc = design.SpatialSelectiveExcitation(system, 30.0, 0.005)
+    epi = readout(
+        system,
+        exc,
+        matrix=(94, 8),
+        oversampling=2.0,
+        readout_bandwidth_hz=250e3,
+    )
+
+    assert epi.n_samples >= 188
+    assert epi.n_samples % divisor == 0
+    assert epi.adc.dwell == pytest.approx(4e-6)
+    assert epi.check_timing()[0]
+
+
+def test_epi_refuses_oversampling_beyond_the_receiver_sample_limit(system, excitation):
+    system.adc_samples_limit = 16
+    with pytest.raises(ValueError, match="adc_samples_limit"):
+        readout(system, excitation)

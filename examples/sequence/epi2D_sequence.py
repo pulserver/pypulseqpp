@@ -243,7 +243,8 @@ def epi2d(
         non-acquiring shots per slice before each packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=1.0
-        Readout oversampling factor, at least one.
+        Minimum EPI readout oversampling factor, at least one. Additional
+        samples preserve the requested dwell under the gradient limits.
     n_acs_y : int, default=24
         Phase-encode lines of the gradient-echo calibration.
     volume_output : bool, default=False

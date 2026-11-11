@@ -265,7 +265,8 @@ def epi3d(
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
     readout_oversampling : float, default=1.0
-        Readout oversampling factor, at least one.
+        Minimum EPI readout oversampling factor, at least one. Additional
+        samples preserve the requested dwell under the gradient limits.
     n_acs_y : int, default=24
         Extent of the gradient-echo calibration rectangle along the phase
         encode.

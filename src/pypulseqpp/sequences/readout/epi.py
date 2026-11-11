@@ -4,6 +4,8 @@ from __future__ import annotations
 
 __all__ = ["EpiReadout2D", "EpiReadout3D"]
 
+import math
+from fractions import Fraction
 from typing import Any
 
 import numpy as np
@@ -97,8 +99,9 @@ class _EpiReadout(SequenceModule):
         ``esp / echo_shifts``. The module plays no shift: the caller lengthens
         ``wait_shift``.
     oversampling : float, default=1.0
-        Readout oversampling: the sample spacing in k-space is
-        ``1 / (oversampling * fov)``.
+        Minimum readout oversampling. The sample count may increase to cover
+        the gradient-limited acquisition window at the requested dwell time.
+        The k-space extent is unchanged.
     readout_bandwidth_hz : float, default=500000.0
         Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
         on the ADC and gradient rasters.
@@ -201,7 +204,8 @@ class _EpiReadout(SequenceModule):
     n_samples : int
         ADC samples per line.
     delta_kx : float
-        K-space sample spacing along the readout (1/m).
+        Mean k-space sample spacing along the readout (1/m). Ramp sampling
+        gives nonuniform spacing between individual samples.
     blip_span : float
         Duration of one phase-encode step (s), taken from the read ramps.
 
@@ -318,20 +322,17 @@ class _EpiReadout(SequenceModule):
         n_full = round(oversampling * n[0])
         k_width = n_full * delta_k[0]
         lobe_blip = 0.0 if flyback else blip_span
-        dwell, sample_span = pp.calc_adc_timing(
+        n_samples, dwell, sample_span = _adc_timing(
+            system,
             n_full,
             1.0 / readout_bandwidth_hz,
-            grad_raster_time=system.grad_raster_time,
-            adc_raster_time=system.adc_raster_time,
-            min_readout_duration=_min_sample_span(
-                system, k_width, lobe_blip, ramp_sampling
-            ),
+            _min_sample_span(system, k_width, lobe_blip, ramp_sampling),
         )
         lobe, echo_offset = _read_lobe(
             system, k_width, sample_span, lobe_blip, ramp_sampling
         )
         adc = pp.make_adc(
-            num_samples=n_full,
+            num_samples=n_samples,
             dwell=dwell,
             delay=echo_offset - 0.5 * sample_span,
             system=system,
@@ -544,8 +545,41 @@ class _EpiReadout(SequenceModule):
         self.esp = esp
         self.blip_span = blip_span
         self.bandwidth_hz = 1.0 / dwell
-        self.n_samples = n_full
-        self.delta_kx = delta_k[0]
+        self.n_samples = n_samples
+        self.delta_kx = k_width / n_samples
+
+
+def _adc_timing(system: pp.Opts, minimum: int, target_dwell: float, span: float):
+    """Return samples, dwell and duration (s) covering ``span`` on both rasters.
+
+    Sample count increases at the nearest ADC-raster dwell. A nonzero
+    ``adc_samples_limit`` bounds the count. If additional samples exceed
+    that limit, the minimum count is used with a longer dwell.
+    """
+    dwell = max(
+        system.adc_raster_time,
+        pp.round_to_raster(target_dwell, system.adc_raster_time),
+    )
+    divisor = max(1, int(system.adc_samples_divisor))
+    # A duration of n dwells lies on the gradient raster when n is a
+    # multiple of the numerator of the reduced gradient-raster/dwell ratio.
+    ratio = Fraction(system.grad_raster_time / dwell).limit_denominator(1_000_000)
+    step = math.lcm(divisor, ratio.numerator)
+    samples = step * max(math.ceil(minimum / step), math.ceil(span / (step * dwell)))
+    limit = int(system.adc_samples_limit)
+    if limit > 0:
+        if minimum > limit // divisor * divisor:
+            raise ValueError("requested readout oversampling exceeds adc_samples_limit")
+        if samples > limit:
+            samples = divisor * math.ceil(minimum / divisor)
+    dwell, duration = pp.calc_adc_timing(
+        samples,
+        dwell,
+        grad_raster_time=system.grad_raster_time,
+        adc_raster_time=system.adc_raster_time,
+        min_readout_duration=span,
+    )
+    return samples, dwell, duration
 
 
 def _checked_order(order: Any, n: tuple[int, ...], ndim: int) -> np.ndarray:
@@ -792,7 +826,7 @@ class EpiReadout2D(_EpiReadout):
     ...     fov=0.22, matrix=64, labels=("LIN",),
     ... )
     >>> epi.etl, int(epi.adc.num_samples)
-    (64, 64)
+    (64, 160)
 
     >>> half = design.EpiReadout2D(
     ...     system, excitation.rf, excitation.gz, excitation.gz_reph,
