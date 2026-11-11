@@ -582,7 +582,7 @@ def test_bridging_keeps_the_slice_axis_balanced_between_pulse_centres(system, sl
 
 @pytest.mark.parametrize("bandwidth", [50e3, 125e3, 250e3])
 @pytest.mark.parametrize("matrix", [64, 128, 256])
-def test_a_bridged_repetition_has_the_timing_of_one_at_rest(
+def test_a_bridged_repetition_is_within_a_few_rasters_of_one_at_rest(
     system, slice_, bandwidth, matrix
 ):
     kwargs = {"matrix": (matrix, matrix), "readout_bandwidth_hz": bandwidth}
@@ -591,11 +591,42 @@ def test_a_bridged_repetition_has_the_timing_of_one_at_rest(
     except ValueError:
         pytest.skip("the prescription has no half-flip preparation")
     bridged = readout2d(system, slice_, bridge=True, **kwargs)
-    assert bridged.tr == pytest.approx(rest.tr, abs=1e-12)
+    assert bridged.bridged
+    assert bridged.tr <= rest.tr + 4 * system.block_duration_raster + 1e-12
     assert bridged.te == pytest.approx(bridged.tr / 2)
-    assert [
-        pytest.approx(duration) for duration in rest.seq.block_durations.values()
-    ] == list(bridged.seq.block_durations.values())
+
+
+@pytest.mark.parametrize("slew", [200.0, 105.0, 60.0, 30.0])
+@pytest.mark.parametrize("raster", [10e-6, 4e-6])
+@pytest.mark.parametrize("tr", [None, 8e-3, 15.6e-3])
+def test_a_slice_asked_to_be_bridged_is_at_every_repetition_time(slew, raster, tr):
+    """A longer repetition lengthens the blocks that carry the read and phase lobes, and none rests."""
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=slew,
+        slew_unit="T/m/s",
+        rf_dead_time=232e-6,
+        rf_ringdown_time=4e-6,
+        adc_dead_time=10e-6,
+        grad_raster_time=raster,
+        block_duration_raster=raster,
+    )
+    slice_ = design.SpatialSelectiveExcitation(system, 40.0, 5e-3, 1e-3, rephase=False)
+    kwargs = {"matrix": (128, 128), "readout_bandwidth_hz": 50e3}
+    if tr is not None and tr < readout2d(system, slice_, bridge=True, **kwargs).tr:
+        pytest.skip("the repetition time is shorter than the readout can achieve")
+    readout = readout2d(system, slice_, bridge=True, tr=tr, **kwargs)
+    assert readout.bridged
+    if tr is not None:
+        assert readout.tr == pytest.approx(tr, abs=raster)
+    assert readout.te == pytest.approx(readout.tr / 2)
+    seq = _slice_of(readout)
+    assert seq.check_timing()[0]
+    blocks = [seq.get_block(b) for b in range(1, seq.num_blocks + 1)]
+    for before, after in itertools.pairwise(blocks):
+        assert max(abs(_edges(g)[1]) for g in (before.gx, before.gy, before.gz)) > 4e3
+        assert max(abs(_edges(g)[0]) for g in (after.gx, after.gy, after.gz)) > 4e3
 
 
 def test_bridging_is_refused_for_a_slab(system, slab):
