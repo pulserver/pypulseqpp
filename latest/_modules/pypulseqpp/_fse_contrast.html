@@ -444,11 +444,9 @@
   <h1>Source code for pypulseqpp._fse_contrast</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Contrast-equivalent echo times for ideal CPMG refocusing trains."""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._busse</span><span class="w"> </span><span class="kn">import</span> <span class="n">_rotate</span><span class="p">,</span> <span class="n">_shift</span><span class="p">,</span> <span class="n">make_busse_schedule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._busse</span><span class="w"> </span><span class="kn">import</span> <span class="n">_trains</span>
 
 
 <div class="viewcode-block" id="calc_fse_effective_te">
@@ -488,6 +486,8 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If angles, timing or reference relaxation times are invalid.</span>
+<span class="sd">    ImportError</span>
+<span class="sd">        If blochsim is not installed.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -497,7 +497,9 @@
 <span class="sd">    [1]_. No RF-pulse duration, slice profile, off-resonance, transmit-field</span>
 <span class="sd">    variation or inter-shot steady state is modeled. This is a reference</span>
 <span class="sd">    contrast annotation, not a tissue-independent prediction. At 180-degree</span>
-<span class="sd">    refocusing it equals physical echo time. No Torch dependency is required.</span>
+<span class="sd">    refocusing it equals physical echo time. The echoes are computed by</span>
+<span class="sd">    ``blochsim.trains.effective_te``, which the ``design`` extra installs;</span>
+<span class="sd">    PyTorch is not imported.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -529,48 +531,14 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">"echo spacing, first echo time and reference T1/T2 must be positive and finite"</span>
         <span class="p">)</span>
-    <span class="n">shape</span> <span class="o">=</span> <span class="n">angles</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">count</span> <span class="o">=</span> <span class="n">angles</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">*</span><span class="n">shape</span><span class="p">,</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-    <span class="n">state</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
-        <span class="n">half</span> <span class="o">=</span> <span class="p">(</span><span class="n">first</span> <span class="k">if</span> <span class="n">echo</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">echo_spacing</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">e1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">half</span> <span class="o">/</span> <span class="n">reference_t1</span><span class="p">)</span>
-        <span class="n">e2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">half</span> <span class="o">/</span> <span class="n">reference_t2</span><span class="p">)</span>
-        <span class="n">relaxation1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">*</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
-        <span class="n">relaxation2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">*</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
-        <span class="k">for</span> <span class="n">after_rf</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">after_rf</span><span class="p">:</span>
-                <span class="n">state</span> <span class="o">=</span> <span class="n">_rotate</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">angles</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">echo</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
-            <span class="n">state</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="n">relaxation2</span>
-            <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="n">relaxation1</span>
-            <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">e1</span>
-            <span class="n">_shift</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-        <span class="n">signal</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">divide</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">):</span>
-            <span class="n">equivalent</span> <span class="o">=</span> <span class="o">-</span><span class="n">reference_t2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">signal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">signal</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">result</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">echo</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">signal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">,</span> <span class="n">equivalent</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span></div>
+    <span class="k">return</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">_trains</span><span class="p">()</span><span class="o">.</span><span class="n">effective_te</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">angles</span><span class="p">),</span>
+        <span class="mf">1e3</span> <span class="o">*</span> <span class="n">echo_spacing</span><span class="p">,</span>
+        <span class="n">first_ESP</span><span class="o">=</span><span class="mf">1e3</span> <span class="o">*</span> <span class="n">first</span><span class="p">,</span>
+        <span class="n">T1</span><span class="o">=</span><span class="mf">1e3</span> <span class="o">*</span> <span class="n">reference_t1</span><span class="p">,</span>
+        <span class="n">T2</span><span class="o">=</span><span class="mf">1e3</span> <span class="o">*</span> <span class="n">reference_t2</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
-
-
-<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_busse_centre_te</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">startup</span><span class="p">,</span> <span class="n">centre</span><span class="p">,</span> <span class="n">controls</span><span class="p">,</span> <span class="n">decay</span><span class="p">,</span> <span class="n">esp</span><span class="p">,</span> <span class="n">first</span><span class="p">):</span>
-    <span class="n">angles</span> <span class="o">=</span> <span class="n">make_busse_schedule</span><span class="p">(</span>
-        <span class="n">length</span><span class="p">,</span>
-        <span class="n">minimum_flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">controls</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-        <span class="n">centre_flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">controls</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-        <span class="n">maximum_flip_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">controls</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
-        <span class="n">centre_echo</span><span class="o">=</span><span class="n">startup</span> <span class="o">+</span> <span class="n">centre</span><span class="p">,</span>
-        <span class="n">startup_echoes</span><span class="o">=</span><span class="n">startup</span><span class="p">,</span>
-        <span class="n">initial_decay</span><span class="o">=</span><span class="n">decay</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span>
-        <span class="n">calc_fse_effective_te</span><span class="p">(</span>
-            <span class="n">angles</span><span class="p">[:</span> <span class="n">startup</span> <span class="o">+</span> <span class="n">centre</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">esp</span><span class="p">,</span> <span class="n">first_echo_time</span><span class="o">=</span><span class="n">first</span>
-        <span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_select_busse_centre</span><span class="p">(</span>
@@ -586,52 +554,32 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Locate the nearest feasible centre by its reference contrast-equivalent TE.</span>
 
-<span class="sd">    Rebuild the prescribed train at each candidate centre; the centre-angle</span>
-<span class="sd">    constraint therefore follows the k-space centre. Bisection uses the</span>
-<span class="sd">    increasing centre-time relation of this fixed-control Busse family.</span>
-<span class="sd">    Infeasible shooting candidates are excluded, not used as timing estimates.</span>
+<span class="sd">    ``blochsim.trains.busse_centre_echo`` rebuilds the prescribed train at</span>
+<span class="sd">    every candidate centre in one batch; the centre-angle constraint therefore</span>
+<span class="sd">    follows the k-space centre. A centre is feasible when both the central and</span>
+<span class="sd">    the peripheral train can be designed for it. Of two centres equally near,</span>
+<span class="sd">    the earlier is returned.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="ow">or</span> <span class="n">target</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"busse_effective_te must be positive and finite"</span><span class="p">)</span>
-    <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span> <span class="o">-</span> <span class="n">startup</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">etl</span><span class="p">,</span> <span class="n">peripheral_etl</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span>
-    <span class="n">candidates</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">while</span> <span class="n">low</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">:</span>
-        <span class="n">midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="n">high</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
-        <span class="c1"># A failed local inverse solve must not discard the whole bracket.</span>
-        <span class="n">choices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">midpoint</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">centre</span> <span class="ow">in</span> <span class="n">choices</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">effective</span> <span class="o">=</span> <span class="n">_busse_centre_te</span><span class="p">(</span>
-                    <span class="n">etl</span> <span class="o">+</span> <span class="n">startup</span><span class="p">,</span> <span class="n">startup</span><span class="p">,</span> <span class="n">centre</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">controls</span><span class="p">),</span> <span class="n">decay</span><span class="p">,</span> <span class="n">esp</span><span class="p">,</span> <span class="n">first</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">etl</span> <span class="o">!=</span> <span class="n">peripheral_etl</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span>
-                    <span class="n">controls</span><span class="p">,</span> <span class="n">peripheral_controls</span>
-                <span class="p">):</span>
-                    <span class="n">_busse_centre_te</span><span class="p">(</span>
-                        <span class="n">peripheral_etl</span> <span class="o">+</span> <span class="n">startup</span><span class="p">,</span>
-                        <span class="n">startup</span><span class="p">,</span>
-                        <span class="n">centre</span><span class="p">,</span>
-                        <span class="nb">tuple</span><span class="p">(</span><span class="n">peripheral_controls</span><span class="p">),</span>
-                        <span class="n">decay</span><span class="p">,</span>
-                        <span class="n">esp</span><span class="p">,</span>
-                        <span class="n">first</span><span class="p">,</span>
-                    <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">effective</span><span class="p">):</span>
-                <span class="k">break</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="n">candidates</span><span class="p">[</span><span class="n">centre</span><span class="p">]</span> <span class="o">=</span> <span class="n">effective</span>
-        <span class="k">if</span> <span class="n">effective</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
-            <span class="n">low</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">high</span> <span class="o">=</span> <span class="n">centre</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
+    <span class="n">prescriptions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">controls</span><span class="p">,</span> <span class="n">peripheral_controls</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">centre</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_trains</span><span class="p">()</span><span class="o">.</span><span class="n">busse_centre_echo</span><span class="p">(</span>
+            <span class="mf">1e3</span> <span class="o">*</span> <span class="n">target</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">etl</span> <span class="o">+</span> <span class="n">startup</span><span class="p">,</span> <span class="n">peripheral_etl</span> <span class="o">+</span> <span class="n">startup</span><span class="p">],</span>
+            <span class="mf">1e3</span> <span class="o">*</span> <span class="n">esp</span><span class="p">,</span>
+            <span class="n">first_ESP</span><span class="o">=</span><span class="mf">1e3</span> <span class="o">*</span> <span class="n">first</span><span class="p">,</span>
+            <span class="n">min_flip</span><span class="o">=</span><span class="n">prescriptions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">centre_flip</span><span class="o">=</span><span class="n">prescriptions</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">max_flip</span><span class="o">=</span><span class="n">prescriptions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="n">startup_echoes</span><span class="o">=</span><span class="n">startup</span><span class="p">,</span>
+            <span class="n">initial_decay</span><span class="o">=</span><span class="n">decay</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s2">"No feasible Busse centre echo for the requested effective TE and endpoint controls"</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">-</span> <span class="n">target</span><span class="p">),</span> <span class="n">c</span><span class="p">))</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+    <span class="k">return</span> <span class="n">centre</span> <span class="o">-</span> <span class="n">startup</span>
 </pre></div>
 
                 </article>

@@ -640,8 +640,8 @@ is accepted as an alias for <code class="docutils literal notranslate"><span cla
 complementary Poisson-disc echo assignment for identical trains.</p></li>
 <li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'</em><em>, </em><em>'busse'</em><em>, </em><em>'pd'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or variable trains designed by direct-angle
 optimization, prescribed-PSS Busse inverse EPG or relaxation-aware
-prescribed-signal PD inverse EPG. Forward EPG optimization
-requires the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra.</p></li>
+prescribed-signal PD inverse EPG. Every variable train is designed
+with blochsim, which the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra installs.</p></li>
 <li><p><strong>busse_minimum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=25.0</em>) – Minimum actual refocusing angle (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_centre_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=70.0</em>) – Actual refocusing angle at the centre echo (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_maximum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=120.0</em>) – Actual first and final angle (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
@@ -729,7 +729,7 @@ which the shortest TR holds.</p></li>
     one, <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">rz)</span></code>, <code class="docutils literal notranslate"><span class="pre">wave</span></code> names no wave
     mode, individually parameterized trains are shuffled, a train ends
     before the TE echo, or a TR is shorter than the longest train.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.15)"><strong>ImportError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">optimized</span></code> is asked for without blochsim.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.15)"><strong>ImportError</strong></a> – If a variable train is asked for without blochsim.</p></li>
 </ul>
 </dd>
 </dl>

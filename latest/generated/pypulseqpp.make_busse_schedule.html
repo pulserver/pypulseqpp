@@ -521,9 +521,11 @@
 <dt class="sig sig-object py" id="pypulseqpp.make_busse_schedule">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.</span></span><span class="sig-name descname"><span class="pre">make_busse_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_busse.html#make_busse_schedule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.make_busse_schedule" title="Link to this definition">#</a></dt>
 <dd><p>Construct a prescribed-PSS refocusing train with inverse EPG.</p>
-<p>The first and final pulses use the maximum angle. An initial asymptotic
-approach establishes the low-angle state; PSS coherence then increases
-through the centre control toward the final control. A shooting correction
+<p>The train is designed by <code class="docutils literal notranslate"><span class="pre">blochsim.trains.busse_flips</span></code>, which the
+<code class="docutils literal notranslate"><span class="pre">design</span></code> extra installs. The first and final pulses use the maximum
+angle. An initial asymptotic approach establishes the low-angle state; PSS
+coherence then increases through the centre control toward the final
+control. A shooting correction
 enforces the actual minimum, centre and final RF angles. The output is
 independent of echo spacing: relaxation belongs to the forward EPG model.</p>
 <dl class="field-list simple">
@@ -549,8 +551,11 @@ Each call returns an independent array.</p>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)">numpy.ndarray</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If counts or controls are invalid, the centre is not after RF6 and
-    before the final pulse, or the prescribed train is infeasible.</p>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If counts or controls are invalid, the centre is not after RF6 and
+    before the final pulse, or the prescribed train is infeasible.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.15)"><strong>ImportError</strong></a> – If blochsim is not installed.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
