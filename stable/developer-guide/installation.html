@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=619e1085"></script>
+    <script src="../_static/documentation_options.js?v=da629298"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="Developer guide" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.62" />
+  <meta name="docsearch:version" content="v0.0.63" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -536,11 +536,13 @@ rather than changing the runtime dependency set.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
 python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[dev]'</span><span class="w"> </span>-r<span class="w"> </span>tests/requirements.txt
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[dev,design]'</span><span class="w"> </span>-r<span class="w"> </span>tests/requirements.txt
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">dev</span></code> extra contains lint, test and documentation tools. Gallery builds
-also require the <code class="docutils literal notranslate"><span class="pre">examples</span></code> extra because optimized FSE examples use
+<p>The <code class="docutils literal notranslate"><span class="pre">dev</span></code> extra contains lint, test and documentation tools. The <code class="docutils literal notranslate"><span class="pre">design</span></code>
+extra brings <code class="docutils literal notranslate"><span class="pre">blochsim</span></code>, which computes the Busse and PD refocusing schedules
+and the FSE effective TE; their tests skip without it. Gallery builds
+also require the <code class="docutils literal notranslate"><span class="pre">examples</span></code> extra because the FSE examples use
 <code class="docutils literal notranslate"><span class="pre">blochsim</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">'.[dev,examples]'</span><span class="w"> </span>-r<span class="w"> </span>tests/requirements.txt
 </pre></div>

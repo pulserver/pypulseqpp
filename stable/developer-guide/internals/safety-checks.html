@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=619e1085"></script>
+    <script src="../../_static/documentation_options.js?v=da629298"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence-analysis computations" href="sequence-analysis.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.62" />
+  <meta name="docsearch:version" content="v0.0.63" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -584,9 +584,7 @@ the check passes.</p>
 <h2>Gradient amplitude and slew rate<a class="headerlink" href="#gradient-amplitude-and-slew-rate" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../../generated/pypulseqpp.safety.check_max_grad.html#pypulseqpp.safety.check_max_grad" title="pypulseqpp.safety.check_max_grad"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_max_grad()</span></code></a> evaluates</p>
 <div class="math notranslate nohighlight">
-\[
-\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad},
-\]</div>
+\[\max_{t}\;\max_{a \in \{x,y,z\}} |G_a(t)| \;\le\; \mathtt{max\_grad},\]</div>
 <p>and reports each axis peak with its 1-based block and the largest simultaneous
 vector magnitude <span class="math notranslate nohighlight">\(\max_t |\mathbf{G}(t)|\)</span>. Only the per-axis quantity is
 compared, because <code class="docutils literal notranslate"><span class="pre">max_grad</span></code> in a Pulseq system description is a per-axis
@@ -630,9 +628,7 @@ keep both components inside. Right, solved against <code class="docutils literal
 the blocks’ rotations, the last amplitude of a block with the first of the
 next:</p>
 <div class="math notranslate nohighlight">
-\[
-|\Delta G| \leq \mathtt{max\_slew} \cdot \mathtt{grad\_raster\_time}.
-\]</div>
+\[|\Delta G| \leq \mathtt{max\_slew} \cdot \mathtt{grad\_raster\_time}.\]</div>
 <p>It reports the 1-based block, axis, both amplitudes and the implied slew rate.
 The final amplitude on every axis must be zero, or <code class="docutils literal notranslate"><span class="pre">ends_at_zero</span></code> and the
 verdict are false. <a class="reference internal" href="../../generated/pypulseqpp.Sequence.check_timing.html#pypulseqpp.Sequence.check_timing" title="pypulseqpp.Sequence.check_timing"><code class="xref py py-meth docutils literal notranslate"><span class="pre">check_timing()</span></code></a> reports the same
@@ -701,9 +697,7 @@ window by default); the last is zero-filled to the end. Each window is
 mean-subtracted, multiplied by a Hann taper <span class="math notranslate nohighlight">\(w\)</span>, zero-padded to
 <code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> (3) times its length and transformed, with</p>
 <div class="math notranslate nohighlight">
-\[
-A_k = \frac{2\,|X_k|}{\sum_n w_n},
-\]</div>
+\[A_k = \frac{2\,|X_k|}{\sum_n w_n},\]</div>
 <p>so a sustained sinusoid of amplitude <span class="math notranslate nohighlight">\(A\)</span> at a bin frequency reads <span class="math notranslate nohighlight">\(A\)</span> in mT/m.
 The check evaluates only the bins a band reads, as direct sums;
 <a class="reference internal" href="../../generated/pypulseqpp.safety.mech_resonance_spectrum.html#pypulseqpp.safety.mech_resonance_spectrum" title="pypulseqpp.safety.mech_resonance_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">mech_resonance_spectrum()</span></code></a> returns every bin of one
@@ -736,9 +730,7 @@ nothing for it.</p>
 <p>A wide band is read only where the gradient can reach its threshold. Summing
 by parts, a window’s reading at <span class="math notranslate nohighlight">\(f\)</span> is bounded by</p>
 <div class="math notranslate nohighlight">
-\[
-A(f) \le \frac{3\,V}{\sum_n w_n\,\sin(\pi f\,\Delta t)},
-\]</div>
+\[A(f) \le \frac{3\,V}{\sum_n w_n\,\sin(\pi f\,\Delta t)},\]</div>
 <p>where <span class="math notranslate nohighlight">\(V\)</span> is the total variation of the axis’s samples over the window and
 <span class="math notranslate nohighlight">\(\Delta t\)</span> the gradient raster. The check bounds <span class="math notranslate nohighlight">\(V\)</span> per window from the
 corners of the blocks it overlaps, and reads a band wider than 256 bins only
@@ -787,10 +779,8 @@ block’s RF shim (or <code class="docutils literal notranslate"><span class="pr
 channel) and the RF waveform in Hz resampled every microsecond, as
 <a class="reference internal" href="../../generated/pypulseqpp.calc_rf_power.html#pypulseqpp.calc_rf_power" title="pypulseqpp.calc_rf_power"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_rf_power()</span></code></a> does. In a window <span class="math notranslate nohighlight">\(W\)</span> of duration <span class="math notranslate nohighlight">\(T_W\)</span>,</p>
 <div class="math notranslate nohighlight">
-\[
-\mathrm{SAR}_{\mathrm{local}}(W) = \frac{M}{T_W} \max_k \int_W
-\mathbf{v}^{\mathsf H} Q_k\, \mathbf{v}\,\mathrm{d}t,
-\]</div>
+\[\mathrm{SAR}_{\mathrm{local}}(W) = \frac{M}{T_W} \max_k \int_W
+\mathbf{v}^{\mathsf H} Q_k\, \mathbf{v}\,\mathrm{d}t,\]</div>
 <p>and global SAR is the same integral with the global matrix, the largest over
 the body models. The windows are consecutive repetitions of <code class="docutils literal notranslate"><span class="pre">tr_size</span></code> blocks
 (<a class="reference internal" href="../../generated/pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a>, or a <code class="docutils literal notranslate"><span class="pre">TRSize</span></code> definition the blocks
@@ -805,11 +795,9 @@ model. No regulatory averaging interval is applied.</p>
 default shim. With <span class="math notranslate nohighlight">\(\mathrm{SAR}^{\mathrm{ref}}_{G_b}\)</span> its global SAR in body
 model <span class="math notranslate nohighlight">\(b\)</span>, in its window of largest global SAR of duration <span class="math notranslate nohighlight">\(T^{\mathrm{ref}}\)</span>,</p>
 <div class="math notranslate nohighlight">
-\[
-r_{\mathrm{local}} = \max_W \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\min_b \mathrm{SAR}^{\mathrm{ref}}_{G_b}},
+\[r_{\mathrm{local}} = \max_W \frac{\mathrm{SAR}_{\mathrm{local}}(W)}{\min_b \mathrm{SAR}^{\mathrm{ref}}_{G_b}},
 \qquad
-r_{\mathrm{global}} = \max_{W,b} \frac{\mathrm{SAR}_{G_b}(W)}{\mathrm{SAR}^{\mathrm{ref}}_{G_b}},
-\]</div>
+r_{\mathrm{global}} = \max_{W,b} \frac{\mathrm{SAR}_{G_b}(W)}{\mathrm{SAR}^{\mathrm{ref}}_{G_b}},\]</div>
 <p>reported as <code class="docutils literal notranslate"><span class="pre">local_to_head</span></code> and <code class="docutils literal notranslate"><span class="pre">global_sar_ratio</span></code>; with each window’s term
 times <span class="math notranslate nohighlight">\(T_W/T^{\mathrm{ref}}\)</span>, as <code class="docutils literal notranslate"><span class="pre">local_to_head_energy</span></code> and
 <code class="docutils literal notranslate"><span class="pre">global_energy_ratio</span></code>; per window in <code class="docutils literal notranslate"><span class="pre">windows.local_to_head</span></code> and
@@ -820,9 +808,7 @@ body by body, because a subject’s global SAR is that of one body.</p>
 repetition time, a window’s local SAR is at most <span class="math notranslate nohighlight">\(r_{\mathrm{local}} L_G\)</span>, and
 the sequence meets both limits when each repetition lasts at least</p>
 <div class="math notranslate nohighlight">
-\[
-T^{\mathrm{ref}} \max\!\left(r^{E}_{\mathrm{global}},\; r^{E}_{\mathrm{local}}\,\frac{L_G}{L_L}\right),
-\]</div>
+\[T^{\mathrm{ref}} \max\!\left(r^{E}_{\mathrm{global}},\; r^{E}_{\mathrm{local}}\,\frac{L_G}{L_L}\right),\]</div>
 <p>with <span class="math notranslate nohighlight">\(L_L\)</span> the local limit. This rests on the scanner’s prediction for the
 reference not falling below its true global SAR, and on the VOPs and safety
 factor bounding local SAR. The scale of <code class="docutils literal notranslate"><span class="pre">drive_per_hz</span></code> and of the matrices

@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=619e1085"></script>
+    <script src="../../_static/documentation_options.js?v=da629298"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Internals" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.62" />
+  <meta name="docsearch:version" content="v0.0.63" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -877,9 +877,7 @@ apply at once.</p>
 integer for any realistic pair. Admissible dwell times are the multiples
 <span class="math notranslate nohighlight">\(d = k a\)</span> for which <span class="math notranslate nohighlight">\(N d\)</span> is a multiple of <span class="math notranslate nohighlight">\(g\)</span>, and the smallest is</p>
 <div class="math notranslate nohighlight">
-\[
-d_{\min} = \frac{a\,r}{\gcd(N, r)} .
-\]</div>
+\[d_{\min} = \frac{a\,r}{\gcd(N, r)} .\]</div>
 <p>At the default rasters (<span class="math notranslate nohighlight">\(a = 2\ \mu\mathrm{s}\)</span>, <span class="math notranslate nohighlight">\(g = 20\ \mu\mathrm{s}\)</span>,
 <span class="math notranslate nohighlight">\(r = 10\)</span>), a readout of 128 samples has <span class="math notranslate nohighlight">\(\gcd(128, 10) = 2\)</span> and admits no dwell
 shorter than 10 µs, a receiver bandwidth of 100 kHz; a readout of 100 samples

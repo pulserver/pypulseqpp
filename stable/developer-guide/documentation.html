@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=619e1085"></script>
+    <script src="../_static/documentation_options.js?v=da629298"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Coding style" href="style.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.62" />
+  <meta name="docsearch:version" content="v0.0.63" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -522,7 +522,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#code-comments">Code comments</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tone">Tone</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#course-tours-and-catalogue">Course, Tours and catalogue</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#course-lessons">Course, Tours and catalogue</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Course lessons</a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tours">Tours</a></li>
 </ul>
@@ -531,7 +531,7 @@
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#object-tours">Object tours</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-defaults">Plotting defaults</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legend-placement">Legend placement</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#figure-typography-and-size">Figure typography and size</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-figures">Figure typography and size</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry-and-traversal-figures">Geometry and traversal figures</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostic-sources">Diagnostic sources</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-scope">Example scope</a></li>
@@ -702,9 +702,7 @@
 <p>Use rendered equations when they specify behavior more precisely than prose.</p>
 <p>For example, if an operator implements</p>
 <div class="math notranslate nohighlight">
-\[
-A = PFS,
-\]</div>
+\[A = PFS,\]</div>
 <p>stating the model and defining (P), (F), and (S) may be clearer than describing the sequence of operations indirectly.</p>
 <p>Equations in API reference document semantics. Extended derivations and theoretical motivation generally belong in explanatory documentation.</p>
 <p>Normalization, units, signs, coordinate systems, and other conventions must be established before documenting an equation.</p>
@@ -841,8 +839,8 @@ A = PFS,
 <p>The intended result is <strong>a reproducible scientific example with concise methodological annotation</strong>, not a lesson delivered by a narrator.</p>
 <p>When a sentence merely describes what the next line of code does, it can usually be removed.</p>
 </section>
-<section id="course-tours-and-catalogue">
-<span id="course-lessons"></span><h4>Course, Tours and catalogue<a class="headerlink" href="#course-tours-and-catalogue" title="Link to this heading">#</a></h4>
+<section id="course-lessons">
+<span id="course-tours-and-catalogue"></span><h4>Course, Tours and catalogue<a class="headerlink" href="#course-lessons" title="Link to this heading">#</a></h4>
 <p>The Examples section has three parts, in this order, each with its own table on the Examples landing page:</p>
 <ol class="arabic simple">
 <li><p><strong>Course.</strong> Numbered lessons read in order.</p></li>
@@ -892,8 +890,8 @@ A = PFS,
 <p>A legend is placed outside the axes it describes — above them, below them or beside them — in every figure, on an explanation page, in a gallery example and in a docstring plot alike. A legend inside a panel covers data, and which data it covers depends on the values the build happened to produce.</p>
 <p>Where one legend describes series drawn in several panels, it belongs to the figure rather than to one of them, above the row it applies to. Draw the figure with <code class="docutils literal notranslate"><span class="pre">layout=&quot;constrained&quot;</span></code> and place the legend with <code class="docutils literal notranslate"><span class="pre">fig.legend(loc=&quot;outside</span> <span class="pre">upper</span> <span class="pre">center&quot;)</span></code>, so the layout engine reserves its room and nothing is clipped or overlaps a panel title.</p>
 </section>
-<section id="figure-typography-and-size">
-<span id="documentation-figures"></span><h4>Figure typography and size<a class="headerlink" href="#figure-typography-and-size" title="Link to this heading">#</a></h4>
+<section id="documentation-figures">
+<span id="figure-typography-and-size"></span><h4>Figure typography and size<a class="headerlink" href="#documentation-figures" title="Link to this heading">#</a></h4>
 <p>Every documentation figure — gallery, explanation page and docstring plot — takes its font sizes, resolution and layout engine from <code class="docutils literal notranslate"><span class="pre">docs/figure_style.py</span></code>, and is drawn on a transparent canvas in the house ink. A gallery script sets no font size, DPI or <code class="docutils literal notranslate"><span class="pre">rcParams</span></code> of its own. The gallery’s image scraper narrows a figure wider than the documentation column to the column’s width before saving it, so text keeps its point size on the page; a script draws at the size its content needs and no wider. The public plotting helpers of <code class="xref py py-mod docutils literal notranslate"><span class="pre">pypulseqpp.plot</span></code> size their text relative to <code class="docutils literal notranslate"><span class="pre">font.size</span></code>, so the documentation style governs them without arguments. A change to a public plotting default, such as a canvas size, is an API decision and is not made for the documentation.</p>
 <p>A static diagram is a pair of SVG files, light and dark, shown with the <code class="docutils literal notranslate"><span class="pre">only-light</span></code> and <code class="docutils literal notranslate"><span class="pre">only-dark</span></code> classes so the site’s theme selects one; a single SVG whose colours follow <code class="docutils literal notranslate"><span class="pre">prefers-color-scheme</span></code> follows the operating system instead and is not used.</p>
 </section>
@@ -954,14 +952,10 @@ A = PFS,
 <p>Where possible, begin from the scientific, mathematical, or computational concept rather than from the Python class hierarchy.</p>
 <p>For example, an explanation of an inverse-problem library might first introduce</p>
 <div class="math notranslate nohighlight">
-\[
-y = A(x) + \varepsilon
-\]</div>
+\[y = A(x) + \varepsilon\]</div>
 <p>and a regularized formulation such as</p>
 <div class="math notranslate nohighlight">
-\[
-\min_x D(Ax, y) + \lambda R(x),
-\]</div>
+\[\min_x D(Ax, y) + \lambda R(x),\]</div>
 <p>before explaining how the library represents <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(D\)</span>, and <span class="math notranslate nohighlight">\(R\)</span>.</p>
 </section>
 <section id="accessibility-and-terminology">
@@ -1421,7 +1415,7 @@ Spatial axis along which the finite difference is evaluated.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#code-comments">Code comments</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tone">Tone</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#course-tours-and-catalogue">Course, Tours and catalogue</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#course-lessons">Course, Tours and catalogue</a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Course lessons</a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#tours">Tours</a></li>
 </ul>
@@ -1430,7 +1424,7 @@ Spatial axis along which the finite difference is evaluated.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#object-tours">Object tours</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-defaults">Plotting defaults</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#legend-placement">Legend placement</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#figure-typography-and-size">Figure typography and size</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-figures">Figure typography and size</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#geometry-and-traversal-figures">Geometry and traversal figures</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostic-sources">Diagnostic sources</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-scope">Example scope</a></li>

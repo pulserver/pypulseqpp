@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=619e1085"></script>
+    <script src="../../_static/documentation_options.js?v=da629298"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="Sequence module and function internals" href="sequence-modules.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.62" />
+  <meta name="docsearch:version" content="v0.0.63" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -636,9 +636,7 @@ support; neither is an acquisition order.</p>
 <p>With <span class="math notranslate nohighlight">\(R\)</span> = <code class="docutils literal notranslate"><span class="pre">acceleration</span></code>, the lattice of
 <a class="reference internal" href="../../generated/pypulseqpp.make_cartesian_axis_sampling.html#pypulseqpp.make_cartesian_axis_sampling" title="pypulseqpp.make_cartesian_axis_sampling"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_cartesian_axis_sampling()</span></code></a> is</p>
 <div class="math notranslate nohighlight">
-\[
-\{\, i : (i - \lfloor n/2 \rfloor) \bmod R = 0 \,\},
-\]</div>
+\[\{\, i : (i - \lfloor n/2 \rfloor) \bmod R = 0 \,\},\]</div>
 <p>so the centre view is acquired for every <span class="math notranslate nohighlight">\(R\)</span>. Partial Fourier removes the
 indices below <span class="math notranslate nohighlight">\(n - \mathrm{round}(\text{partial\_fourier}\cdot n)\)</span>, keeping the
 centre and the far edge; <code class="docutils literal notranslate"><span class="pre">partial_fourier</span></code> lies in <span class="math notranslate nohighlight">\((0.5, 1]\)</span>. The

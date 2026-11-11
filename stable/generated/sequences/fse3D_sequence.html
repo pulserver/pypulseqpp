@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=619e1085"></script>
+    <script src="../../_static/documentation_options.js?v=da629298"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.62';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.62" />
+  <meta name="docsearch:version" content="v0.0.63" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -629,7 +629,9 @@ encode, acquired ahead of the rest when undersampled.</p></li>
 <li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'</em><em>, </em><em>'busse_radial'</em><em>, </em><em>'pclo'</em><em>, </em><em>'buonincontri'}</em><em>, </em><em>default='radial'</em>) – <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: choose PCLO for identical trains, or Buonincontri joint
 shot/echo assignment for a centre/periphery transition. <code class="docutils literal notranslate"><span class="pre">'pclo'</span></code>
 explicitly selects Rydén’s radius-band permutation for an arbitrary
-centre echo, with identical trains only. <code class="docutils literal notranslate"><span class="pre">'busse_radial'</span></code> uses the
+centre echo, with identical trains only; for a centre echo in the
+second half of the train the echoes after it take the outer bands in
+order instead of Rydén’s mirrored order. <code class="docutils literal notranslate"><span class="pre">'busse_radial'</span></code> uses the
 basic Busse radius-then-angle order (no sorting jitter/consolidation),
 with identical trains and centre echo 0; under <code class="docutils literal notranslate"><span class="pre">busse</span></code>, explicitly
 set <code class="docutils literal notranslate"><span class="pre">busse_centre_echo=0</span></code>. <code class="docutils literal notranslate"><span class="pre">'buonincontri'</span></code> requires a parameter
@@ -638,8 +640,8 @@ is accepted as an alias for <code class="docutils literal notranslate"><span cla
 complementary Poisson-disc echo assignment for identical trains.</p></li>
 <li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'</em><em>, </em><em>'busse'</em><em>, </em><em>'pd'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or variable trains designed by direct-angle
 optimization, prescribed-PSS Busse inverse EPG or relaxation-aware
-prescribed-signal PD inverse EPG. Forward EPG optimization
-requires the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra.</p></li>
+prescribed-signal PD inverse EPG. Every variable train is designed
+with blochsim, which the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra installs.</p></li>
 <li><p><strong>busse_minimum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=25.0</em>) – Minimum actual refocusing angle (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_centre_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=70.0</em>) – Actual refocusing angle at the centre echo (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_maximum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=120.0</em>) – Actual first and final angle (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
@@ -727,7 +729,7 @@ which the shortest TR holds.</p></li>
     one, <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">rz)</span></code>, <code class="docutils literal notranslate"><span class="pre">wave</span></code> names no wave
     mode, individually parameterized trains are shuffled, a train ends
     before the TE echo, or a TR is shorter than the longest train.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.15)"><strong>ImportError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">optimized</span></code> is asked for without blochsim.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ImportError" title="(in Python v3.15)"><strong>ImportError</strong></a> – If a variable train is asked for without blochsim.</p></li>
 </ul>
 </dd>
 </dl>
