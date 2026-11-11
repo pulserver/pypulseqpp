@@ -575,8 +575,24 @@ def test_the_navigator_reads_the_centre_line_before_the_phase_encode(
     assert len(kx) == 3 + epi.etl
     assert ky[:3] == pytest.approx(0.0, abs=TRACED)
     assert list(sweeps) == [(-1) ** i for i in range(3 + epi.etl)]
-    assert [block[0] for block in epi.blocks[2:5]] == epi.gx_navigator
-    assert epi.blocks[5][0] is epi.gy_pre
+    assert tuple(epi.blocks[2]) == (epi.gx_settle,)
+    assert [block[0] for block in epi.blocks[3:6]] == epi.gx_navigator
+    assert epi.blocks[6][0] is epi.gy_pre
+    assert epi.check_timing()[0]
+
+
+def test_an_unsampled_lobe_ahead_of_the_navigator_leaves_it_centred_and_costs_one_spacing(
+    system, excitation
+):
+    # The first lobe after the prewinder settles the read axis; the navigator
+    # still crosses k = 0 mid-window, and the lobe lasts one echo spacing.
+    epi = readout(system, excitation, etl=8, acceleration=4, navigator_lines=3)
+    kx, _, _ = acquired(epi)
+    centre = np.argmin(np.abs(kx[:3]), axis=1)
+
+    assert float(epi.gx_settle.amplitude) < 0 < float(epi.gx_navigator[0].amplitude)
+    assert np.all(np.abs(centre - epi.n_samples // 2) <= 1)
+    assert pp.calc_duration(epi.gx_settle) == pytest.approx(epi.esp)
     assert epi.check_timing()[0]
 
 

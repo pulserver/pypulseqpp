@@ -174,7 +174,8 @@ def epi2d(
     """Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.
 
     Every shot reads ``NAVIGATOR_LINES`` centre lines without blips
-    (``NAV``) before its train, and every line carries ``REV`` for its read
+    (``NAV``) before its train, after one unsampled lobe that lets the read
+    axis settle, and every line carries ``REV`` for its read
     polarity. The trains are ramp-sampled with the blips on the read ramps.
     Segmented shots interleave on the phase-encode lattice, each delayed by
     a fraction of the echo spacing so the echo time grows smoothly across

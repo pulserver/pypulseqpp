@@ -205,7 +205,8 @@ def epi3d(
     every shot of every shell, shots outer and shells centre-out inner.
 
     Every shot reads ``NAVIGATOR_LINES`` centre lines without blips
-    (``NAV``) before its train, every line carries ``REV`` for its read
+    (``NAV``) before its train, after one unsampled lobe that lets the read
+    axis settle; every line carries ``REV`` for its read
     polarity, and shots are delayed by successive fractions of the echo
     spacing so the echo time grows smoothly across the lines; ``te`` is the
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,

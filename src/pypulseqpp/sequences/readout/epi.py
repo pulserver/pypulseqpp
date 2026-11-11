@@ -90,7 +90,8 @@ class _EpiReadout(SequenceModule):
         shift. ``None`` is as short as possible.
     navigator_lines : int, default=0
         Lines read without blips between the read and phase-encode prewinders,
-        for odd-even phase correction. Rejected with ``flyback``.
+        for odd-even phase correction, after one unsampled lobe that lets the
+        read axis settle from the prewinder. Rejected with ``flyback``.
     echo_shifts : int, default=1
         Number of shots whose trains are delayed by successive multiples of
         ``esp / echo_shifts``. The module plays no shift: the caller lengthens
@@ -131,15 +132,20 @@ class _EpiReadout(SequenceModule):
         Its rephaser, if one was given, left-aligned in whichever block follows
         the pulse.
     gx_pre : TrapEvent
-        Read prewinder, half a line lobe against the first line's polarity,
-        right-aligned in the prewinder block so that it ends where the first
-        line starts.
+        Read prewinder, half a line lobe against the polarity of the first lobe
+        played, right-aligned in the prewinder block so that it ends where that
+        lobe starts.
     gx : list of GradEvent
         One read lobe per line: alternating polarity for a blipped train, the
         same lobe every time for a flyback one.
     gx_navigator : list of GradEvent
         One read lobe per navigator line, the first positive; present only with
         ``navigator_lines``.
+    gx_settle : GradEvent
+        The unsampled negative lobe played between the prewinder and the
+        navigator; present only with ``navigator_lines``. The first lobe after
+        the prewinder can echo away from where the steady train does, which
+        would bias the odd-even phase the navigator measures.
     gx_flyback : TrapEvent
         The rewind between two lines. ``flyback`` only.
     gy_blips, gz_blips : list
@@ -383,7 +389,10 @@ class _EpiReadout(SequenceModule):
             ),
             raster,
         )
-        gx_pre = _trapezoid("x", -0.5 * _area(lobe), system, pre_span)
+        # The prewinder opposes the first lobe played: the negative settling
+        # lobe ahead of a navigator, else the first line.
+        first = -1.0 if navigator_lines else 1.0
+        gx_pre = _trapezoid("x", -0.5 * first * _area(lobe), system, pre_span)
         gy_pre = pp.make_phase_encoding(
             "y", fov[1] / n[1], system=system, duration=pre_span
         )
@@ -427,11 +436,16 @@ class _EpiReadout(SequenceModule):
 
         # The navigator reads the centre line at alternating polarities, so
         # the phase-encode prewinder moves to a block of its own after it.
+        # An unsampled lobe of the other polarity comes first, so that the
+        # navigator is read once the read axis has settled from the prewinder.
         gx_navigator = [
             pp.scale_grad(lobe, 1.0 if line % 2 == 0 else -1.0)
             for line in range(navigator_lines)
         ]
-        navigator_span = navigator_lines * _span(system, lobe)
+        gx_settle = pp.scale_grad(lobe, -1.0) if navigator_lines else None
+        navigator_span = (
+            (navigator_lines + 1) * _span(system, lobe) if navigator_lines else 0.0
+        )
         encode_span = (
             _span(system, gy_pre, *present(gz_pre)) if navigator_lines else 0.0
         )
@@ -476,6 +490,8 @@ class _EpiReadout(SequenceModule):
         if not wait:
             prewinder += present(gz_reph)
         self.seq.add_block(*prewinder)
+        if navigator_lines:
+            self.seq.add_block(gx_settle)
         for line in range(navigator_lines):
             self.seq.add_block(gx_navigator[line], adc)
         if navigator_lines:
@@ -519,7 +535,7 @@ class _EpiReadout(SequenceModule):
         if ndim == 3:
             self.register(gz_blips=gz_blips)
         if navigator_lines:
-            self.register(gx_navigator=gx_navigator)
+            self.register(gx_navigator=gx_navigator, gx_settle=gx_settle)
         self.center = exc_span + wait + pre_span + echo_offset + lead
         self.echo_time = echo_time
         self.echo_times = echo_time + esp * (np.arange(etl) - te_line)

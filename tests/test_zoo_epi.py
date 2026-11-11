@@ -243,7 +243,11 @@ def test_every_line_is_labelled_with_the_view_it_samples(case, prescan):
     assert rows[imaging, 0] == pytest.approx((lin[imaging] - n_y // 2) / scan.fov[1])
     if case != "2D" and case != "2D segmented":
         fov, n = partition_fov(scan)
-        assert rows[imaging, 1] == pytest.approx((par[imaging] - n // 2) / fov)
+        # A centre partition's k is the sum of the encodes it played, zero to
+        # the rounding of a few hundred additions.
+        assert rows[imaging, 1] == pytest.approx(
+            (par[imaging] - n // 2) / fov, abs=1e-9
+        )
 
 
 @pytest.mark.parametrize("case", CASES)
