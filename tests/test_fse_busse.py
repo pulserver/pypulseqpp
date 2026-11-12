@@ -395,3 +395,45 @@ def test_ensemble_echo_slopes_are_the_derivative_of_the_simulated_echoes():
             np.testing.assert_allclose(
                 slopes[k], (moved[0] - moved[1]) / (2 * step), atol=2e-4
             )
+
+
+def _transition_deal(golden):
+    deal = sequences.fse3D_sequence.deal_trains
+    lengths, _, place = sequences.fse3D_sequence.shot_parameters(96, 8, 12, 0.5, 0.4)
+    y, z = np.meshgrid(np.arange(-8, 8), np.arange(-8, 8), indexing="ij")
+    coords = np.column_stack((y.ravel(), z.ravel())).astype(float)
+    coords = coords[np.argsort(np.hypot(*coords.T), kind="stable")][: sum(lengths)]
+    trains = deal(coords, list(lengths), place, 3, max(lengths), golden=golden)
+    return coords, place, trains
+
+
+def test_golden_ordering_deals_the_same_slots_and_views_as_the_sweep():
+    _, _, sweep = _transition_deal(golden=False)
+    _, _, golden = _transition_deal(golden=True)
+    occupied = [[view is not None for view in train] for train in sweep]
+    assert [[view is not None for view in train] for train in golden] == occupied
+    dealt = sorted(view for train in golden for view in train if view is not None)
+    assert dealt == sorted(v for train in sweep for v in train if v is not None)
+
+
+def test_golden_ordering_gives_each_radial_section_in_the_order_of_the_shots_turns():
+    coords, place, trains = _transition_deal(golden=True)
+    radius = np.hypot(coords[:, 0], coords[:, 1])
+    angle = np.arctan2(coords[:, 1], coords[:, 0])
+    rank = np.argsort(np.argsort(place, kind="stable"), kind="stable")
+    turn = (rank * sequences.fse3D_sequence._GOLDEN) % 1.0
+    shot_of = {v: s for s, train in enumerate(trains) for v in train if v is not None}
+    views = sorted(range(len(coords)), key=lambda i: (radius[i], angle[i]))
+    views = views[1:] if radius[views[0]] == 0.0 else views
+    for start in range(0, len(views), len(trains)):
+        section = sorted(views[start : start + len(trains)], key=lambda i: angle[i])
+        turns = [turn[shot_of[view]] for view in section]
+        assert turns == sorted(turns)
+
+
+def test_golden_ordering_is_reserved_for_parameter_transitions():
+    with pytest.raises(ValueError, match="centre/periphery parameter transition"):
+        build(ordering="buonincontri_golden")
+    seq = build(ordering="buonincontri_golden", tr_periphery=0.4)
+    assert seq.check_timing()[0]
+    assert seq.definitions["ResolvedViewOrdering"] == "buonincontri_golden"
