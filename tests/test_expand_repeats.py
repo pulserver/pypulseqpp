@@ -204,10 +204,11 @@ def test_the_expanded_scan_reads_back_as_written(tmp_path):
 
 
 def test_a_shipped_scan_grows_only_its_block_table_and_keeps_its_definitions():
+    # Without dummies a slice is one file, its first excitation and closing
+    # rewind marked ONCE.
     seq = sequences.bssfp2D_sequence(
-        pp.Opts(), n_x=64, n_y=32, n_slices=1, readout_bandwidth_hz=50e3
+        pp.Opts(), n_x=64, n_y=32, n_slices=1, readout_bandwidth_hz=50e3, n_dummy=0
     )
-    seq = seq[-1] if isinstance(seq, list) else seq
     before = seq.libraries()
     definitions = list(seq._native.instance_definitions())
 

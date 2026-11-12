@@ -9,7 +9,11 @@ two support fixes: ``elliptical=False`` no longer crops the draw to the
 inscribed ellipse, and an elliptical calibration region no longer fills its
 bounding rectangle. The ``fse3D-radial`` and ``fse3D-individual`` fingerprints
 were recorded again when the PCLO ring order stopped mirroring a centre echo
-in the second half of the train; their TE falls on echo 5 of 8.
+in the second half of the train; their TE falls on echo 5 of 8. The
+``bssfp2D-accelerated`` configuration acquires one frame since an ungated 2D
+bSSFP plays ``n_phases`` frames, which ``bssfp2D-frames`` records. Both
+were recorded again when a free-running slice became a chain of its dummies
+and its frames: the frames file, which they sample, carries no ``ONCE``.
 
 A deliberate change to one of these sequences is recorded again with
 
@@ -53,7 +57,18 @@ CONFIGURATIONS = {
     ),
     "bssfp2D-accelerated": (
         "bssfp2D_sequence",
-        {"n_x": 64, "n_y": 16, "readout_bandwidth_hz": 50e3, "ry": 2, "n_acs_y": 4},
+        {
+            "n_x": 64,
+            "n_y": 16,
+            "readout_bandwidth_hz": 50e3,
+            "ry": 2,
+            "n_acs_y": 4,
+            "n_phases": 1,
+        },
+    ),
+    "bssfp2D-frames": (
+        "bssfp2D_sequence",
+        {"n_x": 64, "n_y": 16, "readout_bandwidth_hz": 50e3, "n_phases": 3},
     ),
     "gre_multiecho2D-accelerated": (
         "gre_multiecho2D_sequence",

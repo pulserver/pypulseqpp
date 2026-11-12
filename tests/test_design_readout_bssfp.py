@@ -263,11 +263,82 @@ def test_summing_them_stays_a_trapezoid_at_every_partition(system, slab):
 
 def test_the_summed_lobe_stays_inside_the_gradient_limit(system, slab):
     bssfp = readout3d(system, slab)
-    for sign in (1.0, -1.0):
-        lobe = pp.add_gradients(
-            [bssfp.gz_pre, pp.scale_grad(bssfp.gz_partition, sign)], system=system
-        )
-        assert abs(lobe.amplitude) <= system.max_grad * (1 + 1e-9)
+    for rephaser, encode in (
+        (bssfp.gz_pre, bssfp.gz_partition),
+        (bssfp.gz_rew, bssfp.gz_partition_rew),
+    ):
+        for sign in (1.0, -1.0):
+            lobe = pp.add_gradients(
+                [rephaser, pp.scale_grad(encode, sign)], system=system
+            )
+            assert abs(lobe.amplitude) <= system.max_grad * (1 + 1e-9)
+            assert abs(lobe.amplitude) / lobe.rise_time <= system.max_slew * (1 + 1e-9)
+
+
+@pytest.fixture
+def scanner():
+    """A 7 T head gradient held to 80 mT/m and slewed at 132.6 T/m/s, on its rasters."""
+    return pp.Opts(
+        max_grad=80,
+        grad_unit="mT/m",
+        max_slew=132.6,
+        slew_unit="T/m/s",
+        rf_dead_time=232e-6,
+        rf_ringdown_time=4e-6,
+        adc_dead_time=10e-6,
+        grad_raster_time=4e-6,
+        block_duration_raster=4e-6,
+        rf_raster_time=2e-6,
+        adc_raster_time=2e-6,
+    )
+
+
+def test_a_slice_rephaser_ramps_at_the_slew_rate_not_on_the_full_scale_ramp(scanner):
+    """The full-scale ramp, max_grad / max_slew, is 604 us here; a slice rephaser is a triangle a fraction as long."""
+    excitation = design.SpatialSelectiveExcitation(
+        scanner, 45.0, 8e-3, 0.6e-3, rephase=False
+    )
+    bssfp = design.BssfpReadout2D(
+        scanner,
+        excitation.rf,
+        excitation.gz,
+        fov=(0.3, 0.3),
+        matrix=(192, 192),
+        readout_bandwidth_hz=125e3,
+    )
+    full_scale = pp.ceil_to_raster(
+        scanner.max_grad / scanner.max_slew, scanner.grad_raster_time
+    )
+    assert bssfp.gz_rew.rise_time < 0.5 * full_scale
+    assert pp.calc_duration(bssfp.gx_rew, bssfp.gy_rew, bssfp.gz_rew) < full_scale
+    for lobe in (bssfp.gz_pre, bssfp.gz_rew, bssfp.gz_prep):
+        slew = abs(lobe.amplitude) / lobe.rise_time
+        assert slew <= scanner.max_slew * (1 + 1e-9)
+    assert bssfp.tr < 4e-3
+
+
+def test_the_rewind_is_as_short_as_its_slowest_lobe(scanner):
+    """No lobe sets a window it does not need: the rewind lasts as long as the longest of its rewinders at the slew rate."""
+    excitation = design.SpatialSelectiveExcitation(
+        scanner, 45.0, 8e-3, 0.6e-3, rephase=False
+    )
+    bssfp = design.BssfpReadout2D(
+        scanner,
+        excitation.rf,
+        excitation.gz,
+        fov=(0.3, 0.3),
+        matrix=(192, 192),
+        readout_bandwidth_hz=125e3,
+    )
+    fastest = max(
+        pp.calc_duration(pp.make_phase_encoding("y", 0.3 / 192, system=scanner)),
+        pp.calc_duration(bssfp.gx_rew),
+        pp.calc_duration(
+            pp.make_trapezoid("z", area=bssfp.gz_rew.area, system=scanner)
+        ),
+    )
+    rewind = pp.calc_duration(bssfp.gx_rew, bssfp.gy_rew, bssfp.gz_rew)
+    assert rewind <= fastest + 4 * scanner.grad_raster_time
 
 
 def test_the_partition_encode_reaches_the_edge_of_k_space(system, slab):
@@ -438,3 +509,126 @@ def test_a_hard_pulse_needs_no_rephasers(system):
     assert bssfp.gz_partition.type == "trap"
     assert bssfp.check_timing()[0]
     assert bssfp.te == pytest.approx(0.5 * bssfp.tr)
+
+
+def _slice_of(readout, repetitions=4):
+    """A bridged slice as a caller plays it: opened from rest, its last rewind closed to it."""
+    seq = pp.Sequence(readout.seq.system)
+    seq.add_block(readout.rf, readout.gz_open)
+    seq.add_block(readout.wait_prep, readout.gz_prep)
+    for index in range(repetitions):
+        seq.add_block(readout.rf, readout.gz)
+        seq.add_block(readout.gx, readout.adc, readout.gy_pre, readout.gz_pre)
+        last = index == repetitions - 1
+        seq.add_block(
+            readout.gx_rew,
+            readout.gy_rew,
+            *([readout.gz_close] if last and readout.gz_close else []),
+            *([] if last else [readout.gz_rew]),
+        )
+    return seq
+
+
+def _edges(event):
+    """The amplitude a gradient event starts and ends its block at."""
+    if event is None:
+        return 0.0, 0.0
+    if event.type == "trap":
+        return 0.0, 0.0
+    return (0.0 if event.delay > 0 else float(event.first)), float(event.last)
+
+
+def test_no_join_inside_a_bridged_slice_has_every_gradient_at_rest(system, slice_):
+    """A scanner that prepares a segment between blocks at rest plays the slice as one."""
+    readout = readout2d(system, slice_, bridge=True)
+    assert readout.bridged
+    seq = _slice_of(readout)
+    blocks = [seq.get_block(b) for b in range(1, seq.num_blocks + 1)]
+    for before, after in itertools.pairwise(blocks):
+        leaving = max(abs(_edges(g)[1]) for g in (before.gx, before.gy, before.gz))
+        entering = max(abs(_edges(g)[0]) for g in (after.gx, after.gy, after.gz))
+        assert leaving > 4e3 and entering > 4e3
+    assert (
+        max(abs(_edges(g)[0]) for g in (blocks[0].gx, blocks[0].gy, blocks[0].gz))
+        == 0.0
+    )
+    assert (
+        max(abs(_edges(g)[1]) for g in (blocks[-1].gx, blocks[-1].gy, blocks[-1].gz))
+        == 0.0
+    )
+
+
+def test_a_bridged_slice_is_valid_pulseq(system, slice_):
+    assert _slice_of(readout2d(system, slice_, bridge=True)).check_timing()[0]
+
+
+def test_bridging_keeps_the_slice_axis_balanced_between_pulse_centres(system, slice_):
+    """What the plateau plays either side of the pulse centre, its rephasers unwind exactly."""
+    readout = readout2d(system, slice_, bridge=True)
+    centre = float(readout.rf.delay) + float(readout.rf.center)
+    times = np.asarray(readout.gz.tt, dtype=float)
+    levels = np.asarray(readout.gz.waveform, dtype=float)
+    at = float(np.interp(centre, times, levels))
+    early = times < centre
+    before = np.trapezoid(np.append(levels[early], at), np.append(times[early], centre))
+    after = np.trapezoid(
+        np.append(at, levels[~early]), np.append(centre, times[~early])
+    )
+    area = lambda event: float(np.trapezoid(event.waveform, event.tt))  # noqa: E731
+    assert area(readout.gz_rew) == pytest.approx(-before, abs=1e-6)
+    assert area(readout.gz_pre) == pytest.approx(-after, abs=1e-6)
+    assert area(readout.gz_prep) == pytest.approx(-(before + after), abs=1e-6)
+
+
+@pytest.mark.parametrize("bandwidth", [50e3, 125e3, 250e3])
+@pytest.mark.parametrize("matrix", [64, 128, 256])
+def test_a_bridged_repetition_is_within_a_few_rasters_of_one_at_rest(
+    system, slice_, bandwidth, matrix
+):
+    kwargs = {"matrix": (matrix, matrix), "readout_bandwidth_hz": bandwidth}
+    try:
+        rest = readout2d(system, slice_, **kwargs)
+    except ValueError:
+        pytest.skip("the prescription has no half-flip preparation")
+    bridged = readout2d(system, slice_, bridge=True, **kwargs)
+    assert bridged.bridged
+    assert bridged.tr <= rest.tr + 4 * system.block_duration_raster + 1e-12
+    assert bridged.te == pytest.approx(bridged.tr / 2)
+
+
+@pytest.mark.parametrize("slew", [200.0, 105.0, 60.0, 30.0])
+@pytest.mark.parametrize("raster", [10e-6, 4e-6])
+@pytest.mark.parametrize("tr", [None, 8e-3, 15.6e-3])
+def test_a_slice_asked_to_be_bridged_is_at_every_repetition_time(slew, raster, tr):
+    """A longer repetition lengthens the blocks that carry the read and phase lobes, and none rests."""
+    system = pp.Opts(
+        max_grad=40,
+        grad_unit="mT/m",
+        max_slew=slew,
+        slew_unit="T/m/s",
+        rf_dead_time=232e-6,
+        rf_ringdown_time=4e-6,
+        adc_dead_time=10e-6,
+        grad_raster_time=raster,
+        block_duration_raster=raster,
+    )
+    slice_ = design.SpatialSelectiveExcitation(system, 40.0, 5e-3, 1e-3, rephase=False)
+    kwargs = {"matrix": (128, 128), "readout_bandwidth_hz": 50e3}
+    if tr is not None and tr < readout2d(system, slice_, bridge=True, **kwargs).tr:
+        pytest.skip("the repetition time is shorter than the readout can achieve")
+    readout = readout2d(system, slice_, bridge=True, tr=tr, **kwargs)
+    assert readout.bridged
+    if tr is not None:
+        assert readout.tr == pytest.approx(tr, abs=raster)
+    assert readout.te == pytest.approx(readout.tr / 2)
+    seq = _slice_of(readout)
+    assert seq.check_timing()[0]
+    blocks = [seq.get_block(b) for b in range(1, seq.num_blocks + 1)]
+    for before, after in itertools.pairwise(blocks):
+        assert max(abs(_edges(g)[1]) for g in (before.gx, before.gy, before.gz)) > 4e3
+        assert max(abs(_edges(g)[0]) for g in (after.gx, after.gy, after.gz)) > 4e3
+
+
+def test_bridging_is_refused_for_a_slab(system, slab):
+    with pytest.raises(ValueError, match="bridge"):
+        readout3d(system, slab, bridge=True)

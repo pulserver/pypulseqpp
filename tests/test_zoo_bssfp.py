@@ -2,6 +2,7 @@
 
 from itertools import pairwise
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -20,8 +21,40 @@ CINE = {"views_per_segment": 4, "heart_rate_bpm": 300}
 
 
 def built_2d(**kwargs):
-    """The 2D sequence the small prescription designs, with ``kwargs`` changed."""
-    return bssfp2d.main(**{**SMALL_2D, **kwargs})
+    """The 2D sequence the small prescription designs, with ``kwargs`` changed; a chain joined in play order."""
+    return joined(bssfp2d.main(**{**SMALL_2D, **kwargs}))
+
+
+def joined(designed):
+    """A chain's blocks in play order as one sequence, with the definitions of its last file."""
+    if isinstance(designed, pp.Sequence):
+        return designed
+    seq = pp.Sequence(designed[0].system)
+    for part in designed:
+        for index in range(1, part.num_blocks + 1):
+            seq.add_block(part.get_block(index))
+    for key, value in designed[-1].definitions.items():
+        if key != "TRSize":
+            seq.set_definition(key=key, value=value)
+    return seq
+
+
+def edge(gradient, end):
+    """Where a gradient event starts (``end=0``) or ends (``end=1``) its block."""
+    if gradient is None or gradient.type == "trap":
+        return 0.0
+    if end == 0 and gradient.delay > 0:
+        return 0.0
+    return float(gradient.last if end else gradient.first)
+
+
+def at_rest(before, after):
+    """Whether every gradient is at rest where block ``before`` meets block ``after``."""
+    return all(
+        abs(edge(getattr(before, axis), 1)) < 1.0
+        and abs(edge(getattr(after, axis), 0)) < 1.0
+        for axis in ("gx", "gy", "gz")
+    )
 
 
 def chain_3d(**kwargs):
@@ -77,13 +110,12 @@ def final_moments(seq):
 @pytest.mark.parametrize(
     "prescription",
     [
-        {},
         {"gating": "retrospective", **CINE},
         {"gating": "prospective", "n_phases": 3, **CINE},
     ],
-    ids=["ungated", "retrospective", "prospective"],
+    ids=["retrospective", "prospective"],
 )
-def test_each_slice_is_one_repetition_of_the_scan(prescription):
+def test_each_gated_slice_is_one_repetition_of_the_scan(prescription):
     seq = built_2d(n_slices=3, slice_spacing=1e-3, **prescription)
     size, start = seq.repetition()
 
@@ -92,8 +124,44 @@ def test_each_slice_is_one_repetition_of_the_scan(prescription):
     assert 3 * size == len(seq.block_events)
 
 
-def test_once_marks_each_slice_half_flip_and_closing_rewind():
-    seq = built_2d(n_slices=2)
+def test_a_free_running_repetition_is_one_excitation_and_its_readout():
+    seq = built_2d(n_slices=3, slice_spacing=1e-3, n_dummy=0)
+
+    assert seq.check_timing()[0]
+    assert seq.repetition() == (3, 1)
+
+
+@pytest.mark.parametrize("n_slices", [1, 3])
+def test_a_free_running_slice_is_its_dummies_then_a_file_of_its_frames(
+    n_slices,
+):
+    chain = bssfp2d.main(**{**SMALL_2D, "n_phases": 3, "n_slices": n_slices})
+    frame = 3 * 16
+
+    assert len(chain) == 2 * n_slices
+    for catalyst, frames in zip(chain[::2], chain[1::2], strict=True):
+        assert catalyst.repetition() == (3, 1)
+        assert not catalyst.evaluate_labels(evolution="adc").get("LIN", [])
+        assert frames.num_blocks == 3 * frame
+        assert frames.repetition() == (3, 1)
+        assert "TRSize" not in frames.definitions
+        assert frames.check_timing()[0]
+
+
+def test_a_free_running_slice_rests_between_every_two_repetitions():
+    """Each repetition is a segment of its own, so every repetition time carries the same preparation."""
+    seq = joined(bssfp2d.main(**{**SMALL_2D, "n_phases": 3}))
+    listed = blocks(seq)
+    rests = [i for i, pair in enumerate(pairwise(listed), 1) if at_rest(*pair)]
+
+    assert set(range(3, len(listed), 3)) <= set(rests)
+    assert at_rest(SimpleNamespace(gx=None, gy=None, gz=None), listed[0])
+    assert at_rest(listed[-1], SimpleNamespace(gx=None, gy=None, gz=None))
+    assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
+
+
+def test_once_marks_each_slice_first_excitation_and_closing_rewind():
+    seq = built_2d(n_slices=2, n_dummy=0)
     (once,) = labels(seq, "ONCE", evolution="blocks")
 
     for chunk in np.split(once, 2):
@@ -102,37 +170,55 @@ def test_once_marks_each_slice_half_flip_and_closing_rewind():
         assert set(chunk[1:-1]) == {0}
 
 
-def test_the_phase_alternates_after_an_opposite_half_flip():
-    seq = built_2d(n_slices=2, slice_spacing=1e-3)
+@pytest.mark.parametrize("n_dummy", [3, 25])
+def test_the_phase_alternates_while_the_catalyst_ramps_the_flip_angle(n_dummy):
+    seq = built_2d(n_slices=2, slice_spacing=1e-3, n_phases=2, n_dummy=n_dummy)
     tr = np.atleast_1d(seq.definitions["TR"])[0]
     rows = excitations(seq)
     per_slice = len(rows) // 2
-    offsets = [time for time, _, _ in rows]
-    peaks = [peak for _, _, peak in rows]
+    ramp = min(bssfp2d.CATALYST_RAMP, n_dummy)
 
     for start in (0, per_slice):
         train = rows[start : start + per_slice]
-        centre = train[1][1] - np.pi
+        times = [time for time, _, _ in train]
+        peaks = np.array([peak for _, _, peak in train])
+        centre = train[0][1] - np.pi
         assert same_phase(
             [phase - centre for _, phase, _ in train],
-            [0.0] + [np.pi * ((k + 1) % 2) for k in range(per_slice - 1)],
+            [np.pi * ((k + 1) % 2) for k in range(per_slice)],
         )
-        assert peaks[start] == pytest.approx(0.5 * peaks[start + 1])
-        assert offsets[start + 1] - offsets[start] == pytest.approx(0.5 * tr, abs=1e-9)
+        assert peaks[:ramp] == pytest.approx(peaks[-1] * np.arange(1, ramp + 1) / ramp)
+        assert peaks[ramp:] == pytest.approx(peaks[-1])
+        assert np.diff(times) == pytest.approx(tr, abs=1e-9)
 
 
 @pytest.mark.parametrize("ry", [1, 2])
-def test_every_line_of_every_slice_is_read_once_when_ungated(ry):
-    seq = built_2d(n_slices=2, ry=ry, n_acs_y=4)
-    lin, slc, ima = labels(seq, "LIN", "SLC", "IMA")
+def test_every_line_of_every_slice_is_read_once_per_frame_when_ungated(ry):
+    seq = built_2d(n_slices=2, ry=ry, n_acs_y=4, n_phases=3)
+    lin, slc, phs, ima = labels(seq, "LIN", "SLC", "PHS", "IMA")
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         16, ry, 4, partial_fourier=1.0
     )
 
-    assert list(zip(lin, slc, strict=True)) == [
-        (line, s) for s in range(2) for line in [*calibrating, *imaging]
+    assert list(zip(lin, slc, phs, strict=True)) == [
+        (line, s, f)
+        for s in range(2)
+        for f in range(3)
+        for line in [*calibrating, *imaging]
     ]
     assert list(ima) == [int(line in calibrating) for line in lin]
+
+
+def test_ungated_frames_follow_one_another_one_repetition_apart():
+    """A free-running series: no dummies and no gap between frames, every excitation a TR after the last."""
+    seq = built_2d(n_phases=3)
+    tr = recorded(seq, "TR")
+    rows = excitations(seq)
+    times = [time for time, _, _ in rows]
+
+    # The dummies, then three frames of 16 lines.
+    assert len(rows) == SMALL_2D["n_dummy"] + 3 * 16
+    assert np.diff(times) == pytest.approx(tr, abs=1e-9)
 
 
 def test_a_retrospective_heartbeat_cycles_its_segment():
@@ -159,10 +245,11 @@ def test_a_retrospective_cycle_reads_every_line_when_the_last_segment_is_short()
         assert sorted(lin[phs == cycle]) == list(range(16))
 
 
-def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
+def test_a_prospective_slice_waits_for_one_trigger_then_reads_every_phase():
     seq = built_2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
-    triggers = [block.trig for block in blocks(seq) if getattr(block, "trig", None)]
+    triggered = [block for block in blocks(seq) if getattr(block, "trig", None)]
+    triggers = [block.trig for block in triggered]
     expected = [
         (line, s, f)
         for s, start in enumerate(range(0, 16, 4))
@@ -171,14 +258,44 @@ def test_a_prospective_heartbeat_waits_for_its_trigger_then_reads_every_phase():
     ]
 
     assert list(zip(lin, seg, phs, strict=True)) == expected
-    assert len(triggers) == 4
-    assert all(t[0].channel == "physio1" for t in triggers)
-    assert all(t[0].duration == pytest.approx(5e-3) for t in triggers)
+    assert len(triggers) == 1
+    assert triggers[0][0].channel == "physio1"
+    assert triggered[0].rf is not None
     assert seq.definitions["CardiacPhases"] == pytest.approx([3])
+    assert seq.definitions["TriggerDelay"] == pytest.approx([5e-3])
+
+
+def test_a_prospective_heartbeat_starts_a_nominal_heartbeat_after_the_one_before():
+    """The slice runs free after its trigger: repetitions that do not acquire fill each heartbeat."""
+    seq = built_2d(gating="prospective", n_phases=3, n_dummy=2, **CINE)
+    tr = np.atleast_1d(seq.definitions["TR"])[0]
+    reads = [
+        getattr(block, "adc", None) is not None
+        for block in blocks(seq)
+        if getattr(block, "rf", None) is None and getattr(block, "gx", None) is not None
+    ]
+    # One entry per repetition's acquisition block and one per rewind.
+    acquiring = np.flatnonzero(np.asarray(reads[::2]))
+    first = acquiring[::12]
+
+    assert first.tolist() == bssfp2d.prospective_starts([4] * 4, 3, 2, 0.2, tr)
+    # Counted from the first excitation, on the trigger.
+    assert first[1:] * tr == pytest.approx(0.2 * np.arange(1, 4), abs=0.5 * tr + 1e-9)
+
+
+def test_the_prospective_starts_never_overlap_the_heartbeat_before():
+    assert bssfp2d.prospective_starts([12, 12, 4], 10, 10, 1.0, 5e-3) == [10, 200, 400]
+    assert bssfp2d.prospective_starts([12, 12], 10, 10, 0.5, 5e-3) == [10, 130]
+
+
+def test_a_trigger_delay_is_played_as_repetitions_ahead_of_every_heartbeat():
+    starts = bssfp2d.prospective_starts([12, 12, 4], 10, 10, 1.0, 5e-3, 0.1)
+
+    assert starts == [30, 220, 420]
 
 
 @pytest.mark.parametrize("n_dummy", [0, 3])
-def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
+def test_the_trigger_of_a_slice_is_on_its_first_excitation(n_dummy):
     seq = built_2d(
         gating="prospective", n_phases=2, n_slices=2, n_dummy=n_dummy, **CINE
     )
@@ -189,10 +306,10 @@ def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
     for start in (0, size):
         assert getattr(listed[start], "trig", None)
         assert once[start] == 1
-        half = listed[start + 1].rf
-        full = next(b.rf for b in listed[start + 2 :] if b.rf is not None)
-        peak = np.abs(np.asarray(half.signal)).max()
-        assert peak == pytest.approx(0.5 * np.abs(np.asarray(full.signal)).max())
+        assert listed[start].rf is not None
+        assert not any(
+            getattr(b, "trig", None) for b in listed[start + 1 : start + size]
+        )
 
 
 def test_a_single_shot_slice_has_one_trigger():
@@ -203,13 +320,22 @@ def test_a_single_shot_slice_has_one_trigger():
     assert len(triggers) == 2
 
 
-def test_every_trigger_falls_between_two_balanced_repetitions():
-    seq = built_2d(gating="prospective", n_phases=2, **CINE)
+def test_every_trigger_opens_a_slice_from_rest():
+    seq = built_2d(gating="prospective", n_phases=2, n_slices=2, **CINE)
     listed = blocks(seq)
-    for index, block in enumerate(listed):
-        if getattr(block, "trig", None):
-            assert block.gx is None and block.gy is None and block.gz is None
-            assert listed[index + 1].rf is not None
+    triggered = [i for i, block in enumerate(listed) if getattr(block, "trig", None)]
+
+    assert len(triggered) == 2
+    for index in triggered:
+        block = listed[index]
+        assert block.rf is not None and block.gx is None and block.gy is None
+        assert np.asarray(block.gz.waveform)[0] == pytest.approx(0.0)
+        if index:
+            before = listed[index - 1]
+            for axis in ("gx", "gy", "gz"):
+                grad = getattr(before, axis)
+                if grad is not None and grad.type != "trap":
+                    assert np.asarray(grad.waveform)[-1] == pytest.approx(0.0)
     assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
 
 
@@ -411,27 +537,19 @@ def slice_moment_to_first_excitation(seq):
     return np.trapezoid(np.interp(grid, times, amplitudes, left=0, right=0), grid)
 
 
-@pytest.mark.parametrize(
-    "build",
-    [
-        lambda: built_2d(),
-        # The catalyst file holds the half flip and the first dummy.
-        lambda: chain_3d(excitation="slab", n_dummy=1)[0],
-    ],
-    ids=["2d", "3d-slab"],
-)
-def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation(build):
-    seq = build()
+def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation():
+    # The catalyst file holds the half flip and the first dummy.
+    seq = chain_3d(excitation="slab", n_dummy=1)[0]
 
     assert slice_moment_to_first_excitation(seq) == pytest.approx(0.0, abs=1e-3)
 
 
 def dummies_before_the_first_readout(seq):
-    """Full-flip excitations played before the one the first acquisition reads."""
+    """Excitations played before the one the first acquisition reads."""
     count = 0
     for block in blocks(seq):
         if block.adc is not None:
-            return count - 2
+            return count - 1
         if block.rf is not None:
             count += 1
     raise AssertionError("no acquisition")
@@ -446,7 +564,10 @@ def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggere
         bssfp2d.PROSPECTIVE_DUMMIES
         if gating == "prospective"
         else sequences.steady_state_dummies(
-            recorded(seq, "TR"), 45.0, t2_s=sequences.STEADY_STATE_T2_S
+            recorded(seq, "TR"),
+            45.0,
+            t2_s=sequences.STEADY_STATE_T2_S,
+            tolerance=bssfp2d.STEADY_STATE_TOLERANCE,
         )
     )
 
@@ -456,7 +577,12 @@ def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggere
 def test_default_retrospective_dummies_last_at_most_one_heartbeat():
     seq = built_2d(n_dummy=None, gating="retrospective", heart_rate_bpm=60)
     tr = recorded(seq, "TR")
-    full = sequences.steady_state_dummies(tr, 45.0, t2_s=sequences.STEADY_STATE_T2_S)
+    full = sequences.steady_state_dummies(
+        tr,
+        45.0,
+        t2_s=sequences.STEADY_STATE_T2_S,
+        tolerance=bssfp2d.STEADY_STATE_TOLERANCE,
+    )
 
     assert full * tr > 1.0
     assert dummies_before_the_first_readout(seq) == round(1.0 / tr)

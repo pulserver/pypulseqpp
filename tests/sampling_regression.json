@@ -2,10 +2,16 @@
  "bssfp2D-accelerated": {
   "label:IMA": "eb27c5568079334f",
   "label:LIN": "d7b6d01f4d84b926",
-  "label:ONCE": "94d0e6543843bb74",
   "label:PHS": "94d0e6543843bb74",
   "label:SEG": "94d0e6543843bb74",
   "label:SLC": "94d0e6543843bb74"
+ },
+ "bssfp2D-frames": {
+  "label:IMA": "1a34f420d4385579",
+  "label:LIN": "32eb576495dc0c81",
+  "label:PHS": "a874be238491655a",
+  "label:SEG": "1a34f420d4385579",
+  "label:SLC": "1a34f420d4385579"
  },
  "bssfp3D-caipi": {
   "label:IMA": "8a229fc420eeaba6",

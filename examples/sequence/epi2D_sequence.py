@@ -10,6 +10,11 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
+#: Slew-rate ceiling (T/m/s) of the fat saturation, whose spoilers play on three
+#: axes at once: designed at the sequence's slew they would set its nerve
+#: stimulation, and the slew search would slow every gradient for them.
+PREPARATION_MAX_SLEW = 40.0
+
 
 def caipi_shift(ry: int, rz: int) -> int:
     """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
@@ -118,6 +123,77 @@ def packets_of(n: int, per_packet: int) -> list[list[int]]:
     return [[*packet[::2], *packet[1::2]] for packet in packets]
 
 
+def fleet_lines(n: int, extent: int, shots: int) -> range:
+    """Return the lines of a FLEET calibration: ``extent`` about the centre, rounded up to whole shots.
+
+    Each shot reads at least two lines, so the shot holding the centre line
+    echoes it within its train.
+
+    Parameters
+    ----------
+    n : int
+        Phase-encode lines across the full field of view.
+    extent : int
+        Lines asked of the calibration.
+    shots : int
+        Interleaved shots that share them.
+
+    Returns
+    -------
+    range
+        Consecutive lines, as many as ``shots`` share evenly, at least two
+        each, and ``n`` holds.
+    """
+    count = min(max(-(-extent // shots), 2) * shots, n - n % shots)
+    low = min(max(n // 2 - count // 2, 0), n - count)
+    return range(low, low + count)
+
+
+def fleet_train(
+    system: pp.Opts,
+    rf,
+    gz,
+    gz_reph,
+    epi,
+    lines: range,
+    shots: int,
+    **arguments,
+):
+    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe, blip window and echo time.
+
+    Shot ``s`` reads ``lines[s::shots]``, a step of ``shots`` lines, and is
+    delayed by ``esp / shots``, so the echo time grows across the lines as it
+    does across the lines of the imaging. It is timed to ``epi``'s echo time
+    where its shorter run of lines before the centre admits it, and else as
+    early as it can be. ``arguments`` are those of the imaging train: matrix,
+    field of view, navigator, sampling and spoiling.
+
+    Raises
+    ------
+    ValueError
+        If its echo spacing is not ``epi``'s.
+    """
+    n_y = arguments["matrix"][1]
+    common = dict(
+        arguments,
+        order=np.arange(len(lines) // shots) * shots,
+        te_line=(n_y // 2 - lines[0]) / shots,
+        echo_shifts=shots,
+        blip_span=epi.blip_span,
+    )
+    train = sequences.EpiReadout2D(system, rf, gz, gz_reph, **dict(common, te=None))
+    if train.echo_time < epi.echo_time - 1e-9:
+        train = sequences.EpiReadout2D(
+            system, rf, gz, gz_reph, **dict(common, te=epi.echo_time)
+        )
+    if abs(train.esp - epi.esp) > 1e-9:
+        raise ValueError(
+            f"the FLEET calibration's echo spacing {train.esp * 1e3:.3f} ms is not "
+            f"the imaging's {epi.esp * 1e3:.3f} ms"
+        )
+    return train
+
+
 NAME = "epi_2d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
@@ -135,6 +211,20 @@ SPOILING_CYCLES = 4.0
 #: long it lasts (s); it never outlasts the excitation block it rides.
 OUTPUT_CHANNEL = "ext1"
 OUTPUT_DURATION = 1e-3
+#: Flip angle of the gradient-echo calibration (degrees), whatever the
+#: imaging flip. Its lines follow one another at its shortest TR, from relaxed
+#: magnetization: at an imaging flip such as 70 degrees the signal falls
+#: within a few lines to a hundredth of the first line's, and each line's RF
+#: alone can exceed the SAR limit. Near the Ernst angle of that TR, ten degrees
+#: keeps most of the first line's signal across the calibration region and
+#: plays a fiftieth of a 70 degree pulse's RF power. The calibration measures
+#: coil sensitivities, which do not depend on the contrast.
+CALIBRATION_FLIP_DEG = 10.0
+#: Calibrations of an undersampled or multiband scan.
+CALIBRATIONS = ("fleet", "gre")
+#: Non-acquiring shots that open the FLEET calibration of each slice, so its
+#: first acquiring shot does not read relaxed magnetization.
+FLEET_DUMMY_SHOTS = 1
 
 
 def epi2d(
@@ -160,12 +250,14 @@ def epi2d(
     n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
+    calibration: str = "fleet",
     volume_output: bool = False,
 ) -> list[pp.Sequence]:
     """Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.
 
     Every shot reads ``NAVIGATOR_LINES`` centre lines without blips
-    (``NAV``) before its train, and every line carries ``REV`` for its read
+    (``NAV``) before its train, after one unsampled lobe that lets the read
+    axis settle, and every line carries ``REV`` for its read
     polarity. The trains are ramp-sampled with the blips on the read ramps.
     Segmented shots interleave on the phase-encode lattice, each delayed by
     a fraction of the echo spacing so the echo time grows smoothly across
@@ -177,11 +269,18 @@ def epi2d(
     one. A multiband shot excites ``multiband`` slices at once and a
     blipped-CAIPI train encodes the band in ``PAR``.
 
-    Two prescans are linked ahead of the imaging: the ``calibration``, a
-    single-band gradient echo per slice over the central ``n_acs_y`` lines
-    (``REF``), when undersampled or multiband; and the ``reference``, one
-    volume with the phase encode reversed (``SET = 1``), for distortion
-    correction.
+    Two prescans are linked ahead of the imaging: the ``calibration`` of the
+    central ``n_acs_y`` lines (``REF``) at ``CALIBRATION_FLIP_DEG``, single
+    band, when undersampled or multiband; and the ``reference``, one volume
+    with the phase encode reversed (``SET = 1``), for distortion correction.
+    The FLEET calibration (Polimeni et al., Magn Reson Med 2016,
+    doi:10.1002/mrm.25628) reads those lines in ``n_shots * ry`` interleaved
+    EPI shots, which step as far per echo spacing as an imaging shot, with
+    its read lobe, navigator, blip and echo time, so the calibration is
+    distorted as the imaging is. The shots of a slice follow one another
+    after ``FLEET_DUMMY_SHOTS`` unsampled ones, forward (``SET = 0``) and then
+    reversed (``SET = 1``), so each phase-encode polarity has its own. The
+    gradient-echo calibration reads one line per excitation, undistorted.
 
     Parameters
     ----------
@@ -201,7 +300,8 @@ def epi2d(
     slice_spacing : float, default=0.0
         Gap between adjacent slices (m); zero is contiguous.
     flip_angle_deg : float, default=70.0
-        Excitation flip angle (degrees).
+        Excitation flip angle (degrees) of the imaging and the reference; the
+        calibration plays ``CALIBRATION_FLIP_DEG``.
     te : float | None, default=None
         Echo time of the centre line (s). ``None`` is as short as the
         navigator and the train admit.
@@ -232,9 +332,15 @@ def epi2d(
         non-acquiring shots per slice before each packet.
         ``None`` plays as many as bring the steady state within 1 % (:func:`~pypulseqpp.sequences.steady_state_dummies`).
     readout_oversampling : float, default=1.0
-        Readout oversampling factor, at least one.
+        Minimum EPI readout oversampling factor, at least one. Additional
+        samples preserve the requested dwell under the gradient limits.
     n_acs_y : int, default=24
-        Phase-encode lines of the gradient-echo calibration.
+        Phase-encode lines of the calibration; FLEET rounds them up to a
+        whole number of lines per shot.
+    calibration : {'fleet', 'gre'}, default='fleet'
+        The calibration played when undersampled or multiband: FLEET,
+        segmented EPI at the imaging train's echo spacing, or a gradient echo
+        per line.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
         excitation of every volume, dummy volumes included.
@@ -250,8 +356,9 @@ def epi2d(
     Raises
     ------
     ValueError
-        If ``partial_fourier_y`` is outside ``[0.5, 1]``, a count is below
-        one, ``multiband`` does not divide ``n_slices``, the shots cannot
+        If ``partial_fourier_y`` is outside ``[0.5, 1]``, ``calibration`` is
+        unknown, a count is below one, ``multiband`` does not divide
+        ``n_slices``, the shots cannot
         share the lines, the TE is shorter than the train admits, or the TR
         cannot hold one slice, or every slice when ``n_frames`` is above
         one.
@@ -275,6 +382,10 @@ def epi2d(
     if not 0.5 <= partial_fourier_y <= 1.0:
         raise ValueError(
             f"partial_fourier_y must lie in [0.5, 1], got {partial_fourier_y}"
+        )
+    if calibration not in CALIBRATIONS:
+        raise ValueError(
+            f"calibration must be one of {CALIBRATIONS}, got {calibration!r}"
         )
     for name, count in (
         ("ry", ry),
@@ -381,7 +492,8 @@ def epi2d(
 
     fatsat = (
         sequences.FatSaturation(
-            system, voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness)
+            pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
+            voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
         )
         if fat_saturation
         else None
@@ -415,7 +527,7 @@ def epi2d(
             fatsat.duration - fatsat.center + float(epi.rf.delay) + float(epi.rf.center)
         )
         fatsat = sequences.FatSaturation(
-            system,
+            pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
             flip_angle_deg=sequences.fat_null_flip_deg(to_excitation, shot_duration),
             voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
         )
@@ -442,17 +554,32 @@ def epi2d(
         system=system,
     )
 
-    # A gradient echo keeps EPI distortion out of the coil maps. An
-    # undersampled scan calibrates from it, and a multiband scan always does.
-    calibration = []
-    if ry > 1 or multiband > 1:
-        low = n_y // 2 - n_acs_y // 2
-        calibration = list(range(max(low, 0), min(low + n_acs_y, n_y)))
-    gre = None
-    if calibration:
+    # The calibration lines: centred, and a whole number per shot for FLEET.
+    acs_shots = n_shots * ry if calibration == "fleet" else 1
+    acs_lines = (
+        fleet_lines(n_y, n_acs_y, acs_shots) if ry > 1 or multiband > 1 else range(0)
+    )
+    weak = None
+    if acs_lines:
+        # The single-band pulse's samples scaled to the calibration's flip
+        # angle, a small-tip pulse's profile being its waveform's: one
+        # waveform and one timing for both, with no second design.
+        weak = pp.make_arbitrary_rf(
+            signal=np.asarray(single.rf.signal)
+            * (CALIBRATION_FLIP_DEG / flip_angle_deg),
+            flip_angle=0.0,
+            no_signal_scaling=True,
+            delay=single.rf.delay,
+            dwell=float(single.rf.t[1] - single.rf.t[0]),
+            system=system,
+            use=single.rf.use,
+            center=single.rf.center,
+        )
+    gre = acs = None
+    if weak is not None and calibration == "gre":
         gre = sequences.LineReadout2D(
             system,
-            single.rf,
+            weak,
             single.gz,
             single.gz_reph,
             fov=fov,
@@ -462,10 +589,30 @@ def epi2d(
             spoiling_cycles=SPOILING_CYCLES,
             labels=("LIN",),
         )
+    elif weak is not None:
+        acs = fleet_train(
+            system,
+            weak,
+            single.gz,
+            single.gz_reph,
+            epi,
+            acs_lines,
+            acs_shots,
+            **{
+                key: value
+                for key, value in train_arguments.items()
+                if key not in ("te", "te_line", "echo_shifts")
+            },
+            fov=fov,
+            matrix=(n_x, n_y),
+            labels=("LIN",),
+        )
 
     def define(seq: pp.Sequence, **definitions) -> None:
         # Every file of the chain places its slices, so a reconstruction reads
-        # a prescan's geometry from the prescan.
+        # a prescan's geometry from the prescan, and each acquiring file states
+        # the k-space centre line: one that did not was centred on the lines it
+        # read, which partial Fourier leaves off centre.
         for key, value in {
             "FOV": [*fov, slab_thickness],
             "Matrix": [n_x, n_y, n_slices],
@@ -503,9 +650,46 @@ def epi2d(
         seq, labels = pp.Sequence(system), sequences.Labels()
         order = [s for packet in packets_of(n_slices, n_slices) for s in packet]
         for s in order:
-            for line in calibration:
+            for line in acs_lines:
                 calibration_kernel(seq, labels, s, line)
-        define(seq, Name=f"{NAME}_calibration")
+        define(
+            seq,
+            Name=f"{NAME}_calibration",
+            kSpaceCenterLine=n_y // 2,
+        )
+        return seq
+
+    def fleet() -> pp.Sequence:
+        """Design the FLEET calibration: every shot of a slice, then the next slice."""
+        seq, labels = pp.Sequence(system), sequences.Labels()
+        order = [s for packet in packets_of(n_slices, n_slices) for s in packet]
+        starts = [acs_lines[0] + s for s in range(acs_shots)]
+        for s in order:
+            offset = single.selection_amplitude * positions[s]
+            for _ in range(FLEET_DUMMY_SHOTS):
+                shot_blocks(seq, labels, acs, starts[0], 0, offset, [], raster)
+            for polarity in (0, 1):
+                for shot, origin in enumerate(starts):
+                    flags = labels(REF=1, SLC=s, SEG=shot, SET=polarity)
+                    shot_blocks(
+                        seq,
+                        labels,
+                        acs,
+                        origin,
+                        shot,
+                        offset,
+                        flags,
+                        raster,
+                        acquire=True,
+                        reversed_encode=bool(polarity),
+                    )
+        define(
+            seq,
+            Name=f"{NAME}_calibration",
+            TE=acs.echo_time,
+            EchoSpacing=acs.esp,
+            kSpaceCenterLine=n_y // 2,
+        )
         return seq
 
     def kernel(
@@ -521,17 +705,9 @@ def epi2d(
         """Add one shot of slice (multiband group) ``g``; ``frame=None`` is a dummy.
 
         ``pad`` is the closing delay the shot would have without echo shift,
-        in s. ``reversed_encode`` negates every phase-encode event, so each
-        line L of the forward shot is read at its mirror, ``LIN = n_y - L``;
-        the mirror of line 0 lies outside the matrix and is played unsampled.
+        in s.
         """
-        train = shot_trains[shot]
-        train.rf.freq_offset = selection_amplitude * centers[g]
-        train.rf.phase_offset = -2 * np.pi * train.rf.freq_offset * train.rf.center
-        sign = -1.0 if reversed_encode else 1.0
-        origin = origins[shot]
         acquire = frame is not None
-
         if not acquire:
             flags = {"ONCE": 1}
         else:
@@ -542,7 +718,43 @@ def epi2d(
                 flags["SET"] = 1
             if not n_dummy:
                 del flags["ONCE"]
-        label_events = labels(**flags)
+        shot_blocks(
+            seq,
+            labels,
+            shot_trains[shot],
+            origins[shot],
+            shot,
+            selection_amplitude * centers[g],
+            [*labels(**flags), *([output_pulse] if output else [])],
+            pad,
+            acquire=acquire,
+            reversed_encode=reversed_encode,
+            prep=prep,
+        )
+
+    def shot_blocks(
+        seq: pp.Sequence,
+        labels: sequences.Labels,
+        train,
+        origin: int,
+        shot: int,
+        offset: float,
+        first_events: list,
+        pad: float,
+        acquire: bool = False,
+        reversed_encode: bool = False,
+        prep: list = (),
+    ) -> None:
+        """Add one shot of ``train`` from line ``origin``, its pulse ``offset`` Hz off resonance.
+
+        ``first_events`` ride the first block, and ``shot`` sets the echo
+        shift. ``reversed_encode`` negates every phase-encode event, so each
+        line L of the forward shot is read at its mirror, ``LIN = n_y - L``;
+        the mirror of line 0 lies outside the matrix and is played unsampled.
+        """
+        train.rf.freq_offset = offset
+        train.rf.phase_offset = -2 * np.pi * train.rf.freq_offset * train.rf.center
+        sign = -1.0 if reversed_encode else 1.0
         train.shot_labels[0].value = n_y - origin if reversed_encode else origin
         # The prewinder and the rewinder closing the shot are scaled alike.
         ky = sign * (origin - n_y // 2) / (n_y / 2)
@@ -550,7 +762,7 @@ def epi2d(
             id(train.gy_pre): pp.scale_grad(train.gy_pre, ky),
             id(train.gy_rew): pp.scale_grad(train.gy_rew, ky),
         }
-        if multiband > 1:
+        if len(train.shot_labels) > 1:
             band = int(train.order[0, 1])
             train.shot_labels[1].value = band
             kz = (band - multiband // 2) / (multiband / 2)
@@ -578,6 +790,7 @@ def epi2d(
         wait_tr = getattr(train, "wait_tr", None)
         closing = pad + (0.0 if wait_tr is None else wait_tr.delay) - step
 
+        label_events = list(first_events)
         for module in prep:
             for block in module.blocks:
                 seq.add_block(*block, *label_events)
@@ -598,7 +811,7 @@ def epi2d(
                 if sampled or event.type != "adc"
             ]
             if index == 0:
-                events += [*label_events, *([output_pulse] if output else [])]
+                events += label_events
             elif id(head) in navigator or id(head) in readouts:
                 if acquire:
                     events += labels(NAV=int(id(head) in navigator), REV=polarity)
@@ -648,10 +861,13 @@ def epi2d(
             TE=echo_time,
             TR=repetition_time,
             EchoSpacing=epi.esp,
+            kSpaceCenterLine=n_y // 2,
         )
         return seq
 
     prescans = [calibrate()] if gre is not None else []
+    if acs is not None:
+        prescans.append(fleet())
     prescans.append(reference())
     seq, (plot_tr_start, plot_tr_size) = play(frames=range(n_frames))
 

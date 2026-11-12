@@ -130,21 +130,21 @@ def test_bssfp_plot_unit_is_one_complete_slice_train():
         n_y=12,
         n_slices=1,
         n_phases=1,
-        n_dummy=1,
+        n_dummy=0,
         readout_bandwidth_hz=25_000,
         tr=None,
     )
 
     size, start, main, _ = select_trs(seq)
-    rf_amplitudes = [
-        abs(seq.get_block(block).rf.amplitude)
+    excitations = [
+        block
         for block in range(start, start + size)
         if seq.get_block(block).rf is not None
     ]
     terminal = seq.get_block(start + size - 1)
 
     assert (size, start, main) == (seq.num_blocks, 1, 1)
-    assert rf_amplitudes[0] == pytest.approx(rf_amplitudes[1] / 2)
+    assert len(excitations) == 12
     assert terminal.rf is None and terminal.adc is None
     assert all((terminal.gx, terminal.gy, terminal.gz))
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 __all__ = ["EpiReadout2D", "EpiReadout3D"]
 
+import math
+from fractions import Fraction
 from typing import Any
 
 import numpy as np
@@ -90,17 +92,24 @@ class _EpiReadout(SequenceModule):
         shift. ``None`` is as short as possible.
     navigator_lines : int, default=0
         Lines read without blips between the read and phase-encode prewinders,
-        for odd-even phase correction. Rejected with ``flyback``.
+        for odd-even phase correction, after one unsampled lobe that lets the
+        read axis settle from the prewinder. Rejected with ``flyback``.
     echo_shifts : int, default=1
         Number of shots whose trains are delayed by successive multiples of
         ``esp / echo_shifts``. The module plays no shift: the caller lengthens
         ``wait_shift``.
     oversampling : float, default=1.0
-        Readout oversampling: the sample spacing in k-space is
-        ``1 / (oversampling * fov)``.
+        Minimum readout oversampling. The sample count may increase to cover
+        the gradient-limited acquisition window at the requested dwell time.
+        The k-space extent is unchanged.
     readout_bandwidth_hz : float, default=500000.0
         Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
         on the ADC and gradient rasters.
+    blip_span : float, default=None
+        Duration of the phase-encode step window (s). ``None`` is the shortest
+        the widest step of ``order`` admits; a longer one, such as another
+        train's ``blip_span``, gives this train that train's read lobe and
+        echo spacing.
     ramp_sampling : bool, default=True
         Sample across the read ramps as well as the plateau, which shortens the
         echo spacing. False restricts the window to the plateau.
@@ -131,15 +140,20 @@ class _EpiReadout(SequenceModule):
         Its rephaser, if one was given, left-aligned in whichever block follows
         the pulse.
     gx_pre : TrapEvent
-        Read prewinder, half a line lobe against the first line's polarity,
-        right-aligned in the prewinder block so that it ends where the first
-        line starts.
+        Read prewinder, half a line lobe against the polarity of the first lobe
+        played, right-aligned in the prewinder block so that it ends where that
+        lobe starts.
     gx : list of GradEvent
         One read lobe per line: alternating polarity for a blipped train, the
         same lobe every time for a flyback one.
     gx_navigator : list of GradEvent
         One read lobe per navigator line, the first positive; present only with
         ``navigator_lines``.
+    gx_settle : GradEvent
+        The unsampled negative lobe played between the prewinder and the
+        navigator; present only with ``navigator_lines``. The first lobe after
+        the prewinder can echo away from where the steady train does, which
+        would bias the odd-even phase the navigator measures.
     gx_flyback : TrapEvent
         The rewind between two lines. ``flyback`` only.
     gy_blips, gz_blips : list
@@ -195,7 +209,8 @@ class _EpiReadout(SequenceModule):
     n_samples : int
         ADC samples per line.
     delta_kx : float
-        K-space sample spacing along the readout (1/m).
+        Mean k-space sample spacing along the readout (1/m). Ramp sampling
+        gives nonuniform spacing between individual samples.
     blip_span : float
         Duration of one phase-encode step (s), taken from the read ramps.
 
@@ -205,8 +220,8 @@ class _EpiReadout(SequenceModule):
         If a count is out of range, ``order`` is the wrong shape or steps
         outside the matrix, ``labels`` does not name one counter per encoded
         axis, ``te_line`` lies outside the train, a navigator is asked of a
-        flyback train, or the requested TE or TR is shorter than the train can
-        achieve.
+        flyback train, ``blip_span`` is shorter than the widest step needs, or
+        the requested TE or TR is shorter than the train can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped EPI readouts.
@@ -236,6 +251,7 @@ class _EpiReadout(SequenceModule):
         echo_shifts: int = 1,
         oversampling: float = 1.0,
         readout_bandwidth_hz: float = 500e3,
+        blip_span: float | None = None,
         ramp_sampling: bool = True,
         flyback: bool = False,
         spoiling_cycles: float = 0.0,
@@ -296,15 +312,23 @@ class _EpiReadout(SequenceModule):
         # step in the pattern and every other is that shape scaled. Half of it
         # runs into a line and half out, so it has to be an even raster count.
         steps = np.diff(order, axis=0)
-        blip_span = 0.0
+        shortest_blip = 0.0
         for axis in range(1, ndim):
             widest = int(np.max(np.abs(steps[:, axis - 1]))) if len(steps) else 0
             if widest:
                 trial = pp.make_trapezoid(
                     channel="yz"[axis - 1], area=widest * delta_k[axis], system=system
                 )
-                blip_span = max(blip_span, pp.calc_duration(trial))
-        blip_span = pp.ceil_to_raster(blip_span, 2.0 * system.grad_raster_time)
+                shortest_blip = max(shortest_blip, pp.calc_duration(trial))
+        if blip_span is not None and blip_span < shortest_blip - 1e-9:
+            raise ValueError(
+                f"blip_span {blip_span * 1e6:.1f} us is shorter than the "
+                f"{shortest_blip * 1e6:.1f} us the widest step needs"
+            )
+        blip_span = pp.ceil_to_raster(
+            shortest_blip if blip_span is None else blip_span,
+            2.0 * system.grad_raster_time,
+        )
 
         # Sampling. A flyback line reads on its own and hands the step to the
         # rewind, so nothing rides its ramps and the pad is only what the
@@ -312,20 +336,17 @@ class _EpiReadout(SequenceModule):
         n_full = round(oversampling * n[0])
         k_width = n_full * delta_k[0]
         lobe_blip = 0.0 if flyback else blip_span
-        dwell, sample_span = pp.calc_adc_timing(
+        n_samples, dwell, sample_span = _adc_timing(
+            system,
             n_full,
             1.0 / readout_bandwidth_hz,
-            grad_raster_time=system.grad_raster_time,
-            adc_raster_time=system.adc_raster_time,
-            min_readout_duration=_min_sample_span(
-                system, k_width, lobe_blip, ramp_sampling
-            ),
+            _min_sample_span(system, k_width, lobe_blip, ramp_sampling),
         )
         lobe, echo_offset = _read_lobe(
             system, k_width, sample_span, lobe_blip, ramp_sampling
         )
         adc = pp.make_adc(
-            num_samples=n_full,
+            num_samples=n_samples,
             dwell=dwell,
             delay=echo_offset - 0.5 * sample_span,
             system=system,
@@ -383,7 +404,10 @@ class _EpiReadout(SequenceModule):
             ),
             raster,
         )
-        gx_pre = _trapezoid("x", -0.5 * _area(lobe), system, pre_span)
+        # The prewinder opposes the first lobe played: the negative settling
+        # lobe ahead of a navigator, else the first line.
+        first = -1.0 if navigator_lines else 1.0
+        gx_pre = _trapezoid("x", -0.5 * first * _area(lobe), system, pre_span)
         gy_pre = pp.make_phase_encoding(
             "y", fov[1] / n[1], system=system, duration=pre_span
         )
@@ -427,11 +451,16 @@ class _EpiReadout(SequenceModule):
 
         # The navigator reads the centre line at alternating polarities, so
         # the phase-encode prewinder moves to a block of its own after it.
+        # An unsampled lobe of the other polarity comes first, so that the
+        # navigator is read once the read axis has settled from the prewinder.
         gx_navigator = [
             pp.scale_grad(lobe, 1.0 if line % 2 == 0 else -1.0)
             for line in range(navigator_lines)
         ]
-        navigator_span = navigator_lines * _span(system, lobe)
+        gx_settle = pp.scale_grad(lobe, -1.0) if navigator_lines else None
+        navigator_span = (
+            (navigator_lines + 1) * _span(system, lobe) if navigator_lines else 0.0
+        )
         encode_span = (
             _span(system, gy_pre, *present(gz_pre)) if navigator_lines else 0.0
         )
@@ -476,6 +505,8 @@ class _EpiReadout(SequenceModule):
         if not wait:
             prewinder += present(gz_reph)
         self.seq.add_block(*prewinder)
+        if navigator_lines:
+            self.seq.add_block(gx_settle)
         for line in range(navigator_lines):
             self.seq.add_block(gx_navigator[line], adc)
         if navigator_lines:
@@ -519,7 +550,7 @@ class _EpiReadout(SequenceModule):
         if ndim == 3:
             self.register(gz_blips=gz_blips)
         if navigator_lines:
-            self.register(gx_navigator=gx_navigator)
+            self.register(gx_navigator=gx_navigator, gx_settle=gx_settle)
         self.center = exc_span + wait + pre_span + echo_offset + lead
         self.echo_time = echo_time
         self.echo_times = echo_time + esp * (np.arange(etl) - te_line)
@@ -528,8 +559,41 @@ class _EpiReadout(SequenceModule):
         self.esp = esp
         self.blip_span = blip_span
         self.bandwidth_hz = 1.0 / dwell
-        self.n_samples = n_full
-        self.delta_kx = delta_k[0]
+        self.n_samples = n_samples
+        self.delta_kx = k_width / n_samples
+
+
+def _adc_timing(system: pp.Opts, minimum: int, target_dwell: float, span: float):
+    """Return samples, dwell and duration (s) covering ``span`` on both rasters.
+
+    Sample count increases at the nearest ADC-raster dwell. A nonzero
+    ``adc_samples_limit`` bounds the count. If additional samples exceed
+    that limit, the minimum count is used with a longer dwell.
+    """
+    dwell = max(
+        system.adc_raster_time,
+        pp.round_to_raster(target_dwell, system.adc_raster_time),
+    )
+    divisor = max(1, int(system.adc_samples_divisor))
+    # A duration of n dwells lies on the gradient raster when n is a
+    # multiple of the numerator of the reduced gradient-raster/dwell ratio.
+    ratio = Fraction(system.grad_raster_time / dwell).limit_denominator(1_000_000)
+    step = math.lcm(divisor, ratio.numerator)
+    samples = step * max(math.ceil(minimum / step), math.ceil(span / (step * dwell)))
+    limit = int(system.adc_samples_limit)
+    if limit > 0:
+        if minimum > limit // divisor * divisor:
+            raise ValueError("requested readout oversampling exceeds adc_samples_limit")
+        if samples > limit:
+            samples = divisor * math.ceil(minimum / divisor)
+    dwell, duration = pp.calc_adc_timing(
+        samples,
+        dwell,
+        grad_raster_time=system.grad_raster_time,
+        adc_raster_time=system.adc_raster_time,
+        min_readout_duration=span,
+    )
+    return samples, dwell, duration
 
 
 def _checked_order(order: Any, n: tuple[int, ...], ndim: int) -> np.ndarray:
@@ -776,7 +840,7 @@ class EpiReadout2D(_EpiReadout):
     ...     fov=0.22, matrix=64, labels=("LIN",),
     ... )
     >>> epi.etl, int(epi.adc.num_samples)
-    (64, 64)
+    (64, 160)
 
     >>> half = design.EpiReadout2D(
     ...     system, excitation.rf, excitation.gz, excitation.gz_reph,

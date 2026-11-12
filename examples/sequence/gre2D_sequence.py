@@ -28,6 +28,12 @@ BAND_DURATION = 3e-3
 BAND_TIME_BW_PRODUCT = 4.0
 
 
+#: Slew-rate ceiling (T/m/s) of the saturation bands, whose spoilers play on three
+#: axes at once: designed at the sequence's slew they would set its nerve
+#: stimulation, and the slew search would slow every gradient for them.
+PREPARATION_MAX_SLEW = 40.0
+
+
 def gre2d(
     system: pp.Opts | None = None,
     *,
@@ -212,7 +218,7 @@ def gre2d(
     )
 
     bands = sequences.spatial_saturations(
-        system,
+        pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
         (
             (
                 (sat1_normal_x, sat1_normal_y, sat1_normal_z),

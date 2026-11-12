@@ -6,7 +6,8 @@
 A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat
 with alternating RF phase. Zero net gradient moment in every TR preserves
 transverse coherence and establishes a steady state governed by T2/T1 and
-off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP
+off-resonance. A catalyst that ramps the flip angle over the first dummy
+repetitions damps the transient oscillation. 2D bSSFP
 is widely used for cardiac cine and dynamic cardiac imaging.
 """
 
@@ -33,7 +34,7 @@ diagram = bssfp2D_sequence(
     n_phases=1,
     readout_bandwidth_hz=25_000,
     tr=None,
-    n_dummy=1,
+    n_dummy=0,
 )
 baseline = bssfp2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0

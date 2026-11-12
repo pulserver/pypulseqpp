@@ -1,5 +1,7 @@
 """Spatial saturation band: selection along a physical normal, its exemption from the prescription, and the 2D sequences that play it."""
 
+import importlib
+
 import numpy as np
 import pytest
 from scipy.spatial.transform import Rotation
@@ -207,8 +209,16 @@ def test_a_2d_sequence_counts_its_bands_in_the_repetition_time(name):
     plain = SEQUENCES[name](**SMALL, tr=None)
     banded = SEQUENCES[name](**SMALL, tr=None, **BAND_1, **BAND_2)
 
+    ceiling = importlib.import_module(
+        f"pypulseqpp.sequences.sequence.{name}_sequence"
+    ).PREPARATION_MAX_SLEW
     band = design.SpatialSaturation(
-        plain.system, (0, 1, 0), 0.04, 0.02, duration_s=3e-3, voxel_size_m=5e-3
+        pp.cap_system(plain.system, max_slew=ceiling),
+        (0, 1, 0),
+        0.04,
+        0.02,
+        duration_s=3e-3,
+        voxel_size_m=5e-3,
     )
     gained = banded.definitions["TR"][0] - plain.definitions["TR"][0]
     assert gained == pytest.approx(2 * band.duration, abs=1e-6)
