@@ -554,15 +554,24 @@ lattice line from the <code class="docutils literal notranslate"><span class="pr
 doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI. A volume is
 every shot of every shell, shots outer and shells centre-out inner.</p>
 <p>Every shot reads <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> centre lines without blips
-(<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its train, every line carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read
+(<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its train, after one unsampled lobe that lets the read
+axis settle; every line carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read
 polarity, and shots are delayed by successive fractions of the echo
 spacing so the echo time grows smoothly across the lines; <code class="docutils literal notranslate"><span class="pre">te</span></code> is the
 echo time of the centre line. Acquisitions carry <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code>,
 <code class="docutils literal notranslate"><span class="pre">SEG</span></code> (the shot) and <code class="docutils literal notranslate"><span class="pre">REP</span></code>.</p>
 <p>Two prescans are linked ahead of the imaging: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, when
-undersampled, a Cartesian gradient echo over the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span>
-<span class="pre">n_acs_z</span></code> rectangle (<code class="docutils literal notranslate"><span class="pre">REF</span></code>); and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume with the
-phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion correction.</p>
+undersampled, of the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle (<code class="docutils literal notranslate"><span class="pre">REF</span></code>) at
+<code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>; and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume with the
+phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion correction. The FLEET
+calibration (Polimeni et al., Magn Reson Med 2016, doi:10.1002/mrm.25628)
+reads the lines of each partition in <code class="docutils literal notranslate"><span class="pre">n_shots</span> <span class="pre">*</span> <span class="pre">ry</span></code> interleaved EPI
+shots, which step as far per echo spacing as an imaging shot, with its
+read lobe, navigator, blip and echo time, so the calibration is distorted
+as the imaging is. A partition’s shots follow one another, forward
+(<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">0</span></code>) and then reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), after
+<code class="docutils literal notranslate"><span class="pre">FLEET_DUMMY_SHOTS</span></code> unsampled ones that open the calibration. The
+gradient-echo calibration reads one view per excitation, undistorted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -575,7 +584,8 @@ phase encode reversed (<code class="docutils literal notranslate"><span class="p
 <li><p><strong>n_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=128</em>) – Matrix size along the readout.</p></li>
 <li><p><strong>n_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=128</em>) – Matrix size along the phase encode.</p></li>
 <li><p><strong>n_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=32</em>) – Matrix size along the partition encode.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=20.0</em>) – Excitation flip angle (degrees).</p></li>
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=20.0</em>) – Excitation flip angle (degrees) of the imaging and the reference; the
+calibration plays <code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>.</p></li>
 <li><p><strong>te</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Echo time of the centre line (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as the
 navigator and the train admit.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Volume repetition time (s): every shot of every shell. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
@@ -596,11 +606,13 @@ non-acquiring shots.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
 <li><p><strong>excitation</strong> (<em>{'slab'</em><em>, </em><em>'nonselective'</em><em>, </em><em>'spsp'}</em><em>, </em><em>default='slab'</em>) – A slab-selective SLR pulse, a hard pulse, or a slab- and
 water-selective spectral-spatial pulse.</p></li>
-<li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
-<li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Extent of the gradient-echo calibration rectangle along the phase
-encode.</p></li>
-<li><p><strong>n_acs_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=16</em>) – Extent of the gradient-echo calibration rectangle along the partition
-encode.</p></li>
+<li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Minimum EPI readout oversampling factor, at least one. Additional
+samples preserve the requested dwell under the gradient limits.</p></li>
+<li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Extent of the calibration rectangle along the phase encode; FLEET
+rounds it up to a whole number of lines per shot.</p></li>
+<li><p><strong>n_acs_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=16</em>) – Extent of the calibration rectangle along the partition encode.</p></li>
+<li><p><strong>calibration</strong> (<em>{'fleet'</em><em>, </em><em>'gre'}</em><em>, </em><em>default='fleet'</em>) – The calibration played when undersampled: FLEET, segmented EPI at
+the imaging train’s echo spacing, or a gradient echo per view.</p></li>
 <li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
 excitation of every volume, dummy volumes included.</p></li>
 </ul>
@@ -615,7 +627,8 @@ sequence. <code class="docutils literal notranslate"><span class="pre">sequences
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">excitation</span></code> is unknown, a partial Fourier fraction is outside
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">excitation</span></code> or <code class="docutils literal notranslate"><span class="pre">calibration</span></code> is unknown, a partial Fourier
+    fraction is outside
     <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">1]</span></code>, a count is below one, the shots cannot share the lines
     or the partitions hold no shell, or the TE or TR is shorter than
     the shots take.</p>

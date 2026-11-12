@@ -448,6 +448,7 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"BssfpReadout2D"</span><span class="p">,</span> <span class="s2">"BssfpReadout3D"</span><span class="p">]</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -459,6 +460,10 @@
 
 <span class="c1">#: Fraction of ``max_grad`` the readout plateau may reach.</span>
 <span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="c1">#: Fraction of the selection amplitude a bridged slice axis is at where one</span>
+<span class="c1">#: block of a slice meets the next, so that no join inside the slice has every</span>
+<span class="c1">#: gradient at rest.</span>
+<span class="n">_BRIDGE_FRACTION</span> <span class="o">=</span> <span class="mf">0.0625</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_BssfpReadout</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
@@ -507,6 +512,23 @@
 <span class="sd">        caller.</span>
 <span class="sd">    trigger : TriggerEvent or DigitalOutputEvent, default=None</span>
 <span class="sd">        Event armed on the rewind block.</span>
+<span class="sd">    bridge : bool, default=False</span>
+<span class="sd">        Join the blocks of a slice on the slice axis, 2D with a trapezoidal</span>
+<span class="sd">        ``gz`` only: the ramps of the selection plateau run through zero to</span>
+<span class="sd">        a fraction of its amplitude where the excitation block meets the</span>
+<span class="sd">        rewind before it and the acquisition after it, and the rephasers end</span>
+<span class="sd">        and start there. No join between two repetitions then has every</span>
+<span class="sd">        gradient at rest, so a scanner that prepares a segment between blocks</span>
+<span class="sd">        at rest plays the slice as one, at every repetition time: a longer</span>
+<span class="sd">        ``tr`` lengthens the acquisition and rewind blocks, which carry the</span>
+<span class="sd">        read and phase lobes from one end to the other. The windows either</span>
+<span class="sd">        side of the excitation hold the bridged rephasers and ``gz_close``, so</span>
+<span class="sd">        the shortest repetition can differ by a few rasters from that of a</span>
+<span class="sd">        slice axis that rests. The caller opens a bridged slice with</span>
+<span class="sd">        ``gz_open`` in place of ``gz`` and closes it with ``gz_close`` in</span>
+<span class="sd">        place of ``gz_rew``; a rewind with ``gz_close`` followed by an</span>
+<span class="sd">        excitation with ``gz_open`` rests the slice between two repetitions,</span>
+<span class="sd">        each of the same duration.</span>
 
 
 <span class="sd">    Attributes</span>
@@ -527,6 +549,13 @@
 <span class="sd">        Slice rephasers: ``gz_pre`` in the acquisition block after the pulse,</span>
 <span class="sd">        ``gz_rew`` in the rewind block before the next pulse. Absent for a</span>
 <span class="sd">        hard pulse.</span>
+<span class="sd">    bridged : bool</span>
+<span class="sd">        Whether the blocks of a slice join on the slice axis.</span>
+<span class="sd">    gz_open, gz_close : GradEvent</span>
+<span class="sd">        Bridged only: the selection gradient of an excitation block that</span>
+<span class="sd">        opens from rest, and the rephaser of a rewind that starts and ends at</span>
+<span class="sd">        rest and rephases ``gz_open``. They open and close a slice, and rest</span>
+<span class="sd">        it between two of its repetitions.</span>
 <span class="sd">    gz_partition, gz_partition_rew : TrapEvent</span>
 <span class="sd">        Partition encode at its largest step, and the same negated, sharing</span>
 <span class="sd">        the window of ``gz_pre`` and ``gz_rew`` respectively. 3D only.</span>
@@ -561,7 +590,9 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If a size or rate is out of range, the ``half_flip_prep`` condition</span>
-<span class="sd">        fails, or the requested TR is shorter than the module can achieve.</span>
+<span class="sd">        fails, the requested TR is shorter than the module can achieve, or</span>
+<span class="sd">        ``bridge`` is asked of a 3D readout or of a ``gz`` that is not a</span>
+<span class="sd">        trapezoid.</span>
 <span class="sd">    """</span>
 
     <span class="c1">#: 2 or 3. The only thing that separates the two shipped bSSFP readouts.</span>
@@ -581,8 +612,14 @@
         <span class="n">readout_bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">250e3</span><span class="p">,</span>
         <span class="n">labels</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">trigger</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">bridge</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ndim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndim</span>
+        <span class="k">if</span> <span class="n">bridge</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">gz</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gz</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="s2">"trap"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"bridge joins the blocks of a slice on its selection gradient: it "</span>
+                <span class="s2">"takes a 2D readout and a trapezoidal gz"</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">oversampling</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"oversampling must be &gt;= 1"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">readout_bandwidth_hz</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -653,32 +690,107 @@
         <span class="n">post_area</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">selection_area</span>
         <span class="n">pre_area</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">selection_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">)</span>
 
-        <span class="c1"># Every z lobe is built on the same ramp, which is what makes a</span>
+        <span class="c1"># The z lobes of one window share their ramp, which is what makes a</span>
         <span class="c1"># rephaser and a partition encode add up to a single trapezoid instead</span>
-        <span class="c1"># of an arbitrary waveform.</span>
-        <span class="n">ramp</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
-        <span class="p">)</span>
+        <span class="c1"># of an arbitrary waveform. The ramp is the one on which the largest</span>
+        <span class="c1"># sum is fastest at the slew rate: a small sum is a short triangle, not</span>
+        <span class="c1"># a lobe on the full-scale ramp max_grad / max_slew.</span>
         <span class="n">step_z</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">fov</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="mf">0.0</span>
-        <span class="c1"># The half-flip gap holds both rephasers in one lobe.</span>
+        <span class="n">z_area</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pre_area</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">post_area</span><span class="p">))</span> <span class="o">+</span> <span class="n">step_z</span>
+        <span class="n">ramp</span> <span class="o">=</span> <span class="n">_z_ramp</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">z_area</span><span class="p">)</span>
+        <span class="n">z_pre_floor</span> <span class="o">=</span> <span class="n">z_rew_floor</span> <span class="o">=</span> <span class="n">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">z_area</span><span class="p">,</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+        <span class="c1"># The half-flip gap holds both rephasers in one lobe, on its own ramp.</span>
+        <span class="n">prep_area</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">)</span>
+        <span class="n">prep_ramp</span> <span class="o">=</span> <span class="n">_z_ramp</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">prep_area</span><span class="p">)</span>
         <span class="n">prep_floor</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">),</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="o">-</span> <span class="n">prep_span</span>
+            <span class="n">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">prep_area</span><span class="p">,</span> <span class="n">prep_ramp</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="o">-</span> <span class="n">prep_span</span>
             <span class="k">if</span> <span class="n">half_flip_prep</span>
             <span class="k">else</span> <span class="mf">0.0</span>
         <span class="p">)</span>
-        <span class="n">floor</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-            <span class="n">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pre_area</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">post_area</span><span class="p">))</span> <span class="o">+</span> <span class="n">step_z</span><span class="p">,</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">raster</span><span class="p">),</span>
-            <span class="n">prep_floor</span><span class="p">,</span>
-            <span class="n">_span</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">gx_rew</span><span class="p">,</span> <span class="n">trigger</span><span class="p">),</span>
-            <span class="n">_span</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">fov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)),</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">entry_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">raster</span><span class="p">),</span>
+        <span class="n">gz_open</span> <span class="o">=</span> <span class="n">gz_close</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">bridge</span><span class="p">:</span>
+            <span class="c1"># The slice axis never rests where two blocks of a slice meet: the</span>
+            <span class="c1"># ramps of the selection plateau run through zero to a fraction of</span>
+            <span class="c1"># its amplitude on the other side, where the slew rate allows, so</span>
+            <span class="c1"># the rephasers either side have less to unwind and stop short of</span>
+            <span class="c1"># rest. Where it does not, they stop short of rest on the</span>
+            <span class="c1"># plateau's side. The first excitation of a slice opens from rest.</span>
+            <span class="n">plateau</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="n">_BRIDGE_FRACTION</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">plateau</span><span class="p">)</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">copysign</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">plateau</span><span class="p">)</span>
+            <span class="n">top</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">rise_time</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">top</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">flat_time</span><span class="p">)</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+            <span class="c1"># The ramp up may start in the pulse's dead time, as early as it</span>
+            <span class="c1"># must to reach the plateau from the far side within the slew rate.</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">step</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">top</span> <span class="o">-</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">plateau</span><span class="p">)</span> <span class="o">+</span> <span class="n">level</span><span class="p">)</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span> <span class="o">+</span> <span class="mf">1e-9</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">1e-12</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">delay</span><span class="p">))</span>
+                <span class="n">lead</span> <span class="o">=</span> <span class="o">-</span><span class="n">sign</span> <span class="o">*</span> <span class="n">level</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">start</span><span class="p">,</span> <span class="n">lead</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">delay</span><span class="p">),</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">level</span>
+            <span class="n">tail</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="o">-</span><span class="n">sign</span> <span class="o">*</span> <span class="n">level</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">plateau</span><span class="p">)</span> <span class="o">+</span> <span class="n">level</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">excite_span</span> <span class="o">-</span> <span class="n">end</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span>
+                <span class="k">else</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">level</span>
+            <span class="p">)</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">excite_span</span><span class="p">]</span>
+            <span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lead</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">plateau</span><span class="p">,</span> <span class="n">plateau</span><span class="p">,</span> <span class="n">tail</span><span class="p">]</span>
+            <span class="n">opening</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">gz</span><span class="o">.</span><span class="n">delay</span><span class="p">),</span> <span class="n">top</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">excite_span</span><span class="p">]</span>
+            <span class="n">opened</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">plateau</span><span class="p">,</span> <span class="n">plateau</span><span class="p">,</span> <span class="n">tail</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+                <span class="n">times</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">levels</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="n">gz</span><span class="o">.</span><span class="n">delay</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+                <span class="n">opening</span><span class="p">,</span> <span class="n">opened</span> <span class="o">=</span> <span class="n">opening</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">opened</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">before</span><span class="p">,</span> <span class="n">after</span> <span class="o">=</span> <span class="n">_areas_about</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">rf_center</span><span class="p">)</span>
+            <span class="c1"># Each rephaser is the fastest lobe between rest and the level the</span>
+            <span class="c1"># excitation block opens or closes on; the half-flip gap holds</span>
+            <span class="c1"># the two in one lobe. The closing lobe runs from rest to rest and</span>
+            <span class="c1"># rephases an excitation opened from rest, which closes at the</span>
+            <span class="c1"># same level, so its rephaser after the pulse is the bridged one.</span>
+            <span class="n">pre_times</span><span class="p">,</span> <span class="n">pre_levels</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="o">-</span><span class="n">before</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
+            <span class="n">post_times</span><span class="p">,</span> <span class="n">post_levels</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="o">-</span><span class="n">after</span><span class="p">,</span> <span class="n">tail</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
+            <span class="n">held</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="n">before</span> <span class="o">+</span> <span class="n">after</span><span class="p">),</span> <span class="n">tail</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">close_times</span><span class="p">,</span> <span class="n">close_levels</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span>
+                <span class="n">system</span><span class="p">,</span> <span class="o">-</span><span class="n">_areas_about</span><span class="p">(</span><span class="n">opening</span><span class="p">,</span> <span class="n">opened</span><span class="p">,</span> <span class="n">rf_center</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"z"</span>
+            <span class="p">)</span>
+            <span class="c1"># The windows either side of the excitation hold the bridged</span>
+            <span class="c1"># lobes and the closing one, whatever a slice axis that rests</span>
+            <span class="c1"># would need: a slice asked to be bridged is, at every repetition</span>
+            <span class="c1"># time, and may rest between any two of its repetitions.</span>
+            <span class="n">z_pre_floor</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">post_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">raster</span><span class="p">)</span>
+            <span class="n">z_rew_floor</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+                <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">pre_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">close_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span> <span class="n">raster</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">half_flip_prep</span><span class="p">:</span>
+                <span class="n">prep_floor</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">held</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="o">-</span> <span class="n">prep_span</span>
+        <span class="k">if</span> <span class="n">bridge</span><span class="p">:</span>
+            <span class="n">gz_open</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">opening</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">opened</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+            <span class="p">)</span>
+            <span class="n">gz</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+            <span class="p">)</span>
+            <span class="n">post_area</span><span class="p">,</span> <span class="n">pre_area</span> <span class="o">=</span> <span class="o">-</span><span class="n">after</span><span class="p">,</span> <span class="o">-</span><span class="n">before</span>
+        <span class="n">y_floor</span> <span class="o">=</span> <span class="n">_span</span><span class="p">(</span>
+            <span class="n">raster</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">fov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">encode_floor</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">entry_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">raster</span><span class="p">),</span> <span class="n">y_floor</span><span class="p">,</span> <span class="n">z_pre_floor</span>
+        <span class="p">)</span>
+        <span class="n">rewind_floor</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="n">_span</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">gx_rew</span><span class="p">,</span> <span class="n">trigger</span><span class="p">),</span> <span class="n">y_floor</span><span class="p">,</span> <span class="n">z_rew_floor</span><span class="p">,</span> <span class="n">prep_floor</span>
         <span class="p">)</span>
 
         <span class="c1"># TE = TR/2 puts the echo as far after the pulse centre as the next</span>
         <span class="c1"># pulse centre is after the echo, which is one equation between the two</span>
         <span class="c1"># windows either side of the excitation block.</span>
         <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">flat_span</span> <span class="o">-</span> <span class="n">readout_duration</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">rf_center</span> <span class="o">-</span> <span class="n">excite_span</span>
-        <span class="n">rewind_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">floor</span><span class="p">,</span> <span class="n">floor</span> <span class="o">-</span> <span class="n">offset</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span>
+        <span class="n">rewind_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">rewind_floor</span><span class="p">,</span> <span class="n">encode_floor</span> <span class="o">-</span> <span class="n">offset</span><span class="p">),</span> <span class="n">raster</span>
+        <span class="p">)</span>
         <span class="n">tr_min</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">rewind_span</span> <span class="o">+</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">flat_span</span> <span class="o">+</span> <span class="n">excite_span</span>
         <span class="n">rewind_span</span> <span class="o">+=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span>
             <span class="mf">0.5</span> <span class="o">*</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">tr_min</span><span class="p">,</span> <span class="s2">"TR"</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span> <span class="n">raster</span>
@@ -694,8 +806,21 @@
             <span class="p">),</span>
             <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">post_area</span><span class="p">,</span> <span class="n">encode_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
-        <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">pre_area</span><span class="p">,</span> <span class="n">rewind_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bridge</span><span class="p">:</span>
+            <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">post_times</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">post_levels</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+            <span class="p">)</span>
+            <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">pre_times</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">pre_levels</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+            <span class="p">)</span>
+            <span class="n">gz_rew</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">rewind_span</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">pre_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">gz_close</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+                <span class="n">channel</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">close_times</span><span class="p">,</span> <span class="n">amplitudes</span><span class="o">=</span><span class="n">close_levels</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+            <span class="p">)</span>
+            <span class="n">gz_close</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">rewind_span</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">close_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">post_area</span><span class="p">,</span> <span class="n">encode_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
+            <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">pre_area</span><span class="p">,</span> <span class="n">rewind_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">gz_partition</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">step_z</span><span class="p">,</span> <span class="n">encode_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
             <span class="n">gz_partition_rew</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="o">-</span><span class="n">step_z</span><span class="p">,</span> <span class="n">rewind_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
@@ -714,7 +839,22 @@
 
         <span class="k">if</span> <span class="n">half_flip_prep</span><span class="p">:</span>
             <span class="n">wait_prep</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">prep_span</span> <span class="o">+</span> <span class="n">rewind_span</span><span class="p">)</span>
-            <span class="n">gz_prep</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">,</span> <span class="n">prep_span</span> <span class="o">+</span> <span class="n">rewind_span</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bridge</span><span class="p">:</span>
+                <span class="n">gz_prep</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="s2">"z"</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">_held_lobe</span><span class="p">(</span>
+                        <span class="n">system</span><span class="p">,</span>
+                        <span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">,</span>
+                        <span class="n">tail</span><span class="p">,</span>
+                        <span class="n">lead</span><span class="p">,</span>
+                        <span class="n">prep_span</span> <span class="o">+</span> <span class="n">rewind_span</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gz_prep</span> <span class="o">=</span> <span class="n">_lobe</span><span class="p">(</span>
+                    <span class="n">system</span><span class="p">,</span> <span class="n">pre_area</span> <span class="o">+</span> <span class="n">post_area</span><span class="p">,</span> <span class="n">prep_span</span> <span class="o">+</span> <span class="n">rewind_span</span><span class="p">,</span> <span class="n">prep_ramp</span>
+                <span class="p">)</span>
 
         <span class="n">adc_labels</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">labels</span> <span class="ow">or</span> <span class="p">()</span>
@@ -726,9 +866,17 @@
         <span class="c1"># One repetition of the centre partition, laid out from the pulse so</span>
         <span class="c1"># that it starts and ends with every axis at rest.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span> <span class="o">*</span><span class="n">adc_labels</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_rew</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">bridge</span><span class="p">:</span>
+            <span class="c1"># Laid out as a slice of one repetition: opened from rest and</span>
+            <span class="c1"># closed to it.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz_open</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">gz_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">adc_labels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_rew</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_close</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">gz</span><span class="o">=</span><span class="n">gz</span><span class="p">,</span> <span class="n">gz_rew</span><span class="o">=</span><span class="n">gz_rew</span><span class="p">,</span> <span class="n">gz_close</span><span class="o">=</span><span class="n">gz_close</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">adc</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span> <span class="o">*</span><span class="n">adc_labels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_rew</span><span class="p">,</span> <span class="n">gy_rew</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
             <span class="n">prep_labels</span><span class="o">=</span><span class="n">prep_labels</span><span class="p">,</span>
             <span class="n">train_labels</span><span class="o">=</span><span class="n">train_labels</span><span class="p">,</span>
@@ -736,6 +884,7 @@
             <span class="o">**</span><span class="p">({</span><span class="s2">"wait_prep"</span><span class="p">:</span> <span class="n">wait_prep</span><span class="p">,</span> <span class="s2">"gz_prep"</span><span class="p">:</span> <span class="n">gz_prep</span><span class="p">}</span> <span class="k">if</span> <span class="n">half_flip_prep</span> <span class="k">else</span> <span class="p">{}),</span>
         <span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">bridged</span> <span class="o">=</span> <span class="n">bridge</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tr</span> <span class="o">=</span> <span class="n">rewind_span</span> <span class="o">+</span> <span class="n">excite_span</span> <span class="o">+</span> <span class="n">encode_span</span> <span class="o">+</span> <span class="n">flat_span</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">te</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">excite_span</span> <span class="o">+</span> <span class="n">encode_span</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">readout_duration</span>
@@ -760,11 +909,86 @@
     <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">events</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span> <span class="k">if</span> <span class="n">events</span> <span class="k">else</span> <span class="mf">0.0</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">grad_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">grad_end</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_vertices</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">grad_start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">grad_end</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"x"</span>
+<span class="p">):</span>
     <span class="n">_</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid_area</span><span class="p">(</span>
-        <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">grad_start</span><span class="o">=</span><span class="n">grad_start</span><span class="p">,</span> <span class="n">grad_end</span><span class="o">=</span><span class="n">grad_end</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+        <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">,</span>
+        <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
+        <span class="n">grad_start</span><span class="o">=</span><span class="n">grad_start</span><span class="p">,</span>
+        <span class="n">grad_end</span><span class="o">=</span><span class="n">grad_end</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_held_lobe</span><span class="p">(</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the vertices of a z lobe of ``area`` over ``window``, from ``start`` to ``end``.</span>
+
+<span class="sd">    Where the window holds them, the fastest lobe from ``start`` to rest and</span>
+<span class="sd">    the fastest from rest to ``end``, rest between. Otherwise one lobe held</span>
+<span class="sd">    at ``end`` to the end of the window: it carries ``area`` less what the</span>
+<span class="sd">    hold adds, which depends on its own duration, so the two are solved</span>
+<span class="sd">    together, and where the durations do not settle the longer lobe is</span>
+<span class="sd">    scaled down about the line from ``start`` to ``end``.</span>
+<span class="sd">    """</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+    <span class="n">leave</span><span class="p">,</span> <span class="n">left</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">area</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
+    <span class="n">arrive</span><span class="p">,</span> <span class="n">arrived</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">area</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">leave</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">arrive</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">window</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+        <span class="n">gap</span> <span class="o">=</span> <span class="n">window</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">arrive</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">join</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">gap</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">leave</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"times"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leave</span><span class="p">,</span> <span class="n">gap</span> <span class="o">+</span> <span class="n">arrive</span><span class="p">[</span><span class="n">join</span><span class="p">:]),</span>
+            <span class="s2">"amplitudes"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">arrived</span><span class="p">[</span><span class="n">join</span><span class="p">:]),</span>
+        <span class="p">}</span>
+
+    <span class="n">times</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">32</span><span class="p">):</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+        <span class="n">times</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span> <span class="n">area</span> <span class="o">-</span> <span class="n">end</span> <span class="o">*</span> <span class="p">(</span><span class="n">window</span> <span class="o">-</span> <span class="n">duration</span><span class="p">),</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="s2">"z"</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">duration</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Two durations alternate: the longer lobe, scaled to the area that</span>
+        <span class="c1"># leaves its own hold.</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])</span>
+        <span class="n">times</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">_vertices</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span> <span class="n">area</span> <span class="o">-</span> <span class="n">end</span> <span class="o">*</span> <span class="p">(</span><span class="n">window</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])),</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="s2">"z"</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">duration</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"no lobe of </span><span class="si">{</span><span class="n">area</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> 1/m held to </span><span class="si">{</span><span class="n">window</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> us was found"</span>
+            <span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="n">times</span> <span class="o">/</span> <span class="n">duration</span>
+        <span class="n">carried</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">levels</span> <span class="o">-</span> <span class="n">line</span><span class="p">,</span> <span class="n">times</span><span class="p">))</span>
+        <span class="n">wanted</span> <span class="o">=</span> <span class="n">area</span> <span class="o">-</span> <span class="n">end</span> <span class="o">*</span> <span class="p">(</span><span class="n">window</span> <span class="o">-</span> <span class="n">duration</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">end</span><span class="p">)</span> <span class="o">*</span> <span class="n">duration</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="n">line</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">wanted</span> <span class="o">/</span> <span class="n">carried</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">levels</span> <span class="o">-</span> <span class="n">line</span><span class="p">)</span>
+    <span class="n">hold</span> <span class="o">=</span> <span class="n">window</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">hold</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a lobe of </span><span class="si">{</span><span class="n">area</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> 1/m does not fit </span><span class="si">{</span><span class="n">window</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> us"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hold</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+        <span class="n">times</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">window</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">levels</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"times"</span><span class="p">:</span> <span class="n">times</span><span class="p">,</span> <span class="s2">"amplitudes"</span><span class="p">:</span> <span class="n">levels</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_areas_about</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">levels</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">centre</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the areas of a piecewise-linear waveform before and after ``centre``."""</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">levels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">centre</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">levels</span><span class="p">))</span>
+    <span class="n">early</span> <span class="o">=</span> <span class="n">times</span> <span class="o">&lt;</span> <span class="n">centre</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">levels</span><span class="p">[</span><span class="n">early</span><span class="p">],</span> <span class="n">at</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">early</span><span class="p">],</span> <span class="n">centre</span><span class="p">))</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="n">levels</span><span class="p">[</span><span class="o">~</span><span class="n">early</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">centre</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="o">~</span><span class="n">early</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">before</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_lobe</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ramp</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
@@ -780,13 +1004,24 @@
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_z_ramp</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the ramp of the fastest z trapezoid of ``area``: a triangle below full scale, else the full-scale ramp."""</span>
+    <span class="n">peak</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">area</span><span class="p">)</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">peak</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">),</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_z_floor</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">area</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ramp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return the shortest window holding a z trapezoid of ``area`` on ramps of ``ramp``.</span>
 
 <span class="sd">    ``area`` is a rephaser plus the largest partition step: the caller adds</span>
-<span class="sd">    the two into one trapezoid, whose amplitude must stay within ``max_grad``.</span>
+<span class="sd">    the two into one trapezoid, whose amplitude must stay within ``max_grad``</span>
+<span class="sd">    and reach it no faster than ``max_slew`` allows over ``ramp``.</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">ramp</span> <span class="o">+</span> <span class="n">area</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">peak</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span> <span class="o">*</span> <span class="n">ramp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">ramp</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">area</span><span class="p">)</span> <span class="o">/</span> <span class="n">peak</span><span class="p">),</span> <span class="n">raster</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BssfpReadout2D">

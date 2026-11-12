@@ -82,8 +82,8 @@ each design below is the last element of the returned list.
 
  .. code-block:: none
 
-    228 blocks, 0.19 s
-    CAIPI shift 2, TE 8.83 ms, TR 189.4 ms
+    240 blocks, 0.14 s
+    CAIPI shift 2, TE 6.33 ms, TR 135.8 ms
 
 
 
@@ -186,8 +186,8 @@ so its blips are larger than those of the single-shot train.
  .. code-block:: none
 
                echoes  trains  per train   TE (ms)
-    3 shots       120      12       10.0      8.83
-    1 shot        128       4       32.0     17.10
+    3 shots       120      12       10.0      6.33
+    1 shot        128       4       32.0     11.30
 
 
 
@@ -235,7 +235,7 @@ aliases [BRE06]_.
 
  .. code-block:: none
 
-    ry=3, rz=2: CAIPI shift 1, 384 blocks, 0.32 s
+    ry=3, rz=2: CAIPI shift 1, 408 blocks, 0.24 s
 
 
 
@@ -258,7 +258,7 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.352 seconds)
+   **Total running time of the script:** (0 minutes 0.703 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi3D_sequence.py:

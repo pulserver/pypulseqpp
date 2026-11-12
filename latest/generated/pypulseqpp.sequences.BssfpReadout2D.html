@@ -554,6 +554,22 @@ on the ADC and gradient rasters.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels set to 0 on the acquisition block, to be changed per shot by the
 caller.</p></li>
 <li><p><strong>trigger</strong> (<em>TriggerEvent</em><em> or </em><em>DigitalOutputEvent</em><em>, </em><em>default=None</em>) – Event armed on the rewind block.</p></li>
+<li><p><strong>bridge</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Join the blocks of a slice on the slice axis, 2D with a trapezoidal
+<code class="docutils literal notranslate"><span class="pre">gz</span></code> only: the ramps of the selection plateau run through zero to
+a fraction of its amplitude where the excitation block meets the
+rewind before it and the acquisition after it, and the rephasers end
+and start there. No join between two repetitions then has every
+gradient at rest, so a scanner that prepares a segment between blocks
+at rest plays the slice as one, at every repetition time: a longer
+<code class="docutils literal notranslate"><span class="pre">tr</span></code> lengthens the acquisition and rewind blocks, which carry the
+read and phase lobes from one end to the other. The windows either
+side of the excitation hold the bridged rephasers and <code class="docutils literal notranslate"><span class="pre">gz_close</span></code>, so
+the shortest repetition can differ by a few rasters from that of a
+slice axis that rests. The caller opens a bridged slice with
+<code class="docutils literal notranslate"><span class="pre">gz_open</span></code> in place of <code class="docutils literal notranslate"><span class="pre">gz</span></code> and closes it with <code class="docutils literal notranslate"><span class="pre">gz_close</span></code> in
+place of <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code>; a rewind with <code class="docutils literal notranslate"><span class="pre">gz_close</span></code> followed by an
+excitation with <code class="docutils literal notranslate"><span class="pre">gz_open</span></code> rests the slice between two repetitions,
+each of the same duration.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -569,6 +585,11 @@ per shot.</p></li>
 <li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – Slice rephasers: <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code> in the acquisition block after the pulse,
 <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> in the rewind block before the next pulse. Absent for a
 hard pulse.</p></li>
+<li><p><strong>bridged</strong> (<em>bool</em>) – Whether the blocks of a slice join on the slice axis.</p></li>
+<li><p><strong>gz_open, gz_close</strong> (<em>GradEvent</em>) – Bridged only: the selection gradient of an excitation block that
+opens from rest, and the rephaser of a rewind that starts and ends at
+rest and rephases <code class="docutils literal notranslate"><span class="pre">gz_open</span></code>. They open and close a slice, and rest
+it between two of its repetitions.</p></li>
 <li><p><strong>gz_partition, gz_partition_rew</strong> (<em>TrapEvent</em>) – Partition encode at its largest step, and the same negated, sharing
 the window of <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code> and <code class="docutils literal notranslate"><span class="pre">gz_rew</span></code> respectively. 3D only.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, spanning the readout plateau.</p></li>
@@ -591,7 +612,9 @@ gradient; absent with <code class="docutils literal notranslate"><span class="pr
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a size or rate is out of range, the <code class="docutils literal notranslate"><span class="pre">half_flip_prep</span></code> condition
-    fails, or the requested TR is shorter than the module can achieve.</p>
+    fails, the requested TR is shorter than the module can achieve, or
+    <code class="docutils literal notranslate"><span class="pre">bridge</span></code> is asked of a 3D readout or of a <code class="docutils literal notranslate"><span class="pre">gz</span></code> that is not a
+    trapezoid.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

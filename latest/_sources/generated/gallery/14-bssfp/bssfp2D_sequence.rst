@@ -25,10 +25,11 @@
 A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat
 with alternating RF phase. Zero net gradient moment in every TR preserves
 transverse coherence and establishes a steady state governed by T2/T1 and
-off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP
+off-resonance. A catalyst that ramps the flip angle over the first dummy
+repetitions damps the transient oscillation. 2D bSSFP
 is widely used for cardiac cine and dynamic cardiac imaging.
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-20
+.. GENERATED FROM PYTHON SOURCE LINES 13-21
 
 
 
@@ -37,14 +38,14 @@ is widely used for cardiac cine and dynamic cardiac imaging.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 21-25
+.. GENERATED FROM PYTHON SOURCE LINES 22-26
 
 Fully sampled acquisition
 -------------------------
 
 One cardiac phase, with every phase-encode line acquired.
 
-.. GENERATED FROM PYTHON SOURCE LINES 25-44
+.. GENERATED FROM PYTHON SOURCE LINES 26-45
 
 .. code-block:: Python
 
@@ -59,7 +60,7 @@ One cardiac phase, with every phase-encode line acquired.
         n_phases=1,
         readout_bandwidth_hz=25_000,
         tr=None,
-        n_dummy=1,
+        n_dummy=0,
     )
     baseline = bssfp2D_sequence(
         n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0
@@ -75,18 +76,18 @@ One cardiac phase, with every phase-encode line acquired.
 
  .. code-block:: none
 
-    578 blocks, 0.73 s
-    TR 3.80 ms
+    576 blocks, 0.68 s
+    TR 3.56 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 45-47
+.. GENERATED FROM PYTHON SOURCE LINES 46-48
 
 Sequence diagram
 ----------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-50
+.. GENERATED FROM PYTHON SOURCE LINES 48-51
 
 .. code-block:: Python
 
@@ -105,7 +106,7 @@ Sequence diagram
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 51-56
+.. GENERATED FROM PYTHON SOURCE LINES 52-57
 
 Sampling order
 --------------
@@ -113,7 +114,7 @@ Sampling order
 Colour encodes phase-encode line acquisition order; lines are acquired in
 segments of ``views_per_segment``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 56-59
+.. GENERATED FROM PYTHON SOURCE LINES 57-60
 
 .. code-block:: Python
 
@@ -132,7 +133,7 @@ segments of ``views_per_segment``.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 60-67
+.. GENERATED FROM PYTHON SOURCE LINES 61-68
 
 Cine
 ----
@@ -142,7 +143,7 @@ after a trigger. Retrospective gating cycles the segment throughout one
 heartbeat and records the cycle index in ``PHS`` for later cardiac binning.
 Segment length sets the temporal footprint of each cardiac phase.
 
-.. GENERATED FROM PYTHON SOURCE LINES 67-102
+.. GENERATED FROM PYTHON SOURCE LINES 68-103
 
 .. code-block:: Python
 
@@ -178,14 +179,14 @@ Segment length sets the temporal footprint of each cardiac phase.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    ungated               578          0.73           192
-    prospective           872          0.95           288
-    retrospective        5474          5.98          1824
+    ungated               576          0.68           192
+    prospective          6501          5.11           288
+    retrospective        7632          6.00          2544
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 103-105
+.. GENERATED FROM PYTHON SOURCE LINES 104-106
 
 .. code-block:: Python
 
@@ -206,7 +207,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.786 seconds)
+   **Total running time of the script:** (0 minutes 1.403 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

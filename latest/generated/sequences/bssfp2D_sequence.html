@@ -544,23 +544,37 @@
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">bssfp2D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.bssfp2D_sequence" title="Link to this definition">#</a></dt>
 <dd><p>Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.</p>
 <p>Every axis returns to k = 0 between pulse centres and TE is TR/2
-(<a class="reference internal" href="../pypulseqpp.sequences.BssfpReadout2D.html#pypulseqpp.sequences.BssfpReadout2D" title="pypulseqpp.sequences.BssfpReadout2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">BssfpReadout2D</span></code></a>). Each slice’s train is entered through a
-half-flip pulse half a TR ahead of the first excitation and opposite in
-phase to it; excitations then alternate between phase pi and 0, the ADC
-following. <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> marks the half flip (1), the train (0) and the closing
-rewind (2), so the whole slice is one repetition of the scan. Slices play
-one after another, since a steady state does not survive interleaving.</p>
-<p>The phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
+(<a class="reference internal" href="../pypulseqpp.sequences.BssfpReadout2D.html#pypulseqpp.sequences.BssfpReadout2D" title="pypulseqpp.sequences.BssfpReadout2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">BssfpReadout2D</span></code></a>). Excitations alternate between phase pi and 0,
+the ADC following, and the first <code class="docutils literal notranslate"><span class="pre">min(CATALYST_RAMP,</span> <span class="pre">n_dummy)</span></code> of a
+slice ramp the flip angle linearly up to <code class="docutils literal notranslate"><span class="pre">flip_angle_deg</span></code>, a catalyst
+that damps the oscillating transient. <code class="docutils literal notranslate"><span class="pre">ONCE</span></code> marks the slice’s first
+excitation (1), the train (0) and the closing rewind (2), so the whole
+slice is one repetition of the scan. Slices play one after another, since
+a steady state does not survive interleaving.</p>
+<p>Without gating, each slice’s lines are played <code class="docutils literal notranslate"><span class="pre">n_phases</span></code> times in a
+row, the steady state carried from one frame into the next with no
+dummies between them, the frame counted in <code class="docutils literal notranslate"><span class="pre">PHS</span></code>. With gating, the
+phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
 <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled as many times as a full
 segment fits in a heartbeat, the same number for every segment, so each
 cycle samples every line; the interpreter’s ECG log bins them into cardiac
-phases. Under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating every heartbeat opens with a trigger
-event on <code class="docutils literal notranslate"><span class="pre">TRIGGER_CHANNEL</span></code>, then plays the segment once per cardiac
-phase; the first heartbeat’s trigger precedes the half flip, so the whole
-train is timed from the R wave, and a slice held in one heartbeat is a
-triggered single shot. Acquisitions carry <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">SLC</span></code>, the segment as
-<code class="docutils literal notranslate"><span class="pre">SEG</span></code> and the cardiac phase, or the cycle within the heartbeat, as
-<code class="docutils literal notranslate"><span class="pre">PHS</span></code>; calibration lines are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
+phases. Under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating each slice’s first excitation waits
+for one trigger event on <code class="docutils literal notranslate"><span class="pre">TRIGGER_CHANNEL</span></code>, and the slice then runs free
+at the nominal heart rate: every heartbeat plays its segment once per
+cardiac phase, and repetitions that do not acquire fill the rest of it
+and the trigger delay (<code class="xref py py-func docutils literal notranslate"><span class="pre">prospective_starts()</span></code>), so the steady state
+is kept from one heartbeat into the next and a heart rate away from the
+nominal one drifts against the phases. A slice held in one heartbeat is
+a triggered single shot. A gated slice’s blocks join on the slice axis
+(<code class="docutils literal notranslate"><span class="pre">bridge</span></code>), so the gated train has no rest in it and its timing against
+the heartbeat is the designed one. Without gating, every repetition
+opens from rest and closes to it, so a scanner that prepares a segment
+between blocks at rest plays one repetition per segment and adds the same
+preparation time to every repetition time. With dummies, each such slice
+is two files, its catalyst and dummies and then its frames, each
+repeating one repetition. Acquisitions carry <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">SLC</span></code>, the segment as
+<code class="docutils literal notranslate"><span class="pre">SEG</span></code> and the frame, the cardiac phase or the cycle within the
+heartbeat as <code class="docutils literal notranslate"><span class="pre">PHS</span></code>; calibration lines are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -575,15 +589,21 @@ triggered single shot. Acquisitions carry <code class="docutils literal notransl
 <li><p><strong>slice_spacing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Gap between adjacent slices (m); zero is contiguous.</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=45.0</em>) – Excitation flip angle (degrees).</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetition time (s); TE is TR/2. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible.</p></li>
-<li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=125000.0</em>) – Requested receiver bandwidth (Hz). The half flip needs an
-acquisition block at least as long as the excitation’s tail, which
-a lower bandwidth provides.</p></li>
+<li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=250000.0</em>) – Requested receiver bandwidth (Hz).</p></li>
+<li><p><strong>pulse_duration</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.00048</em>) – Duration of the selective pulse (s); a longer pulse deposits less RF
+energy at the same flip angle and lengthens the repetition.</p></li>
+<li><p><strong>time_bw_product</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=2.0</em>) – Time-bandwidth product of the selective pulse; a higher value gives a
+squarer slice profile at more RF energy.</p></li>
 <li><p><strong>ry</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Phase-encode undersampling: one line in every <code class="docutils literal notranslate"><span class="pre">ry</span></code> is acquired,
 the centre line among them.</p></li>
 <li><p><strong>partial_fourier_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Fraction of the phase-encode extent acquired, in <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>.</p></li>
-<li><p><strong>n_phases</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=25</em>) – Cardiac phases a prospective heartbeat acquires.</p></li>
-<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetitions played without acquiring after the half flip. <code class="docutils literal notranslate"><span class="pre">None</span></code>
-is as many as bring the balanced steady state within 1 %
+<li><p><strong>n_phases</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=25</em>) – Frames. Without gating, the times each slice’s k-space is acquired
+back to back, a free-running dynamic series; under <code class="docutils literal notranslate"><span class="pre">prospective</span></code>
+gating, the cardiac phases each heartbeat acquires. Unused under
+<code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating, where the heartbeat sets the cycles.</p></li>
+<li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetitions played without acquiring at the start of each slice, the
+first <code class="docutils literal notranslate"><span class="pre">CATALYST_RAMP</span></code> of them its catalyst ramp. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as many
+as bring the balanced steady state within <code class="docutils literal notranslate"><span class="pre">STEADY_STATE_TOLERANCE</span></code>
 (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a> at
 <code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>), at most one
 heartbeat under <code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating, or
@@ -591,25 +611,28 @@ heartbeat under <code class="docutils literal notranslate"><span class="pre">ret
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Fully sampled calibration lines at the centre of k-space, acquired
 ahead of the rest when <code class="docutils literal notranslate"><span class="pre">ry</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>.</p></li>
-<li><p><strong>gating</strong> (<em>{'none'</em><em>, </em><em>'retrospective'</em><em>, </em><em>'prospective'}</em><em>, </em><em>default='none'</em>) – No gating; each segment cycled over one heartbeat; or each
-heartbeat triggered and acquired once per cardiac phase.</p></li>
+<li><p><strong>gating</strong> (<em>{'none'</em><em>, </em><em>'retrospective'</em><em>, </em><em>'prospective'}</em><em>, </em><em>default='none'</em>) – No gating; each segment cycled over one heartbeat; or each slice
+triggered once and every nominal heartbeat acquired once per cardiac
+phase.</p></li>
 <li><p><strong>heart_rate_bpm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=60.0</em>) – Nominal heart rate (beats per minute) the segments are timed to.</p></li>
 <li><p><strong>views_per_segment</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=12</em>) – Phase-encode lines per segment, one segment per heartbeat. Unused
 without gating.</p></li>
-<li><p><strong>trigger_delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Wait after a prospective trigger before the first cardiac phase (s).</p></li>
+<li><p><strong>trigger_delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Time from a slice’s prospective trigger to its first excitation’s
+place in its first heartbeat, played as repetitions that do not
+acquire, to the nearest repetition (s).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The designed sequence.</p>
+<dd class="field-even"><p>The designed sequence; without gating and with dummies, the chain of
+each slice’s dummies and frames, in play order, slice by slice.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a> or <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">gating</span></code> is unknown, <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, a count is below one, a prospective heartbeat cannot
-    hold its phases, or the TR is shorter than the balanced repetition,
-    or too short beside the pulse for the half flip.</p>
+    hold its phases, or the TR is shorter than the balanced repetition.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -625,7 +648,7 @@ without gating.</p></li>
 
 <section id="designed-and-drawn">
 <h3>Designed and drawn<a class="headerlink" href="#designed-and-drawn" title="Link to this heading">#</a></h3>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat with alternating RF phase. Zero net gradient moment in every TR preserves transverse coherence and establishes a steady state governed by T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP is widely used for cardiac cine and dynamic cardiac imaging."><img alt="" src="../../_images/sphx_glr_bssfp2D_sequence_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat with alternating RF phase. Zero net gradient moment in every TR preserves transverse coherence and establishes a steady state governed by T2/T1 and off-resonance. A catalyst that ramps the flip angle over the first dummy repetitions damps the transient oscillation. 2D bSSFP is widely used for cardiac cine and dynamic cardiac imaging."><img alt="" src="../../_images/sphx_glr_bssfp2D_sequence_thumb.png" />
 <p><a class="reference internal" href="../gallery/14-bssfp/bssfp2D_sequence.html"><span class="doc">2D balanced SSFP</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D balanced SSFP</div>
 </div></div></section>

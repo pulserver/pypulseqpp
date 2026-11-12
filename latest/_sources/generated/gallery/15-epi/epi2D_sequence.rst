@@ -80,7 +80,7 @@ each design below is the last element of the returned list.
 
  .. code-block:: none
 
-    58 blocks, 50.6 ms, TE 22.14 ms
+    59 blocks, 37.5 ms, TE 14.88 ms
 
 
 
@@ -145,9 +145,9 @@ acceleration reduce :math:`N_\mathrm{etl}` and therefore the displacement.
  .. code-block:: none
 
                 echoes  trains  per train   TE (ms)  scan (ms)  px per Hz
-    1 shot          96       1       96.0     55.94      108.3      0.100
-    3 shots         96       3       32.0     23.46      131.6      0.035
-    ry = 3          32       1       32.0     23.44       43.1      0.035
+    1 shot          96       1       96.0     29.68       57.3      0.050
+    3 shots         96       3       32.0     13.06       73.4      0.017
+    ry = 3          32       1       32.0     13.04       24.1      0.017
 
 
 
@@ -241,7 +241,7 @@ blocks in the sequence.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.504 seconds)
+   **Total running time of the script:** (0 minutes 0.971 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_15-epi_epi2D_sequence.py:

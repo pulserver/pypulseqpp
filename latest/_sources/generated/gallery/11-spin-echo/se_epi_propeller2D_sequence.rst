@@ -66,7 +66,7 @@ Sixteen lines per blade, each blade acquired after one excitation.
 
  .. code-block:: none
 
-    437 blocks, 1.46 s
+    437 blocks, 1.30 s
 
 
 
@@ -150,8 +150,8 @@ blade's phase-encode direction.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 lines              437          1.46           304
-    24 lines              403          1.11           312
+    16 lines              437          1.30           304
+    24 lines              403          0.94           312
 
 
 
@@ -177,7 +177,7 @@ blade's phase-encode direction.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.219 seconds)
+   **Total running time of the script:** (0 minutes 2.278 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_epi_propeller2D_sequence.py:

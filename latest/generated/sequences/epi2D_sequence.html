@@ -544,7 +544,8 @@
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">epi2D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.epi2D_sequence" title="Link to this definition">#</a></dt>
 <dd><p>Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.</p>
 <p>Every shot reads <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> centre lines without blips
-(<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its train, and every line carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read
+(<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its train, after one unsampled lobe that lets the read
+axis settle, and every line carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read
 polarity. The trains are ramp-sampled with the blips on the read ramps.
 Segmented shots interleave on the phase-encode lattice, each delayed by
 a fraction of the echo spacing so the echo time grows smoothly across
@@ -554,11 +555,18 @@ packets, even ones first. With one frame, slices one TR cannot hold are
 dealt round-robin into packets; a time series must fit every slice in
 one. A multiband shot excites <code class="docutils literal notranslate"><span class="pre">multiband</span></code> slices at once and a
 blipped-CAIPI train encodes the band in <code class="docutils literal notranslate"><span class="pre">PAR</span></code>.</p>
-<p>Two prescans are linked ahead of the imaging: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, a
-single-band gradient echo per slice over the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines
-(<code class="docutils literal notranslate"><span class="pre">REF</span></code>), when undersampled or multiband; and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one
-volume with the phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion
-correction.</p>
+<p>Two prescans are linked ahead of the imaging: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code> of the
+central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines (<code class="docutils literal notranslate"><span class="pre">REF</span></code>) at <code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>, single
+band, when undersampled or multiband; and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume
+with the phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion correction.
+The FLEET calibration (Polimeni et al., Magn Reson Med 2016,
+doi:10.1002/mrm.25628) reads those lines in <code class="docutils literal notranslate"><span class="pre">n_shots</span> <span class="pre">*</span> <span class="pre">ry</span></code> interleaved
+EPI shots, which step as far per echo spacing as an imaging shot, with
+its read lobe, navigator, blip and echo time, so the calibration is
+distorted as the imaging is. The shots of a slice follow one another
+after <code class="docutils literal notranslate"><span class="pre">FLEET_DUMMY_SHOTS</span></code> unsampled ones, forward (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">0</span></code>) and then
+reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), so each phase-encode polarity has its own. The
+gradient-echo calibration reads one line per excitation, undistorted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -571,7 +579,8 @@ correction.</p>
 <li><p><strong>n_slices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Number of slices.</p></li>
 <li><p><strong>slice_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.005</em>) – Slice thickness (m).</p></li>
 <li><p><strong>slice_spacing</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Gap between adjacent slices (m); zero is contiguous.</p></li>
-<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=70.0</em>) – Excitation flip angle (degrees).</p></li>
+<li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=70.0</em>) – Excitation flip angle (degrees) of the imaging and the reference; the
+calibration plays <code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>.</p></li>
 <li><p><strong>te</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Echo time of the centre line (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as the
 navigator and the train admit.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Volume repetition time (s): every shot of every slice. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
@@ -591,8 +600,13 @@ at zero when the shot’s excitation comes.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring volumes before a time series; with one frame,
 non-acquiring shots per slice before each packet.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>
-<li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling factor, at least one.</p></li>
-<li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Phase-encode lines of the gradient-echo calibration.</p></li>
+<li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Minimum EPI readout oversampling factor, at least one. Additional
+samples preserve the requested dwell under the gradient limits.</p></li>
+<li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Phase-encode lines of the calibration; FLEET rounds them up to a
+whole number of lines per shot.</p></li>
+<li><p><strong>calibration</strong> (<em>{'fleet'</em><em>, </em><em>'gre'}</em><em>, </em><em>default='fleet'</em>) – The calibration played when undersampled or multiband: FLEET,
+segmented EPI at the imaging train’s echo spacing, or a gradient echo
+per line.</p></li>
 <li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
 excitation of every volume, dummy volumes included.</p></li>
 </ul>
@@ -607,8 +621,9 @@ through <code class="docutils literal notranslate"><span class="pre">NextSequenc
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">1]</span></code>, a count is below
-    one, <code class="docutils literal notranslate"><span class="pre">multiband</span></code> does not divide <code class="docutils literal notranslate"><span class="pre">n_slices</span></code>, the shots cannot
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">1]</span></code>, <code class="docutils literal notranslate"><span class="pre">calibration</span></code> is
+    unknown, a count is below one, <code class="docutils literal notranslate"><span class="pre">multiband</span></code> does not divide
+    <code class="docutils literal notranslate"><span class="pre">n_slices</span></code>, the shots cannot
     share the lines, the TE is shorter than the train admits, or the TR
     cannot hold one slice, or every slice when <code class="docutils literal notranslate"><span class="pre">n_frames</span></code> is above
     one.</p>

@@ -574,14 +574,20 @@ to.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Repetition time (s) of the whole module, including the longest echo
 shift. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as possible.</p></li>
 <li><p><strong>navigator_lines</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=0</em>) – Lines read without blips between the read and phase-encode prewinders,
-for odd-even phase correction. Rejected with <code class="docutils literal notranslate"><span class="pre">flyback</span></code>.</p></li>
+for odd-even phase correction, after one unsampled lobe that lets the
+read axis settle from the prewinder. Rejected with <code class="docutils literal notranslate"><span class="pre">flyback</span></code>.</p></li>
 <li><p><strong>echo_shifts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Number of shots whose trains are delayed by successive multiples of
 <code class="docutils literal notranslate"><span class="pre">esp</span> <span class="pre">/</span> <span class="pre">echo_shifts</span></code>. The module plays no shift: the caller lengthens
 <code class="docutils literal notranslate"><span class="pre">wait_shift</span></code>.</p></li>
-<li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Readout oversampling: the sample spacing in k-space is
-<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(oversampling</span> <span class="pre">*</span> <span class="pre">fov)</span></code>.</p></li>
+<li><p><strong>oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Minimum readout oversampling. The sample count may increase to cover
+the gradient-limited acquisition window at the requested dwell time.
+The k-space extent is unchanged.</p></li>
 <li><p><strong>readout_bandwidth_hz</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=500000.0</em>) – Requested ADC sampling rate (Hz); <code class="docutils literal notranslate"><span class="pre">bandwidth_hz</span></code> is the rate achieved
 on the ADC and gradient rasters.</p></li>
+<li><p><strong>blip_span</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=None</em>) – Duration of the phase-encode step window (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is the shortest
+the widest step of <code class="docutils literal notranslate"><span class="pre">order</span></code> admits; a longer one, such as another
+train’s <code class="docutils literal notranslate"><span class="pre">blip_span</span></code>, gives this train that train’s read lobe and
+echo spacing.</p></li>
 <li><p><strong>ramp_sampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Sample across the read ramps as well as the plateau, which shortens the
 echo spacing. False restricts the window to the plateau.</p></li>
 <li><p><strong>flyback</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Read every line in the same direction, rewinding between lines, instead
@@ -602,13 +608,17 @@ phase encode first: two for a 3D train, one for 2D.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient, if one was given.</p></li>
 <li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given, left-aligned in whichever block follows
 the pulse.</p></li>
-<li><p><strong>gx_pre</strong> (<em>TrapEvent</em>) – Read prewinder, half a line lobe against the first line’s polarity,
-right-aligned in the prewinder block so that it ends where the first
-line starts.</p></li>
+<li><p><strong>gx_pre</strong> (<em>TrapEvent</em>) – Read prewinder, half a line lobe against the polarity of the first lobe
+played, right-aligned in the prewinder block so that it ends where that
+lobe starts.</p></li>
 <li><p><strong>gx</strong> (<em>list of GradEvent</em>) – One read lobe per line: alternating polarity for a blipped train, the
 same lobe every time for a flyback one.</p></li>
 <li><p><strong>gx_navigator</strong> (<em>list of GradEvent</em>) – One read lobe per navigator line, the first positive; present only with
 <code class="docutils literal notranslate"><span class="pre">navigator_lines</span></code>.</p></li>
+<li><p><strong>gx_settle</strong> (<em>GradEvent</em>) – The unsampled negative lobe played between the prewinder and the
+navigator; present only with <code class="docutils literal notranslate"><span class="pre">navigator_lines</span></code>. The first lobe after
+the prewinder can echo away from where the steady train does, which
+would bias the odd-even phase the navigator measures.</p></li>
 <li><p><strong>gx_flyback</strong> (<em>TrapEvent</em>) – The rewind between two lines. <code class="docutils literal notranslate"><span class="pre">flyback</span></code> only.</p></li>
 <li><p><strong>gy_blips, gz_blips</strong> (<em>list</em>) – One phase-encode event per line, <code class="docutils literal notranslate"><span class="pre">etl</span></code> long, with <code class="docutils literal notranslate"><span class="pre">None</span></code> where no
 step is taken. In a blipped train an entry carries the second half of
@@ -644,7 +654,8 @@ above 1, in which case it holds the longest shift.</p></li>
 block raster; zero with one shift.</p></li>
 <li><p><strong>bandwidth_hz</strong> (<em>float</em>) – Achieved ADC sampling rate <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">dwell</span></code> (Hz).</p></li>
 <li><p><strong>n_samples</strong> (<em>int</em>) – ADC samples per line.</p></li>
-<li><p><strong>delta_kx</strong> (<em>float</em>) – K-space sample spacing along the readout (1/m).</p></li>
+<li><p><strong>delta_kx</strong> (<em>float</em>) – Mean k-space sample spacing along the readout (1/m). Ramp sampling
+gives nonuniform spacing between individual samples.</p></li>
 <li><p><strong>blip_span</strong> (<em>float</em>) – Duration of one phase-encode step (s), taken from the read ramps.</p></li>
 <li><p><strong>blade_angles</strong> (<em>numpy.ndarray</em>) – In-plane blade angles (rad), one per blade, about z.</p></li>
 <li><p><strong>blade_start</strong> (<em>float</em>) – Factor by which to scale <code class="docutils literal notranslate"><span class="pre">gy_pre</span></code> to centre the blade on k = 0; the
@@ -659,8 +670,8 @@ same for every blade.</p></li>
     If a count is out of range, <code class="docutils literal notranslate"><span class="pre">order</span></code> is the wrong shape or steps
     outside the matrix, <code class="docutils literal notranslate"><span class="pre">labels</span></code> does not name one counter per encoded
     axis, <code class="docutils literal notranslate"><span class="pre">te_line</span></code> lies outside the train, a navigator is asked of a
-    flyback train, or the requested TE or TR is shorter than the train can
-    achieve.</p>
+    flyback train, <code class="docutils literal notranslate"><span class="pre">blip_span</span></code> is shorter than the widest step needs, or
+    the requested TE or TR is shorter than the train can achieve.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
