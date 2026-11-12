@@ -105,6 +105,11 @@ class _EpiReadout(SequenceModule):
     readout_bandwidth_hz : float, default=500000.0
         Requested ADC sampling rate (Hz); ``bandwidth_hz`` is the rate achieved
         on the ADC and gradient rasters.
+    blip_span : float, default=None
+        Duration of the phase-encode step window (s). ``None`` is the shortest
+        the widest step of ``order`` admits; a longer one, such as another
+        train's ``blip_span``, gives this train that train's read lobe and
+        echo spacing.
     ramp_sampling : bool, default=True
         Sample across the read ramps as well as the plateau, which shortens the
         echo spacing. False restricts the window to the plateau.
@@ -215,8 +220,8 @@ class _EpiReadout(SequenceModule):
         If a count is out of range, ``order`` is the wrong shape or steps
         outside the matrix, ``labels`` does not name one counter per encoded
         axis, ``te_line`` lies outside the train, a navigator is asked of a
-        flyback train, or the requested TE or TR is shorter than the train can
-        achieve.
+        flyback train, ``blip_span`` is shorter than the widest step needs, or
+        the requested TE or TR is shorter than the train can achieve.
     """
 
     #: 2 or 3. The only thing that separates the two shipped EPI readouts.
@@ -246,6 +251,7 @@ class _EpiReadout(SequenceModule):
         echo_shifts: int = 1,
         oversampling: float = 1.0,
         readout_bandwidth_hz: float = 500e3,
+        blip_span: float | None = None,
         ramp_sampling: bool = True,
         flyback: bool = False,
         spoiling_cycles: float = 0.0,
@@ -306,15 +312,23 @@ class _EpiReadout(SequenceModule):
         # step in the pattern and every other is that shape scaled. Half of it
         # runs into a line and half out, so it has to be an even raster count.
         steps = np.diff(order, axis=0)
-        blip_span = 0.0
+        shortest_blip = 0.0
         for axis in range(1, ndim):
             widest = int(np.max(np.abs(steps[:, axis - 1]))) if len(steps) else 0
             if widest:
                 trial = pp.make_trapezoid(
                     channel="yz"[axis - 1], area=widest * delta_k[axis], system=system
                 )
-                blip_span = max(blip_span, pp.calc_duration(trial))
-        blip_span = pp.ceil_to_raster(blip_span, 2.0 * system.grad_raster_time)
+                shortest_blip = max(shortest_blip, pp.calc_duration(trial))
+        if blip_span is not None and blip_span < shortest_blip - 1e-9:
+            raise ValueError(
+                f"blip_span {blip_span * 1e6:.1f} us is shorter than the "
+                f"{shortest_blip * 1e6:.1f} us the widest step needs"
+            )
+        blip_span = pp.ceil_to_raster(
+            shortest_blip if blip_span is None else blip_span,
+            2.0 * system.grad_raster_time,
+        )
 
         # Sampling. A flyback line reads on its own and hands the step to the
         # rewind, so nothing rides its ramps and the pad is only what the
