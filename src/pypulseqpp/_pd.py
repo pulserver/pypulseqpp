@@ -420,3 +420,283 @@ def make_pd_schedule(
         reference_t2,
         initial_decay,
     )[0].copy()
+
+
+#: The parameters of a PD target signal, in the order a control row holds them.
+PD_TARGET_PARAMETERS = (
+    "first_angle_deg",
+    "plateau_signal",
+    "plateau_slope",
+    "plateau_fraction",
+    "tail_signal",
+    "tail_exponent",
+    "initial_signal",
+    "initial_decay",
+)
+
+#: Target-signal parameters of the central and the peripheral train, fitted
+#: (``benchmarks/pd_buonincontri_fit.py``) so that inverse EPG at 3.416 ms
+#: spacing, 4.162 ms to the first echo, reproduces the trains read off Fig. 1
+#: of Buonincontri et al. (Proc. ISMRM 2025, abstract 566-05-007), the only
+#: reference they were fitted to (``tests/fixtures/buonincontri_figure1.json``).
+PD_CENTRE = (91.012, 0.371, 0.354, 0.662, 0.666, 0.842, 0.663, 0.861)
+PD_PERIPHERY = (97.163, 0.508, 0.091, 0.666, 0.69, 0.907, 0.78, 0.425)
+
+#: Default upper bound on every refocusing angle of a target-signal train
+#: (degrees).
+PD_MAXIMUM_ANGLE_DEG = 150.0
+
+
+def _pd_targets(lengths, controls, jacobian=False):
+    """Target in-phase signal of each train, ``(trains, max(lengths))``.
+
+    Echo ``x`` of a train of ``n`` pulses, at ``u = x / (n - 1)`` along it,
+    has the plateau ``plateau_signal * (1 + plateau_slope * u)``, lowered
+    past ``u = plateau_fraction`` by ``(1 - tail_signal) * v ** tail_exponent``
+    of itself, ``v`` the fraction of the tail gone, plus an initial excess
+    ``initial_signal - plateau_signal`` decaying with ``initial_decay`` echoes
+    from the second echo. With ``jacobian``, the derivatives of the targets
+    along the seven signal parameters come back too, ``(7, trains, echoes)``.
+    """
+    lengths = np.asarray(lengths, dtype=int)
+    c = np.asarray(controls, dtype=float)
+    x = np.arange(lengths.max())[None, :]
+    u = np.minimum(x / (lengths[:, None] - 1), 1.0)
+    level, slope, onset, tail, power, start, decay = (
+        c[:, i, None] for i in range(1, 8)
+    )
+    v = np.clip((u - onset) / (1 - onset), 0.0, 1.0)
+    inside = (u > onset) & (v < 1.0)
+    vp = v**power
+    shape = 1 - (1 - tail) * vp
+    ramp = 1 + slope * u
+    initial = np.exp(-(x - 1) / decay)
+    target = level * ramp * shape + (start - level) * initial
+    if not jacobian:
+        return target
+    with np.errstate(divide="ignore", invalid="ignore"):
+        log_v = np.where(v > 0, np.log(np.where(v > 0, v, 1.0)), 0.0)
+        d_v_onset = np.where(inside, (u - 1) / (1 - onset) ** 2, 0.0)
+        d_shape_v = np.where(v > 0, -(1 - tail) * power * v ** (power - 1), 0.0)
+    plateau = level * ramp
+    slopes = np.stack(
+        np.broadcast_arrays(
+            ramp * shape - initial,
+            level * u * shape,
+            plateau * d_shape_v * d_v_onset,
+            plateau * vp,
+            -plateau * (1 - tail) * vp * log_v,
+            initial,
+            (start - level) * initial * (x - 1) / decay**2,
+        )
+    )
+    return target, slopes
+
+
+def _check_pd_targets(lengths, controls, maximum, times):
+    """Refuse counts, target parameters, bounds or timing out of range."""
+    if lengths.ndim != 1 or not len(lengths) or controls.shape != (len(lengths), 8):
+        raise ValueError(
+            "PD lengths and controls must have shapes (trains,) and (trains, 8)"
+        )
+    if np.any(lengths < 2):
+        raise ValueError("PD trains need at least two pulses")
+    first, level, _, onset, tail, power, start, decay = controls.T
+    if (
+        not np.all(np.isfinite(controls))
+        or np.any((maximum <= 0) | (maximum >= 180))
+        or np.any((first <= 0) | (first > maximum))
+        or np.any((level <= 0) | (level > 1) | (start <= 0) | (start > 1))
+        or np.any((onset <= 0) | (onset >= 1))
+        or np.any((tail < 0) | (power <= 0) | (decay <= 0))
+    ):
+        raise ValueError(
+            "PD controls require 0 < first angle <= maximum < 180 degrees, plateau "
+            "and initial signals in (0, 1], a tail onset in (0, 1), and a "
+            "nonnegative tail signal with positive exponent and decay"
+        )
+    if not np.all(np.isfinite(times)) or np.any(times <= 0):
+        raise ValueError("PD timing and reference T1/T2 must be positive and finite")
+
+
+def _pd_target_trains(
+    lengths, controls, maximum_deg, esp, first_echo, t1=1.0, t2=0.1, jacobian=False
+):
+    """Design one target-signal PD train per row of ``controls``, in one pass.
+
+    Returns the refocusing angles (rad), zero past each train's own length,
+    and the in-phase signal they reach, both ``(trains, max(lengths))``. A
+    pulse the target would push past ``maximum_deg`` plays that angle. With
+    ``jacobian``, the exact derivatives of the angles (rad) along the eight
+    target parameters come back as well, ``(8, trains, max(lengths))``.
+    """
+    lengths = np.asarray(lengths, dtype=int)
+    controls = np.asarray(controls, dtype=float)
+    maximum = np.broadcast_to(np.asarray(maximum_deg, dtype=float), lengths.shape)
+    times = np.asarray([esp, first_echo, t1, t2], dtype=float)
+    _check_pd_targets(lengths, controls, maximum, times)
+    arguments = {
+        "first_flip": controls[:, 0],
+        "maximum_flip": maximum,
+        "ESP": 1e3 * esp,
+        "first_ESP": 1e3 * first_echo,
+        "T1": 1e3 * t1,
+        "T2": 1e3 * t2,
+        "lengths": lengths,
+    }
+    if not jacobian:
+        angles, signal = _trains().prescribed_flips(
+            _pd_targets(lengths, controls), **arguments
+        )
+    else:
+        target, slopes = _pd_targets(lengths, controls, jacobian=True)
+        count = len(lengths)
+        signal_tangents = np.concatenate([np.zeros((1, *target.shape)), slopes])
+        first_tangents = np.zeros((8, count))
+        first_tangents[0] = 1.0
+        angles, signal, d_angles, _ = _trains().prescribed_flips(
+            target,
+            signal_tangents=signal_tangents,
+            first_flip_tangents=first_tangents,
+            **arguments,
+        )
+    active = np.arange(angles.shape[1])[None, :] < lengths[:, None]
+    result = np.deg2rad(np.where(active, angles, 0.0)), np.where(active, signal, 0.0)
+    if jacobian:
+        return *result, np.deg2rad(np.where(active, d_angles, 0.0))
+    return result
+
+
+def make_pd_target_schedule(
+    length: int,
+    echo_spacing: float,
+    *,
+    first_echo_time: float | None = None,
+    first_flip_angle: float = np.deg2rad(PD_CENTRE[0]),
+    maximum_flip_angle: float = np.deg2rad(PD_MAXIMUM_ANGLE_DEG),
+    plateau_signal: float = PD_CENTRE[1],
+    plateau_slope: float = PD_CENTRE[2],
+    plateau_fraction: float = PD_CENTRE[3],
+    tail_signal: float = PD_CENTRE[4],
+    tail_exponent: float = PD_CENTRE[5],
+    initial_signal: float = PD_CENTRE[6],
+    initial_decay: float = PD_CENTRE[7],
+    reference_t1: float = 1.0,
+    reference_t2: float = 0.1,
+) -> np.ndarray:
+    """Design a PD refocusing train by relaxation-aware inverse EPG of a target signal.
+
+    Parameters
+    ----------
+    length : int
+        RF count, startup pulses included; at least 2.
+    echo_spacing : float
+        Echo spacing (s), positive.
+    first_echo_time : float | None, default=None
+        Excitation-to-first-echo time (s). ``None`` uses ``echo_spacing``.
+    first_flip_angle : float, default=np.deg2rad(PD_CENTRE[0])
+        First refocusing angle (rad), at most ``maximum_flip_angle``.
+    maximum_flip_angle : float, default=np.deg2rad(PD_MAXIMUM_ANGLE_DEG)
+        Upper bound on every angle (rad), below pi. A pulse the target would
+        push past it plays it, and its echo falls below the target.
+    plateau_signal : float, default=PD_CENTRE[1]
+        Plateau of the target signal, over the equilibrium magnetization, in
+        (0, 1].
+    plateau_slope : float, default=PD_CENTRE[2]
+        Relative change of the plateau from the first pulse to the last.
+    plateau_fraction : float, default=PD_CENTRE[3]
+        Fraction of the train, from its first pulse, before the signal tail
+        begins, in (0, 1).
+    tail_signal : float, default=PD_CENTRE[4]
+        Signal at the last pulse over the plateau there, nonnegative.
+    tail_exponent : float, default=PD_CENTRE[5]
+        Power of the tail's decline in its own fraction of the train,
+        positive: 2 starts it with zero slope.
+    initial_signal : float, default=PD_CENTRE[6]
+        Target at the second echo, in (0, 1], from which the signal decays to
+        the plateau.
+    initial_decay : float, default=PD_CENTRE[7]
+        Time constant of that decay (echoes), positive.
+    reference_t1 : float, default=1.0
+        Reference T1 for inverse EPG (s), positive and finite.
+    reference_t2 : float, default=0.1
+        Reference T2 for inverse EPG (s), positive and finite.
+
+    Returns
+    -------
+    numpy.ndarray
+        Refocusing angles (rad), shape ``(length,)``.
+
+    Raises
+    ------
+    ValueError
+        If the count, the timing or a parameter is out of range.
+    ImportError
+        If blochsim, which inverts the phase graph, is not installed.
+
+    Notes
+    -----
+    The target signal decreases from the second echo to a plateau and
+    declines over a late tail, after the prescribed-signal design of
+    Mugler et al. [1]_. Each angle is the one in ``[0, maximum_flip_angle]``
+    whose echo comes nearest the target, given the train so far
+    (:func:`blochsim.trains.prescribed_flips`). The default parameters are
+    fitted to the central train of Fig. 1 of Buonincontri et al. [2]_, read
+    off the published figure; ``PD_PERIPHERY`` holds those of its peripheral
+    train. They are the only reference the defaults were fitted to, and this
+    is not a numerical reconstruction of the trains of that figure.
+
+    :func:`make_pd_schedule` designs a PD train from its first, maximum and
+    final angles instead, solving the signal levels that reach them.
+
+    EPG assumes a fully relaxed ideal 90-degree excitation and instantaneous
+    CPMG pulses with longitudinal recovery. Finite RF profiles, actual B1 and
+    inter-shot steady state require separate forward evaluation.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pypulseqpp as pp
+    >>> angles = np.rad2deg(
+    ...     pp.make_pd_target_schedule(40, 0.003416, first_echo_time=0.004162)
+    ... )
+    >>> bool(angles.max() <= 150.0), bool(angles[4] < angles[-1])
+    (True, True)
+
+    References
+    ----------
+    .. [1] Mugler JP III et al. Three-dimensional spin-echo-train
+       proton-density-weighted imaging using shaped signal evolutions.
+       Proceedings ISMRM. 1999; abstract 1631.
+       https://cds.ismrm.org/ismrm-1999/PDF6/1631.pdf
+    .. [2] Buonincontri G et al. Doubling the repetition time without paying
+       the price: 3D Turbo Spin Echo with individually parameterized echo
+       trains. Proceedings ISMRM. 2025; abstract 566-05-007.
+    """
+    try:
+        if isinstance(length, (bool, np.bool_)):
+            raise TypeError
+        length = index(length)
+    except TypeError as error:
+        raise ValueError("PD length must be an integer") from error
+    first_echo = echo_spacing if first_echo_time is None else first_echo_time
+    controls = [
+        np.rad2deg(first_flip_angle),
+        plateau_signal,
+        plateau_slope,
+        plateau_fraction,
+        tail_signal,
+        tail_exponent,
+        initial_signal,
+        initial_decay,
+    ]
+    angles, _ = _pd_target_trains(
+        [length],
+        [controls],
+        np.rad2deg(maximum_flip_angle),
+        echo_spacing,
+        first_echo,
+        reference_t1,
+        reference_t2,
+    )
+    return angles[0]
