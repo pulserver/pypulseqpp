@@ -610,7 +610,9 @@ def epi2d(
 
     def define(seq: pp.Sequence, **definitions) -> None:
         # Every file of the chain places its slices, so a reconstruction reads
-        # a prescan's geometry from the prescan.
+        # a prescan's geometry from the prescan, and each acquiring file states
+        # the k-space centre line: one that did not was centred on the lines it
+        # read, which partial Fourier leaves off centre.
         for key, value in {
             "FOV": [*fov, slab_thickness],
             "Matrix": [n_x, n_y, n_slices],
@@ -650,7 +652,11 @@ def epi2d(
         for s in order:
             for line in acs_lines:
                 calibration_kernel(seq, labels, s, line)
-        define(seq, Name=f"{NAME}_calibration")
+        define(
+            seq,
+            Name=f"{NAME}_calibration",
+            kSpaceCenterLine=n_y // 2,
+        )
         return seq
 
     def fleet() -> pp.Sequence:
@@ -855,6 +861,7 @@ def epi2d(
             TE=echo_time,
             TR=repetition_time,
             EchoSpacing=epi.esp,
+            kSpaceCenterLine=n_y // 2,
         )
         return seq
 

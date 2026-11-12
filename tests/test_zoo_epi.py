@@ -218,6 +218,25 @@ def test_the_chain_is_written_in_play_order_each_file_naming_the_next(
         assert is_ok, errors
 
 
+@pytest.mark.parametrize(
+    "make",
+    [
+        lambda: scan2d(ry=2, partial_fourier_y=0.75),
+        lambda: scan2d(ry=2, partial_fourier_y=0.75, calibration="gre"),
+        lambda: scan3d(ry=2, rz=2, partial_fourier_y=0.75, partial_fourier_z=0.75),
+        lambda: scan3d(ry=2, rz=2, partial_fourier_z=0.75, calibration="gre"),
+    ],
+    ids=["2D FLEET", "2D GRE", "3D FLEET", "3D GRE"],
+)
+def test_every_file_of_a_partial_fourier_chain_states_the_k_space_centre(make):
+    """A reconstruction centres a file that states none on the lines it read."""
+    scan = make()
+    for seq in scan.chain:
+        assert written(seq, "kSpaceCenterLine") == scan.matrix[1] // 2
+        if len(scan.matrix) == 3 and scan.matrix[2] > 1 and scan.module is epi3d:
+            assert written(seq, "kSpaceCenterPartition") == scan.matrix[2] // 2
+
+
 @pytest.mark.parametrize("case", CASES)
 def test_every_file_of_the_chain_repeats_from_its_first_block(tmp_path, case):
     scan = CASES[case](n_dummy=2, n_frames=2, volume_output=True, n_acs_y=4)

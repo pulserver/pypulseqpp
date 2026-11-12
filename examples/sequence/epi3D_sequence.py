@@ -596,7 +596,12 @@ def epi3d(
         seq, labels = pp.Sequence(system), sequences.Labels()
         for view in views:
             calibration_kernel(seq, labels, view)
-        define(seq, Name=f"{NAME}_calibration")
+        define(
+            seq,
+            Name=f"{NAME}_calibration",
+            kSpaceCenterLine=n_y // 2,
+            kSpaceCenterPartition=n_z // 2,
+        )
         return seq
 
     def fleet() -> pp.Sequence:
@@ -760,6 +765,8 @@ def epi3d(
             TE=echo_time,
             TR=repetition_time,
             EchoSpacing=epi.esp,
+            kSpaceCenterLine=n_y // 2,
+            kSpaceCenterPartition=n_z // 2,
         )
         return seq
 
