@@ -33,7 +33,7 @@ diagram = bssfp2D_sequence(
     n_phases=1,
     readout_bandwidth_hz=25_000,
     tr=None,
-    n_dummy=1,
+    n_dummy=0,
 )
 baseline = bssfp2D_sequence(
     n_x=192, n_y=192, n_slices=1, n_phases=1, tr=None, n_dummy=0

@@ -11,7 +11,9 @@ bounding rectangle. The ``fse3D-radial`` and ``fse3D-individual`` fingerprints
 were recorded again when the PCLO ring order stopped mirroring a centre echo
 in the second half of the train; their TE falls on echo 5 of 8. The
 ``bssfp2D-accelerated`` configuration acquires one frame since an ungated 2D
-bSSFP plays ``n_phases`` frames, which ``bssfp2D-frames`` records.
+bSSFP plays ``n_phases`` frames, which ``bssfp2D-frames`` records. Both
+were recorded again when a free-running slice became a chain of its dummies
+and its frames: the frames file, which they sample, carries no ``ONCE``.
 
 A deliberate change to one of these sequences is recorded again with
 

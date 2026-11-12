@@ -2,6 +2,7 @@
 
 from itertools import pairwise
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -20,8 +21,40 @@ CINE = {"views_per_segment": 4, "heart_rate_bpm": 300}
 
 
 def built_2d(**kwargs):
-    """The 2D sequence the small prescription designs, with ``kwargs`` changed."""
-    return bssfp2d.main(**{**SMALL_2D, **kwargs})
+    """The 2D sequence the small prescription designs, with ``kwargs`` changed; a chain joined in play order."""
+    return joined(bssfp2d.main(**{**SMALL_2D, **kwargs}))
+
+
+def joined(designed):
+    """A chain's blocks in play order as one sequence, with the definitions of its last file."""
+    if isinstance(designed, pp.Sequence):
+        return designed
+    seq = pp.Sequence(designed[0].system)
+    for part in designed:
+        for index in range(1, part.num_blocks + 1):
+            seq.add_block(part.get_block(index))
+    for key, value in designed[-1].definitions.items():
+        if key != "TRSize":
+            seq.set_definition(key=key, value=value)
+    return seq
+
+
+def edge(gradient, end):
+    """Where a gradient event starts (``end=0``) or ends (``end=1``) its block."""
+    if gradient is None or gradient.type == "trap":
+        return 0.0
+    if end == 0 and gradient.delay > 0:
+        return 0.0
+    return float(gradient.last if end else gradient.first)
+
+
+def at_rest(before, after):
+    """Whether every gradient is at rest where block ``before`` meets block ``after``."""
+    return all(
+        abs(edge(getattr(before, axis), 1)) < 1.0
+        and abs(edge(getattr(after, axis), 0)) < 1.0
+        for axis in ("gx", "gy", "gz")
+    )
 
 
 def chain_3d(**kwargs):
@@ -77,11 +110,11 @@ def final_moments(seq):
 @pytest.mark.parametrize(
     "prescription",
     [
-        {},
+        {"n_dummy": 0},
         {"gating": "retrospective", **CINE},
         {"gating": "prospective", "n_phases": 3, **CINE},
     ],
-    ids=["ungated", "retrospective", "prospective"],
+    ids=["ungated-no-dummies", "retrospective", "prospective"],
 )
 def test_each_slice_is_one_repetition_of_the_scan(prescription):
     seq = built_2d(n_slices=3, slice_spacing=1e-3, **prescription)
@@ -92,8 +125,38 @@ def test_each_slice_is_one_repetition_of_the_scan(prescription):
     assert 3 * size == len(seq.block_events)
 
 
+@pytest.mark.parametrize("n_slices", [1, 3])
+def test_a_free_running_slice_is_its_dummies_then_a_file_of_repeated_frames(
+    n_slices,
+):
+    chain = bssfp2d.main(**{**SMALL_2D, "n_phases": 3, "n_slices": n_slices})
+    frame = 3 * 16
+
+    assert len(chain) == 2 * n_slices
+    for catalyst, frames in zip(chain[::2], chain[1::2], strict=True):
+        assert catalyst.repetition() == (catalyst.num_blocks, 1)
+        assert not catalyst.evaluate_labels(evolution="adc").get("LIN", [])
+        assert frames.num_blocks == 3 * frame
+        assert frames.repetition() == (frame, 1)
+        assert recorded(frames, "TRSize") == frame
+        assert frames.check_timing()[0]
+
+
+def test_a_free_running_slice_rests_only_between_files_and_frames():
+    chain = bssfp2d.main(**{**SMALL_2D, "n_phases": 3})
+    seq = joined(chain)
+    listed = blocks(seq)
+    rests = [i for i, pair in enumerate(pairwise(listed), 1) if at_rest(*pair)]
+    catalyst = chain[0].num_blocks
+
+    assert rests == [catalyst + 48 * k for k in range(3)]
+    assert at_rest(SimpleNamespace(gx=None, gy=None, gz=None), listed[0])
+    assert at_rest(listed[-1], SimpleNamespace(gx=None, gy=None, gz=None))
+    assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
+
+
 def test_once_marks_each_slice_half_flip_and_closing_rewind():
-    seq = built_2d(n_slices=2)
+    seq = built_2d(n_slices=2, n_dummy=0)
     (once,) = labels(seq, "ONCE", evolution="blocks")
 
     for chunk in np.split(once, 2):
@@ -103,7 +166,7 @@ def test_once_marks_each_slice_half_flip_and_closing_rewind():
 
 
 def test_the_phase_alternates_after_an_opposite_half_flip():
-    seq = built_2d(n_slices=2, slice_spacing=1e-3)
+    seq = built_2d(n_slices=2, slice_spacing=1e-3, n_phases=2)
     tr = np.atleast_1d(seq.definitions["TR"])[0]
     rows = excitations(seq)
     per_slice = len(rows) // 2

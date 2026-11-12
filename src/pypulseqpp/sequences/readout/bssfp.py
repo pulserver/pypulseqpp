@@ -78,10 +78,13 @@ class _BssfpReadout(SequenceModule):
         at rest plays the slice as one, at every repetition time: a longer
         ``tr`` lengthens the acquisition and rewind blocks, which carry the
         read and phase lobes from one end to the other. The windows either
-        side of the excitation hold the bridged rephasers, so the shortest
-        repetition can differ by a few rasters from that of a slice axis that
-        rests. The caller opens a bridged slice with ``gz_open`` in place of
-        ``gz`` and closes it with ``gz_close`` in place of ``gz_rew``.
+        side of the excitation hold the bridged rephasers and ``gz_close``, so
+        the shortest repetition can differ by a few rasters from that of a
+        slice axis that rests. The caller opens a bridged slice with
+        ``gz_open`` in place of ``gz`` and closes it with ``gz_close`` in
+        place of ``gz_rew``; a rewind with ``gz_close`` followed by an
+        excitation with ``gz_open`` rests the slice between two repetitions,
+        each of the same duration.
 
 
     Attributes
@@ -105,11 +108,10 @@ class _BssfpReadout(SequenceModule):
     bridged : bool
         Whether the blocks of a slice join on the slice axis.
     gz_open, gz_close : GradEvent
-        Bridged only: the selection gradient of a slice's first excitation
-        block, which opens from rest, and the rephaser of its last rewind,
-        which ends at rest; ``gz_close`` is None where that lobe does not fit
-        the rewind block, and the slice then ends on its read and phase
-        rewinders.
+        Bridged only: the selection gradient of an excitation block that
+        opens from rest, and the rephaser of a rewind that starts and ends at
+        rest and rephases ``gz_open``. They open and close a slice, and rest
+        it between two of its repetitions.
     gz_partition, gz_partition_rew : TrapEvent
         Partition encode at its largest step, and the same negated, sharing
         the window of ``gz_pre`` and ``gz_rew`` respectively. 3D only.
@@ -301,15 +303,23 @@ class _BssfpReadout(SequenceModule):
             before, after = _areas_about(times, levels, rf_center)
             # Each rephaser is the fastest lobe between rest and the level the
             # excitation block opens or closes on; the half-flip gap holds
-            # the two in one lobe.
+            # the two in one lobe. The closing lobe runs from rest to rest and
+            # rephases an excitation opened from rest, which closes at the
+            # same level, so its rephaser after the pulse is the bridged one.
             pre_times, pre_levels = _vertices(system, -before, 0.0, lead, "z")
             post_times, post_levels = _vertices(system, -after, tail, 0.0, "z")
             held = float(_vertices(system, -(before + after), tail, lead, "z")[0][-1])
+            close_times, close_levels = _vertices(
+                system, -_areas_about(opening, opened, rf_center)[0], 0.0, 0.0, "z"
+            )
             # The windows either side of the excitation hold the bridged
-            # lobes, whatever a slice axis that rests would need: a slice asked
-            # to be bridged is, at every repetition time.
+            # lobes and the closing one, whatever a slice axis that rests
+            # would need: a slice asked to be bridged is, at every repetition
+            # time, and may rest between any two of its repetitions.
             z_pre_floor = pp.ceil_to_raster(float(post_times[-1]), raster)
-            z_rew_floor = pp.ceil_to_raster(float(pre_times[-1]), raster)
+            z_rew_floor = pp.ceil_to_raster(
+                max(float(pre_times[-1]), float(close_times[-1])), raster
+            )
             if half_flip_prep:
                 prep_floor = pp.ceil_to_raster(held, raster) - prep_span
         if bridge:
@@ -360,17 +370,10 @@ class _BssfpReadout(SequenceModule):
                 channel="z", times=pre_times, amplitudes=pre_levels, system=system
             )
             gz_rew.delay = rewind_span - float(pre_times[-1])
-            # The rewind that ends a slice brings the slice axis to rest where
-            # the lobe that does fits its block; the read and phase rewinders
-            # end the slice at rest either way.
-            close_times, close_levels = _vertices(system, pre_area, 0.0, 0.0, "z")
-            if float(close_times[-1]) <= rewind_span + 1e-12:
-                gz_close = pp.make_extended_trapezoid(
-                    channel="z",
-                    times=close_times,
-                    amplitudes=close_levels,
-                    system=system,
-                )
+            gz_close = pp.make_extended_trapezoid(
+                channel="z", times=close_times, amplitudes=close_levels, system=system
+            )
+            gz_close.delay = rewind_span - float(close_times[-1])
         else:
             gz_pre = _lobe(system, post_area, encode_span, ramp)
             gz_rew = _lobe(system, pre_area, rewind_span, ramp)

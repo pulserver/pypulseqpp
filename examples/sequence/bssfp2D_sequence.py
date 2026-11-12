@@ -122,8 +122,14 @@ def bssfp2d(
     and the trigger delay (:func:`prospective_starts`), so the steady state
     is kept from one heartbeat into the next and a heart rate away from the
     nominal one drifts against the phases. A slice held in one heartbeat is
-    a triggered single shot. Every slice is one train with no rest in it,
-    its blocks joined on the slice axis, the trigger on its half flip. Acquisitions carry ``LIN``, ``SLC``, the segment as
+    a triggered single shot. A slice's blocks join on the slice axis, the
+    trigger on its half flip, so the slice axis rests only where a file of the
+    chain below begins or ends. Without gating and with dummies, each slice is
+    two files: its half flip and dummies, closed to rest, then its frames,
+    each opened from rest and closed to it at the same repetition time. A
+    frame is that file's repetition (``TRSize``), so a scanner that segments
+    a repetition plays the dummies as one segment and repeats one segment per
+    frame. Otherwise each slice is one train with no rest in it. Acquisitions carry ``LIN``, ``SLC``, the segment as
     ``SEG`` and the frame, the cardiac phase or the cycle within the
     heartbeat as ``PHS``; calibration lines are marked ``IMA``.
 
@@ -190,8 +196,9 @@ def bssfp2d(
 
     Returns
     -------
-    pypulseqpp.Sequence
-        The designed sequence.
+    pypulseqpp.Sequence or list of pypulseqpp.Sequence
+        The designed sequence; without gating and with dummies, the chain of
+        each slice's dummies and frames, in play order, slice by slice.
 
     Raises
     ------
@@ -252,11 +259,10 @@ def bssfp2d(
         bridge=True,
     )
     # A slice is bridged: its blocks join on the slice axis, so that a scanner
-    # preparing segments between blocks at rest plays the slice as one, with
-    # nothing between its repetitions. It opens from rest, on its trigger
-    # under prospective gating, and its last rewind closes to rest.
-    gz_open = ro.gz_open if ro.bridged else ro.gz
-    gz_close = ro.gz_close if ro.bridged else ro.gz_rew
+    # preparing segments between blocks at rest plays nothing between its
+    # repetitions. It opens from rest, on its trigger under prospective
+    # gating, rests only where a frame, a heartbeat's segment or a heartbeat
+    # ends, and its last rewind closes to rest.
     nominal = ro.rf.amplitude
     rr = 60.0 / heart_rate_bpm
     if n_dummy is None:
@@ -327,92 +333,100 @@ def bssfp2d(
             train += [(None, 0, 0)] * (starts[s] - len(train))
             train += [(line, s, f) for f in range(n_phases) for line in segment]
     n_segments = len(segments)
+    # A free-running series with dummies is a chain of two files per slice:
+    # the half flip and dummies, closed to rest, then the frames, each frame
+    # opened from rest and closed to it. A frame is then the repetition of its
+    # file, and a scanner that segments a repetition plays it as one segment,
+    # once per frame.
+    chained = gating == "none" and n_dummy > 0
 
     slice_step = slice_thickness + slice_spacing
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * slice_step
     slab_thickness = n_slices * slice_step - slice_spacing
     slice_gap = slice_step - exc.slice_thickness
 
-    seq, labels = pp.Sequence(system), sequences.Labels()
-
     def ky_of(line: int | None) -> float:
         return 0.0 if line is None else (line - n_y // 2) / (n_y / 2)
 
-    def kernel(
+    def half_flip(target: pp.Sequence, s: int) -> None:
+        """Add slice ``s``'s half flip and the wait after it."""
+        rf = ro.rf
+        rf.freq_offset = exc.selection_amplitude * positions[s]
+        # Half the flip at phase 0, opposite to the first excitation's pi,
+        # lands the magnetisation on the bisector the steady state oscillates
+        # about. The module writes ONCE on this block and the next, so the
+        # labels restart here as a ONCE through labels() would.
+        labels.restart()
+        rf.amplitude = 0.5 * nominal
+        rf.phase_offset = -2 * np.pi * rf.freq_offset * rf.center
+        # A trigger on the half flip makes the slice's train wait for it, with
+        # nothing before the train to set up apart from it.
+        triggered = [trigger_event] if gating == "prospective" else []
+        target.add_block(rf, ro.gz_open, *triggered, *ro.prep_labels)
+        target.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
+        rf.amplitude = nominal
+
+    def rewind(target: pp.Sequence, ky: float, closes: bool, ends: bool) -> None:
+        """Rewind the encode ``ky``; ``closes`` brings the slice axis to rest, ``ends`` marks the train's end."""
+        target.add_block(
+            ro.gx_rew,
+            pp.scale_grad(ro.gy_rew, ky),
+            ro.gz_close if closes else ro.gz_rew,
+            *(ro.end_labels if ends else []),
+        )
+
+    def repetition(
+        target: pp.Sequence,
         s: int,
         shot: int,
         line: int | None,
-        previous_ky: float | None,
-        segment: int = 0,
-        phase: int = 0,
-        last: bool = False,
+        segment: int,
+        phase: int,
+        opens: bool,
     ) -> None:
-        """Add one repetition of slice ``s``: the rewind of the previous one, then excite and read.
-
-        ``previous_ky`` is the fractional encode the rewind undoes; ``None``
-        opens the slice's train with the half flip, which carries the trigger
-        under ``prospective`` gating. ``last`` closes the
-        train with the final rewind, and ``line=None`` plays a dummy.
-        """
+        """Excite slice ``s`` and read ``line``, opening from rest with ``opens``; ``line=None`` plays a dummy."""
         rf = ro.rf
         rf.freq_offset = exc.selection_amplitude * positions[s]
-        centre_phase = -2 * np.pi * rf.freq_offset * rf.center
-
-        if previous_ky is None:
-            # Half the flip at phase 0, opposite to the first excitation's pi,
-            # lands the magnetisation on the bisector the steady state
-            # oscillates about. The module writes ONCE on this block and the
-            # next, so the labels restart here as a ONCE through labels() would.
-            labels.restart()
-            rf.amplitude = 0.5 * nominal
-            rf.phase_offset = centre_phase
-            # A trigger on the half flip makes the slice's train wait for it,
-            # with nothing before the train to set up apart from it.
-            triggered = [trigger_event] if gating == "prospective" else []
-            seq.add_block(rf, gz_open, *triggered, *ro.prep_labels)
-            seq.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
-            rf.amplitude = nominal
-        else:
-            seq.add_block(ro.gx_rew, pp.scale_grad(ro.gy_rew, previous_ky), ro.gz_rew)
-
         alternation = np.pi * ((shot + 1) % 2)
-        rf.phase_offset = alternation + centre_phase
+        rf.phase_offset = alternation - 2 * np.pi * rf.freq_offset * rf.center
         ro.adc.phase_offset = alternation
-        seq.add_block(rf, ro.gz)
-
+        target.add_block(rf, ro.gz_open if opens else ro.gz)
         ky = ky_of(line)
         if line is None:
-            seq.add_block(ro.gx, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre)
-        else:
-            label_events = labels(
-                LIN=line,
-                SLC=s,
-                SEG=segment,
-                PHS=phase,
-                IMA=line in calibration,
-            )
-            seq.add_block(
-                ro.gx, ro.adc, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre, *label_events
-            )
-        if last:
-            seq.add_block(
-                ro.gx_rew,
-                pp.scale_grad(ro.gy_rew, ky),
-                *([] if gz_close is None else [gz_close]),
-                *ro.end_labels,
-            )
+            target.add_block(ro.gx, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre)
+            return
+        label_events = labels(
+            LIN=line, SLC=s, SEG=segment, PHS=phase, IMA=line in calibration
+        )
+        target.add_block(
+            ro.gx, ro.adc, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre, *label_events
+        )
 
     # Each slice's whole train is played before the next slice's.
+    seq, labels = pp.Sequence(system), sequences.Labels()
+    chain = []
     for s in range(n_slices):
-        first = seq.num_blocks
+        target = pp.Sequence(system) if chained else seq
+        first = target.num_blocks
+        half_flip(target, s)
         previous = None
         for shot, (line, segment, phase) in enumerate(train):
-            kernel(s, shot, line, previous, segment, phase, last=shot == len(train) - 1)
+            # Chained, the slice rests ahead of every frame.
+            opens = chained and shot >= n_dummy and (shot - n_dummy) % len(lines) == 0
+            if previous is not None:
+                rewind(target, previous, closes=opens, ends=False)
+            if chained and shot == n_dummy:
+                chain.append(target)
+                target = pp.Sequence(system)
+                labels.restart()
+            repetition(target, s, shot, line, segment, phase, opens=opens)
             previous = ky_of(line)
+        rewind(target, previous, closes=True, ends=not chained)
+        if chained:
+            chain.append(target)
         if s == 0:
             plot_tr_start = first + 1
-            plot_tr_size = seq.num_blocks - first
-
+            plot_tr_size = target.num_blocks - first
     # The volume's offset is applied to the finished sequence with
     # pp.TransformFOV.
     definitions = {
@@ -438,6 +452,25 @@ def bssfp2d(
         )
     if gating == "prospective":
         definitions.update(CardiacPhases=n_phases, TriggerDelay=trigger_delay)
+    if chained:
+        # A frame is its file's repetition; the half flip and dummies play once.
+        frame = 3 * len(lines)
+        for index, part in enumerate(chain):
+            catalyst = index % 2 == 0
+            size = part.num_blocks if catalyst else frame
+            stated = definitions | {"PlotTRstart": 1, "PlotTRsize": size}
+            if catalyst:
+                stated["Name"] = f"{NAME}_catalyst"
+            else:
+                stated["TRSize"] = frame
+            for key, value in stated.items():
+                part.set_definition(key=key, value=value)
+            if not catalyst:
+                part.set_definition(
+                    key="NumGainCalibrationReadouts",
+                    value=sequences.gain_calibration_readouts(part),
+                )
+        return chain
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
     seq.set_definition(
