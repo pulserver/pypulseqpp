@@ -45,7 +45,7 @@ mkl = ["mkl; platform_machine == 'x86_64' or platform_machine == 'AMD64'"]
 # effective TE (calc_fse_effective_te) and flip_modulation="optimized". It
 # brings PyTorch as a dependency; only the optimized trains import it, the
 # schedules run in blochsim.trains, which is NumPy over a compiled kernel.
-design = ["blochsim>=0.0.18"]
+design = ["blochsim>=0.0.19"]
 doc = [
   "sphinx>=7.0",
   "sphinx-book-theme>=1.1",

@@ -221,3 +221,27 @@ def test_dense_pd_transition_is_continuous_at_equal_peak_and_final():
     )
     same_length = lengths[1:] == lengths[:-1]
     assert np.rad2deg(abs(np.diff(profiles, axis=0))[same_length]).max() < 2.0
+
+
+@pytest.mark.parametrize("fraction", [0.5, 0.7])
+def test_pd_fraction_slope_is_the_derivative_of_the_solved_train(fraction):
+    from pypulseqpp._pd import _make_pd_schedules, _pd_fraction_slopes
+
+    controls = np.array([120.0, 140.0, 100.0, fraction])
+    timing = (6, 0.003416, 0.004162, 1.0, 0.1, 1.3)
+    flips, levels = _make_pd_schedules(
+        [46], controls[None], *timing[:3], return_levels=True
+    )
+    angles, slope = _pd_fraction_slopes(46, controls, levels[0], *timing)
+    np.testing.assert_allclose(angles, flips[0], atol=1e-12)
+    step = 1e-5
+    moved = [
+        _make_pd_schedules(
+            [46],
+            (controls + np.array([0, 0, 0, sign * step]))[None],
+            *timing[:3],
+            seed=levels,
+        )[0]
+        for sign in (1, -1)
+    ]
+    np.testing.assert_allclose(slope, (moved[0] - moved[1]) / (2 * step), atol=1e-5)

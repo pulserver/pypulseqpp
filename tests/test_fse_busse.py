@@ -113,24 +113,35 @@ def test_outer_fit_keeps_family_and_improves_forward_psf(monkeypatch):
         for echo, index in enumerate(train):
             if index is not None:
                 echo_map[sampled[index]] = echo
+    from pypulseqpp._busse_opt import _ForwardSignal
+
     seen = []
     simulate = simulators.FSESimulator.simulate
+    magnitudes = _ForwardSignal.__call__
+    slopes = _ForwardSignal.slopes
 
-    def record(self, **protocol):
-        layout = self.layout(flip=protocol["flip"], ESP=3.416)
+    def timed(self, **protocol):
+        layout = self.layout(flip=torch.full((4,), 120.0), ESP=3.416)
         # Event times are seconds even though the simulator's ESP is ms.
         np.testing.assert_allclose(
             [layout[1][0], layout[2][0], layout[4][0]],
             [0.004162 / 2, 0.004162, 0.004162 + 0.003416],
         )
-        assert torch.allclose(
-            protocol["flip"][..., 0], torch.full_like(protocol["flip"][..., 0], 120)
-        )
-        result = simulate(self, **protocol)
-        seen.append((protocol["flip"].numpy().copy(), result.abs().numpy().copy()))
+        return simulate(self, **protocol)
+
+    def record(self, flips):
+        result = magnitudes(self, flips)
+        seen.append((np.rad2deg(flips), result))
         return result
 
-    monkeypatch.setattr(simulators.FSESimulator, "simulate", record)
+    def record_slopes(self, flips, directions):
+        result = slopes(self, flips, directions)
+        seen.append((np.rad2deg(flips), result[0]))
+        return result
+
+    monkeypatch.setattr(simulators.FSESimulator, "simulate", timed)
+    monkeypatch.setattr(_ForwardSignal, "__call__", record)
+    monkeypatch.setattr(_ForwardSignal, "slopes", record_slopes)
     angles = optimize_controls(
         acquired + 6,
         minimum_flip_angle=np.deg2rad(25),
@@ -162,9 +173,10 @@ def test_outer_fit_keeps_family_and_improves_forward_psf(monkeypatch):
     )
     assert angles[0] == reference[0] and angles[-1] == pytest.approx(reference[-1])
     assert sum(angles**2) <= sum(reference**2) * (1 + 1e-6)
+    assert all(flips[0] == pytest.approx(120) for flips, _ in seen)
     baseline = seen[0][1].reshape(3, 3, acquired + 6)
-    final = seen[-1][1][0].reshape(3, 3, acquired + 6)
-    np.testing.assert_allclose(np.rad2deg(angles), seen[-1][0][0])
+    final = seen[-1][1].reshape(3, 3, acquired + 6)
+    np.testing.assert_allclose(np.rad2deg(angles), seen[-1][0])
     contrast = (final[:, 2, centre] - final[:, 0, centre]) / (
         baseline[:, 2, centre] - baseline[:, 0, centre]
     )
@@ -303,3 +315,83 @@ def test_buonincontri_is_reserved_for_parameter_transitions():
         build(ordering="buonincontri")
     seq = build(tr_periphery=0.4)
     assert seq.definitions["ResolvedViewOrdering"] == "buonincontri"
+
+
+def test_busse_schedule_slopes_are_the_derivative_of_the_schedule():
+    from pypulseqpp._busse import _schedule_slopes
+
+    angles, slopes = _schedule_slopes(46, 25.0, 70.0, 120.0, 25, 1.3)
+    np.testing.assert_allclose(
+        angles, pp.make_busse_schedule(46, centre_echo=25), atol=1e-12
+    )
+    step = 1e-6
+    for column, name in enumerate(
+        ("minimum_flip_angle", "centre_flip_angle", "maximum_flip_angle")
+    ):
+        prescription = {
+            "minimum_flip_angle": np.deg2rad(25.0),
+            "centre_flip_angle": np.deg2rad(70.0),
+            "maximum_flip_angle": np.deg2rad(120.0),
+        }
+        moved = []
+        for sign in (1, -1):
+            changed = dict(prescription)
+            changed[name] += sign * step
+            moved.append(pp.make_busse_schedule(46, centre_echo=25, **changed))
+        np.testing.assert_allclose(
+            slopes[:, column], (moved[0] - moved[1]) / (2 * step), atol=1e-6
+        )
+
+
+def test_psf_radius_slopes_are_its_derivative():
+    from pypulseqpp._busse_opt import _psf_radius
+
+    rng = np.random.default_rng(5)
+    forms = rng.standard_normal((2, 12, 12))
+    energy, moment = (form @ form.T for form in forms)
+    signal = rng.random((4, 12))
+    directions = rng.standard_normal((2, 4, 12))
+    _, slopes = _psf_radius(signal, directions, energy, moment)
+    step = 1e-7
+    for k in range(2):
+        moved = [
+            _psf_radius(
+                signal + sign * step * directions[k], directions, energy, moment
+            )[0]
+            for sign in (1, -1)
+        ]
+        np.testing.assert_allclose(
+            slopes[k], (moved[0] - moved[1]) / (2 * step), rtol=1e-6
+        )
+
+
+def test_ensemble_echo_slopes_are_the_derivative_of_the_simulated_echoes():
+    pytest.importorskip("blochsim.simulators")
+    from blochsim._execution import execution
+
+    from pypulseqpp._busse_opt import _ForwardSignal
+
+    module = sequences.fse3D_sequence
+    flips = pp.make_busse_schedule(46, centre_echo=25)
+    rng = np.random.default_rng(6)
+    directions = 0.05 * rng.standard_normal((2, 46))
+    with execution("cpu"):
+        forward = _ForwardSignal(
+            46,
+            esp=0.003416,
+            first_echo_time=0.004162,
+            tr=1.5,
+            t1_ms=module.DESIGN_T1_MS,
+            t2_ms=module.DESIGN_T2_MS,
+            b1_scales=module.DESIGN_B1_SCALES,
+        )
+        signal, slopes = forward.slopes(flips, directions)
+        np.testing.assert_allclose(signal, forward(flips), rtol=1e-6)
+        # The simulator runs in single precision, so the difference is taken
+        # over a step its round-off does not swamp.
+        step = 1e-2
+        for k in range(2):
+            moved = [forward(flips + sign * step * directions[k]) for sign in (1, -1)]
+            np.testing.assert_allclose(
+                slopes[k], (moved[0] - moved[1]) / (2 * step), atol=2e-4
+            )

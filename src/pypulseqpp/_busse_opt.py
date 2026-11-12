@@ -9,8 +9,8 @@ from scipy.optimize import minimize
 from scipy.sparse import csr_matrix
 from scipy.spatial import Delaunay, cKDTree
 
-from ._busse import make_busse_schedule
-from ._fse_contrast import calc_fse_effective_te
+from ._busse import _schedule_slopes, make_busse_schedule
+from ._fse_contrast import _effective_te_slopes
 
 
 @lru_cache(maxsize=4)
@@ -73,6 +73,98 @@ def psf_weights(echo_map, length):
     return _weights(plane.shape, length, plane.tobytes())
 
 
+class _ForwardSignal:
+    """Echo magnitudes of a train over a tissue/B1 ensemble, and their derivatives.
+
+    The train is blochsim's FSE with the first echo at ``first_echo_time``,
+    played ``repetitions`` times at ``tr`` so that the last playing starts from
+    the steady state. Derivatives with respect to the flip angles are taken in
+    forward mode, one pass per direction, through blochsim's native kernels.
+    """
+
+    def __init__(self, length, *, esp, first_echo_time, tr, t1_ms, t2_ms, b1_scales):
+        from blochsim.simulators import FSESimulator
+
+        class TimedFSE(FSESimulator):
+            def layout(
+                self, *, flip, ESP, phases=0.0, exc_flip=90.0, exc_phase=90.0, TR=1e6
+            ):
+                parts = super().layout(
+                    flip=flip,
+                    ESP=ESP,
+                    phases=phases,
+                    exc_flip=exc_flip,
+                    exc_phase=exc_phase,
+                    TR=TR,
+                )
+                # FSESimulator takes ESP/TR in ms but returns event times in s.
+                extra = first_echo_time - esp
+                return [
+                    (time + (extra / 2 if i == 1 else extra if i > 1 else 0), op)
+                    for i, (time, op) in enumerate(parts)
+                ]
+
+        self.model = TimedFSE(
+            ESP=esp * 1e3,
+            states=2 * length + 1,
+            T1=list(t1_ms) * len(b1_scales),
+            T2=list(t2_ms) * len(b1_scales),
+            B1=np.repeat(b1_scales, len(t1_ms)).tolist(),
+        )
+        self.tr_ms = tr * 1e3
+
+    def _simulate(self, flip):
+        return self.model.simulate(flip=flip, TR=self.tr_ms, repetitions=8)
+
+    def __call__(self, flips):
+        """Magnitudes ``(tissues, echoes)`` of ``flips`` (rad)."""
+        import torch
+
+        signal = self._simulate(torch.as_tensor(np.rad2deg(flips), dtype=torch.float64))
+        return signal.abs().numpy().astype(np.float64, copy=False)
+
+    def slopes(self, flips, directions):
+        """Return magnitudes and their derivatives along ``directions``.
+
+        ``flips`` and ``directions`` ``(k, echoes)`` are in radians; returns
+        ``(tissues, echoes)`` and ``(k, tissues, echoes)``.
+        """
+        import torch
+        from blochsim._derivative import forward_mode
+
+        forward_mode()
+        flip = torch.as_tensor(np.rad2deg(flips), dtype=torch.float64)
+        tangents = torch.as_tensor(np.rad2deg(directions), dtype=torch.float64)
+        signal, changes = torch.func.vmap(
+            lambda tangent: torch.func.jvp(self._simulate, (flip,), (tangent,))
+        )(tangents)
+        signal = signal[0]
+        magnitude = signal.abs()
+        slopes = (signal.conj() * changes).real / magnitude.clamp_min(1e-30)
+        return (
+            magnitude.numpy().astype(np.float64, copy=False),
+            slopes.numpy().astype(np.float64, copy=False),
+        )
+
+
+def _psf_radius(signal, slopes, energy_form, moment_form):
+    """Ideal-interpolation PSF RMS radius per tissue, and its derivatives.
+
+    ``signal`` is ``(tissues, echoes)`` and ``slopes`` ``(k, tissues,
+    echoes)``; returns ``(tissues,)`` and ``(k, tissues)``.
+    """
+    energy = np.einsum("ti,ij,tj->t", signal, energy_form, signal, optimize=True)
+    moment = np.einsum("ti,ij,tj->t", signal, moment_form, signal, optimize=True)
+    d_energy = 2 * np.einsum("ti,ij,ktj->kt", signal, energy_form, slopes)
+    d_moment = 2 * np.einsum("ti,ij,ktj->kt", signal, moment_form, slopes)
+    energy = np.maximum(energy, 1e-20)
+    moment = np.maximum(moment, 0)
+    radius = np.sqrt(moment / energy)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        d_radius = (d_moment / energy - moment * d_energy / energy**2) / (2 * radius)
+    return radius, np.where(radius > 0, d_radius, 0.0)
+
+
 def optimize_controls(
     length,
     *,
@@ -110,11 +202,10 @@ def optimize_controls(
     if objective not in ("psf", "contrast"):
         raise ValueError("objective must be psf or contrast")
     try:
-        import torch
-        from blochsim._execution import execution
-        from blochsim.simulators import FSESimulator
+        from blochsim.simulators import FSESimulator  # noqa: F401
     except ImportError as error:
         raise ImportError("Busse optimization requires pypulseqpp[design]") from error
+    from blochsim._execution import execution
 
     protocol = {
         "minimum_flip_angle": minimum_flip_angle,
@@ -137,49 +228,17 @@ def optimize_controls(
     )
     if window <= 0:
         raise ValueError("Busse optimization needs separated angle controls")
-
-    class TimedFSE(FSESimulator):
-        def layout(
-            self, *, flip, ESP, phases=0.0, exc_flip=90.0, exc_phase=90.0, TR=1e6
-        ):
-            parts = super().layout(
-                flip=flip,
-                ESP=ESP,
-                phases=phases,
-                exc_flip=exc_flip,
-                exc_phase=exc_phase,
-                TR=TR,
-            )
-            # FSESimulator takes ESP/TR in ms but returns event times in s.
-            extra = first_echo_time - esp
-            return [
-                (time + (extra / 2 if i == 1 else extra if i > 1 else 0), op)
-                for i, (time, op) in enumerate(parts)
-            ]
-
     with execution("cpu"):
-        model = TimedFSE(
-            ESP=esp * 1e3,
-            states=2 * length + 1,
-            T1=list(t1_ms) * len(b1_scales),
-            T2=list(t2_ms) * len(b1_scales),
-            B1=np.repeat(b1_scales, len(t1_ms)).tolist(),
+        forward = _ForwardSignal(
+            length,
+            esp=esp,
+            first_echo_time=first_echo_time,
+            tr=tr,
+            t1_ms=t1_ms,
+            t2_ms=t2_ms,
+            b1_scales=b1_scales,
         )
-
-        def simulate(flips):
-            return (
-                model.simulate(
-                    flip=torch.as_tensor(np.rad2deg(flips), dtype=torch.float64),
-                    TR=tr * 1e3,
-                    repetitions=8,
-                )
-                .abs()
-                .detach()
-                .numpy()
-                .astype(np.float64, copy=False)
-            )
-
-        reference = simulate(baseline).reshape(len(b1_scales), len(t1_ms), length)
+        reference = forward(baseline).reshape(len(b1_scales), len(t1_ms), length)
         bright, dark = contrast_pair
         reference_contrast = (
             reference[:, bright, centre_echo] - reference[:, dark, centre_echo]
@@ -193,59 +252,61 @@ def optimize_controls(
         def evaluate(u):
             if np.array_equal(cached.get("u"), u):
                 return cached["value"]
-            # Resolve the narrow active contrast boundary of short-TR trains.
-            step = 0.005
-            probes = np.r_[u[None, :], u + step * np.eye(2), u - step * np.eye(2)]
-            flips = []
-            for probe in probes:
-                controls = np.deg2rad(requested + window * probe)
-                flips.append(
-                    make_busse_schedule(
-                        length,
-                        **{
-                            **protocol,
-                            "minimum_flip_angle": controls[0],
-                            "centre_flip_angle": controls[1],
-                        },
-                    )
-                )
-            flips = np.asarray(flips)
-            signal = simulate(flips)
-            image_signal = signal[:, :, startup_echoes:]
-            energy = np.einsum(
-                "bti,ij,btj->bt", image_signal, energy_form, image_signal, optimize=True
+            controls = requested + window * u
+            flips, jacobian = _schedule_slopes(
+                length,
+                *controls,
+                maximum_deg,
+                centre_echo,
+                float(initial_decay),
             )
-            moment = np.einsum(
-                "bti,ij,btj->bt", image_signal, moment_form, image_signal, optimize=True
+            # d flips / d u, one row per control, in radians.
+            directions = np.deg2rad(window) * jacobian[:, :2].T
+            signal, slopes = forward.slopes(flips, directions)
+            radius, d_radius = _psf_radius(
+                signal[:, startup_echoes:],
+                slopes[:, :, startup_echoes:],
+                energy_form,
+                moment_form,
             )
-            loss = np.sqrt(np.maximum(moment, 0) / np.maximum(energy, 1e-20)).mean(1)
-            tissue = signal.reshape(5, len(b1_scales), len(t1_ms), length)
-            contrast = (
-                tissue[:, :, bright, centre_echo] - tissue[:, :, dark, centre_echo]
+            tissue = signal.reshape(len(b1_scales), len(t1_ms), length)
+            d_tissue = slopes.reshape(2, len(b1_scales), len(t1_ms), length)
+            contrast = tissue[:, bright, centre_echo] - tissue[:, dark, centre_echo]
+            d_contrast = (
+                d_tissue[:, :, bright, centre_echo] - d_tissue[:, :, dark, centre_echo]
             )
             if objective == "contrast":
-                loss = -(contrast / contrast_scale).mean(1)
-            constraints = np.c_[
+                loss = -(contrast / contrast_scale).mean()
+                gradient = -(d_contrast / contrast_scale).mean(1)
+            else:
+                loss = radius.mean()
+                gradient = d_radius.mean(1)
+            constraints = [
                 (contrast - reference_contrast) / contrast_scale + 0.045,
-                0.999 - np.sum(flips**2, axis=1) / budget,
+                [0.999 - np.sum(flips**2) / budget],
+            ]
+            d_constraints = [
+                d_contrast.T / contrast_scale[:, None],
+                -2 * (directions @ flips)[None, :] / budget,
             ]
             if effective_te is not None:
-                contrast_te = calc_fse_effective_te(
-                    flips[:, : centre_echo + 1],
+                times, d_times = _effective_te_slopes(
+                    flips[: centre_echo + 1],
+                    directions[:, : centre_echo + 1],
                     esp,
-                    first_echo_time=first_echo_time,
-                )[:, -1]
-                deviation = (contrast_te - effective_te) / esp
+                    first_echo_time,
+                )
+                deviation = (times[-1] - effective_te) / esp
+                d_deviation = d_times[:, -1] / esp
                 tolerance = min(1e-4, 0.05 * esp) / esp
-                constraints = np.c_[
-                    constraints, tolerance - deviation, tolerance + deviation
-                ]
+                constraints.append([tolerance - deviation, tolerance + deviation])
+                d_constraints.append(np.stack([-d_deviation, d_deviation]))
             value = (
-                loss[0],
-                (loss[1:3] - loss[3:5]) / (2 * step),
-                constraints[0],
-                ((constraints[1:3] - constraints[3:5]) / (2 * step)).T,
-                flips[0],
+                loss,
+                gradient,
+                np.concatenate(constraints),
+                np.concatenate(d_constraints),
+                flips,
             )
             cached.update(u=u.copy(), value=value)
             return value

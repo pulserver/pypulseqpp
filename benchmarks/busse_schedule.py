@@ -29,7 +29,7 @@ from blochsim.simulators import FSESimulator
 
 import pypulseqpp as pp
 from pypulseqpp import sequences
-from pypulseqpp._busse import _schedule
+from pypulseqpp._busse import _schedule, _schedule_slopes
 from pypulseqpp._busse_opt import optimize_controls, psf_weights
 
 
@@ -189,6 +189,7 @@ def main(output):
         timings = []
         for _ in range(3):
             _schedule.cache_clear()
+            _schedule_slopes.cache_clear()
             start = perf_counter()
             fitted = optimize_controls(
                 length,

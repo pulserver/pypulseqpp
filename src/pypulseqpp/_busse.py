@@ -19,7 +19,7 @@ def _trains():
     except ImportError as error:
         raise ImportError(
             "Busse and PD refocusing schedules and the FSE effective TE are "
-            "computed by blochsim>=0.0.18: pip install 'pypulseqpp[design]'"
+            "computed by blochsim>=0.0.19: pip install 'pypulseqpp[design]'"
         ) from error
     return trains
 
@@ -43,6 +43,32 @@ def _schedule(length, minimum_deg, centre_deg, maximum_deg, centre, decay):
     result = np.deg2rad(angles)
     result.flags.writeable = False
     return result
+
+
+@lru_cache(maxsize=128)
+def _schedule_slopes(length, minimum_deg, centre_deg, maximum_deg, centre, decay):
+    """Return a Busse train (rad) and its exact derivatives ``(length, 3)``.
+
+    The derivatives are per radian of the minimum, centre and maximum angle.
+    """
+    try:
+        angles, jacobian = _trains().busse_flips(
+            length,
+            min_flip=minimum_deg,
+            centre_flip=centre_deg,
+            max_flip=maximum_deg,
+            centre_echo=centre,
+            startup_echoes=0,
+            initial_decay=decay,
+            jacobian=True,
+        )
+    except ValueError as error:
+        raise ValueError(
+            "The prescribed Busse controls do not give a feasible refocusing train"
+        ) from error
+    angles = np.deg2rad(angles)
+    angles.flags.writeable = jacobian.flags.writeable = False
+    return angles, jacobian
 
 
 def _integer(value, name):
