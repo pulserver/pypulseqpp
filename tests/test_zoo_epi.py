@@ -460,7 +460,7 @@ def test_a_multiband_shot_is_centred_on_its_slice_group():
 
 
 def test_an_undersampled_2d_scan_calibrates_every_slice_with_a_gradient_echo():
-    scan = scan2d(n_slices=3, ry=2, n_acs_y=4)
+    scan = scan2d(n_slices=3, ry=2, n_acs_y=4, calibration="gre")
     lin, slc, ref = labels(scan.prescan("calibration"), "LIN", "SLC", "REF")
 
     assert list(zip(slc, lin, strict=True)) == [
@@ -640,8 +640,67 @@ def test_partial_fourier_drops_the_leading_lines_and_shells():
     assert partial.echo_time < full.echo_time
 
 
+def _echo_slope(seq, sets):
+    """Echo time against line, per set, of the readouts of ``seq`` that are not navigators (s per line)."""
+    _, _, t_excitation, _, t_adc = seq.calculate_kspace()
+    found = seq.evaluate_labels(evolution="adc")
+    count = len(found["LIN"])
+    middle = t_adc.reshape(count, -1)[:, t_adc.size // count // 2]
+    echo = middle - t_excitation[np.searchsorted(t_excitation, middle) - 1]
+    lines = found["LIN"][found["NAV"] == 0]
+    echo = echo[found["NAV"] == 0]
+    polarity = found.get("SET", np.zeros(count, int))[found["NAV"] == 0]
+    return [np.polyfit(lines[polarity == s], echo[polarity == s], 1)[0] for s in sets]
+
+
+@pytest.mark.parametrize(
+    "make",
+    [
+        lambda: scan2d(n_slices=2, ry=2, n_acs_y=8),
+        lambda: scan2d(ry=2, n_shots=2, n_acs_y=8),
+        lambda: scan2d(n_slices=2, multiband=2, n_acs_y=8),
+        lambda: scan3d(ry=2, rz=2, n_acs_y=8, n_acs_z=2),
+    ],
+    ids=["2D", "2D segmented", "2D multiband", "3D"],
+)
+def test_the_fleet_calibration_steps_through_its_lines_as_the_imaging_does(make):
+    scan = make()
+    calibration = scan.prescan("calibration")
+    forward, reversed_ = _echo_slope(calibration, (0, 1))
+    (imaging,) = _echo_slope(scan.main, (0,))
+
+    assert written(calibration, "EchoSpacing") == pytest.approx(scan.esp)
+    assert written(calibration, "TE") == pytest.approx(scan.echo_time)
+    assert forward == pytest.approx(imaging, rel=0.02)
+    assert reversed_ == pytest.approx(-imaging, rel=0.02)
+
+
+def test_an_undersampled_2d_scan_calibrates_each_slice_with_fleet_shots_in_both_polarities():
+    scan = scan2d(n_slices=3, ry=2, n_acs_y=4)
+    lin, slc, ref, seg, polarity, nav = labels(
+        scan.prescan("calibration"), "LIN", "SLC", "REF", "SEG", "SET", "NAV"
+    )
+    read = nav == 0
+
+    # Two shots of two lines a slice, forward then reversed, each line of the
+    # reversed shots at its mirror n_y - L.
+    assert [
+        (s, p, g, line)
+        for s, p, g, line in zip(
+            slc[read], polarity[read], seg[read], lin[read], strict=True
+        )
+    ] == [
+        (s, p, g, 16 - line if p else line)
+        for s in (0, 2, 1)
+        for p in (0, 1)
+        for g in (0, 1)
+        for line in (6 + g, 8 + g)
+    ]
+    assert set(ref) == {1}
+
+
 def test_an_undersampled_3d_scan_calibrates_over_the_central_rectangle():
-    scan = scan3d(ry=2, n_acs_y=4, n_acs_z=2)
+    scan = scan3d(ry=2, n_acs_y=4, n_acs_z=2, calibration="gre")
     lin, par, ref = labels(scan.prescan("calibration"), "LIN", "PAR", "REF")
 
     assert list(zip(lin, par, strict=True)) == [

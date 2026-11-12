@@ -331,6 +331,23 @@ def test_a_wider_step_costs_a_longer_blip_window(system, excitation):
     assert wide.esp >= narrow.esp
 
 
+def test_a_train_given_another_trains_blip_window_takes_its_echo_spacing(
+    system, excitation
+):
+    wide = readout(system, excitation, etl=8, acceleration=4)
+    matched = readout(
+        system, excitation, etl=8, acceleration=1, blip_span=wide.blip_span
+    )
+    assert matched.blip_span == pytest.approx(wide.blip_span)
+    assert matched.esp == pytest.approx(wide.esp)
+
+
+def test_a_blip_window_shorter_than_the_widest_step_is_refused(system, excitation):
+    narrow = readout(system, excitation, etl=8, acceleration=1)
+    with pytest.raises(ValueError, match="blip_span"):
+        readout(system, excitation, etl=8, acceleration=4, blip_span=narrow.blip_span)
+
+
 # ----------------------------------------------------------------------
 # Flyback
 # ----------------------------------------------------------------------

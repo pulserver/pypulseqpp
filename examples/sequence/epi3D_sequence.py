@@ -173,6 +173,9 @@ FLEET_DUMMY_SHOTS = 1
 def fleet_lines(n: int, extent: int, shots: int) -> range:
     """Return the lines of a FLEET calibration: ``extent`` about the centre, rounded up to whole shots.
 
+    Each shot reads at least two lines, so the shot holding the centre line
+    echoes it within its train.
+
     Parameters
     ----------
     n : int
@@ -185,9 +188,10 @@ def fleet_lines(n: int, extent: int, shots: int) -> range:
     Returns
     -------
     range
-        Consecutive lines, as many as ``shots`` share evenly and ``n`` holds.
+        Consecutive lines, as many as ``shots`` share evenly, at least two
+        each, and ``n`` holds.
     """
-    count = min(-(-extent // shots) * shots, n - n % shots)
+    count = min(max(-(-extent // shots), 2) * shots, n - n % shots)
     low = min(max(n // 2 - count // 2, 0), n - count)
     return range(low, low + count)
 
@@ -227,9 +231,7 @@ def fleet_train(
     )
     train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=None))
     if train.echo_time < epi.echo_time - 1e-9:
-        train = sequences.EpiReadout3D(
-            system, rf, gz, **dict(common, te=epi.echo_time)
-        )
+        train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=epi.echo_time))
     if abs(train.esp - epi.esp) > 1e-9:
         raise ValueError(
             f"the FLEET calibration's echo spacing {train.esp * 1e3:.3f} ms is not "
@@ -354,8 +356,8 @@ def epi3d(
     n_acs_z : int, default=16
         Extent of the calibration rectangle along the partition encode.
     calibration : {'fleet', 'gre'}, default='fleet'
-        The calibration played when undersampled: segmented EPI with the
-        imaging train's echo spacing (FLEET), or a gradient echo per view.
+        The calibration played when undersampled: FLEET, segmented EPI at
+        the imaging train's echo spacing, or a gradient echo per view.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
         excitation of every volume, dummy volumes included.
@@ -507,7 +509,9 @@ def epi3d(
     lines_y = (
         fleet_lines(n_y, n_acs_y, acs_shots)
         if calibration == "fleet"
-        else range(max(n_y // 2 - n_acs_y // 2, 0), min(n_y // 2 - n_acs_y // 2 + n_acs_y, n_y))
+        else range(
+            max(n_y // 2 - n_acs_y // 2, 0), min(n_y // 2 - n_acs_y // 2 + n_acs_y, n_y)
+        )
     )
     views = [(y, z) for y in lines_y for z in partitions] if undersampled else []
     gre = acs = None

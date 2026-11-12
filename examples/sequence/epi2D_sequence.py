@@ -126,6 +126,9 @@ def packets_of(n: int, per_packet: int) -> list[list[int]]:
 def fleet_lines(n: int, extent: int, shots: int) -> range:
     """Return the lines of a FLEET calibration: ``extent`` about the centre, rounded up to whole shots.
 
+    Each shot reads at least two lines, so the shot holding the centre line
+    echoes it within its train.
+
     Parameters
     ----------
     n : int
@@ -138,9 +141,10 @@ def fleet_lines(n: int, extent: int, shots: int) -> range:
     Returns
     -------
     range
-        Consecutive lines, as many as ``shots`` share evenly and ``n`` holds.
+        Consecutive lines, as many as ``shots`` share evenly, at least two
+        each, and ``n`` holds.
     """
-    count = min(-(-extent // shots) * shots, n - n % shots)
+    count = min(max(-(-extent // shots), 2) * shots, n - n % shots)
     low = min(max(n // 2 - count // 2, 0), n - count)
     return range(low, low + count)
 
@@ -334,8 +338,8 @@ def epi2d(
         Phase-encode lines of the calibration; FLEET rounds them up to a
         whole number of lines per shot.
     calibration : {'fleet', 'gre'}, default='fleet'
-        The calibration played when undersampled or multiband: segmented
-        EPI with the imaging train's echo spacing (FLEET), or a gradient echo
+        The calibration played when undersampled or multiband: FLEET,
+        segmented EPI at the imaging train's echo spacing, or a gradient echo
         per line.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
