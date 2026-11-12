@@ -238,6 +238,7 @@ from.
    make_rf_spoiling_schedule
    make_phase_cycling_schedule
    make_pd_schedule
+   make_pd_target_schedule
    make_busse_schedule
    make_traps_schedule
 

@@ -641,15 +641,18 @@ sweeping with the angle within each radial section;
 instead (<code class="xref py py-func docutils literal notranslate"><span class="pre">deal_trains()</span></code>). <code class="docutils literal notranslate"><span class="pre">'adaptive_radial'</span></code>
 is accepted as an alias for <code class="docutils literal notranslate"><span class="pre">'buonincontri'</span></code>. <code class="docutils literal notranslate"><span class="pre">'shuffling'</span></code> uses
 complementary Poisson-disc echo assignment for identical trains.</p></li>
-<li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'</em><em>, </em><em>'busse'</em><em>, </em><em>'pd'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or variable trains designed by direct-angle
-optimization, prescribed-PSS Busse inverse EPG or relaxation-aware
-prescribed-signal PD inverse EPG. Every variable train is designed
-with blochsim, which the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra installs.</p></li>
+<li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'</em><em>, </em><em>'busse'</em><em>, </em><em>'pd'</em><em>, </em><em>'pd_target'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or variable trains designed by direct-angle
+optimization, prescribed-PSS Busse inverse EPG, relaxation-aware
+prescribed-signal PD inverse EPG from first, maximum and final angles
+under <code class="docutils literal notranslate"><span class="pre">pd</span></code>, or under <code class="docutils literal notranslate"><span class="pre">pd_target</span></code> inverse EPG of an explicit PD
+target signal, <a class="reference internal" href="../pypulseqpp.make_pd_target_schedule.html#pypulseqpp.make_pd_target_schedule" title="pypulseqpp.make_pd_target_schedule"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_pd_target_schedule()</span></code></a>. Every
+variable train is designed with blochsim, which the <code class="docutils literal notranslate"><span class="pre">design</span></code> extra
+installs.</p></li>
 <li><p><strong>busse_minimum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=25.0</em>) – Minimum actual refocusing angle (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_centre_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=70.0</em>) – Actual refocusing angle at the centre echo (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_maximum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=120.0</em>) – Actual first and final angle (degrees), under <code class="docutils literal notranslate"><span class="pre">busse</span></code>.</p></li>
 <li><p><strong>busse_startup_echoes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=6</em>) – Leading unacquired refocusing pulses, additional to <code class="docutils literal notranslate"><span class="pre">etl</span></code>, under
-<code class="docutils literal notranslate"><span class="pre">busse</span></code> and <code class="docutils literal notranslate"><span class="pre">pd</span></code>. They play in imaging, calibration and dummy trains.</p></li>
+<code class="docutils literal notranslate"><span class="pre">busse</span></code>, <code class="docutils literal notranslate"><span class="pre">pd</span></code> and <code class="docutils literal notranslate"><span class="pre">pd_target</span></code>. They play in imaging, calibration and dummy trains.</p></li>
 <li><p><strong>busse_centre_echo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Zero-based acquired echo index under <code class="docutils literal notranslate"><span class="pre">busse</span></code> or <code class="docutils literal notranslate"><span class="pre">pd</span></code>. For Busse, <code class="docutils literal notranslate"><span class="pre">None</span></code> selects
 <code class="docutils literal notranslate"><span class="pre">(etl</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">//</span> <span class="pre">2</span></code>; PD uses the first acquired echo. An effective-TE
 request selects the nearest feasible echo. Startup precedes this index.</p></li>
@@ -703,6 +706,51 @@ and construct the cubic transition with batched inverse EPG.</p></li>
 <li><p><strong>pd_maximum_angle_periphery_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Peripheral maximum RF angle (degrees); <code class="docutils literal notranslate"><span class="pre">None</span></code> inherits the centre.</p></li>
 <li><p><strong>pd_final_angle_periphery_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Peripheral final RF angle (degrees); <code class="docutils literal notranslate"><span class="pre">None</span></code> inherits the centre.</p></li>
 <li><p><strong>pd_plateau_fraction_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Peripheral signal-tail onset fraction; <code class="docutils literal notranslate"><span class="pre">None</span></code> inherits the centre.</p></li>
+<li><p><strong>pd_target_first_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>0</em><em>]</em>) – First refocusing angle (degrees) under <code class="docutils literal notranslate"><span class="pre">pd_target</span></code>.</p></li>
+<li><p><strong>pd_target_plateau_signal</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>1</em><em>]</em>) – Plateau of the PD target signal over the equilibrium magnetization.</p></li>
+<li><p><strong>pd_target_plateau_slope</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>2</em><em>]</em>) – Relative change of the plateau from the first pulse to the last.</p></li>
+<li><p><strong>pd_target_plateau_fraction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>3</em><em>]</em>) – Fraction of the train before the signal tail begins.</p></li>
+<li><p><strong>pd_target_tail_signal</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>4</em><em>]</em>) – Signal at the last pulse over the plateau there.</p></li>
+<li><p><strong>pd_target_tail_exponent</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>5</em><em>]</em>) – Power of the tail’s decline in its own fraction of the train.</p></li>
+<li><p><strong>pd_target_initial_signal</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>6</em><em>]</em>) – Target at the second echo, from which the signal decays to the
+plateau.</p></li>
+<li><p><strong>pd_target_initial_decay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_CENTRE</em><em>[</em><em>7</em><em>]</em>) – Time constant of that decay, in echoes. The defaults reproduce the
+central train of Buonincontri et al., Proc. ISMRM 2025, abstract
+566-05-007, Fig. 1; <code class="docutils literal notranslate"><span class="pre">PD_PERIPHERY</span></code> holds its peripheral one.</p></li>
+<li><p><strong>pd_target_first_angle_periphery_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_plateau_signal_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_plateau_slope_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_plateau_fraction_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_tail_signal_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_tail_exponent_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_initial_signal_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_initial_decay_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – The target-signal parameters of the peripheral train; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+inherits the centre’s. Each shot’s parameters are a cubic step
+between the two, and every shot’s train is designed from its own
+target, at its own ETL, in one batched pass.</p></li>
+<li><p><strong>pd_target_maximum_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=PD_MAXIMUM_ANGLE_DEG</em>) – Upper bound on every refocusing angle under <code class="docutils literal notranslate"><span class="pre">pd_target</span></code> (degrees),
+shared by all trains; a pulse the target would push past it plays it.</p></li>
 <li><p><strong>tr_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetition time (s) at the periphery of k-space. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
 <code class="docutils literal notranslate"><span class="pre">tr</span></code>.</p></li>
 <li><p><strong>etl_periphery</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Echo train length at the periphery of k-space. <code class="docutils literal notranslate"><span class="pre">None</span></code> is

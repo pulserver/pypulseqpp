@@ -867,6 +867,289 @@
         <span class="n">initial_decay</span><span class="p">,</span>
     <span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
+
+
+<span class="c1">#: The parameters of a PD target signal, in the order a control row holds them.</span>
+<span class="n">PD_TARGET_PARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"first_angle_deg"</span><span class="p">,</span>
+    <span class="s2">"plateau_signal"</span><span class="p">,</span>
+    <span class="s2">"plateau_slope"</span><span class="p">,</span>
+    <span class="s2">"plateau_fraction"</span><span class="p">,</span>
+    <span class="s2">"tail_signal"</span><span class="p">,</span>
+    <span class="s2">"tail_exponent"</span><span class="p">,</span>
+    <span class="s2">"initial_signal"</span><span class="p">,</span>
+    <span class="s2">"initial_decay"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: Target-signal parameters of the central and the peripheral train, fitted</span>
+<span class="c1">#: (``benchmarks/pd_buonincontri_fit.py``) so that inverse EPG at 3.416 ms</span>
+<span class="c1">#: spacing, 4.162 ms to the first echo, reproduces the trains read off Fig. 1</span>
+<span class="c1">#: of Buonincontri et al. (Proc. ISMRM 2025, abstract 566-05-007), the only</span>
+<span class="c1">#: reference they were fitted to (``tests/fixtures/buonincontri_figure1.json``).</span>
+<span class="n">PD_CENTRE</span> <span class="o">=</span> <span class="p">(</span><span class="mf">91.012</span><span class="p">,</span> <span class="mf">0.371</span><span class="p">,</span> <span class="mf">0.354</span><span class="p">,</span> <span class="mf">0.662</span><span class="p">,</span> <span class="mf">0.666</span><span class="p">,</span> <span class="mf">0.842</span><span class="p">,</span> <span class="mf">0.663</span><span class="p">,</span> <span class="mf">0.861</span><span class="p">)</span>
+<span class="n">PD_PERIPHERY</span> <span class="o">=</span> <span class="p">(</span><span class="mf">97.163</span><span class="p">,</span> <span class="mf">0.508</span><span class="p">,</span> <span class="mf">0.091</span><span class="p">,</span> <span class="mf">0.666</span><span class="p">,</span> <span class="mf">0.69</span><span class="p">,</span> <span class="mf">0.907</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">,</span> <span class="mf">0.425</span><span class="p">)</span>
+
+<span class="c1">#: Default upper bound on every refocusing angle of a target-signal train</span>
+<span class="c1">#: (degrees).</span>
+<span class="n">PD_MAXIMUM_ANGLE_DEG</span> <span class="o">=</span> <span class="mf">150.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pd_targets</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">controls</span><span class="p">,</span> <span class="n">jacobian</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Target in-phase signal of each train, ``(trains, max(lengths))``.</span>
+
+<span class="sd">    Echo ``x`` of a train of ``n`` pulses, at ``u = x / (n - 1)`` along it,</span>
+<span class="sd">    has the plateau ``plateau_signal * (1 + plateau_slope * u)``, lowered</span>
+<span class="sd">    past ``u = plateau_fraction`` by ``(1 - tail_signal) * v ** tail_exponent``</span>
+<span class="sd">    of itself, ``v`` the fraction of the tail gone, plus an initial excess</span>
+<span class="sd">    ``initial_signal - plateau_signal`` decaying with ``initial_decay`` echoes</span>
+<span class="sd">    from the second echo. With ``jacobian``, the derivatives of the targets</span>
+<span class="sd">    along the seven signal parameters come back too, ``(7, trains, echoes)``.</span>
+<span class="sd">    """</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">controls</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lengths</span><span class="o">.</span><span class="n">max</span><span class="p">())[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">lengths</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">level</span><span class="p">,</span> <span class="n">slope</span><span class="p">,</span> <span class="n">onset</span><span class="p">,</span> <span class="n">tail</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">c</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">u</span> <span class="o">-</span> <span class="n">onset</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">onset</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span> <span class="o">&gt;</span> <span class="n">onset</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">v</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">vp</span> <span class="o">=</span> <span class="n">v</span><span class="o">**</span><span class="n">power</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tail</span><span class="p">)</span> <span class="o">*</span> <span class="n">vp</span>
+    <span class="n">ramp</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">u</span>
+    <span class="n">initial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">decay</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">level</span> <span class="o">*</span> <span class="n">ramp</span> <span class="o">*</span> <span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">start</span> <span class="o">-</span> <span class="n">level</span><span class="p">)</span> <span class="o">*</span> <span class="n">initial</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">jacobian</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">target</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">):</span>
+        <span class="n">log_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">d_v_onset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">inside</span><span class="p">,</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">onset</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">d_shape_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tail</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span> <span class="o">*</span> <span class="n">v</span> <span class="o">**</span> <span class="p">(</span><span class="n">power</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">plateau</span> <span class="o">=</span> <span class="n">level</span> <span class="o">*</span> <span class="n">ramp</span>
+    <span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span>
+            <span class="n">ramp</span> <span class="o">*</span> <span class="n">shape</span> <span class="o">-</span> <span class="n">initial</span><span class="p">,</span>
+            <span class="n">level</span> <span class="o">*</span> <span class="n">u</span> <span class="o">*</span> <span class="n">shape</span><span class="p">,</span>
+            <span class="n">plateau</span> <span class="o">*</span> <span class="n">d_shape_v</span> <span class="o">*</span> <span class="n">d_v_onset</span><span class="p">,</span>
+            <span class="n">plateau</span> <span class="o">*</span> <span class="n">vp</span><span class="p">,</span>
+            <span class="o">-</span><span class="n">plateau</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tail</span><span class="p">)</span> <span class="o">*</span> <span class="n">vp</span> <span class="o">*</span> <span class="n">log_v</span><span class="p">,</span>
+            <span class="n">initial</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">start</span> <span class="o">-</span> <span class="n">level</span><span class="p">)</span> <span class="o">*</span> <span class="n">initial</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">decay</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">target</span><span class="p">,</span> <span class="n">slopes</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_pd_targets</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">controls</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Refuse counts, target parameters, bounds or timing out of range."""</span>
+    <span class="k">if</span> <span class="n">lengths</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="ow">or</span> <span class="n">controls</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">),</span> <span class="mi">8</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"PD lengths and controls must have shapes (trains,) and (trains, 8)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">lengths</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"PD trains need at least two pulses"</span><span class="p">)</span>
+    <span class="n">first</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">onset</span><span class="p">,</span> <span class="n">tail</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="n">controls</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">controls</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">maximum</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">maximum</span> <span class="o">&gt;=</span> <span class="mi">180</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">first</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">first</span> <span class="o">&gt;</span> <span class="n">maximum</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">level</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">onset</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">onset</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">((</span><span class="n">tail</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">power</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">decay</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"PD controls require 0 &lt; first angle &lt;= maximum &lt; 180 degrees, plateau "</span>
+            <span class="s2">"and initial signals in (0, 1], a tail onset in (0, 1), and a "</span>
+            <span class="s2">"nonnegative tail signal with positive exponent and decay"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">times</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">times</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"PD timing and reference T1/T2 must be positive and finite"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pd_target_trains</span><span class="p">(</span>
+    <span class="n">lengths</span><span class="p">,</span> <span class="n">controls</span><span class="p">,</span> <span class="n">maximum_deg</span><span class="p">,</span> <span class="n">esp</span><span class="p">,</span> <span class="n">first_echo</span><span class="p">,</span> <span class="n">t1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">t2</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">jacobian</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Design one target-signal PD train per row of ``controls``, in one pass.</span>
+
+<span class="sd">    Returns the refocusing angles (rad), zero past each train's own length,</span>
+<span class="sd">    and the in-phase signal they reach, both ``(trains, max(lengths))``. A</span>
+<span class="sd">    pulse the target would push past ``maximum_deg`` plays that angle. With</span>
+<span class="sd">    ``jacobian``, the exact derivatives of the angles (rad) along the eight</span>
+<span class="sd">    target parameters come back as well, ``(8, trains, max(lengths))``.</span>
+<span class="sd">    """</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">controls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">controls</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">maximum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">maximum_deg</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">lengths</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">esp</span><span class="p">,</span> <span class="n">first_echo</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">_check_pd_targets</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">controls</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+    <span class="n">arguments</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"first_flip"</span><span class="p">:</span> <span class="n">controls</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="s2">"maximum_flip"</span><span class="p">:</span> <span class="n">maximum</span><span class="p">,</span>
+        <span class="s2">"ESP"</span><span class="p">:</span> <span class="mf">1e3</span> <span class="o">*</span> <span class="n">esp</span><span class="p">,</span>
+        <span class="s2">"first_ESP"</span><span class="p">:</span> <span class="mf">1e3</span> <span class="o">*</span> <span class="n">first_echo</span><span class="p">,</span>
+        <span class="s2">"T1"</span><span class="p">:</span> <span class="mf">1e3</span> <span class="o">*</span> <span class="n">t1</span><span class="p">,</span>
+        <span class="s2">"T2"</span><span class="p">:</span> <span class="mf">1e3</span> <span class="o">*</span> <span class="n">t2</span><span class="p">,</span>
+        <span class="s2">"lengths"</span><span class="p">:</span> <span class="n">lengths</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">jacobian</span><span class="p">:</span>
+        <span class="n">angles</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">_trains</span><span class="p">()</span><span class="o">.</span><span class="n">prescribed_flips</span><span class="p">(</span>
+            <span class="n">_pd_targets</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">controls</span><span class="p">),</span> <span class="o">**</span><span class="n">arguments</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">slopes</span> <span class="o">=</span> <span class="n">_pd_targets</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">controls</span><span class="p">,</span> <span class="n">jacobian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="n">signal_tangents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">target</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span> <span class="n">slopes</span><span class="p">])</span>
+        <span class="n">first_tangents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">8</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+        <span class="n">first_tangents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">angles</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">d_angles</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_trains</span><span class="p">()</span><span class="o">.</span><span class="n">prescribed_flips</span><span class="p">(</span>
+            <span class="n">target</span><span class="p">,</span>
+            <span class="n">signal_tangents</span><span class="o">=</span><span class="n">signal_tangents</span><span class="p">,</span>
+            <span class="n">first_flip_tangents</span><span class="o">=</span><span class="n">first_tangents</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">arguments</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">active</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">angles</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;</span> <span class="n">lengths</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">active</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">active</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">jacobian</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">*</span><span class="n">result</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">active</span><span class="p">,</span> <span class="n">d_angles</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="make_pd_target_schedule">
+<a class="viewcode-back" href="../../generated/pypulseqpp.make_pd_target_schedule.html#pypulseqpp.make_pd_target_schedule">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_pd_target_schedule</span><span class="p">(</span>
+    <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">echo_spacing</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">first_echo_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">first_flip_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="n">maximum_flip_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">PD_MAXIMUM_ANGLE_DEG</span><span class="p">),</span>
+    <span class="n">plateau_signal</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">plateau_slope</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="n">plateau_fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+    <span class="n">tail_signal</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+    <span class="n">tail_exponent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+    <span class="n">initial_signal</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
+    <span class="n">initial_decay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">PD_CENTRE</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
+    <span class="n">reference_t1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">reference_t2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Design a PD refocusing train by relaxation-aware inverse EPG of a target signal.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    length : int</span>
+<span class="sd">        RF count, startup pulses included; at least 2.</span>
+<span class="sd">    echo_spacing : float</span>
+<span class="sd">        Echo spacing (s), positive.</span>
+<span class="sd">    first_echo_time : float | None, default=None</span>
+<span class="sd">        Excitation-to-first-echo time (s). ``None`` uses ``echo_spacing``.</span>
+<span class="sd">    first_flip_angle : float, default=np.deg2rad(PD_CENTRE[0])</span>
+<span class="sd">        First refocusing angle (rad), at most ``maximum_flip_angle``.</span>
+<span class="sd">    maximum_flip_angle : float, default=np.deg2rad(PD_MAXIMUM_ANGLE_DEG)</span>
+<span class="sd">        Upper bound on every angle (rad), below pi. A pulse the target would</span>
+<span class="sd">        push past it plays it, and its echo falls below the target.</span>
+<span class="sd">    plateau_signal : float, default=PD_CENTRE[1]</span>
+<span class="sd">        Plateau of the target signal, over the equilibrium magnetization, in</span>
+<span class="sd">        (0, 1].</span>
+<span class="sd">    plateau_slope : float, default=PD_CENTRE[2]</span>
+<span class="sd">        Relative change of the plateau from the first pulse to the last.</span>
+<span class="sd">    plateau_fraction : float, default=PD_CENTRE[3]</span>
+<span class="sd">        Fraction of the train, from its first pulse, before the signal tail</span>
+<span class="sd">        begins, in (0, 1).</span>
+<span class="sd">    tail_signal : float, default=PD_CENTRE[4]</span>
+<span class="sd">        Signal at the last pulse over the plateau there, nonnegative.</span>
+<span class="sd">    tail_exponent : float, default=PD_CENTRE[5]</span>
+<span class="sd">        Power of the tail's decline in its own fraction of the train,</span>
+<span class="sd">        positive: 2 starts it with zero slope.</span>
+<span class="sd">    initial_signal : float, default=PD_CENTRE[6]</span>
+<span class="sd">        Target at the second echo, in (0, 1], from which the signal decays to</span>
+<span class="sd">        the plateau.</span>
+<span class="sd">    initial_decay : float, default=PD_CENTRE[7]</span>
+<span class="sd">        Time constant of that decay (echoes), positive.</span>
+<span class="sd">    reference_t1 : float, default=1.0</span>
+<span class="sd">        Reference T1 for inverse EPG (s), positive and finite.</span>
+<span class="sd">    reference_t2 : float, default=0.1</span>
+<span class="sd">        Reference T2 for inverse EPG (s), positive and finite.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray</span>
+<span class="sd">        Refocusing angles (rad), shape ``(length,)``.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the count, the timing or a parameter is out of range.</span>
+<span class="sd">    ImportError</span>
+<span class="sd">        If blochsim, which inverts the phase graph, is not installed.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The target signal decreases from the second echo to a plateau and</span>
+<span class="sd">    declines over a late tail, after the prescribed-signal design of</span>
+<span class="sd">    Mugler et al. [1]_. Each angle is the one in ``[0, maximum_flip_angle]``</span>
+<span class="sd">    whose echo comes nearest the target, given the train so far</span>
+<span class="sd">    (:func:`blochsim.trains.prescribed_flips`). The default parameters are</span>
+<span class="sd">    fitted to the central train of Fig. 1 of Buonincontri et al. [2]_, read</span>
+<span class="sd">    off the published figure; ``PD_PERIPHERY`` holds those of its peripheral</span>
+<span class="sd">    train. They are the only reference the defaults were fitted to, and this</span>
+<span class="sd">    is not a numerical reconstruction of the trains of that figure.</span>
+
+<span class="sd">    :func:`make_pd_schedule` designs a PD train from its first, maximum and</span>
+<span class="sd">    final angles instead, solving the signal levels that reach them.</span>
+
+<span class="sd">    EPG assumes a fully relaxed ideal 90-degree excitation and instantaneous</span>
+<span class="sd">    CPMG pulses with longitudinal recovery. Finite RF profiles, actual B1 and</span>
+<span class="sd">    inter-shot steady state require separate forward evaluation.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; angles = np.rad2deg(</span>
+<span class="sd">    ...     pp.make_pd_target_schedule(40, 0.003416, first_echo_time=0.004162)</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; bool(angles.max() &lt;= 150.0), bool(angles[4] &lt; angles[-1])</span>
+<span class="sd">    (True, True)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Mugler JP III et al. Three-dimensional spin-echo-train</span>
+<span class="sd">       proton-density-weighted imaging using shaped signal evolutions.</span>
+<span class="sd">       Proceedings ISMRM. 1999; abstract 1631.</span>
+<span class="sd">       https://cds.ismrm.org/ismrm-1999/PDF6/1631.pdf</span>
+<span class="sd">    .. [2] Buonincontri G et al. Doubling the repetition time without paying</span>
+<span class="sd">       the price: 3D Turbo Spin Echo with individually parameterized echo</span>
+<span class="sd">       trains. Proceedings ISMRM. 2025; abstract 566-05-007.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">index</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"PD length must be an integer"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+    <span class="n">first_echo</span> <span class="o">=</span> <span class="n">echo_spacing</span> <span class="k">if</span> <span class="n">first_echo_time</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">first_echo_time</span>
+    <span class="n">controls</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">first_flip_angle</span><span class="p">),</span>
+        <span class="n">plateau_signal</span><span class="p">,</span>
+        <span class="n">plateau_slope</span><span class="p">,</span>
+        <span class="n">plateau_fraction</span><span class="p">,</span>
+        <span class="n">tail_signal</span><span class="p">,</span>
+        <span class="n">tail_exponent</span><span class="p">,</span>
+        <span class="n">initial_signal</span><span class="p">,</span>
+        <span class="n">initial_decay</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">angles</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_pd_target_trains</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">length</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">controls</span><span class="p">],</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">maximum_flip_angle</span><span class="p">),</span>
+        <span class="n">echo_spacing</span><span class="p">,</span>
+        <span class="n">first_echo</span><span class="p">,</span>
+        <span class="n">reference_t1</span><span class="p">,</span>
+        <span class="n">reference_t2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">angles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
 </pre></div>
 
                 </article>
