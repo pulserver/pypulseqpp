@@ -541,6 +541,25 @@
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_effective_te_slopes</span><span class="p">(</span><span class="n">flip_angles</span><span class="p">,</span> <span class="n">slopes</span><span class="p">,</span> <span class="n">echo_spacing</span><span class="p">,</span> <span class="n">first_echo_time</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Contrast-equivalent TE (s) of trains and its exact derivatives.</span>
+
+<span class="sd">    ``flip_angles`` is ``(..., echoes)`` in radians and ``slopes``</span>
+<span class="sd">    ``(directions, ..., echoes)`` their changes; the derivatives of the echo</span>
+<span class="sd">    times, in seconds, are shaped like ``slopes``. The reference tissue is</span>
+<span class="sd">    that of :func:`calc_fse_effective_te`.</span>
+<span class="sd">    """</span>
+    <span class="n">times</span><span class="p">,</span> <span class="n">d_times</span> <span class="o">=</span> <span class="n">_trains</span><span class="p">()</span><span class="o">.</span><span class="n">effective_te</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">flip_angles</span><span class="p">),</span>
+        <span class="mf">1e3</span> <span class="o">*</span> <span class="n">echo_spacing</span><span class="p">,</span>
+        <span class="n">first_ESP</span><span class="o">=</span><span class="mf">1e3</span> <span class="o">*</span> <span class="n">first_echo_time</span><span class="p">,</span>
+        <span class="n">T1</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span>
+        <span class="n">T2</span><span class="o">=</span><span class="mf">1e2</span><span class="p">,</span>
+        <span class="n">flip_tangents</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">slopes</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">times</span><span class="p">,</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">d_times</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_select_busse_centre</span><span class="p">(</span>
     <span class="n">etl</span><span class="p">,</span>
     <span class="n">peripheral_etl</span><span class="p">,</span>

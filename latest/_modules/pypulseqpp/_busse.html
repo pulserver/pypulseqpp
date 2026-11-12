@@ -463,7 +463,7 @@
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
             <span class="s2">"Busse and PD refocusing schedules and the FSE effective TE are "</span>
-            <span class="s2">"computed by blochsim&gt;=0.0.18: pip install 'pypulseqpp[design]'"</span>
+            <span class="s2">"computed by blochsim&gt;=0.0.19: pip install 'pypulseqpp[design]'"</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
     <span class="k">return</span> <span class="n">trains</span>
 
@@ -487,6 +487,32 @@
     <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
     <span class="n">result</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_schedule_slopes</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">minimum_deg</span><span class="p">,</span> <span class="n">centre_deg</span><span class="p">,</span> <span class="n">maximum_deg</span><span class="p">,</span> <span class="n">centre</span><span class="p">,</span> <span class="n">decay</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a Busse train (rad) and its exact derivatives ``(length, 3)``.</span>
+
+<span class="sd">    The derivatives are per radian of the minimum, centre and maximum angle.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">angles</span><span class="p">,</span> <span class="n">jacobian</span> <span class="o">=</span> <span class="n">_trains</span><span class="p">()</span><span class="o">.</span><span class="n">busse_flips</span><span class="p">(</span>
+            <span class="n">length</span><span class="p">,</span>
+            <span class="n">min_flip</span><span class="o">=</span><span class="n">minimum_deg</span><span class="p">,</span>
+            <span class="n">centre_flip</span><span class="o">=</span><span class="n">centre_deg</span><span class="p">,</span>
+            <span class="n">max_flip</span><span class="o">=</span><span class="n">maximum_deg</span><span class="p">,</span>
+            <span class="n">centre_echo</span><span class="o">=</span><span class="n">centre</span><span class="p">,</span>
+            <span class="n">startup_echoes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">initial_decay</span><span class="o">=</span><span class="n">decay</span><span class="p">,</span>
+            <span class="n">jacobian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"The prescribed Busse controls do not give a feasible refocusing train"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+    <span class="n">angles</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="n">jacobian</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">angles</span><span class="p">,</span> <span class="n">jacobian</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_integer</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
