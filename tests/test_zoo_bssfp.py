@@ -110,13 +110,12 @@ def final_moments(seq):
 @pytest.mark.parametrize(
     "prescription",
     [
-        {"n_dummy": 0},
         {"gating": "retrospective", **CINE},
         {"gating": "prospective", "n_phases": 3, **CINE},
     ],
-    ids=["ungated-no-dummies", "retrospective", "prospective"],
+    ids=["retrospective", "prospective"],
 )
-def test_each_slice_is_one_repetition_of_the_scan(prescription):
+def test_each_gated_slice_is_one_repetition_of_the_scan(prescription):
     seq = built_2d(n_slices=3, slice_spacing=1e-3, **prescription)
     size, start = seq.repetition()
 
@@ -125,8 +124,15 @@ def test_each_slice_is_one_repetition_of_the_scan(prescription):
     assert 3 * size == len(seq.block_events)
 
 
+def test_a_free_running_repetition_is_one_excitation_and_its_readout():
+    seq = built_2d(n_slices=3, slice_spacing=1e-3, n_dummy=0)
+
+    assert seq.check_timing()[0]
+    assert seq.repetition() == (3, 1)
+
+
 @pytest.mark.parametrize("n_slices", [1, 3])
-def test_a_free_running_slice_is_its_dummies_then_a_file_of_repeated_frames(
+def test_a_free_running_slice_is_its_dummies_then_a_file_of_its_frames(
     n_slices,
 ):
     chain = bssfp2d.main(**{**SMALL_2D, "n_phases": 3, "n_slices": n_slices})
@@ -134,28 +140,27 @@ def test_a_free_running_slice_is_its_dummies_then_a_file_of_repeated_frames(
 
     assert len(chain) == 2 * n_slices
     for catalyst, frames in zip(chain[::2], chain[1::2], strict=True):
-        assert catalyst.repetition() == (catalyst.num_blocks, 1)
+        assert catalyst.repetition() == (3, 1)
         assert not catalyst.evaluate_labels(evolution="adc").get("LIN", [])
         assert frames.num_blocks == 3 * frame
-        assert frames.repetition() == (frame, 1)
-        assert recorded(frames, "TRSize") == frame
+        assert frames.repetition() == (3, 1)
+        assert "TRSize" not in frames.definitions
         assert frames.check_timing()[0]
 
 
-def test_a_free_running_slice_rests_only_between_files_and_frames():
-    chain = bssfp2d.main(**{**SMALL_2D, "n_phases": 3})
-    seq = joined(chain)
+def test_a_free_running_slice_rests_between_every_two_repetitions():
+    """Each repetition is a segment of its own, so every repetition time carries the same preparation."""
+    seq = joined(bssfp2d.main(**{**SMALL_2D, "n_phases": 3}))
     listed = blocks(seq)
     rests = [i for i, pair in enumerate(pairwise(listed), 1) if at_rest(*pair)]
-    catalyst = chain[0].num_blocks
 
-    assert rests == [catalyst + 48 * k for k in range(3)]
+    assert set(range(3, len(listed), 3)) <= set(rests)
     assert at_rest(SimpleNamespace(gx=None, gy=None, gz=None), listed[0])
     assert at_rest(listed[-1], SimpleNamespace(gx=None, gy=None, gz=None))
     assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
 
 
-def test_once_marks_each_slice_half_flip_and_closing_rewind():
+def test_once_marks_each_slice_first_excitation_and_closing_rewind():
     seq = built_2d(n_slices=2, n_dummy=0)
     (once,) = labels(seq, "ONCE", evolution="blocks")
 
@@ -165,23 +170,26 @@ def test_once_marks_each_slice_half_flip_and_closing_rewind():
         assert set(chunk[1:-1]) == {0}
 
 
-def test_the_phase_alternates_after_an_opposite_half_flip():
-    seq = built_2d(n_slices=2, slice_spacing=1e-3, n_phases=2)
+@pytest.mark.parametrize("n_dummy", [3, 25])
+def test_the_phase_alternates_while_the_catalyst_ramps_the_flip_angle(n_dummy):
+    seq = built_2d(n_slices=2, slice_spacing=1e-3, n_phases=2, n_dummy=n_dummy)
     tr = np.atleast_1d(seq.definitions["TR"])[0]
     rows = excitations(seq)
     per_slice = len(rows) // 2
-    offsets = [time for time, _, _ in rows]
-    peaks = [peak for _, _, peak in rows]
+    ramp = min(bssfp2d.CATALYST_RAMP, n_dummy)
 
     for start in (0, per_slice):
         train = rows[start : start + per_slice]
-        centre = train[1][1] - np.pi
+        times = [time for time, _, _ in train]
+        peaks = np.array([peak for _, _, peak in train])
+        centre = train[0][1] - np.pi
         assert same_phase(
             [phase - centre for _, phase, _ in train],
-            [0.0] + [np.pi * ((k + 1) % 2) for k in range(per_slice - 1)],
+            [np.pi * ((k + 1) % 2) for k in range(per_slice)],
         )
-        assert peaks[start] == pytest.approx(0.5 * peaks[start + 1])
-        assert offsets[start + 1] - offsets[start] == pytest.approx(0.5 * tr, abs=1e-9)
+        assert peaks[:ramp] == pytest.approx(peaks[-1] * np.arange(1, ramp + 1) / ramp)
+        assert peaks[ramp:] == pytest.approx(peaks[-1])
+        assert np.diff(times) == pytest.approx(tr, abs=1e-9)
 
 
 @pytest.mark.parametrize("ry", [1, 2])
@@ -208,9 +216,9 @@ def test_ungated_frames_follow_one_another_one_repetition_apart():
     rows = excitations(seq)
     times = [time for time, _, _ in rows]
 
-    # The half flip, the dummies, then three frames of 16 lines.
-    assert len(rows) == 1 + SMALL_2D["n_dummy"] + 3 * 16
-    assert np.diff(times[1:]) == pytest.approx(tr, abs=1e-9)
+    # The dummies, then three frames of 16 lines.
+    assert len(rows) == SMALL_2D["n_dummy"] + 3 * 16
+    assert np.diff(times) == pytest.approx(tr, abs=1e-9)
 
 
 def test_a_retrospective_heartbeat_cycles_its_segment():
@@ -271,10 +279,8 @@ def test_a_prospective_heartbeat_starts_a_nominal_heartbeat_after_the_one_before
     first = acquiring[::12]
 
     assert first.tolist() == bssfp2d.prospective_starts([4] * 4, 3, 2, 0.2, tr)
-    # Counted from the first excitation, half a repetition after the half flip.
-    assert (first[1:] + 0.5) * tr == pytest.approx(
-        0.2 * np.arange(1, 4), abs=0.5 * tr + 1e-9
-    )
+    # Counted from the first excitation, on the trigger.
+    assert first[1:] * tr == pytest.approx(0.2 * np.arange(1, 4), abs=0.5 * tr + 1e-9)
 
 
 def test_the_prospective_starts_never_overlap_the_heartbeat_before():
@@ -289,7 +295,7 @@ def test_a_trigger_delay_is_played_as_repetitions_ahead_of_every_heartbeat():
 
 
 @pytest.mark.parametrize("n_dummy", [0, 3])
-def test_the_trigger_of_a_slice_is_on_its_half_flip(n_dummy):
+def test_the_trigger_of_a_slice_is_on_its_first_excitation(n_dummy):
     seq = built_2d(
         gating="prospective", n_phases=2, n_slices=2, n_dummy=n_dummy, **CINE
     )
@@ -300,10 +306,10 @@ def test_the_trigger_of_a_slice_is_on_its_half_flip(n_dummy):
     for start in (0, size):
         assert getattr(listed[start], "trig", None)
         assert once[start] == 1
-        half = listed[start].rf
-        full = next(b.rf for b in listed[start + 1 :] if b.rf is not None)
-        peak = np.abs(np.asarray(half.signal)).max()
-        assert peak == pytest.approx(0.5 * np.abs(np.asarray(full.signal)).max())
+        assert listed[start].rf is not None
+        assert not any(
+            getattr(b, "trig", None) for b in listed[start + 1 : start + size]
+        )
 
 
 def test_a_single_shot_slice_has_one_trigger():
@@ -531,27 +537,19 @@ def slice_moment_to_first_excitation(seq):
     return np.trapezoid(np.interp(grid, times, amplitudes, left=0, right=0), grid)
 
 
-@pytest.mark.parametrize(
-    "build",
-    [
-        lambda: built_2d(),
-        # The catalyst file holds the half flip and the first dummy.
-        lambda: chain_3d(excitation="slab", n_dummy=1)[0],
-    ],
-    ids=["2d", "3d-slab"],
-)
-def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation(build):
-    seq = build()
+def test_the_slice_axis_is_balanced_from_the_half_flip_to_the_next_excitation():
+    # The catalyst file holds the half flip and the first dummy.
+    seq = chain_3d(excitation="slab", n_dummy=1)[0]
 
     assert slice_moment_to_first_excitation(seq) == pytest.approx(0.0, abs=1e-3)
 
 
 def dummies_before_the_first_readout(seq):
-    """Full-flip excitations played before the one the first acquisition reads."""
+    """Excitations played before the one the first acquisition reads."""
     count = 0
     for block in blocks(seq):
         if block.adc is not None:
-            return count - 2
+            return count - 1
         if block.rf is not None:
             count += 1
     raise AssertionError("no acquisition")
@@ -566,7 +564,10 @@ def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggere
         bssfp2d.PROSPECTIVE_DUMMIES
         if gating == "prospective"
         else sequences.steady_state_dummies(
-            recorded(seq, "TR"), 45.0, t2_s=sequences.STEADY_STATE_T2_S
+            recorded(seq, "TR"),
+            45.0,
+            t2_s=sequences.STEADY_STATE_T2_S,
+            tolerance=bssfp2d.STEADY_STATE_TOLERANCE,
         )
     )
 
@@ -576,7 +577,12 @@ def test_default_bssfp2d_dummies_reach_the_balanced_steady_state_unless_triggere
 def test_default_retrospective_dummies_last_at_most_one_heartbeat():
     seq = built_2d(n_dummy=None, gating="retrospective", heart_rate_bpm=60)
     tr = recorded(seq, "TR")
-    full = sequences.steady_state_dummies(tr, 45.0, t2_s=sequences.STEADY_STATE_T2_S)
+    full = sequences.steady_state_dummies(
+        tr,
+        45.0,
+        t2_s=sequences.STEADY_STATE_T2_S,
+        tolerance=bssfp2d.STEADY_STATE_TOLERANCE,
+    )
 
     assert full * tr > 1.0
     assert dummies_before_the_first_readout(seq) == round(1.0 / tr)

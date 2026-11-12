@@ -15,16 +15,27 @@ GATINGS = ("none", "retrospective", "prospective")
 NAME = "bssfp_2d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
-#: SLR design of the selective pulse. The selection amplitude, which slice
-#: offsets are converted against, is the pulse's measured bandwidth over the
-#: thickness.
-PULSE_DURATION = 0.6e-3
-TIME_BW_PRODUCT = 4.0
+#: Default SLR design of the selective pulse: short, at a time-bandwidth
+#: product of 2, as product balanced SSFP excites. At the same flip angle it
+#: deposits about half the energy of a pulse at a time-bandwidth product of 4,
+#: and a slice played on its own has no neighbour for a softer profile to
+#: excite. The selection amplitude, which slice offsets are converted against,
+#: is the pulse's measured bandwidth over the thickness.
+PULSE_DURATION = 0.48e-3
+TIME_BW_PRODUCT = 2.0
+#: Excitations over which a slice's flip angle ramps linearly up to its own,
+#: the first of its dummies: a catalyst that damps the oscillating transient
+#: off resonance better than a half flip half a repetition ahead, and leaves
+#: the repetition free of the half flip's timing.
+CATALYST_RAMP = 20
+#: Distance from the balanced steady state the default dummies leave.
+STEADY_STATE_TOLERANCE = 0.05
 #: Physiological signal a prospective heartbeat waits for.
 TRIGGER_CHANNEL = "physio1"
 #: Dummies a prospective slice opens with when ``n_dummy`` is None: its first
-#: heartbeat has to hold them with its cardiac phases.
-PROSPECTIVE_DUMMIES = 10
+#: heartbeat has to hold them with its cardiac phases, so they are its
+#: catalyst ramp alone.
+PROSPECTIVE_DUMMIES = CATALYST_RAMP
 
 
 def prospective_starts(
@@ -37,8 +48,8 @@ def prospective_starts(
 ) -> list[int]:
     """Return the repetition at which each heartbeat's cardiac phases start under ``prospective`` gating.
 
-    Repetitions are counted from the first after the half flip, which the
-    slice's one trigger starts. The slice then runs free: the first
+    Repetitions are counted from the slice's first excitation, which its one
+    trigger starts. The slice then runs free: the first
     heartbeat's phases follow the dummies and ``trigger_delay`` to the nearest
     repetition, and those of heartbeat ``s`` start ``s`` nominal heartbeats
     and ``trigger_delay`` after the trigger, to the nearest repetition, with
@@ -51,7 +62,7 @@ def prospective_starts(
     n_phases : int
         Cardiac phases each heartbeat acquires.
     n_dummy : int
-        Repetitions played without acquiring after the half flip.
+        Repetitions played without acquiring at the start of the slice.
     rr : float
         Nominal heartbeat (s).
     tr : float
@@ -68,7 +79,7 @@ def prospective_starts(
     lead = n_dummy + round(trigger_delay / tr)
     starts, taken = [], lead
     for s, views in enumerate(segments):
-        start = max(taken, round((s * rr + trigger_delay) / tr - 0.5)) if s else lead
+        start = max(taken, round((s * rr + trigger_delay) / tr)) if s else lead
         starts.append(start)
         taken = start + n_phases * views
     return starts
@@ -86,7 +97,9 @@ def bssfp2d(
     slice_spacing: float = 0.0,
     flip_angle_deg: float = 45.0,
     tr: float | None = None,
-    readout_bandwidth_hz: float = 125e3,
+    readout_bandwidth_hz: float = 250e3,
+    pulse_duration: float = PULSE_DURATION,
+    time_bw_product: float = TIME_BW_PRODUCT,
     ry: int = 1,
     partial_fourier_y: float = 1.0,
     n_phases: int = 25,
@@ -101,12 +114,13 @@ def bssfp2d(
     """Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.
 
     Every axis returns to k = 0 between pulse centres and TE is TR/2
-    (:class:`BssfpReadout2D`). Each slice's train is entered through a
-    half-flip pulse half a TR ahead of the first excitation and opposite in
-    phase to it; excitations then alternate between phase pi and 0, the ADC
-    following. ``ONCE`` marks the half flip (1), the train (0) and the closing
-    rewind (2), so the whole slice is one repetition of the scan. Slices play
-    one after another, since a steady state does not survive interleaving.
+    (:class:`BssfpReadout2D`). Excitations alternate between phase pi and 0,
+    the ADC following, and the first ``min(CATALYST_RAMP, n_dummy)`` of a
+    slice ramp the flip angle linearly up to ``flip_angle_deg``, a catalyst
+    that damps the oscillating transient. ``ONCE`` marks the slice's first
+    excitation (1), the train (0) and the closing rewind (2), so the whole
+    slice is one repetition of the scan. Slices play one after another, since
+    a steady state does not survive interleaving.
 
     Without gating, each slice's lines are played ``n_phases`` times in a
     row, the steady state carried from one frame into the next with no
@@ -115,21 +129,21 @@ def bssfp2d(
     ``retrospective`` gating each segment is cycled as many times as a full
     segment fits in a heartbeat, the same number for every segment, so each
     cycle samples every line; the interpreter's ECG log bins them into cardiac
-    phases. Under ``prospective`` gating each slice's half flip waits for
-    one trigger event on ``TRIGGER_CHANNEL``, and the slice then runs free
+    phases. Under ``prospective`` gating each slice's first excitation waits
+    for one trigger event on ``TRIGGER_CHANNEL``, and the slice then runs free
     at the nominal heart rate: every heartbeat plays its segment once per
     cardiac phase, and repetitions that do not acquire fill the rest of it
     and the trigger delay (:func:`prospective_starts`), so the steady state
     is kept from one heartbeat into the next and a heart rate away from the
     nominal one drifts against the phases. A slice held in one heartbeat is
-    a triggered single shot. A slice's blocks join on the slice axis, the
-    trigger on its half flip, so the slice axis rests only where a file of the
-    chain below begins or ends. Without gating and with dummies, each slice is
-    two files: its half flip and dummies, closed to rest, then its frames,
-    each opened from rest and closed to it at the same repetition time. A
-    frame is that file's repetition (``TRSize``), so a scanner that segments
-    a repetition plays the dummies as one segment and repeats one segment per
-    frame. Otherwise each slice is one train with no rest in it. Acquisitions carry ``LIN``, ``SLC``, the segment as
+    a triggered single shot. A gated slice's blocks join on the slice axis
+    (``bridge``), so the gated train has no rest in it and its timing against
+    the heartbeat is the designed one. Without gating, every repetition
+    opens from rest and closes to it, so a scanner that prepares a segment
+    between blocks at rest plays one repetition per segment and adds the same
+    preparation time to every repetition time. With dummies, each such slice
+    is two files, its catalyst and dummies and then its frames, each
+    repeating one repetition. Acquisitions carry ``LIN``, ``SLC``, the segment as
     ``SEG`` and the frame, the cardiac phase or the cycle within the
     heartbeat as ``PHS``; calibration lines are marked ``IMA``.
 
@@ -154,10 +168,14 @@ def bssfp2d(
         Excitation flip angle (degrees).
     tr : float | None, default=None
         Repetition time (s); TE is TR/2. ``None`` is as short as possible.
-    readout_bandwidth_hz : float, default=125000.0
-        Requested receiver bandwidth (Hz). The half flip needs an
-        acquisition block at least as long as the excitation's tail, which
-        a lower bandwidth provides.
+    readout_bandwidth_hz : float, default=250000.0
+        Requested receiver bandwidth (Hz).
+    pulse_duration : float, default=0.00048
+        Duration of the selective pulse (s); a longer pulse deposits less RF
+        energy at the same flip angle and lengthens the repetition.
+    time_bw_product : float, default=2.0
+        Time-bandwidth product of the selective pulse; a higher value gives a
+        squarer slice profile at more RF energy.
     ry : int, default=1
         Phase-encode undersampling: one line in every ``ry`` is acquired,
         the centre line among them.
@@ -169,8 +187,9 @@ def bssfp2d(
         gating, the cardiac phases each heartbeat acquires. Unused under
         ``retrospective`` gating, where the heartbeat sets the cycles.
     n_dummy : int | None, default=None
-        Repetitions played without acquiring after the half flip. ``None``
-        is as many as bring the balanced steady state within 1 %
+        Repetitions played without acquiring at the start of each slice, the
+        first ``CATALYST_RAMP`` of them its catalyst ramp. ``None`` is as many
+        as bring the balanced steady state within ``STEADY_STATE_TOLERANCE``
         (:func:`~pypulseqpp.sequences.steady_state_dummies` at
         :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`), at most one
         heartbeat under ``retrospective`` gating, or
@@ -205,8 +224,7 @@ def bssfp2d(
     ValueError
         If ``gating`` is unknown, ``partial_fourier_y`` is outside
         ``[0.75, 1]``, a count is below one, a prospective heartbeat cannot
-        hold its phases, or the TR is shorter than the balanced repetition,
-        or too short beside the pulse for the half flip.
+        hold its phases, or the TR is shorter than the balanced repetition.
 
     Examples
     --------
@@ -241,9 +259,9 @@ def bssfp2d(
         system,
         flip_angle_deg,
         slice_thickness,
-        duration_s=PULSE_DURATION,
+        duration_s=pulse_duration,
         rephase=False,
-        time_bw_product=TIME_BW_PRODUCT,
+        time_bw_product=time_bw_product,
     )
     # Solving the balance and TE = TR/2 is the feasibility check: an
     # unreachable TR raises ValueError here.
@@ -256,13 +274,18 @@ def bssfp2d(
         tr=tr,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
-        bridge=True,
+        half_flip_prep=False,
+        bridge=gating != "none",
     )
-    # A slice is bridged: its blocks join on the slice axis, so that a scanner
-    # preparing segments between blocks at rest plays nothing between its
-    # repetitions. It opens from rest, on its trigger under prospective
-    # gating, rests only where a frame, a heartbeat's segment or a heartbeat
-    # ends, and its last rewind closes to rest.
+    # A gated slice is bridged: its blocks join on the slice axis, so that a
+    # scanner preparing segments between blocks at rest plays nothing between
+    # its repetitions and the train keeps its designed timing against the
+    # heartbeat. It opens from rest, on its trigger under prospective gating,
+    # and its last rewind closes to rest. A free-running slice is not: every
+    # repetition rests at its ends, so each plays as a segment of its own and
+    # every repetition time carries the same preparation, where a segment
+    # holding a frame or more would lengthen only the repetition at its end and
+    # set off a transient in the steady state there.
     nominal = ro.rf.amplitude
     rr = 60.0 / heart_rate_bpm
     if n_dummy is None:
@@ -270,7 +293,10 @@ def bssfp2d(
             PROSPECTIVE_DUMMIES
             if gating == "prospective"
             else sequences.steady_state_dummies(
-                ro.tr, flip_angle_deg, t2_s=sequences.STEADY_STATE_T2_S
+                ro.tr,
+                flip_angle_deg,
+                t2_s=sequences.STEADY_STATE_T2_S,
+                tolerance=STEADY_STATE_TOLERANCE,
             )
         )
         if gating == "retrospective":
@@ -320,7 +346,7 @@ def bssfp2d(
         else:
             acquired = n_phases * len(segment) * ro.tr + trigger_delay
             if s == 0:
-                acquired += (0.5 + n_dummy) * ro.tr
+                acquired += n_dummy * ro.tr
             if acquired > rr + 1e-9:
                 raise ValueError(
                     f"{n_phases} cardiac phases of {len(segment)} lines take "
@@ -329,15 +355,12 @@ def bssfp2d(
                 )
             # The heartbeat is filled to its nominal length, and the first
             # one to the trigger delay, with repetitions that do not acquire:
-            # the slice has one trigger, at its half flip.
+            # the slice has one trigger, at its first excitation.
             train += [(None, 0, 0)] * (starts[s] - len(train))
             train += [(line, s, f) for f in range(n_phases) for line in segment]
     n_segments = len(segments)
     # A free-running series with dummies is a chain of two files per slice:
-    # the half flip and dummies, closed to rest, then the frames, each frame
-    # opened from rest and closed to it. A frame is then the repetition of its
-    # file, and a scanner that segments a repetition plays it as one segment,
-    # once per frame.
+    # the catalyst and dummies, then the frames.
     chained = gating == "none" and n_dummy > 0
 
     slice_step = slice_thickness + slice_spacing
@@ -348,30 +371,14 @@ def bssfp2d(
     def ky_of(line: int | None) -> float:
         return 0.0 if line is None else (line - n_y // 2) / (n_y / 2)
 
-    def half_flip(target: pp.Sequence, s: int) -> None:
-        """Add slice ``s``'s half flip and the wait after it."""
-        rf = ro.rf
-        rf.freq_offset = exc.selection_amplitude * positions[s]
-        # Half the flip at phase 0, opposite to the first excitation's pi,
-        # lands the magnetisation on the bisector the steady state oscillates
-        # about. The module writes ONCE on this block and the next, so the
-        # labels restart here as a ONCE through labels() would.
-        labels.restart()
-        rf.amplitude = 0.5 * nominal
-        rf.phase_offset = -2 * np.pi * rf.freq_offset * rf.center
-        # A trigger on the half flip makes the slice's train wait for it, with
-        # nothing before the train to set up apart from it.
-        triggered = [trigger_event] if gating == "prospective" else []
-        target.add_block(rf, ro.gz_open, *triggered, *ro.prep_labels)
-        target.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
-        rf.amplitude = nominal
+    n_ramp = min(CATALYST_RAMP, n_dummy)
 
     def rewind(target: pp.Sequence, ky: float, closes: bool, ends: bool) -> None:
         """Rewind the encode ``ky``; ``closes`` brings the slice axis to rest, ``ends`` marks the train's end."""
         target.add_block(
             ro.gx_rew,
             pp.scale_grad(ro.gy_rew, ky),
-            ro.gz_close if closes else ro.gz_rew,
+            ro.gz_close if closes and ro.bridged else ro.gz_rew,
             *(ro.end_labels if ends else []),
         )
 
@@ -384,22 +391,39 @@ def bssfp2d(
         phase: int,
         opens: bool,
     ) -> None:
-        """Excite slice ``s`` and read ``line``, opening from rest with ``opens``; ``line=None`` plays a dummy."""
+        """Excite slice ``s`` and read ``line``, opening from rest with ``opens``; ``line=None`` plays a dummy.
+
+        The slice's first repetition carries ``ONCE`` and, under prospective
+        gating, the trigger, and the catalyst's repetitions ramp the flip angle.
+        """
         rf = ro.rf
         rf.freq_offset = exc.selection_amplitude * positions[s]
         alternation = np.pi * ((shot + 1) % 2)
         rf.phase_offset = alternation - 2 * np.pi * rf.freq_offset * rf.center
         ro.adc.phase_offset = alternation
-        target.add_block(rf, ro.gz_open if opens else ro.gz)
+        rf.amplitude = nominal * (shot + 1) / n_ramp if shot < n_ramp else nominal
+        first = shot == 0
+        opening = [
+            *(ro.prep_labels if first else []),
+            *([trigger_event] if first and gating == "prospective" else []),
+        ]
+        target.add_block(rf, ro.gz_open if opens and ro.bridged else ro.gz, *opening)
+        rf.amplitude = nominal
         ky = ky_of(line)
+        once = ro.train_labels if first else []
         if line is None:
-            target.add_block(ro.gx, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre)
+            target.add_block(ro.gx, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre, *once)
             return
         label_events = labels(
             LIN=line, SLC=s, SEG=segment, PHS=phase, IMA=line in calibration
         )
         target.add_block(
-            ro.gx, ro.adc, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre, *label_events
+            ro.gx,
+            ro.adc,
+            pp.scale_grad(ro.gy_pre, ky),
+            ro.gz_pre,
+            *label_events,
+            *once,
         )
 
     # Each slice's whole train is played before the next slice's.
@@ -408,11 +432,15 @@ def bssfp2d(
     for s in range(n_slices):
         target = pp.Sequence(system) if chained else seq
         first = target.num_blocks
-        half_flip(target, s)
+        # The slice's labels restart, as a ONCE through labels() would.
+        labels.restart()
         previous = None
         for shot, (line, segment, phase) in enumerate(train):
-            # Chained, the slice rests ahead of every frame.
-            opens = chained and shot >= n_dummy and (shot - n_dummy) % len(lines) == 0
+            # The slice opens from rest, and chained it rests ahead of every
+            # frame as well.
+            opens = shot == 0 or (
+                chained and shot >= n_dummy and (shot - n_dummy) % len(lines) == 0
+            )
             if previous is not None:
                 rewind(target, previous, closes=opens, ends=False)
             if chained and shot == n_dummy:
@@ -453,7 +481,9 @@ def bssfp2d(
     if gating == "prospective":
         definitions.update(CardiacPhases=n_phases, TriggerDelay=trigger_delay)
     if chained:
-        # A frame is its file's repetition; the half flip and dummies play once.
+        # Each file repeats one repetition, so a scanner that segments a
+        # repetition plays every repetition as the same segment; a frame is
+        # what the frames file plots.
         frame = 3 * len(lines)
         for index, part in enumerate(chain):
             catalyst = index % 2 == 0
@@ -461,8 +491,6 @@ def bssfp2d(
             stated = definitions | {"PlotTRstart": 1, "PlotTRsize": size}
             if catalyst:
                 stated["Name"] = f"{NAME}_catalyst"
-            else:
-                stated["TRSize"] = frame
             for key, value in stated.items():
                 part.set_definition(key=key, value=value)
             if not catalyst:
