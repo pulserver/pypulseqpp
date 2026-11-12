@@ -110,7 +110,7 @@ def bssfp2d(
     heart_rate_bpm: float = 60.0,
     views_per_segment: int = 12,
     trigger_delay: float = 0.0,
-) -> pp.Sequence:
+) -> pp.Sequence | list[pp.Sequence]:
     """Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.
 
     Every axis returns to k = 0 between pulse centres and TE is TR/2

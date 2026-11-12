@@ -19,6 +19,17 @@ RETURNS = "pypulseqpp.Sequence\n    The designed sequence."
 #: sequences, prescans first and the main sequence last.
 CHAIN_RETURNS = "list of pypulseqpp.Sequence"
 
+#: The type of the only return entry of a function that returns one sequence
+#: for some prescriptions and a chain for others.
+EITHER_RETURNS = "pypulseqpp.Sequence or list of pypulseqpp.Sequence"
+
+#: The documented return type of each return annotation an entry point may carry.
+RETURN_KINDS = {
+    pp.Sequence: "pypulseqpp.Sequence",
+    list[pp.Sequence]: CHAIN_RETURNS,
+    pp.Sequence | list[pp.Sequence]: EITHER_RETURNS,
+}
+
 
 def split_sections(doc):
     """Split a NumPy docstring into its summary, its description and its sections.
@@ -48,27 +59,27 @@ def entry_point(request):
     return getattr(sequences, request.param)
 
 
-def returns_a_chain(entry_point):
-    """Whether the entry point returns a list of sequences, not one sequence."""
+def return_kind(entry_point):
+    """The documented return type the entry point's return annotation calls for."""
     signature = inspect.signature(entry_point.main, eval_str=True)
-    return signature.return_annotation == list[pp.Sequence]
+    return RETURN_KINDS[signature.return_annotation]
 
 
 def test_an_entry_point_returns_a_sequence_or_a_chain_of_them(entry_point):
     signature = inspect.signature(entry_point.main, eval_str=True)
 
-    assert signature.return_annotation in (pp.Sequence, list[pp.Sequence])
+    assert signature.return_annotation in RETURN_KINDS
 
 
 def test_the_returns_section_holds_the_return_value_and_nothing_else(entry_point):
     sections = dict(split_sections(inspect.getdoc(entry_point) or "")[2])
-    if returns_a_chain(entry_point):
+    if return_kind(entry_point) == "pypulseqpp.Sequence":
+        assert sections["Returns"] == RETURNS
+    else:
         kind, *description = sections["Returns"].splitlines()
-        assert kind == CHAIN_RETURNS
+        assert kind == return_kind(entry_point)
         assert description
         assert all(line.startswith("    ") for line in description)
-    else:
-        assert sections["Returns"] == RETURNS
 
 
 def test_the_sections_are_independent_and_ordered(entry_point):
@@ -94,8 +105,7 @@ def test_the_docstring_parses_as_numpy(entry_point):
     returns = rendered.partition(":returns:")[2].partition("\n:")[0]
     assert "The designed sequence" in returns
     assert ">>>" not in returns
-    kind = CHAIN_RETURNS if returns_a_chain(entry_point) else "pypulseqpp.Sequence"
-    assert f":rtype: {kind}\n" in rendered
+    assert f":rtype: {return_kind(entry_point)}\n" in rendered
     if "Raises" in dict(split_sections(doc)[2]):
         assert ":raises" in rendered
     assert ".. rubric:: Examples" in rendered
