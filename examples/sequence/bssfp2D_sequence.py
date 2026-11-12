@@ -28,15 +28,21 @@ PROSPECTIVE_DUMMIES = 10
 
 
 def prospective_starts(
-    segments: list[int], n_phases: int, n_dummy: int, rr: float, tr: float
+    segments: list[int],
+    n_phases: int,
+    n_dummy: int,
+    rr: float,
+    tr: float,
+    trigger_delay: float = 0.0,
 ) -> list[int]:
     """Return the repetition at which each heartbeat's cardiac phases start under ``prospective`` gating.
 
-    Repetitions are counted from the first after the half flip. The slice
-    waits for one trigger and then runs free: the first heartbeat's phases
-    follow the dummies, and those of heartbeat ``s`` start ``s`` nominal
-    heartbeats after the first excitation's place in its heartbeat, to the
-    nearest repetition, with repetitions that do not acquire between.
+    Repetitions are counted from the first after the half flip, which the
+    slice's one trigger starts. The slice then runs free: the first
+    heartbeat's phases follow the dummies and ``trigger_delay`` to the nearest
+    repetition, and those of heartbeat ``s`` start ``s`` nominal heartbeats
+    and ``trigger_delay`` after the trigger, to the nearest repetition, with
+    repetitions that do not acquire between.
 
     Parameters
     ----------
@@ -50,15 +56,19 @@ def prospective_starts(
         Nominal heartbeat (s).
     tr : float
         Repetition time (s).
+    trigger_delay : float, default=0.0
+        Time from the trigger to the first excitation's place in the first
+        heartbeat, played as repetitions that do not acquire (s).
 
     Examples
     --------
     >>> prospective_starts([12, 12, 4], n_phases=10, n_dummy=10, rr=1.0, tr=5e-3)
     [10, 200, 400]
     """
-    starts, taken = [], n_dummy
+    lead = n_dummy + round(trigger_delay / tr)
+    starts, taken = [], lead
     for s, views in enumerate(segments):
-        start = max(taken, round(s * rr / tr - 0.5)) if s else n_dummy
+        start = max(taken, round((s * rr + trigger_delay) / tr - 0.5)) if s else lead
         starts.append(start)
         taken = start + n_phases * views
     return starts
@@ -105,15 +115,15 @@ def bssfp2d(
     ``retrospective`` gating each segment is cycled as many times as a full
     segment fits in a heartbeat, the same number for every segment, so each
     cycle samples every line; the interpreter's ECG log bins them into cardiac
-    phases. Under ``prospective`` gating each slice waits for one trigger
-    event on ``TRIGGER_CHANNEL``, ahead of its half flip, and then runs free
+    phases. Under ``prospective`` gating each slice's half flip waits for
+    one trigger event on ``TRIGGER_CHANNEL``, and the slice then runs free
     at the nominal heart rate: every heartbeat plays its segment once per
     cardiac phase, and repetitions that do not acquire fill the rest of it
-    (:func:`prospective_starts`), so the steady state is kept from one
-    heartbeat into the next and a heart rate away from the nominal one drifts
-    against the phases. A slice held in one heartbeat is a triggered single
-    shot. Every slice is one train with no rest in it, its blocks joined on
-    the slice axis. Acquisitions carry ``LIN``, ``SLC``, the segment as
+    and the trigger delay (:func:`prospective_starts`), so the steady state
+    is kept from one heartbeat into the next and a heart rate away from the
+    nominal one drifts against the phases. A slice held in one heartbeat is
+    a triggered single shot. Every slice is one train with no rest in it,
+    its blocks joined on the slice axis, the trigger on its half flip. Acquisitions carry ``LIN``, ``SLC``, the segment as
     ``SEG`` and the frame, the cardiac phase or the cycle within the
     heartbeat as ``PHS``; calibration lines are marked ``IMA``.
 
@@ -174,7 +184,9 @@ def bssfp2d(
         Phase-encode lines per segment, one segment per heartbeat. Unused
         without gating.
     trigger_delay : float, default=0.0
-        Wait after a slice's prospective trigger before its half flip (s).
+        Time from a slice's prospective trigger to its first excitation's
+        place in its first heartbeat, played as repetitions that do not
+        acquire, to the nearest repetition (s).
 
     Returns
     -------
@@ -241,7 +253,7 @@ def bssfp2d(
     )
     # A slice is bridged: its blocks join on the slice axis, so that a scanner
     # preparing segments between blocks at rest plays the slice as one, with
-    # nothing between its repetitions. It opens from rest, after its trigger
+    # nothing between its repetitions. It opens from rest, on its trigger
     # under prospective gating, and its last rewind closes to rest.
     gz_open = ro.gz_open if ro.bridged else ro.gz
     gz_close = ro.gz_close if ro.bridged else ro.gz_rew
@@ -259,9 +271,7 @@ def bssfp2d(
             # One heartbeat: the residual approach spreads over every
             # segment and cardiac phase, as in product cine.
             n_dummy = min(n_dummy, max(1, round(rr / ro.tr)))
-    trigger_event = pp.make_trigger(
-        TRIGGER_CHANNEL, duration=trigger_delay, system=system
-    )
+    trigger_event = pp.make_trigger(TRIGGER_CHANNEL, system=system)
 
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
@@ -284,7 +294,12 @@ def bssfp2d(
     cycles = max(1, round(rr / (views_per_segment * ro.tr)))
     starts = (
         prospective_starts(
-            [len(segment) for segment in segments], n_phases, n_dummy, rr, ro.tr
+            [len(segment) for segment in segments],
+            n_phases,
+            n_dummy,
+            rr,
+            ro.tr,
+            trigger_delay,
         )
         if gating == "prospective"
         else []
@@ -306,8 +321,9 @@ def bssfp2d(
                     f"{acquired * 1e3:.0f} ms, longer than the "
                     f"{rr * 1e3:.0f} ms heartbeat"
                 )
-            # The heartbeat is filled to its nominal length with repetitions
-            # that do not acquire: the slice has one trigger, at its start.
+            # The heartbeat is filled to its nominal length, and the first
+            # one to the trigger delay, with repetitions that do not acquire:
+            # the slice has one trigger, at its half flip.
             train += [(None, 0, 0)] * (starts[s] - len(train))
             train += [(line, s, f) for f in range(n_phases) for line in segment]
     n_segments = len(segments)
@@ -334,9 +350,9 @@ def bssfp2d(
         """Add one repetition of slice ``s``: the rewind of the previous one, then excite and read.
 
         ``previous_ky`` is the fractional encode the rewind undoes; ``None``
-        opens the slice's train with the half flip, after the trigger under
-        ``prospective`` gating. ``last`` closes the train with the final
-        rewind, and ``line=None`` plays a dummy.
+        opens the slice's train with the half flip, which carries the trigger
+        under ``prospective`` gating. ``last`` closes the
+        train with the final rewind, and ``line=None`` plays a dummy.
         """
         rf = ro.rf
         rf.freq_offset = exc.selection_amplitude * positions[s]
@@ -350,11 +366,10 @@ def bssfp2d(
             labels.restart()
             rf.amplitude = 0.5 * nominal
             rf.phase_offset = centre_phase
-            if gating == "prospective":
-                seq.add_block(trigger_event, *ro.prep_labels)
-                seq.add_block(rf, gz_open)
-            else:
-                seq.add_block(rf, gz_open, *ro.prep_labels)
+            # A trigger on the half flip makes the slice's train wait for it,
+            # with nothing before the train to set up apart from it.
+            triggered = [trigger_event] if gating == "prospective" else []
+            seq.add_block(rf, gz_open, *triggered, *ro.prep_labels)
             seq.add_block(ro.wait_prep, ro.gz_prep, *ro.train_labels)
             rf.amplitude = nominal
         else:

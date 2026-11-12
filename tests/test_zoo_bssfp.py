@@ -177,7 +177,8 @@ def test_a_retrospective_cycle_reads_every_line_when_the_last_segment_is_short()
 def test_a_prospective_slice_waits_for_one_trigger_then_reads_every_phase():
     seq = built_2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
-    triggers = [block.trig for block in blocks(seq) if getattr(block, "trig", None)]
+    triggered = [block for block in blocks(seq) if getattr(block, "trig", None)]
+    triggers = [block.trig for block in triggered]
     expected = [
         (line, s, f)
         for s, start in enumerate(range(0, 16, 4))
@@ -188,8 +189,9 @@ def test_a_prospective_slice_waits_for_one_trigger_then_reads_every_phase():
     assert list(zip(lin, seg, phs, strict=True)) == expected
     assert len(triggers) == 1
     assert triggers[0][0].channel == "physio1"
-    assert triggers[0][0].duration == pytest.approx(5e-3)
+    assert triggered[0].rf is not None
     assert seq.definitions["CardiacPhases"] == pytest.approx([3])
+    assert seq.definitions["TriggerDelay"] == pytest.approx([5e-3])
 
 
 def test_a_prospective_heartbeat_starts_a_nominal_heartbeat_after_the_one_before():
@@ -217,8 +219,14 @@ def test_the_prospective_starts_never_overlap_the_heartbeat_before():
     assert bssfp2d.prospective_starts([12, 12], 10, 10, 0.5, 5e-3) == [10, 130]
 
 
+def test_a_trigger_delay_is_played_as_repetitions_ahead_of_every_heartbeat():
+    starts = bssfp2d.prospective_starts([12, 12, 4], 10, 10, 1.0, 5e-3, 0.1)
+
+    assert starts == [30, 220, 420]
+
+
 @pytest.mark.parametrize("n_dummy", [0, 3])
-def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
+def test_the_trigger_of_a_slice_is_on_its_half_flip(n_dummy):
     seq = built_2d(
         gating="prospective", n_phases=2, n_slices=2, n_dummy=n_dummy, **CINE
     )
@@ -229,8 +237,8 @@ def test_the_first_trigger_of_a_slice_precedes_its_half_flip(n_dummy):
     for start in (0, size):
         assert getattr(listed[start], "trig", None)
         assert once[start] == 1
-        half = listed[start + 1].rf
-        full = next(b.rf for b in listed[start + 2 :] if b.rf is not None)
+        half = listed[start].rf
+        full = next(b.rf for b in listed[start + 1 :] if b.rf is not None)
         peak = np.abs(np.asarray(half.signal)).max()
         assert peak == pytest.approx(0.5 * np.abs(np.asarray(full.signal)).max())
 
@@ -243,13 +251,22 @@ def test_a_single_shot_slice_has_one_trigger():
     assert len(triggers) == 2
 
 
-def test_every_trigger_falls_between_two_balanced_repetitions():
-    seq = built_2d(gating="prospective", n_phases=2, **CINE)
+def test_every_trigger_opens_a_slice_from_rest():
+    seq = built_2d(gating="prospective", n_phases=2, n_slices=2, **CINE)
     listed = blocks(seq)
-    for index, block in enumerate(listed):
-        if getattr(block, "trig", None):
-            assert block.gx is None and block.gy is None and block.gz is None
-            assert listed[index + 1].rf is not None
+    triggered = [i for i, block in enumerate(listed) if getattr(block, "trig", None)]
+
+    assert len(triggered) == 2
+    for index in triggered:
+        block = listed[index]
+        assert block.rf is not None and block.gx is None and block.gy is None
+        assert np.asarray(block.gz.waveform)[0] == pytest.approx(0.0)
+        if index:
+            before = listed[index - 1]
+            for axis in ("gx", "gy", "gz"):
+                grad = getattr(before, axis)
+                if grad is not None and grad.type != "trap":
+                    assert np.asarray(grad.waveform)[-1] == pytest.approx(0.0)
     assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
 
 
