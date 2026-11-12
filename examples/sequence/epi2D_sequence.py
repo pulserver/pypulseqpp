@@ -10,6 +10,11 @@ import numpy as np
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
 
+#: Slew-rate ceiling (T/m/s) of the fat saturation, whose spoilers play on three
+#: axes at once: designed at the sequence's slew they would set its nerve
+#: stimulation, and the slew search would slow every gradient for them.
+PREPARATION_MAX_SLEW = 40.0
+
 
 def caipi_shift(ry: int, rz: int) -> int:
     """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
@@ -393,7 +398,8 @@ def epi2d(
 
     fatsat = (
         sequences.FatSaturation(
-            system, voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness)
+            pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
+            voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
         )
         if fat_saturation
         else None
@@ -427,7 +433,7 @@ def epi2d(
             fatsat.duration - fatsat.center + float(epi.rf.delay) + float(epi.rf.center)
         )
         fatsat = sequences.FatSaturation(
-            system,
+            pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
             flip_angle_deg=sequences.fat_null_flip_deg(to_excitation, shot_duration),
             voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
         )
