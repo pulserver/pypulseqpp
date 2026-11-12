@@ -8,8 +8,12 @@ import numpy as np
 from pypulseqpp._busse import _trains
 
 
-def _inverse_pd(target, first, esp, first_echo, t1=1.0, t2=0.1):
-    """Flip angles (deg) and achieved echoes of prescribed relaxed echo signals."""
+def _inverse_pd(target, first, esp, first_echo, t1=1.0, t2=0.1, tangents=None):
+    """Flip angles (deg) and achieved echoes of prescribed relaxed echo signals.
+
+    With ``tangents``, ``(directions, trains, echoes)`` changes of the target,
+    the exact derivatives of the angles (deg) and echoes come back as well.
+    """
     return _trains().prescribed_flips(
         target,
         first_flip=first,
@@ -17,67 +21,133 @@ def _inverse_pd(target, first, esp, first_echo, t1=1.0, t2=0.1):
         first_ESP=1e3 * first_echo,
         T1=1e3 * t1,
         T2=1e3 * t2,
+        signal_tangents=tangents,
     )
+
+
+class _Envelope:
+    """PD signal envelopes of a batch of trains, and their derivatives.
+
+    Each train's target is ``level * (1 + (ratio - 1) * z) + (initial - level)
+    * exp(-echo / decay)``, with ``z`` the squared ramp of the tail that
+    starts at the plateau fraction of the acquired train. The residuals are
+    the highest acquired angle before the last less the maximum angle, and the
+    last angle less the final angle, in degrees.
+    """
+
+    def __init__(self, lengths, controls, startup, esp, first_echo, t1, t2, decay):
+        self.lengths = np.asarray(lengths)
+        self.controls = np.asarray(controls)
+        self.startup = startup
+        self.timing = (esp, first_echo, t1, t2)
+        self.echo = np.arange(self.lengths.max())[None, :]
+        self.transient = np.exp(-self.echo / decay)
+        first = self.controls[:, 0]
+        self.initial = np.sin(np.deg2rad(first) / 2) ** 2 * np.exp(-first_echo / t2)
+
+    def _tail(self, rows, fraction):
+        """Return the tail ramp ``z`` and its derivative per unit plateau fraction."""
+        lengths = self.lengths[rows, None]
+        span = lengths - 1 - self.startup
+        cut = self.startup + fraction[:, None] * span
+        rest = lengths - 1 - cut
+        ramp = (self.echo - cut) / rest
+        inside = (ramp > 0) & (ramp < 1)
+        clipped = np.clip(ramp, 0, 1)
+        d_ramp = (self.echo - lengths + 1) / rest**2 * span
+        return clipped * clipped, np.where(inside, 2 * clipped * d_ramp, 0.0)
+
+    def target(self, rows, level, ratio, fraction=None):
+        """Return targets and their derivatives.
+
+        The targets are ``(trains, echoes)``; their derivatives along level,
+        ratio and plateau fraction are ``(3, trains, echoes)``.
+        """
+        fraction = self.controls[rows, 3] if fraction is None else fraction
+        z, d_z = self._tail(rows, fraction)
+        level, ratio = level[:, None], ratio[:, None]
+        target = (
+            level * (1 + (ratio - 1) * z)
+            + (self.initial[rows, None] - level) * self.transient
+        )
+        slopes = np.stack(
+            (
+                1 + (ratio - 1) * z - self.transient,
+                level * z,
+                level * (ratio - 1) * d_z,
+            )
+        )
+        return target, slopes
+
+    def residual(self, rows, angles):
+        """Return the two residuals, and which echo each of them reads."""
+        lengths = self.lengths[rows]
+        each = np.arange(len(rows))
+        mask = (self.echo < lengths[:, None] - 1) & (self.echo >= self.startup)
+        highest = np.where(mask, angles, -np.inf).argmax(1)
+        read = np.column_stack((highest, lengths - 1))
+        controls = self.controls[rows]
+        residual = np.column_stack(
+            (
+                angles[each, read[:, 0]] - controls[:, 1],
+                angles[each, read[:, 1]] - controls[:, 2],
+            )
+        )
+        return residual, read
+
+    def solve(self, rows, level, ratio, directions=2):
+        """Solve the trains ``rows`` with derivatives.
+
+        Returns angles (deg), achieved echoes, targets, residuals, the
+        residuals' derivatives ``(trains, 2, directions)`` and the angles'
+        ``(directions, trains, echoes)``, along the first ``directions`` of
+        level, ratio and plateau fraction.
+        """
+        target, slopes = self.target(rows, level, ratio)
+        angles, achieved, d_angles, _ = _inverse_pd(
+            target,
+            self.controls[rows, 0],
+            *self.timing,
+            tangents=slopes[:directions],
+        )
+        residual, read = self.residual(rows, angles)
+        each = np.arange(len(rows))
+        jacobian = np.stack(
+            (d_angles[:, each, read[:, 0]].T, d_angles[:, each, read[:, 1]].T),
+            axis=1,
+        )
+        return angles, achieved, target, residual, jacobian, d_angles
+
+    def values(self, rows, level, ratio):
+        """Return residuals, angles (deg), achieved echoes and targets."""
+        target, _ = self.target(rows, level, ratio)
+        angles, achieved = _inverse_pd(target, self.controls[rows, 0], *self.timing)
+        return self.residual(rows, angles)[0], angles, achieved, target
 
 
 def _solve_pd(lengths, controls, startup, esp, first_echo, t1, t2, decay, seed=None):
     lengths = np.asarray(lengths)
-    controls = np.asarray(controls)
     count = len(lengths)
-    n = lengths.max()
-    x = np.arange(n)[None, :]
-    active = x < lengths[:, None]
-    first = controls[:, 0]
-    initial = np.sin(np.deg2rad(first) / 2) ** 2 * np.exp(-first_echo / t2)
-
-    def evaluate(level, ratio, repeat=1):
-        nrows = len(level)
-        lens = np.tile(lengths, repeat)
-        c = np.tile(controls, (repeat, 1))
-        init = np.tile(initial, repeat)
-        cut = startup + c[:, 3, None] * (lens[:, None] - 1 - startup)
-        z = np.clip((x - cut) / (lens[:, None] - 1 - cut), 0, 1)
-        z = z * z
-        target = level[:, None] * (1 + (ratio[:, None] - 1) * z) + (
-            init[:, None] - level[:, None]
-        ) * np.exp(-x / decay)
-        a, s = _inverse_pd(target, c[:, 0], esp, first_echo, t1, t2)
-        # The final pulse has its own constraint. Keeping it out of the peak
-        # equation avoids identical Jacobian rows for a trial peaking at its end.
-        mask = (x < lens[:, None] - 1) & (x >= startup)
-        highest = np.where(mask, a, -np.inf).max(1)
-        last = a[np.arange(nrows), lens - 1]
-        return np.column_stack((highest - c[:, 1], last - c[:, 2])), a, s, target
-
+    rows = np.arange(count)
+    envelope = _Envelope(lengths, controls, startup, esp, first_echo, t1, t2, decay)
+    active = envelope.echo < lengths[:, None]
     ratio = 0.65 * np.exp(-0.007 * (lengths - startup))
     if seed is None:
         lo = np.full(count, 0.001)
         hi = np.full(count, 0.99)
         for _ in range(34):
             mid = (lo + hi) / 2
-            r, *_ = evaluate(mid, ratio)
+            r, *_ = envelope.values(rows, mid, ratio)
             lo = np.where(r[:, 0] < 0, mid, lo)
             hi = np.where(r[:, 0] >= 0, mid, hi)
         level = (lo + hi) / 2
         p = np.column_stack((level, ratio))
     else:
         p = np.asarray(seed, dtype=float).copy()
-    step = 1e-5
     for _iteration in range(16):
-        v = np.concatenate(
-            (p, p + step * np.array([1, 0]), p + step * np.array([0, 1]))
-        )
-        residual, *_ = evaluate(v[:, 0], v[:, 1], 3)
-        r = residual[:count]
+        *_, r, j, _ = envelope.solve(rows, p[:, 0], p[:, 1])
         if abs(r).max(initial=0) < 1e-6:
             break
-        j = np.stack(
-            (
-                (residual[count : 2 * count] - r) / step,
-                (residual[2 * count :] - r) / step,
-            ),
-            axis=-1,
-        )
         det = j[:, 0, 0] * j[:, 1, 1] - j[:, 0, 1] * j[:, 1, 0]
         safe = np.where(abs(det) > 1e-12, det, np.inf)
         delta = np.column_stack(
@@ -91,15 +161,38 @@ def _solve_pd(lengths, controls, startup, esp, first_echo, t1, t2, decay, seed=N
         score = (r * r).sum(1)
         for scale in (1.0, 0.5, 0.25, 0.125):
             trial = np.clip(p - scale * delta, [0.0001, 0.05], [0.99, 1.0])
-            err, *_ = evaluate(trial[:, 0], trial[:, 1])
+            err, *_ = envelope.values(rows, trial[:, 0], trial[:, 1])
             new = (err * err).sum(1)
             improve = new < score
             best[improve] = trial[improve]
             score = np.minimum(score, new)
         p = best
-    r, a, s, t = evaluate(p[:, 0], p[:, 1])
+    r, a, s, t = envelope.values(rows, p[:, 0], p[:, 1])
     err = np.where(active, abs(s - t), 0).max(1)
     return p, r, a, err, _iteration
+
+
+def _pd_fraction_slopes(
+    length, controls, levels, startup, esp, first_echo, t1, t2, decay
+):
+    """Angles (rad) of a solved PD train and their derivative per unit plateau fraction.
+
+    The two signal levels keep the maximum and final angles as the fraction
+    moves, so by the implicit function theorem they move by ``-R_p^-1 R_f``,
+    with ``R`` the two residuals; the angles move by what the fraction does
+    directly plus what the levels do.
+    """
+    envelope = _Envelope([length], [controls], startup, esp, first_echo, t1, t2, decay)
+    rows = np.array([0])
+    angles, _, _, _, jacobian, d_angles = envelope.solve(
+        rows, levels[:1], levels[1:], directions=3
+    )
+    moved = -np.linalg.solve(jacobian[0, :, :2], jacobian[0, :, 2])
+    slope = d_angles[2, 0] + moved @ d_angles[:2, 0]
+    played = envelope.echo[0] < length
+    return np.deg2rad(np.where(played, angles[0], 0.0)), np.deg2rad(
+        np.where(played, slope, 0.0)
+    )
 
 
 def _make_pd_schedules(

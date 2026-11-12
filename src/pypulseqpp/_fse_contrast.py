@@ -94,6 +94,25 @@ def calc_fse_effective_te(
     )
 
 
+def _effective_te_slopes(flip_angles, slopes, echo_spacing, first_echo_time):
+    """Contrast-equivalent TE (s) of trains and its exact derivatives.
+
+    ``flip_angles`` is ``(..., echoes)`` in radians and ``slopes``
+    ``(directions, ..., echoes)`` their changes; the derivatives of the echo
+    times, in seconds, are shaped like ``slopes``. The reference tissue is
+    that of :func:`calc_fse_effective_te`.
+    """
+    times, d_times = _trains().effective_te(
+        np.rad2deg(flip_angles),
+        1e3 * echo_spacing,
+        first_ESP=1e3 * first_echo_time,
+        T1=1e3,
+        T2=1e2,
+        flip_tangents=np.rad2deg(slopes),
+    )
+    return 1e-3 * times, 1e-3 * d_times
+
+
 def _select_busse_centre(
     etl,
     peripheral_etl,
