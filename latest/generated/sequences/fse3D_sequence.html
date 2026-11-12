@@ -626,7 +626,7 @@ acquired ahead of the rest when undersampled.</p></li>
 encode, acquired ahead of the rest when undersampled.</p></li>
 <li><p><strong>elliptical_acs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Make the calibration region the ellipse inscribed in the
 <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle rather than the rectangle.</p></li>
-<li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'</em><em>, </em><em>'busse_radial'</em><em>, </em><em>'pclo'</em><em>, </em><em>'buonincontri'}</em><em>, </em><em>default='radial'</em>) – <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: choose PCLO for identical trains, or Buonincontri joint
+<li><p><strong>ordering</strong> (<em>{'radial'</em><em>, </em><em>'shuffling'</em><em>, </em><em>'busse_radial'</em><em>, </em><em>'pclo'</em><em>, </em><em>'buonincontri'</em><em>, </em><em>'buonincontri_golden'}</em><em>, </em><em>default='radial'</em>) – <code class="docutils literal notranslate"><span class="pre">'radial'</span></code>: choose PCLO for identical trains, or Buonincontri joint
 shot/echo assignment for a centre/periphery transition. <code class="docutils literal notranslate"><span class="pre">'pclo'</span></code>
 explicitly selects Rydén’s radius-band permutation for an arbitrary
 centre echo, with identical trains only; for a centre echo in the
@@ -635,7 +635,10 @@ order instead of Rydén’s mirrored order. <code class="docutils literal notran
 basic Busse radius-then-angle order (no sorting jitter/consolidation),
 with identical trains and centre echo 0; under <code class="docutils literal notranslate"><span class="pre">busse</span></code>, explicitly
 set <code class="docutils literal notranslate"><span class="pre">busse_centre_echo=0</span></code>. <code class="docutils literal notranslate"><span class="pre">'buonincontri'</span></code> requires a parameter
-transition and assigns shots and echoes jointly. <code class="docutils literal notranslate"><span class="pre">'adaptive_radial'</span></code>
+transition and assigns shots and echoes jointly, the shot index
+sweeping with the angle within each radial section;
+<code class="docutils literal notranslate"><span class="pre">'buonincontri_golden'</span></code> keeps each shot to one golden-ratio angle
+instead (<code class="xref py py-func docutils literal notranslate"><span class="pre">deal_trains()</span></code>). <code class="docutils literal notranslate"><span class="pre">'adaptive_radial'</span></code>
 is accepted as an alias for <code class="docutils literal notranslate"><span class="pre">'buonincontri'</span></code>. <code class="docutils literal notranslate"><span class="pre">'shuffling'</span></code> uses
 complementary Poisson-disc echo assignment for identical trains.</p></li>
 <li><p><strong>flip_modulation</strong> (<em>{'constant'</em><em>, </em><em>'optimized'</em><em>, </em><em>'busse'</em><em>, </em><em>'pd'}</em><em>, </em><em>default='constant'</em>) – Constant refocusing angles, or variable trains designed by direct-angle
