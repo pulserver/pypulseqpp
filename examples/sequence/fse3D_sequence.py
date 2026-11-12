@@ -13,7 +13,14 @@ from pypulseqpp import cli, sequences
 EXCITATIONS = ("nonselective", "slab")
 
 #: The view orders ``ordering`` selects from.
-ORDERINGS = ("radial", "shuffling", "busse_radial", "pclo", "buonincontri")
+ORDERINGS = (
+    "radial",
+    "shuffling",
+    "busse_radial",
+    "pclo",
+    "buonincontri",
+    "buonincontri_golden",
+)
 
 #: The refocusing trains ``flip_modulation`` selects from.
 MODULATIONS = ("constant", "optimized", "busse", "pd")
@@ -125,12 +132,19 @@ def pclo_rings(te_echo: int, etl: int) -> np.ndarray:
     return _pclo_rings(te_echo, etl)
 
 
+#: The fractional part of the golden ratio, which spreads consecutive
+#: integers evenly around a turn.
+_GOLDEN = (5**0.5 - 1) / 2
+
+
 def deal_trains(
     coords: np.ndarray,
     lengths: list[int],
     place: np.ndarray,
     te_echo: int,
     etl_max: int,
+    *,
+    golden: bool = False,
 ) -> list[list[int | None]]:
     """Deal views into trains by adaptive radial reordering.
 
@@ -139,11 +153,18 @@ def deal_trains(
     (:func:`pclo_rings`), and how far the shot is along the transition. The
     views are ranked by radius. Both are cut into sections of one slot per
     shot, the innermost views filling the nearest slots, and within a section
-    the views, sorted by angle, fill the slots in shot order (Buonincontri et
-    al., abstract 566-05-007, Fig. 2D); the centre of k-space, which has no
+    the views, sorted by angle, fill the slots in shot order, so the shot
+    index sweeps with the angle within each section (Buonincontri et al.,
+    abstract 566-05-007, Fig. 2C and D); the centre of k-space, which has no
     angle, takes the nearest slot. With identical trains the shot term
     vanishes and a section is one echo, so the rings of k-space take the
     echoes in PCLO order.
+
+    With ``golden``, each shot instead holds one place around the turn, the
+    golden-ratio fraction of its rank along the transition, and a section's
+    slots take its angles in that order: a shot keeps to one angle, and every
+    arc of a ring holds the section's whole range of TRs and train lengths
+    rather than one end of it.
 
     Parameters
     ----------
@@ -158,6 +179,9 @@ def deal_trains(
         The echo the prescribed echo time falls on, counting from 0.
     etl_max : int
         Echoes the longest train holds.
+    golden : bool, default=False
+        Give each shot a golden-ratio place around the turn rather than
+        dealing each section in shot order.
 
     Returns
     -------
@@ -179,6 +203,10 @@ def deal_trains(
             slot[0],
         ),
     )
+    turn = np.arange(n_shots, dtype=float)
+    if golden:
+        rank = np.argsort(np.argsort(place, kind="stable"), kind="stable")
+        turn = (rank * _GOLDEN) % 1.0
     trains: list[list[int | None]] = [[None] * etl_max for _ in range(n_shots)]
     # The centre of k-space, which has no angle, takes the nearest slot.
     if len(views) and radius[views[0]] == 0.0:
@@ -187,9 +215,10 @@ def deal_trains(
     for start in range(0, len(views), n_shots):
         section = sorted(views[start : start + n_shots], key=lambda i: angle[i])
         # The last section may hold fewer views than it has slots.
-        for (s, e), view in zip(
-            sorted(slots[start : start + n_shots]), section, strict=False
-        ):
+        held = sorted(
+            slots[start : start + n_shots], key=lambda slot: (turn[slot[0]], slot)
+        )
+        for (s, e), view in zip(held, section, strict=False):
             trains[s][e] = view
     return trains
 
@@ -699,7 +728,7 @@ def fse3d(
     elliptical_acs : bool, default=False
         Make the calibration region the ellipse inscribed in the
         ``n_acs_y x n_acs_z`` rectangle rather than the rectangle.
-    ordering : {'radial', 'shuffling', 'busse_radial', 'pclo', 'buonincontri'}, default='radial'
+    ordering : {'radial', 'shuffling', 'busse_radial', 'pclo', 'buonincontri', 'buonincontri_golden'}, default='radial'
         ``'radial'``: choose PCLO for identical trains, or Buonincontri joint
         shot/echo assignment for a centre/periphery transition. ``'pclo'``
         explicitly selects Rydén's radius-band permutation for an arbitrary
@@ -709,7 +738,10 @@ def fse3d(
         basic Busse radius-then-angle order (no sorting jitter/consolidation),
         with identical trains and centre echo 0; under ``busse``, explicitly
         set ``busse_centre_echo=0``. ``'buonincontri'`` requires a parameter
-        transition and assigns shots and echoes jointly. ``'adaptive_radial'``
+        transition and assigns shots and echoes jointly, the shot index
+        sweeping with the angle within each radial section;
+        ``'buonincontri_golden'`` keeps each shot to one golden-ratio angle
+        instead (:func:`deal_trains`). ``'adaptive_radial'``
         is accepted as an alias for ``'buonincontri'``. ``'shuffling'`` uses
         complementary Poisson-disc echo assignment for identical trains.
     flip_modulation : {'constant', 'optimized', 'busse', 'pd'}, default='constant'
@@ -1139,9 +1171,10 @@ def fse3d(
     resolved_ordering = (
         ("buonincontri" if individual else "pclo") if ordering == "radial" else ordering
     )
-    if individual and resolved_ordering != "buonincontri":
+    adaptive = resolved_ordering in ("buonincontri", "buonincontri_golden")
+    if individual and not adaptive:
         raise ValueError("Varying trains require Buonincontri adaptive radial ordering")
-    if not individual and resolved_ordering == "buonincontri":
+    if not individual and adaptive:
         raise ValueError(
             "Buonincontri ordering requires a centre/periphery parameter transition"
         )
@@ -1188,7 +1221,14 @@ def fse3d(
     elif resolved_ordering == "pclo":
         order = pp.make_pclo_order(coords, etl, center_echo=te_echo, pad=True)
     else:
-        order = deal_trains(coords, lengths, place, te_echo, etl_max)
+        order = deal_trains(
+            coords,
+            lengths,
+            place,
+            te_echo,
+            etl_max,
+            golden=resolved_ordering == "buonincontri_golden",
+        )
     trains = [[None if i is None else sampled[i] for i in train] for train in order]
 
     # Refocusing angles, one row per shot; past its own length a shot's
