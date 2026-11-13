@@ -202,8 +202,12 @@ MAX_SLEW = 200.0
 #: thickness.
 PULSE_DURATION = 3e-3
 TIME_BW_PRODUCT = 4.0
-#: Centre lines read without blips at the start of every shot.
+#: Centre lines read without blips at the start of every shot when
+#: ``navigator_lines`` asks for a navigator.
 NAVIGATOR_LINES = 3
+#: Counter holding each train line's position in its train, from zero, which
+#: matches an imaging line to the reference line of the same echo.
+ECHO_COUNTER = "USER0"
 #: Dephasing left on the readout axis at the end of each shot, in cycles
 #: across one voxel.
 SPOILING_CYCLES = 4.0
@@ -252,13 +256,22 @@ def epi2d(
     n_acs_y: int = 24,
     calibration: str = "fleet",
     volume_output: bool = False,
+    phase_reference: bool = False,
+    navigator_lines: int | None = None,
 ) -> list[pp.Sequence]:
     """Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.
 
-    Every shot reads ``NAVIGATOR_LINES`` centre lines without blips
-    (``NAV``) before its train, after one unsampled lobe that lets the read
-    axis settle, and every line carries ``REV`` for its read
-    polarity. The trains are ramp-sampled with the blips on the read ramps.
+    With ``phase_reference``, the last dummy shot of each slice (of each
+    FLEET slice, its dummy shot) is a reference train for odd/even phase
+    correction: the shot's own train with every phase-encode prewinder, blip
+    and rewinder at zero, its lines acquired (``PHASECORR``). Every train line
+    carries its position in the train in ``ECHO_COUNTER``, which matches an
+    imaging line to the reference line of the same echo. A scan without dummy
+    shots plays one cycle of them for the reference. Each shot can also read
+    ``navigator_lines`` centre lines without blips (``NAV``) before its
+    train, after one unsampled lobe that lets the read axis settle. Every line
+    carries ``REV`` for its read polarity. The trains are ramp-sampled with
+    the blips on the read ramps.
     Segmented shots interleave on the phase-encode lattice, each delayed by
     a fraction of the echo spacing so the echo time grows smoothly across
     k-space; ``te`` is the echo time of the centre line.
@@ -344,6 +357,13 @@ def epi2d(
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
         excitation of every volume, dummy volumes included.
+    phase_reference : bool, default=False
+        Acquire a blip-free reference train in a dummy shot of each slice, for
+        odd/even phase correction.
+    navigator_lines : int | None, default=None
+        Centre lines read without blips at the start of every shot, for
+        odd/even phase correction. ``None`` is ``NAVIGATOR_LINES`` without
+        ``phase_reference`` and none with it.
 
     Returns
     -------
@@ -379,6 +399,8 @@ def epi2d(
         max_grad=MAX_GRAD,
         max_slew=MAX_SLEW,
     )
+    if navigator_lines is None:
+        navigator_lines = 0 if phase_reference else NAVIGATOR_LINES
     if not 0.5 <= partial_fourier_y <= 1.0:
         raise ValueError(
             f"partial_fourier_y must lie in [0.5, 1], got {partial_fourier_y}"
@@ -425,7 +447,7 @@ def epi2d(
     train_arguments = {
         "te": te,
         "te_line": (n_y // 2 - start) // ry / n_shots,
-        "navigator_lines": NAVIGATOR_LINES,
+        "navigator_lines": navigator_lines,
         "echo_shifts": n_shots,
         "oversampling": readout_oversampling,
         "readout_bandwidth_hz": readout_bandwidth_hz,
@@ -548,6 +570,9 @@ def epi2d(
         excitations = sequences.steady_state_dummies(cycle, flip_angle_deg)
         n_dummy = -(-excitations // n_shots) if n_frames > 1 else excitations
     dummy_cycles = n_dummy * (n_shots if n_frames > 1 else 1)
+    if phase_reference:
+        # The reference plays in the last dummy cycle, so there is one.
+        dummy_cycles = max(dummy_cycles, 1)
     output_pulse = pp.make_digital_output_pulse(
         OUTPUT_CHANNEL,
         duration=min(OUTPUT_DURATION, pp.calc_duration(epi.rf, epi.gz)),
@@ -666,11 +691,28 @@ def epi2d(
         starts = [acs_lines[0] + s for s in range(acs_shots)]
         for s in order:
             offset = single.selection_amplitude * positions[s]
-            for _ in range(FLEET_DUMMY_SHOTS):
-                shot_blocks(seq, labels, acs, starts[0], 0, offset, [], raster)
+            for dummy in range(FLEET_DUMMY_SHOTS):
+                reference = phase_reference and dummy == FLEET_DUMMY_SHOTS - 1
+                shot_blocks(
+                    seq,
+                    labels,
+                    acs,
+                    starts[0],
+                    0,
+                    offset,
+                    labels(SLC=s, SEG=0, SET=0, PHASECORR=1) if reference else [],
+                    raster,
+                    reference=reference,
+                )
             for polarity in (0, 1):
                 for shot, origin in enumerate(starts):
-                    flags = labels(REF=1, SLC=s, SEG=shot, SET=polarity)
+                    flags = labels(
+                        REF=1,
+                        SLC=s,
+                        SEG=shot,
+                        SET=polarity,
+                        **({"PHASECORR": 0} if phase_reference else {}),
+                    )
                     shot_blocks(
                         seq,
                         labels,
@@ -701,22 +743,29 @@ def epi2d(
         pad: float,
         output: bool = False,
         reversed_encode: bool = False,
+        reference: bool = False,
     ) -> None:
         """Add one shot of slice (multiband group) ``g``; ``frame=None`` is a dummy.
 
         ``pad`` is the closing delay the shot would have without echo shift,
-        in s.
+        in s. A ``reference`` dummy acquires the blip-free reference train.
         """
         acquire = frame is not None
         if not acquire:
             flags = {"ONCE": 1}
+            if reference:
+                flags |= {"SLC": g, "SEG": shot, "PHASECORR": 1}
+                if reversed_encode:
+                    flags["SET"] = 1
         else:
             flags = {"SLC": g, "REP": frame, "SEG": shot, "ONCE": 0}
             if multiband > 1:
                 flags["SMS"] = 1
             if reversed_encode:
                 flags["SET"] = 1
-            if not n_dummy:
+            if phase_reference:
+                flags["PHASECORR"] = 0
+            if not dummy_cycles:
                 del flags["ONCE"]
         shot_blocks(
             seq,
@@ -728,8 +777,9 @@ def epi2d(
             [*labels(**flags), *([output_pulse] if output else [])],
             pad,
             acquire=acquire,
-            reversed_encode=reversed_encode,
+            reversed_encode=reversed_encode and not reference,
             prep=prep,
+            reference=reference,
         )
 
     def shot_blocks(
@@ -744,6 +794,7 @@ def epi2d(
         acquire: bool = False,
         reversed_encode: bool = False,
         prep: list = (),
+        reference: bool = False,
     ) -> None:
         """Add one shot of ``train`` from line ``origin``, its pulse ``offset`` Hz off resonance.
 
@@ -751,6 +802,8 @@ def epi2d(
         shift. ``reversed_encode`` negates every phase-encode event, so each
         line L of the forward shot is read at its mirror, ``LIN = n_y - L``;
         the mirror of line 0 lies outside the matrix and is played unsampled.
+        ``reference`` scales every phase-encode event to zero and acquires the
+        train lines, its navigator unsampled: the blip-free reference train.
         """
         train.rf.freq_offset = offset
         train.rf.phase_offset = -2 * np.pi * train.rf.freq_offset * train.rf.center
@@ -782,6 +835,17 @@ def epi2d(
                 for step in train.line_labels
                 if step
             )
+        if reference:
+            # The same events at zero amplitude, so the reference plays the
+            # imaging shot's blocks.
+            encodes = [train.gy_pre, train.gy_rew, *train.gy_blips]
+            if len(train.shot_labels) > 1:
+                encodes += [train.gz_pre, train.gz_rew, *train.gz_blips]
+            swap.update(
+                (id(event), pp.scale_grad(event, 0.0))
+                for event in encodes
+                if event is not None
+            )
         lines = origin + np.asarray(train.order).reshape(train.etl, -1)[:, 0]
         step = shot * train.echo_shift_step
         wait_shift = getattr(train, "wait_shift", None)
@@ -803,7 +867,10 @@ def epi2d(
             if head is wait_tr:
                 continue
             reading = id(head) in readouts and id(head) not in navigator
-            sampled = acquire and not (reversed_encode and reading and lines[line] == 0)
+            echo = line
+            sampled = (acquire or (reference and reading)) and not (
+                reversed_encode and reading and lines[line] == 0
+            )
             line += reading
             events = [
                 swap.get(id(event), event)
@@ -813,8 +880,11 @@ def epi2d(
             if index == 0:
                 events += label_events
             elif id(head) in navigator or id(head) in readouts:
-                if acquire:
-                    events += labels(NAV=int(id(head) in navigator), REV=polarity)
+                if acquire or sampled:
+                    flags = {"NAV": int(id(head) in navigator), "REV": polarity}
+                    if reading and phase_reference:
+                        flags[ECHO_COUNTER] = echo
+                    events += labels(**flags)
                 polarity ^= 1
             seq.add_block(*events)
         seq.add_block(pp.make_delay(closing))
@@ -831,7 +901,9 @@ def epi2d(
             cycles = [(None, c % n_shots) for c in range(dummy_cycles)]
             cycles += [(frame, shot) for frame in frames for shot in range(n_shots)]
             pad = pads[len(packet)]
-            for frame, shot in cycles:
+            for c, (frame, shot) in enumerate(cycles):
+                # The last dummy cycle plays the reference of every slice.
+                reference = phase_reference and c == dummy_cycles - 1
                 for i, g in enumerate(packet):
                     last = i == len(packet) - 1
                     before = seq.num_blocks
@@ -847,6 +919,7 @@ def epi2d(
                         and i == 0
                         and shot == 0,
                         reversed_encode=reversed_encode,
+                        reference=reference,
                     )
                     if frame is not None and first_image_shot is None:
                         first_image_shot = (before + 1, seq.num_blocks - before)
