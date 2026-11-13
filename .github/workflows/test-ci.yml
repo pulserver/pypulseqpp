@@ -27,8 +27,12 @@ jobs:
         # platform's.
         python-version: ["3.14"]
         include:
+          # The floor also runs the PyTorch the deployed environments pin:
+          # blochsim's native kernel behaves differently under torch.func on
+          # older releases, and only the latest PyTorch was tested before.
           - os: ubuntu-latest
             python-version: "3.10"
+            torch: "==2.7.1"
     steps:
       - uses: actions/checkout@v7
         with:
@@ -45,7 +49,7 @@ jobs:
       # wheel carries CUDA libraries nothing here uses.
       - name: Install PyTorch (CPU)
         if: runner.os == 'Linux'
-        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+        run: python -m pip install "torch${{ matrix.torch }}" --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install
         run: |
