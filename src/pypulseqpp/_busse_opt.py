@@ -127,23 +127,39 @@ class _ForwardSignal:
         """Return magnitudes and their derivatives along ``directions``.
 
         ``flips`` and ``directions`` ``(k, echoes)`` are in radians; returns
-        ``(tissues, echoes)`` and ``(k, tissues, echoes)``.
+        ``(tissues, echoes)`` and ``(k, tissues, echoes)``. Exact, by reverse mode
+        through blochsim's native kernel, as blochsim differentiates a sequence
+        argument: one backward pass gives ``J^T u`` as a function of ``u``, and its
+        derivative along each direction is ``J d``.
         """
         import torch
-        from blochsim._derivative import forward_mode
 
-        forward_mode()
-        flip = torch.as_tensor(np.rad2deg(flips), dtype=torch.float64)
+        flip = torch.as_tensor(np.rad2deg(flips), dtype=torch.float64).requires_grad_(
+            True
+        )
         tangents = torch.as_tensor(np.rad2deg(directions), dtype=torch.float64)
-        signal, changes = torch.func.vmap(
-            lambda tangent: torch.func.jvp(self._simulate, (flip,), (tangent,))
-        )(tangents)
-        signal = signal[0]
+        with torch.enable_grad():
+            signal = self._simulate(flip)
+            parts = torch.view_as_real(signal) if signal.is_complex() else signal
+            cotangent = torch.zeros_like(parts, requires_grad=True)
+            (pulled,) = torch.autograd.grad(parts, flip, cotangent, create_graph=True)
+            changes = []
+            for tangent in tangents:
+                (pushed,) = torch.autograd.grad(
+                    pulled, cotangent, tangent, retain_graph=True
+                )
+                changes.append(
+                    torch.view_as_complex(pushed.contiguous())
+                    if signal.is_complex()
+                    else pushed
+                )
+        signal = signal.detach()
+        changes = torch.stack(changes).detach()
         magnitude = signal.abs()
-        slopes = (signal.conj() * changes).real / magnitude.clamp_min(1e-30)
+        slopes_ = (signal.conj() * changes).real / magnitude.clamp_min(1e-30)
         return (
             magnitude.numpy().astype(np.float64, copy=False),
-            slopes.numpy().astype(np.float64, copy=False),
+            slopes_.numpy().astype(np.float64, copy=False),
         )
 
 

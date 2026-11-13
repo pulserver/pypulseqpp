@@ -145,8 +145,12 @@ HARD_PULSE_DURATION = 0.5e-3
 #: Fat methylene shift from water (ppm), converted against ``system.B0``
 #: when the spectral-spatial pulse is built.
 FAT_SHIFT_PPM = -3.4
-#: Centre lines read without blips at the start of every shot.
+#: Centre lines read without blips at the start of every shot when
+#: ``navigator_lines`` asks for a navigator.
 NAVIGATOR_LINES = 3
+#: Counter holding each train line's position in its train, from zero, which
+#: matches an imaging line to the reference line of the same echo.
+ECHO_COUNTER = "USER0"
 #: Dephasing left on the readout axis at the end of each shot, in cycles
 #: across one voxel.
 SPOILING_CYCLES = 4.0
@@ -266,6 +270,8 @@ def epi3d(
     n_acs_z: int = 16,
     calibration: str = "fleet",
     volume_output: bool = False,
+    phase_reference: bool = False,
+    navigator_lines: int | None = None,
 ) -> list[pp.Sequence]:
     """3D gradient-echo EPI: one train per ``(shot, shell)``, skipped-CAIPI sampled.
 
@@ -280,10 +286,16 @@ def epi3d(
     doi:10.1002/mrm.28486); one shot per shell is blipped-CAIPI. A volume is
     every shot of every shell, shots outer and shells centre-out inner.
 
-    Every shot reads ``NAVIGATOR_LINES`` centre lines without blips
-    (``NAV``) before its train, after one unsampled lobe that lets the read
-    axis settle; every line carries ``REV`` for its read
-    polarity, and shots are delayed by successive fractions of the echo
+    With ``phase_reference``, the last dummy shot (the FLEET calibration's
+    dummy shot) is a reference train for odd/even phase correction: the
+    shot's own train with every phase- and partition-encode prewinder, blip
+    and rewinder at zero, its lines acquired (``PHASECORR``). Every train line
+    carries its position in the train in ``ECHO_COUNTER``, which matches an
+    imaging line to the reference line of the same echo. A scan without dummy
+    shots plays one for the reference. Each shot can also read
+    ``navigator_lines`` centre lines without blips (``NAV``) before its
+    train, after one unsampled lobe that lets the read axis settle. Every line
+    carries ``REV`` for its read polarity, and shots are delayed by successive fractions of the echo
     spacing so the echo time grows smoothly across the lines; ``te`` is the
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,
     ``SEG`` (the shot) and ``REP``.
@@ -324,7 +336,7 @@ def epi3d(
         calibration plays ``CALIBRATION_FLIP_DEG``.
     te : float | None, default=None
         Echo time of the centre line (s). ``None`` is as short as the
-        navigator and the train admit.
+        train, and its navigator lines when there are any, admit.
     tr : float | None, default=None
         Volume repetition time (s): every shot of every shell. ``None`` is
         as short as possible.
@@ -361,6 +373,13 @@ def epi3d(
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
         excitation of every volume, dummy volumes included.
+    phase_reference : bool, default=False
+        Acquire a blip-free reference train in a dummy shot, for odd/even
+        phase correction.
+    navigator_lines : int | None, default=None
+        Centre lines read without blips at the start of every shot, for
+        odd/even phase correction. ``None`` is ``NAVIGATOR_LINES`` without
+        ``phase_reference`` and none with it.
 
     Returns
     -------
@@ -395,6 +414,8 @@ def epi3d(
         max_grad=MAX_GRAD,
         max_slew=MAX_SLEW,
     )
+    if navigator_lines is None:
+        navigator_lines = 0 if phase_reference else NAVIGATOR_LINES
     if excitation not in sequences.EXCITATIONS:
         raise ValueError(
             f"excitation must be one of {sequences.EXCITATIONS}, got {excitation!r}"
@@ -457,7 +478,7 @@ def epi3d(
                 order=np.column_stack((steps, offsets)),
                 te=te,
                 te_line=(n_y // 2 - start) // ry / n_shots,
-                navigator_lines=NAVIGATOR_LINES,
+                navigator_lines=navigator_lines,
                 echo_shifts=n_shots,
                 fov=fov,
                 matrix=matrix,
@@ -490,6 +511,9 @@ def epi3d(
         excitations = sequences.steady_state_dummies(shot_duration, flip_angle_deg)
         n_dummy = -(-excitations // len(volume)) if n_frames > 1 else excitations
     n_dummy_shots = n_dummy * (len(volume) if n_frames > 1 else 1)
+    if phase_reference:
+        # The reference plays in the last dummy shot, so there is one.
+        n_dummy_shots = max(n_dummy_shots, 1)
     dummies = [volume[i % len(volume)] for i in range(n_dummy_shots)]
     output_pulse = pp.make_digital_output_pulse(
         OUTPUT_CHANNEL,
@@ -550,7 +574,7 @@ def epi3d(
                 epi,
                 lines_y,
                 acs_shots,
-                navigator_lines=NAVIGATOR_LINES,
+                navigator_lines=navigator_lines,
                 fov=fov,
                 matrix=matrix,
                 oversampling=readout_oversampling,
@@ -608,8 +632,19 @@ def epi3d(
         """Design the FLEET calibration: every shot of a partition, then the next."""
         seq, labels = pp.Sequence(system), sequences.Labels()
         starts = list(lines_y[:acs_shots])
-        for _ in range(FLEET_DUMMY_SHOTS):
-            shot_blocks(seq, labels, acs, starts[0], n_z // 2, 0, [], raster)
+        for dummy in range(FLEET_DUMMY_SHOTS):
+            reference = phase_reference and dummy == FLEET_DUMMY_SHOTS - 1
+            shot_blocks(
+                seq,
+                labels,
+                acs,
+                starts[0],
+                n_z // 2,
+                0,
+                labels(SEG=0, SET=0, PHASECORR=1) if reference else [],
+                raster,
+                reference=reference,
+            )
         for partition in partitions:
             for polarity in (0, 1):
                 for shot, line in enumerate(starts):
@@ -620,7 +655,12 @@ def epi3d(
                         line,
                         partition,
                         shot,
-                        labels(REF=1, SEG=shot, SET=polarity),
+                        labels(
+                            REF=1,
+                            SEG=shot,
+                            SET=polarity,
+                            **({"PHASECORR": 0} if phase_reference else {}),
+                        ),
                         raster,
                         acquire=True,
                         reversed_encode=bool(polarity),
@@ -643,17 +683,24 @@ def epi3d(
         frame: int | None,
         output: bool = False,
         reversed_encode: bool = False,
+        reference: bool = False,
     ) -> None:
-        """Add one shot of the shell starting at partition ``base``; ``frame=None`` is a dummy."""
+        """Add one shot of the shell starting at partition ``base``; ``frame=None`` is a dummy, a ``reference`` one the blip-free reference train."""
         train = shot_trains[shot]
         acquire = frame is not None
         if not acquire:
             flags = {"ONCE": 1}
+            if reference:
+                flags |= {"SEG": shot, "PHASECORR": 1}
+                if reversed_encode:
+                    flags["SET"] = 1
         else:
             flags = {"REP": frame, "SEG": shot, "ONCE": 0}
             if reversed_encode:
                 flags["SET"] = 1
-            if not n_dummy:
+            if phase_reference:
+                flags["PHASECORR"] = 0
+            if not n_dummy_shots:
                 del flags["ONCE"]
         shot_blocks(
             seq,
@@ -665,7 +712,8 @@ def epi3d(
             [*labels(**flags), *([output_pulse] if output else [])],
             pad,
             acquire=acquire,
-            reversed_encode=reversed_encode,
+            reversed_encode=reversed_encode and not reference,
+            reference=reference,
         )
 
     def shot_blocks(
@@ -679,13 +727,16 @@ def epi3d(
         pad: float,
         acquire: bool = False,
         reversed_encode: bool = False,
+        reference: bool = False,
     ) -> None:
         """Add one shot of ``train`` from ``(line, partition)``, ``first_events`` on its first block.
 
         ``shot`` sets the echo shift. ``reversed_encode`` negates every line
         encode, so each line L of the forward shot is read at its mirror,
         ``LIN = n_y - L``; the mirror of line 0 lies outside the matrix and is
-        played unsampled.
+        played unsampled. ``reference`` scales every phase- and
+        partition-encode event to zero and acquires the train lines, its
+        navigator unsampled: the blip-free reference train.
         """
         sign = -1.0 if reversed_encode else 1.0
         train.shot_labels[0].value = n_y - line if reversed_encode else line
@@ -714,6 +765,15 @@ def epi3d(
                 for step in train.line_labels
                 if step
             )
+        if reference:
+            # The same events at zero amplitude, so the reference plays the
+            # imaging shot's blocks.
+            encodes = [train.gy_pre, train.gy_rew, train.gz_pre, train.gz_rew]
+            swap.update(
+                (id(event), pp.scale_grad(event, 0.0))
+                for event in (*encodes, *train.gy_blips, *train.gz_blips)
+                if event is not None
+            )
         lines = line + train.order[:, 0]
         step = shot * train.echo_shift_step
         wait_shift = getattr(train, "wait_shift", None)
@@ -730,7 +790,10 @@ def epi3d(
             if head is wait_tr:
                 continue
             reading = id(head) in readouts and id(head) not in navigator
-            sampled = acquire and not (reversed_encode and reading and lines[read] == 0)
+            echo = read
+            sampled = (acquire or (reference and reading)) and not (
+                reversed_encode and reading and lines[read] == 0
+            )
             read += reading
             events = [
                 swap.get(id(event), event)
@@ -740,8 +803,11 @@ def epi3d(
             if index == 0:
                 events += first_events
             elif id(head) in navigator or id(head) in readouts:
-                if acquire:
-                    events += labels(NAV=int(id(head) in navigator), REV=polarity)
+                if acquire or sampled:
+                    flags = {"NAV": int(id(head) in navigator), "REV": polarity}
+                    if reading and phase_reference:
+                        flags[ECHO_COUNTER] = echo
+                    events += labels(**flags)
                 polarity ^= 1
             seq.add_block(*events)
         seq.add_block(pp.make_delay(closing))
@@ -751,9 +817,20 @@ def epi3d(
         seq, labels = pp.Sequence(system), sequences.Labels()
         shots = [(None, view) for view in dummies]
         shots += [(frame, view) for frame in frames for view in volume]
-        for frame, (shot, base) in shots:
+        for index, (frame, (shot, base)) in enumerate(shots):
             output = volume_output and not reversed_encode and (shot, base) == volume[0]
-            kernel(seq, labels, shot, base, frame, output, reversed_encode)
+            # The last dummy shot plays the reference.
+            reference = phase_reference and index == len(dummies) - 1
+            kernel(
+                seq,
+                labels,
+                shot,
+                base,
+                frame,
+                output,
+                reversed_encode,
+                reference=reference,
+            )
         return seq
 
     def reference() -> pp.Sequence:

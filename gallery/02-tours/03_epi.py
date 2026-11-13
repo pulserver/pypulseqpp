@@ -325,7 +325,13 @@ figure.legend(loc="outside upper left")
 # that alternates from one line to the next along the phase-encode direction is, after the transform, an image displaced by half
 # the field of view, which is the ghost an uncorrected echo planar acquisition
 # shows. Measuring the delay and correcting for it are reconstruction steps,
-# outside the scope of this package.
+# outside the scope of this package; the sequence acquires what the
+# measurement needs. :func:`~pypulseqpp.sequences.epi2D_sequence` and
+# :func:`~pypulseqpp.sequences.epi3D_sequence` read either navigator lines
+# without blips at the start of every shot or, with ``phase_reference``, a
+# reference train in a dummy shot: the imaging train with every phase encode
+# at zero, each echo read with the timing of the imaging echo at the same
+# place in the train.
 #
 # Specification
 # -------------

@@ -769,3 +769,99 @@ def test_an_epi_flag_is_named_and_described_by_its_docstring(
 
     assert flag in printed
     assert help_text in printed
+
+
+def _amplitude(event):
+    """Largest magnitude a gradient event reaches (Hz/m)."""
+    if event is None:
+        return 0.0
+    if event.type == "trap":
+        return abs(float(event.amplitude))
+    return float(np.max(np.abs(np.asarray(event.waveform)), initial=0.0))
+
+
+def _shot_of(seq, first_readout, last_readout):
+    """Blocks from the excitation before ``first_readout`` to the rewinder after ``last_readout``, 1-based."""
+    start = first_readout
+    while seq.get_block(start).rf is None:
+        start -= 1
+    return range(start, last_readout + 2)
+
+
+def _readout_blocks(seq):
+    blocks = np.asarray(seq._native.block_events())
+    return np.flatnonzero(blocks[:, 4] > 0) + 1
+
+
+@pytest.mark.parametrize(
+    "case", ["2D", "2D segmented", "2D multiband", "3D", "3D skipped-CAIPI"]
+)
+def test_the_phase_reference_is_the_imaging_train_with_every_encode_at_zero(case):
+    scan = CASES[case](phase_reference=True)
+    seq = scan.main
+    pc, echo, rev, nav = labels(seq, "PHASECORR", "USER0", "REV", "NAV")
+    readouts = _readout_blocks(seq)
+    reference = readouts[pc != 0]
+    imaging = readouts[pc == 0]
+
+    assert not nav.any()
+    assert reference.size and reference.size % scan.etl == 0
+    first = reference[: scan.etl]
+    assert list(echo[pc != 0][: scan.etl]) == list(range(scan.etl))
+    encoded = ("gy", "gz") if scan.module is epi3d else ("gy",)
+    for block in _shot_of(seq, int(first[0]), int(first[-1])):
+        found = seq.get_block(block)
+        if found.rf is None:
+            assert max(_amplitude(getattr(found, ch)) for ch in encoded) == 0.0
+    # Echo k of the reference is echo k of an imaging shot: read lobe, ADC,
+    # block duration and polarity.
+    lines = dict(zip(echo[pc == 0][: scan.etl], imaging[: scan.etl], strict=True))
+    polarity = dict(zip(readouts, rev, strict=True))
+    for k, block in enumerate(first):
+        ref, img = seq.get_block(int(block)), seq.get_block(int(lines[k]))
+        assert ref.block_duration == pytest.approx(img.block_duration)
+        assert _amplitude(ref.gx) == pytest.approx(_amplitude(img.gx))
+        assert polarity[block] == polarity[lines[k]]
+        for field in ("num_samples", "dwell", "delay"):
+            assert getattr(ref.adc, field) == pytest.approx(getattr(img.adc, field))
+
+
+def test_the_phase_reference_replaces_the_navigator_and_shortens_te_and_tr():
+    with_navigator = scan2d(n_slices=2, n_dummy=2)
+    referenced = scan2d(n_slices=2, n_dummy=2, phase_reference=True)
+    (pc,) = labels(referenced.main, "PHASECORR")
+
+    assert referenced.echo_time < with_navigator.echo_time
+    assert referenced.repetition_time < with_navigator.repetition_time
+    assert np.count_nonzero(pc) == 2 * referenced.etl
+
+
+def test_a_phase_reference_without_dummies_plays_one_dummy_cycle_for_it():
+    scan = scan2d(n_slices=2, n_dummy=0, phase_reference=True)
+    (pc, slc, once) = labels(scan.main, "PHASECORR", "SLC", "ONCE")
+
+    assert np.count_nonzero(pc) == 2 * scan.etl
+    assert sorted(set(slc[pc != 0])) == [0, 1]
+    assert (once[pc != 0] == 1).all() and (once[pc == 0] == 0).all()
+
+
+@pytest.mark.parametrize("case", ["2D segmented", "3D skipped-CAIPI"])
+def test_the_fleet_calibration_takes_its_reference_from_its_dummy_shot(case):
+    scan = CASES[case](phase_reference=True)
+    calibration = scan.prescan("calibration")
+    pc, echo, ref = labels(calibration, "PHASECORR", "USER0", "REF")
+
+    assert pc.any()
+    first = int(np.flatnonzero(pc == 0)[0])
+    assert (pc[:first] != 0).all() and list(echo[:first]) == list(range(first))
+    assert (ref[pc == 0] == 1).all()
+
+
+def test_the_prescan_gain_calibration_does_not_count_the_reference_as_imaging():
+    scan = scan2d(n_dummy=1, phase_reference=True)
+    (pc,) = labels(scan.main, "PHASECORR")
+
+    # The dummy shot carrying the reference plays before the first imaging
+    # shot, which the prescan plays through.
+    assert sequences.gain_calibration_readouts(scan.main) >= 2 * scan.etl
+    assert np.count_nonzero(pc) == scan.etl

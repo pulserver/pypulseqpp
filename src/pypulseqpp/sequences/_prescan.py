@@ -26,9 +26,10 @@ def gain_calibration_readouts(
     so a count it plays through whole repetitions of
     :meth:`~pypulseqpp.Sequence.repetition`, found on the sequence as it is
     written, its duplicate events merged, sets the gain on the signal the
-    scan acquires. An imaging repetition is one that acquires a readout not
-    flagged ``NAV``; the dummy repetitions before it play and their readouts,
-    navigators included, are counted with it. A readout flagged
+    scan acquires. An imaging repetition is one that acquires a readout
+    flagged neither ``NAV`` nor ``PHASECORR``; the dummy repetitions before it
+    play and their readouts, navigators and phase-correction references
+    included, are counted with it. A readout flagged
     ``NOPRESCAN`` plays in the prescan without being acquired, and is not
     counted. The prescan plays the fewest
     imaging repetitions that last ``duration`` together, or all of a shorter
@@ -70,8 +71,11 @@ def gain_calibration_readouts(
     size, _ = seq.repetition()
     acquires = np.asarray(seq._native.block_events())[:, 4] > 0
     readouts = np.flatnonzero(acquires)
-    navigator = seq.evaluate_labels(evolution="adc").get("NAV", 0)
-    navigator = np.broadcast_to(np.asarray(navigator) != 0, readouts.shape)
+    found = seq.evaluate_labels(evolution="adc")
+    navigator = (np.asarray(found.get("NAV", 0)) != 0) | (
+        np.asarray(found.get("PHASECORR", 0)) != 0
+    )
+    navigator = np.broadcast_to(navigator, readouts.shape)
     imaging = np.unique(readouts[~navigator] // size) if size else np.array([], int)
     if repetitions is None:
         # The fewest imaging repetitions that last `duration` together.
