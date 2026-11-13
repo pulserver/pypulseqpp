@@ -317,7 +317,7 @@ def epi2d(
         calibration plays ``CALIBRATION_FLIP_DEG``.
     te : float | None, default=None
         Echo time of the centre line (s). ``None`` is as short as the
-        navigator and the train admit.
+        train, and its navigator lines when there are any, admit.
     tr : float | None, default=None
         Volume repetition time (s): every shot of every slice. ``None`` is
         as short as possible, and puts every slice in one packet.
