@@ -472,9 +472,10 @@
 <span class="sd">    so a count it plays through whole repetitions of</span>
 <span class="sd">    :meth:`~pypulseqpp.Sequence.repetition`, found on the sequence as it is</span>
 <span class="sd">    written, its duplicate events merged, sets the gain on the signal the</span>
-<span class="sd">    scan acquires. An imaging repetition is one that acquires a readout not</span>
-<span class="sd">    flagged ``NAV``; the dummy repetitions before it play and their readouts,</span>
-<span class="sd">    navigators included, are counted with it. A readout flagged</span>
+<span class="sd">    scan acquires. An imaging repetition is one that acquires a readout</span>
+<span class="sd">    flagged neither ``NAV`` nor ``PHASECORR``; the dummy repetitions before it</span>
+<span class="sd">    play and their readouts, navigators and phase-correction references</span>
+<span class="sd">    included, are counted with it. A readout flagged</span>
 <span class="sd">    ``NOPRESCAN`` plays in the prescan without being acquired, and is not</span>
 <span class="sd">    counted. The prescan plays the fewest</span>
 <span class="sd">    imaging repetitions that last ``duration`` together, or all of a shorter</span>
@@ -516,8 +517,11 @@
     <span class="n">size</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">repetition</span><span class="p">()</span>
     <span class="n">acquires</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">_native</span><span class="o">.</span><span class="n">block_events</span><span class="p">())[:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
     <span class="n">readouts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">acquires</span><span class="p">)</span>
-    <span class="n">navigator</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">evaluate_labels</span><span class="p">(</span><span class="n">evolution</span><span class="o">=</span><span class="s2">"adc"</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NAV"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">navigator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">navigator</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">readouts</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">evaluate_labels</span><span class="p">(</span><span class="n">evolution</span><span class="o">=</span><span class="s2">"adc"</span><span class="p">)</span>
+    <span class="n">navigator</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NAV"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"PHASECORR"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">navigator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">navigator</span><span class="p">,</span> <span class="n">readouts</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="n">imaging</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">readouts</span><span class="p">[</span><span class="o">~</span><span class="n">navigator</span><span class="p">]</span> <span class="o">//</span> <span class="n">size</span><span class="p">)</span> <span class="k">if</span> <span class="n">size</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="nb">int</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">repetitions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># The fewest imaging repetitions that last `duration` together.</span>

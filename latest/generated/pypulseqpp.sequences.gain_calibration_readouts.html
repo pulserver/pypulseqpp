@@ -526,9 +526,10 @@ after the <code class="docutils literal notranslate"><span class="pre">NumGainCa
 so a count it plays through whole repetitions of
 <a class="reference internal" href="pypulseqpp.Sequence.repetition.html#pypulseqpp.Sequence.repetition" title="pypulseqpp.Sequence.repetition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">repetition()</span></code></a>, found on the sequence as it is
 written, its duplicate events merged, sets the gain on the signal the
-scan acquires. An imaging repetition is one that acquires a readout not
-flagged <code class="docutils literal notranslate"><span class="pre">NAV</span></code>; the dummy repetitions before it play and their readouts,
-navigators included, are counted with it. A readout flagged
+scan acquires. An imaging repetition is one that acquires a readout
+flagged neither <code class="docutils literal notranslate"><span class="pre">NAV</span></code> nor <code class="docutils literal notranslate"><span class="pre">PHASECORR</span></code>; the dummy repetitions before it
+play and their readouts, navigators and phase-correction references
+included, are counted with it. A readout flagged
 <code class="docutils literal notranslate"><span class="pre">NOPRESCAN</span></code> plays in the prescan without being acquired, and is not
 counted. The prescan plays the fewest
 imaging repetitions that last <code class="docutils literal notranslate"><span class="pre">duration</span></code> together, or all of a shorter

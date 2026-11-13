@@ -543,10 +543,17 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.epi2D_sequence">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">epi2D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.epi2D_sequence" title="Link to this definition">#</a></dt>
 <dd><p>Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.</p>
-<p>Every shot reads <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> centre lines without blips
-(<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its train, after one unsampled lobe that lets the read
-axis settle, and every line carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read
-polarity. The trains are ramp-sampled with the blips on the read ramps.
+<p>With <code class="docutils literal notranslate"><span class="pre">phase_reference</span></code>, the last dummy shot of each slice (of each
+FLEET slice, its dummy shot) is a reference train for odd/even phase
+correction: the shot’s own train with every phase-encode prewinder, blip
+and rewinder at zero, its lines acquired (<code class="docutils literal notranslate"><span class="pre">PHASECORR</span></code>). Every train line
+carries its position in the train in <code class="docutils literal notranslate"><span class="pre">ECHO_COUNTER</span></code>, which matches an
+imaging line to the reference line of the same echo. A scan without dummy
+shots plays one cycle of them for the reference. Each shot can also read
+<code class="docutils literal notranslate"><span class="pre">navigator_lines</span></code> centre lines without blips (<code class="docutils literal notranslate"><span class="pre">NAV</span></code>) before its
+train, after one unsampled lobe that lets the read axis settle. Every line
+carries <code class="docutils literal notranslate"><span class="pre">REV</span></code> for its read polarity. The trains are ramp-sampled with
+the blips on the read ramps.
 Segmented shots interleave on the phase-encode lattice, each delayed by
 a fraction of the echo spacing so the echo time grows smoothly across
 k-space; <code class="docutils literal notranslate"><span class="pre">te</span></code> is the echo time of the centre line.</p>
@@ -582,7 +589,7 @@ gradient-echo calibration reads one line per excitation, undistorted.</p>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=70.0</em>) – Excitation flip angle (degrees) of the imaging and the reference; the
 calibration plays <code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>.</p></li>
 <li><p><strong>te</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Echo time of the centre line (s). <code class="docutils literal notranslate"><span class="pre">None</span></code> is as short as the
-navigator and the train admit.</p></li>
+train, and its navigator lines when there are any, admit.</p></li>
 <li><p><strong>tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Volume repetition time (s): every shot of every slice. <code class="docutils literal notranslate"><span class="pre">None</span></code> is
 as short as possible, and puts every slice in one packet.</p></li>
 <li><p><strong>n_frames</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Volumes in the time series, each carrying its <code class="docutils literal notranslate"><span class="pre">REP</span></code> counter.</p></li>
@@ -609,6 +616,11 @@ segmented EPI at the imaging train’s echo spacing, or a gradient echo
 per line.</p></li>
 <li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
 excitation of every volume, dummy volumes included.</p></li>
+<li><p><strong>phase_reference</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Acquire a blip-free reference train in a dummy shot of each slice, for
+odd/even phase correction.</p></li>
+<li><p><strong>navigator_lines</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Centre lines read without blips at the start of every shot, for
+odd/even phase correction. <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> without
+<code class="docutils literal notranslate"><span class="pre">phase_reference</span></code> and none with it.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -644,7 +656,10 @@ through <code class="docutils literal notranslate"><span class="pre">NextSequenc
 
 <section id="designed-and-drawn">
 <h3>Designed and drawn<a class="headerlink" href="#designed-and-drawn" title="Link to this heading">#</a></h3>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation is followed by alternating readout gradients and phase-encode blips that acquire multiple Cartesian lines in one echo train. Spoilers suppress residual transverse coherence between repetitions. Off-resonance phase accumulates during the train and produces geometric distortion along the phase-encode axis. EPI supports rapid structural imaging and functional MRI."><img alt="" src="../../_images/sphx_glr_epi2D_sequence_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="A gradient echo acquires one k-space line per excitation. Echo planar imaging (EPI) acquires the whole matrix after a single excitation. This Tour first follows the readout gradient with further readout gradients of alternating polarity, each forming an echo, and then adds a phase-encode blip between the echoes so that each echo acquires a different line."><img alt="" src="../../_images/sphx_glr_03_epi_thumb.png" />
+<p><a class="reference internal" href="../gallery/02-tours/03_epi.html"><span class="doc">Echo planar imaging</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Echo planar imaging</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="A slice-selective excitation is followed by alternating readout gradients and phase-encode blips that acquire multiple Cartesian lines in one echo train. Spoilers suppress residual transverse coherence between repetitions. Off-resonance phase accumulates during the train and produces geometric distortion along the phase-encode axis. EPI supports rapid structural imaging and functional MRI."><img alt="" src="../../_images/sphx_glr_epi2D_sequence_thumb.png" />
 <p><a class="reference internal" href="../gallery/15-epi/epi2D_sequence.html"><span class="doc">2D echo-planar imaging</span></a></p>
   <div class="sphx-glr-thumbnail-title">2D echo-planar imaging</div>
 </div></div></section>
