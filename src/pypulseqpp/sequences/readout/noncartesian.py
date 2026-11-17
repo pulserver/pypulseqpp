@@ -273,8 +273,6 @@ class _RadialReadout(_ArmedReadout):
         block_span = pp.ceil_to_raster(
             lead + readout_duration + max(rew_span, lobe_span + ramp_out), raster
         )
-        if placement == "readout":
-            gz_reph = _ending_at(gz_reph, lead - ramp_in)
 
         gx.delay = lead - pre_span
         gy = pp.scale_grad(gx, 0.0)
@@ -703,8 +701,6 @@ class NonCartesianReadout(_ArmedReadout):
         )
 
         gx, gy = _merged_arms(arms, lead, pre_span, read_span, rew_span, system)
-        if placement == "readout":
-            gz_reph = _ending_at(gz_reph, lead)
         gz_enc = (
             _partition_wave(
                 lobe,
@@ -1296,13 +1292,6 @@ def _zero_crossing(times, amplitudes, *, last):
     raise ValueError("the gradient does not cross zero")
 
 
-def _ending_at(event, end):
-    """Return a copy of a gradient shifted to end at ``end`` (s) in its block."""
-    shifted = pp.scale_grad(event, 1.0)
-    shifted.delay = float(event.delay) + end - pp.calc_duration(event)
-    return shifted
-
-
 def _merged_arms(arms, lead, pre_span, read_span, rew_span, system):
     """Join each arm's prewinders, readout and rewinders into one waveform per axis.
 
@@ -1425,8 +1414,9 @@ def _place_rephaser(te, te_base, lead, reph_span, *, has_partitions, system, ram
     """Choose where the slice rephaser plays, and solve the TE wait.
 
     The rephaser rides the TE wait when the wait is long enough to hold it.
-    Otherwise a 2D readout plays it in the acquisition block, ending where the
-    readout lobe opens, ``ramp`` before the readout, and a stack, whose z axis carries the partition
+    Otherwise a 2D readout plays it at the start of the acquisition block,
+    done by the time the readout lobe opens, ``ramp`` before the readout, and a
+    stack, whose z axis carries the partition
     encode there, gives it a block of its own.
 
     Parameters

@@ -116,15 +116,16 @@ def test_at_minimum_te_it_shares_the_block_that_holds_the_prephaser(
 ):
     module = readout(family, system, excitation)
     assert block_of(module, module.gz_reph) == 1
+    assert float(module.gz_reph.delay) == 0.0
     assert not hasattr(module.events, "wait_te")
 
 
 @pytest.mark.parametrize("family", ["radial", "spiral_out", "spiral_in"])
-def test_at_minimum_te_it_ends_where_the_readout_lobe_opens(system, excitation, family):
+def test_at_minimum_te_it_is_done_before_the_readout_lobe_opens(
+    system, excitation, family
+):
     module = readout(family, system, excitation)
-    assert pp.calc_duration(module.gz_reph) == pytest.approx(
-        readout_lobe_opening(module), abs=1e-9
-    )
+    assert pp.calc_duration(module.gz_reph) <= readout_lobe_opening(module) + 1e-9
 
 
 @pytest.mark.parametrize("family", ["line", "radial", "spiral_out", "spiral_in"])
