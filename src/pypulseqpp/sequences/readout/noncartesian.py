@@ -284,7 +284,7 @@ class _RadialReadout(_ArmedReadout):
                 turned.channel = "y"
                 gy.append(turned)
         gz_enc = (
-            _partition_wave(lobe, lead, lead + readout_duration, system)
+            _partition_wave(lobe, lead, lead + readout_duration, block_span, system)
             if lobe is not None
             else None
         )
@@ -693,7 +693,7 @@ class NonCartesianReadout(_ArmedReadout):
 
         gx, gy = _merged_arms(arms, lead, pre_span, read_span, rew_span, system)
         gz_enc = (
-            _partition_wave(lobe, lead, lead + read_span, system)
+            _partition_wave(lobe, lead, lead + read_span, block_span, system)
             if lobe is not None
             else None
         )
@@ -1479,15 +1479,24 @@ def _partition_span(lobe, system):
     return pp.calc_duration(lobe) + 2 * system.grad_raster_time
 
 
-def _partition_wave(lobe, start, end, system):
+def _partition_wave(lobe, start, end, block_span, system):
     """Return the partition encode and its rewinder as one waveform.
 
-    The encode ends one gradient raster before ``start`` and the rewinder,
-    its negative, begins one raster after ``end``, both counted from the start
-    of the block, with the gradient off in between. The waveform is sampled at
-    the centres of the gradient raster and opens and closes on a zero sample,
-    so every partition scales one and the same waveform: scaling it by
-    ``kz / kmax`` encodes any partition and leaves its net area zero.
+    The encode opens the block and the rewinder, its negative, closes it at
+    ``block_span``, so both play as far from the readout as the block allows
+    and the partition encode has the most time to settle before the first
+    sample. ``start`` and ``end`` bound the readout, counted from the start of
+    the block; the gradient is off from one raster before ``start`` to one
+    raster after ``end``. The waveform is sampled at the centres of the
+    gradient raster and opens and closes on a zero sample, so every partition
+    scales one and the same waveform: scaling it by ``kz / kmax`` encodes any
+    partition and leaves its net area zero.
+
+    Raises
+    ------
+    ValueError
+        If the encode or the rewinder does not fit between the readout and
+        the block edge.
     """
     rise, flat, fall = (
         float(lobe.rise_time),
@@ -1497,16 +1506,23 @@ def _partition_wave(lobe, start, end, system):
     amplitude = float(lobe.amplitude)
     span = rise + flat + fall
     raster = system.grad_raster_time
+    # A zero sample opens and closes the block: a player that holds a raster
+    # waveform's end samples over its edge half rasters plays it exactly as
+    # written.
+    first = 0.0
+    lobe_start = first + raster
+    encode_end = lobe_start + span
+    rewind_start = block_span - raster - span
     # Samples at raster centres are joined linearly, so a lobe that ended on
     # the first sample would still play across its first half raster; one
     # raster of guard keeps the z gradient off throughout the readout, and
     # with it kz constant over every sample.
-    encode_end, rewind_start = start - raster, end + raster
-    # A zero sample before the encode and after the rewinder: a player that
-    # holds a raster waveform's end samples over its edge half rasters plays
-    # it exactly as written.
-    first = encode_end - span - raster
-    lobe_start = first + raster
+    tol = 1e-9 * raster
+    if encode_end > start - raster + tol or rewind_start < end + raster - tol:
+        raise ValueError(
+            "the partition encode and rewinder do not fit between the readout "
+            "and the edges of its block"
+        )
     corners = np.array(
         [
             lobe_start,
