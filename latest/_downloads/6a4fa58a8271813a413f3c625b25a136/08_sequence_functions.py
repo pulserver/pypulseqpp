@@ -138,25 +138,34 @@ def radial_mprage(
         delay=plateau_start + (plateau - readout_time) / 2,
         system=system,
     )
-    gz_spoil = pp.make_crusher(4.0, fov / matrix, channel="z", system=system)[0]
+    gz_spoil = pp.scale_grad(
+        pp.make_crusher(4.0, fov / matrix, channel="z", system=system)[0], -1.0
+    )
 
     # The partition encoding and its rewinder of lesson 6: one z gradient
-    # either side of the plateau, scaled per partition.
+    # either side of the spoke's lobe, scaled per partition.
     kz_max = partitions // 2 / slab
-    lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+    raster = system.grad_raster_time
+    crossing = np.flatnonzero((amplitudes[:-1] <= 0) & (amplitudes[1:] > 0))[-1]
+    opening = times[crossing] - amplitudes[crossing] * (
+        times[crossing + 1] - times[crossing]
+    ) / (amplitudes[crossing + 1] - amplitudes[crossing])
+    opening = np.floor(opening / raster + 1e-9) * raster
+    closing = plateau_end + plateau_start - opening
+    lobe = pp.make_trapezoid("z", area=kz_max, duration=opening, system=system)
     lobe_span = pp.calc_duration(lobe)
     gz_partition = pp.make_extended_trapezoid(
         "z",
         times=np.array(
             [
-                plateau_start - lobe_span,
-                plateau_start - lobe_span + lobe.rise_time,
-                plateau_start - lobe.fall_time,
-                plateau_start,
-                plateau_end,
-                plateau_end + lobe.rise_time,
-                plateau_end + lobe_span - lobe.fall_time,
-                plateau_end + lobe_span,
+                opening - lobe_span,
+                opening - lobe_span + lobe.rise_time,
+                opening - lobe.fall_time,
+                opening,
+                closing,
+                closing + lobe.rise_time,
+                closing + lobe_span - lobe.fall_time,
+                closing + lobe_span,
             ]
         ),
         amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,

@@ -57,7 +57,7 @@ The body is lesson 6, with the constants replaced by the parameters. It
 designs every event once, before the loop, as before, and it checks what
 only it can check: whether the train fits in the TR the user asked for.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-230
+.. GENERATED FROM PYTHON SOURCE LINES 40-239
 
 .. code-block:: Python
 
@@ -162,25 +162,34 @@ only it can check: whether the train fits in the TR the user asked for.
             delay=plateau_start + (plateau - readout_time) / 2,
             system=system,
         )
-        gz_spoil = pp.make_crusher(4.0, fov / matrix, channel="z", system=system)[0]
+        gz_spoil = pp.scale_grad(
+            pp.make_crusher(4.0, fov / matrix, channel="z", system=system)[0], -1.0
+        )
 
         # The partition encoding and its rewinder of lesson 6: one z gradient
-        # either side of the plateau, scaled per partition.
+        # either side of the spoke's lobe, scaled per partition.
         kz_max = partitions // 2 / slab
-        lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+        raster = system.grad_raster_time
+        crossing = np.flatnonzero((amplitudes[:-1] <= 0) & (amplitudes[1:] > 0))[-1]
+        opening = times[crossing] - amplitudes[crossing] * (
+            times[crossing + 1] - times[crossing]
+        ) / (amplitudes[crossing + 1] - amplitudes[crossing])
+        opening = np.floor(opening / raster + 1e-9) * raster
+        closing = plateau_end + plateau_start - opening
+        lobe = pp.make_trapezoid("z", area=kz_max, duration=opening, system=system)
         lobe_span = pp.calc_duration(lobe)
         gz_partition = pp.make_extended_trapezoid(
             "z",
             times=np.array(
                 [
-                    plateau_start - lobe_span,
-                    plateau_start - lobe_span + lobe.rise_time,
-                    plateau_start - lobe.fall_time,
-                    plateau_start,
-                    plateau_end,
-                    plateau_end + lobe.rise_time,
-                    plateau_end + lobe_span - lobe.fall_time,
-                    plateau_end + lobe_span,
+                    opening - lobe_span,
+                    opening - lobe_span + lobe.rise_time,
+                    opening - lobe.fall_time,
+                    opening,
+                    closing,
+                    closing + lobe.rise_time,
+                    closing + lobe_span - lobe.fall_time,
+                    closing + lobe_span,
                 ]
             ),
             amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,
@@ -258,7 +267,7 @@ only it can check: whether the train fits in the TR the user asked for.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 231-236
+.. GENERATED FROM PYTHON SOURCE LINES 240-245
 
 Function call
 -------------
@@ -266,7 +275,7 @@ Function call
 The scanner is a separate argument because the same protocol runs on
 different scanners, and the same scanner runs many protocols:
 
-.. GENERATED FROM PYTHON SOURCE LINES 236-251
+.. GENERATED FROM PYTHON SOURCE LINES 245-260
 
 .. code-block:: Python
 
@@ -299,12 +308,12 @@ different scanners, and the same scanner runs many protocols:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 252-254
+.. GENERATED FROM PYTHON SOURCE LINES 261-263
 
 A protocol the function cannot play is an error, and the message says why,
 in the units the user wrote:
 
-.. GENERATED FROM PYTHON SOURCE LINES 254-259
+.. GENERATED FROM PYTHON SOURCE LINES 263-268
 
 .. code-block:: Python
 
@@ -326,7 +335,7 @@ in the units the user wrote:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 260-268
+.. GENERATED FROM PYTHON SOURCE LINES 269-277
 
 Protocol
 --------
@@ -337,7 +346,7 @@ unit and description from the docstring. This is all a protocol editor
 needs to show your sequence, with no list of parameters written anywhere
 else.
 
-.. GENERATED FROM PYTHON SOURCE LINES 268-273
+.. GENERATED FROM PYTHON SOURCE LINES 277-282
 
 .. code-block:: Python
 
@@ -366,7 +375,7 @@ else.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 274-289
+.. GENERATED FROM PYTHON SOURCE LINES 283-298
 
 Command-line interface
 ----------------------
@@ -384,7 +393,7 @@ that ends with
 runs as ``python radial_mprage.py --ti 1.1 -o mprage.seq``. Its help
 text:
 
-.. GENERATED FROM PYTHON SOURCE LINES 289-296
+.. GENERATED FROM PYTHON SOURCE LINES 298-305
 
 .. code-block:: Python
 
@@ -442,7 +451,7 @@ text:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 297-305
+.. GENERATED FROM PYTHON SOURCE LINES 306-314
 
 File output
 -----------
@@ -453,7 +462,7 @@ sequences, prescans first and the main sequence last; ``write`` then
 writes one file each, linked in order through the ``NextSequence``
 definition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 305-312
+.. GENERATED FROM PYTHON SOURCE LINES 314-321
 
 .. code-block:: Python
 
@@ -477,7 +486,7 @@ definition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 313-321
+.. GENERATED FROM PYTHON SOURCE LINES 322-330
 
 Shipped sequences
 -----------------
@@ -488,7 +497,7 @@ function. The shipped radial MPRAGE, which you checked in lesson 7, has many
 more parameters than yours, from partial Fourier to the excitation pulse,
 but they are read the same way:
 
-.. GENERATED FROM PYTHON SOURCE LINES 321-324
+.. GENERATED FROM PYTHON SOURCE LINES 330-333
 
 .. code-block:: Python
 
@@ -508,7 +517,7 @@ but they are read the same way:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 325-344
+.. GENERATED FROM PYTHON SOURCE LINES 334-353
 
 Pulserver, which runs these sequences on a scanner, builds its protocol
 editor from the same record, and calls the function with what the user
@@ -533,7 +542,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.181 seconds)
+   **Total running time of the script:** (0 minutes 0.109 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_08_sequence_functions.py:

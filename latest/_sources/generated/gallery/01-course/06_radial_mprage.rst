@@ -156,7 +156,7 @@ Readout train
 The excitation now selects the whole slab, the readout is the balanced
 spoke of lesson 5, and the spoiler plays on z after it, never rotated.
 
-.. GENERATED FROM PYTHON SOURCE LINES 115-158
+.. GENERATED FROM PYTHON SOURCE LINES 115-160
 
 .. code-block:: Python
 
@@ -201,7 +201,9 @@ spoke of lesson 5, and the spoiler plays on z after it, never rotated.
         delay=plateau_start + (plateau - readout_time) / 2,
         system=system,
     )
-    gz_spoil = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
+    gz_spoil = pp.scale_grad(
+        pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0], -1.0
+    )
 
 
 
@@ -210,41 +212,55 @@ spoke of lesson 5, and the spoiler plays on z after it, never rotated.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-172
+.. GENERATED FROM PYTHON SOURCE LINES 161-181
 
 Stack of stars
 --------------
 
 Each partition :math:`p` sits at :math:`k_z = (p - P/2)\,\Delta k_z`. The
 partition encoding plays on z in the same block as the spoke: it ends where
-the plateau begins, and its mirror image, which brings :math:`k_z` back to
-zero, starts where the plateau ends. Both lobes scale with :math:`k_z`, so
-they are one z gradient, designed once at the largest :math:`k_z`, each lobe
-as long as the prewinder, and scaled for each partition with :func:`~pypulseqpp.scale_grad`. The scanner
-then plays one waveform for every partition, at a different amplitude.
+the spoke's gradient crosses zero on its way up to the plateau, and its
+mirror image, which brings :math:`k_z` back to zero, starts where the spoke
+crosses zero again on its way down. Both lobes scale with :math:`k_z`, so
+they are one z gradient, designed once at the largest :math:`k_z` and scaled
+for each partition with :func:`~pypulseqpp.scale_grad`. The scanner then
+plays one waveform for every partition, at a different amplitude.
+
+The spoiler's sign does not matter for spoiling, only that it is the same
+every repetition. It is negative here, opposite to the encode at the largest
+:math:`k_z`: the partition at :math:`-k_{z,\max}` then rewinds with a positive
+lobe straight into it, and that hardest gradient switching of the scan falls
+on the edge of k-space a stimulation check plays.
 
 The slab rephaser does not scale with :math:`k_z`, so it cannot join that
 gradient: it plays in a block of its own, right after the excitation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 172-195
+.. GENERATED FROM PYTHON SOURCE LINES 181-211
 
 .. code-block:: Python
 
     kz_max = PARTITIONS // 2 * delta_kz
-    lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+    raster = system.grad_raster_time
+    crossing = np.flatnonzero((amplitudes[:-1] <= 0) & (amplitudes[1:] > 0))[-1]
+    opening = times[crossing] - amplitudes[crossing] * (
+        times[crossing + 1] - times[crossing]
+    ) / (amplitudes[crossing + 1] - amplitudes[crossing])
+    opening = np.floor(opening / raster + 1e-9) * raster
+    closing = plateau_end + plateau_start - opening
+    lobe = pp.make_trapezoid("z", area=kz_max, duration=opening, system=system)
     lobe_span = pp.calc_duration(lobe)
     gz_partition = pp.make_extended_trapezoid(
         "z",
         times=np.array(
             [
-                plateau_start - lobe_span,
-                plateau_start - lobe_span + lobe.rise_time,
-                plateau_start - lobe.fall_time,
-                plateau_start,
-                plateau_end,
-                plateau_end + lobe.rise_time,
-                plateau_end + lobe_span - lobe.fall_time,
-                plateau_end + lobe_span,
+                opening - lobe_span,
+                opening - lobe_span + lobe.rise_time,
+                opening - lobe.fall_time,
+                opening,
+                closing,
+                closing + lobe.rise_time,
+                closing + lobe_span - lobe.fall_time,
+                closing + lobe_span,
             ]
         ),
         amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,
@@ -260,7 +276,7 @@ gradient: it plays in a block of its own, right after the excitation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 196-203
+.. GENERATED FROM PYTHON SOURCE LINES 212-219
 
 Inversion time
 --------------
@@ -270,7 +286,7 @@ excitation. What lies between them is the rest of the inversion block, the
 crusher and the start of the excitation block; the wait block makes up the
 difference.
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-226
+.. GENERATED FROM PYTHON SOURCE LINES 219-242
 
 .. code-block:: Python
 
@@ -310,7 +326,7 @@ difference.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 227-235
+.. GENERATED FROM PYTHON SOURCE LINES 243-251
 
 Scan loop
 ---------
@@ -321,7 +337,7 @@ own set of angles and together they fill the plane evenly. The labels say
 which spoke (``LIN``) and which partition (``PAR``) each readout is, and RF
 spoiling runs as in lesson 3.
 
-.. GENERATED FROM PYTHON SOURCE LINES 235-264
+.. GENERATED FROM PYTHON SOURCE LINES 251-280
 
 .. code-block:: Python
 
@@ -367,12 +383,12 @@ spoiling runs as in lesson 3.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 265-267
+.. GENERATED FROM PYTHON SOURCE LINES 281-283
 
 One inversion period, drawn over 2.5 s: the inversion, the wait, the
 train, the recovery. The train is a solid band at this scale.
 
-.. GENERATED FROM PYTHON SOURCE LINES 267-269
+.. GENERATED FROM PYTHON SOURCE LINES 283-285
 
 .. code-block:: Python
 
@@ -390,12 +406,12 @@ train, the recovery. The train is a solid band at this scale.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 270-272
+.. GENERATED FROM PYTHON SOURCE LINES 286-288
 
 And the first spokes of the train, where you can see the slab rephaser, the
 partition encoding on z either side of the plateau, and the spoiler:
 
-.. GENERATED FROM PYTHON SOURCE LINES 272-275
+.. GENERATED FROM PYTHON SOURCE LINES 288-291
 
 .. code-block:: Python
 
@@ -414,7 +430,7 @@ partition encoding on z either side of the plateau, and the spoiler:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 276-285
+.. GENERATED FROM PYTHON SOURCE LINES 292-301
 
 Signal evolution
 ----------------
@@ -426,7 +442,7 @@ train, then recovering until the next inversion. After a few inversions it
 repeats exactly; the figure shows that steady period, with the signal of
 every spoke (:math:`M_z \sin\alpha` just before each pulse).
 
-.. GENERATED FROM PYTHON SOURCE LINES 285-329
+.. GENERATED FROM PYTHON SOURCE LINES 301-345
 
 
 
@@ -440,7 +456,7 @@ every spoke (:math:`M_z \sin\alpha` just before each pulse).
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 330-347
+.. GENERATED FROM PYTHON SOURCE LINES 346-363
 
 A Cartesian MPRAGE puts the centre of k-space in the middle of the train,
 and that single moment fixes the contrast of the image. Here every spoke
@@ -460,7 +476,7 @@ The labels tell the reconstruction which partition and which spoke each
 readout is; the time of each spoke in the train, and so its bin, follows
 from ``LIN``:
 
-.. GENERATED FROM PYTHON SOURCE LINES 347-352
+.. GENERATED FROM PYTHON SOURCE LINES 363-368
 
 .. code-block:: Python
 
@@ -484,7 +500,7 @@ from ``LIN``:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 353-375
+.. GENERATED FROM PYTHON SOURCE LINES 369-393
 
 The scan is the shipped
 :doc:`mprage_stack_of_stars3D </generated/gallery/12-mprage/mprage_stack_of_stars3D_sequence>`
@@ -504,15 +520,17 @@ What this lesson built, stated the way you would ask an agent for it:
    (prewinder, readout and rewinder merged), TI 900 ms from the inversion
    centre to the first excitation, one inversion every 2.5 s with a 10 ms
    hyperbolic-secant pulse and a z crusher. Play the slab rephaser in its
-   own block; in the spoke's block, one z gradient that encodes kz before
-   the plateau and rewinds it after, designed at the largest kz and scaled
-   per partition; a 4-cycle z spoiler after the spoke, never rotated.
+   own block; in the spoke's block, one z gradient that encodes kz up to
+   where the spoke crosses zero into the plateau and rewinds it from where
+   the spoke crosses zero again, designed at the largest kz and scaled per
+   partition; a 4-cycle z spoiler after the spoke, never rotated, opposite in
+   sign to the largest encode.
    Label LIN and PAR, RF spoil at 117 degrees, and check the timing.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.286 seconds)
+   **Total running time of the script:** (0 minutes 0.807 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_06_radial_mprage.py:
