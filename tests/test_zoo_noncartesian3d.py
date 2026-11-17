@@ -296,6 +296,29 @@ def test_every_in_plane_block_is_turned_to_its_tilt_and_partition_angle(name, sh
     assert phasors(played, span) == pytest.approx(phasors(intended, span), abs=1e-9)
 
 
+def area_before(event, time):
+    """The area an event has played by ``time`` from the start of its block."""
+    if event is None:
+        return 0.0
+    times = float(event.delay) + np.asarray(event.tt, dtype=float)
+    values = np.asarray(event.waveform, dtype=float)
+    if event.type == "grad" and times.size and times[0] > float(event.delay):
+        # A waveform on the raster centres ramps from ``first`` at its delay
+        # and back to ``last`` at its shape duration.
+        end = float(event.delay) + float(event.shape_dur)
+        times = np.concatenate([[float(event.delay)], times, [end]])
+        values = np.concatenate([[float(event.first)], values, [float(event.last)]])
+    if event.type == "trap":
+        times = float(event.delay) + np.cumsum(
+            [0.0, event.rise_time, event.flat_time, event.fall_time]
+        )
+        values = np.array([0.0, 1.0, 1.0, 0.0]) * event.amplitude
+    grid = np.unique(np.concatenate([times[times < time], [time]]))
+    return float(
+        np.trapezoid(np.interp(grid, times, values, left=0.0, right=0.0), grid)
+    )
+
+
 @pytest.mark.parametrize("name", GRE)
 def test_every_partition_is_encoded_at_the_step_its_label_names(name):
     """The z area played between the excitation and the samples is the partition's."""
@@ -309,11 +332,11 @@ def test_every_partition_is_encoded_at_the_step_its_label_names(name):
         if block.rf is not None:
             area_since = 0.0
             continue
-        if block.gz is not None and area_since is not None:
-            area_since += area(block.gz)
         if block.adc is not None:
-            encoded.append(area_since)
+            encoded.append(area_since + area_before(block.gz, block.adc.delay))
             area_since = None
+        elif block.gz is not None and area_since is not None:
+            area_since += area(block.gz)
 
     assert encoded == pytest.approx((par - n_z // 2) * delta_kz, abs=1e-6 * delta_kz)
 

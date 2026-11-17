@@ -121,9 +121,12 @@ def test_a_wait_too_short_to_hold_it_leaves_it_where_it_was(system, excitation, 
     """
     short = readout(family, system, excitation)
     reph_span = pp.calc_duration(excitation.gz_reph)
-    module = readout(family, system, excitation, te=short.echo_time + 0.5 * reph_span)
-    assert block_of(module, module.gz_reph) == 1
-    assert not hasattr(module.events, "wait_te")
+    requested = short.echo_time + 0.5 * reph_span
+    module = readout(family, system, excitation, te=requested)
+    assert block_of(module, module.gz_reph) == block_of(short, short.gz_reph) + (
+        hasattr(module.events, "wait_te")
+    )
+    assert module.echo_time == pytest.approx(requested)
 
 
 def test_a_spoke_carries_it_however_long_the_wait_is(system, excitation):
@@ -158,8 +161,8 @@ def test_it_costs_nothing_at_all_where_a_prephaser_already_runs(system, excitati
     assert with_reph.echo_time == pytest.approx(without.echo_time)
 
 
-def test_an_outward_spiral_opens_a_block_for_it(system, excitation):
-    """Nothing prephases an arm that starts at k = 0, so the rephaser is the block."""
+def test_an_outward_spiral_starts_its_arm_after_the_rephaser(system, excitation):
+    """Nothing prephases an arm that starts at k = 0, so the arm waits for the rephaser."""
     without = design.SpiralReadout2D(
         system,
         excitation.rf,
@@ -177,8 +180,11 @@ def test_an_outward_spiral_opens_a_block_for_it(system, excitation):
         matrix=MATRIX,
         design_interleaves=16,
     )
-    assert len(with_reph.blocks) == len(without.blocks) + 1
-    assert with_reph.echo_time > without.echo_time
+    assert len(with_reph.blocks) == len(without.blocks)
+    assert block_of(with_reph, with_reph.gz_reph) == block_of(with_reph, with_reph.gx)
+    assert with_reph.echo_time == pytest.approx(
+        without.echo_time + pp.calc_duration(excitation.gz_reph)
+    )
 
 
 def test_only_the_first_echo_of_a_train_is_rephased(system, excitation):
@@ -213,18 +219,19 @@ def test_a_partition_encode_already_owns_the_slice_axis(system, excitation):
         )
 
 
-def test_a_stack_already_owns_the_slice_axis(system, excitation):
-    with pytest.raises(ValueError, match="already plays a gradient on z"):
-        design.RadialStackReadout(
-            system,
-            excitation.rf,
-            excitation.gz,
-            excitation.gz_reph,
-            fov=FOV,
-            matrix=MATRIX,
-            fov_z=0.12,
-            matrix_z=32,
-        )
+def test_a_stack_rephases_the_slice_before_its_partition_encode(system, excitation):
+    module = design.RadialStackReadout(
+        system,
+        excitation.rf,
+        excitation.gz,
+        excitation.gz_reph,
+        fov=FOV,
+        matrix=MATRIX,
+        fov_z=0.12,
+        matrix_z=32,
+    )
+    assert block_of(module, module.gz_reph) < block_of(module, module.gz_enc)
+    assert module.check_timing()[0]
 
 
 @pytest.mark.parametrize(
@@ -263,7 +270,7 @@ def test_an_in_plane_rotation_refuses_a_rephaser_it_would_turn(system, axis):
         )
 
 
-def test_a_rephaser_longer_than_the_head_room_gets_a_block_of_its_own(system):
+def test_a_rephaser_longer_than_the_head_room_delays_the_spoke(system):
     """A thin slice under a long pulse rephases for longer than a short spoke prephases."""
     excitation = design.SpatialSelectiveExcitation(system, 15.0, 2e-3, 6e-3)
     reph_span = pp.calc_duration(excitation.gz_reph)
@@ -275,8 +282,10 @@ def test_a_rephaser_longer_than_the_head_room_gets_a_block_of_its_own(system):
     module = design.RadialReadout2D(
         system, excitation.rf, excitation.gz, excitation.gz_reph, fov=0.4, matrix=32
     )
-    assert len(module.blocks) == len(without.blocks) + 1
-    assert block_of(module, module.gz_reph) == 1
-    assert module.echo_time == pytest.approx(without.echo_time + reph_span)
+    assert len(module.blocks) == len(without.blocks)
+    assert block_of(module, module.gz_reph) == block_of(module, module.gx)
+    assert module.echo_time == pytest.approx(
+        without.echo_time + reph_span - float(without.adc.delay)
+    )
     assert peak_kz(module) == pytest.approx(0.0, abs=1e-6)
     assert module.check_timing()[0]

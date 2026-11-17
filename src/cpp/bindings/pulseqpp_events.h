@@ -448,6 +448,21 @@ namespace pulseqpp_events
         e.registered.note(seq.serial, magnitude, time_shape);
     }
 
+    /**
+     * Put an event's row in a block's slot for it. A block plays one gradient
+     * per axis, one pulse and one ADC, so a second event for the same slot is
+     * refused rather than written over the first.
+     */
+    inline void place(int32_t& slot, int32_t id, const char* what)
+    {
+        if (slot != 0)
+            throw std::invalid_argument(
+                std::string("a block plays one ") + what +
+                "; sum the gradients into one waveform with add_gradients, or play "
+                "them in separate blocks");
+        slot = id;
+    }
+
     /** Register a typed RF event, reusing its shapes if this sequence made them. */
     inline void take_rf(
         BoundSequence& seq,
@@ -468,7 +483,7 @@ namespace pulseqpp_events
             e.phase_ppm,
             e.freq_offset,
             e.phase_offset};
-        block.rf = seq.register_rf(row, e.use_code());
+        place(block.rf, seq.register_rf(row, e.use_code()), "RF pulse");
         duration = std::max(duration, e.duration());
     }
 
@@ -542,13 +557,13 @@ namespace pulseqpp_events
         switch (e.axis)
         {
         case pulseq::Axis::X:
-            block.gx = id;
+            place(block.gx, id, "gradient on x");
             break;
         case pulseq::Axis::Y:
-            block.gy = id;
+            place(block.gy, id, "gradient on y");
             break;
         default:
-            block.gz = id;
+            place(block.gz, id, "gradient on z");
             break;
         }
         duration = std::max(
@@ -586,7 +601,7 @@ namespace pulseqpp_events
             e.freq_offset,
             e.phase_offset,
             e.phase_modulation.empty() ? 0.0 : static_cast<double>(e.registered.shape)};
-        block.adc = seq.register_adc(row);
+        place(block.adc, seq.register_adc(row), "ADC");
         duration = std::max(duration, e.duration());
     }
 
@@ -644,13 +659,13 @@ namespace pulseqpp_events
                     switch (e.axis)
                     {
                     case pulseq::Axis::X:
-                        block.gx = id;
+                        place(block.gx, id, "gradient on x");
                         break;
                     case pulseq::Axis::Y:
-                        block.gy = id;
+                        place(block.gy, id, "gradient on y");
                         break;
                     default:
-                        block.gz = id;
+                        place(block.gz, id, "gradient on z");
                         break;
                     }
                     duration = std::max(duration, e.duration());
@@ -783,15 +798,15 @@ namespace pulseqpp_events
                         inner_chained,
                         counted);
                     if (within.rf)
-                        block.rf = within.rf;
+                        place(block.rf, within.rf, "RF pulse");
                     if (within.gx)
-                        block.gx = within.gx;
+                        place(block.gx, within.gx, "gradient on x");
                     if (within.gy)
-                        block.gy = within.gy;
+                        place(block.gy, within.gy, "gradient on y");
                     if (within.gz)
-                        block.gz = within.gz;
+                        place(block.gz, within.gz, "gradient on z");
                     if (within.adc)
-                        block.adc = within.adc;
+                        place(block.adc, within.adc, "ADC");
                     for (int i = 0; i < inner_chained; ++i)
                     {
                         if (chained == 8)
@@ -822,13 +837,13 @@ namespace pulseqpp_events
                 switch (axis_of(dict))
                 {
                 case 0:
-                    block.gx = id;
+                    place(block.gx, id, "gradient on x");
                     break;
                 case 1:
-                    block.gy = id;
+                    place(block.gy, id, "gradient on y");
                     break;
                 case 2:
-                    block.gz = id;
+                    place(block.gz, id, "gradient on z");
                     break;
                 default:
                     throw std::invalid_argument("gradient event has no channel");
@@ -851,13 +866,13 @@ namespace pulseqpp_events
                 switch (axis_of(dict))
                 {
                 case 0:
-                    block.gx = id;
+                    place(block.gx, id, "gradient on x");
                     break;
                 case 1:
-                    block.gy = id;
+                    place(block.gy, id, "gradient on y");
                     break;
                 case 2:
-                    block.gz = id;
+                    place(block.gz, id, "gradient on z");
                     break;
                 default:
                     throw std::invalid_argument("gradient event has no channel");
@@ -895,7 +910,7 @@ namespace pulseqpp_events
                     if (text && text[0])
                         use = text[0];
                 }
-                block.rf = seq.register_rf(row, use);
+                place(block.rf, seq.register_rf(row, use), "RF pulse");
                 duration = std::max(
                     duration,
                     as_double(field(dict, n.shape_dur)) + delay +
@@ -929,7 +944,7 @@ namespace pulseqpp_events
                     as_double(field(dict, n.freq_offset)),
                     as_double(field(dict, n.phase_offset)),
                     phase_shape};
-                block.adc = seq.register_adc(row);
+                place(block.adc, seq.register_adc(row), "ADC");
                 duration = std::max(duration, delay + num * dwell + dead);
             }
             else if (std::strcmp(kind, "labelset") == 0 || std::strcmp(kind, "labelinc") == 0)

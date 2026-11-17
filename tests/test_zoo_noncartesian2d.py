@@ -404,7 +404,7 @@ def layout(block):
         round(block.block_duration, 9),
         *(getattr(block, c) is not None for c in ("rf", "gx", "gy", "gz", "adc")),
         *(
-            round(area(getattr(block, c)), 6)
+            round(area(getattr(block, c)), 4)
             for c in ("gx", "gy", "gz")
             if getattr(block, c) is not None
         ),
@@ -440,6 +440,7 @@ def solved_readout(name, seq, **prescription):
         )
         drive = (exc.rf, exc.gz, exc.gz_reph)
         te = protocol["te"]
+    spoiling = 0.0 if name in SPIN_ECHO else mod.SPOILING_CYCLES
     if name in RADIAL:
         return sequences.RadialReadout2D(
             system,
@@ -449,7 +450,7 @@ def solved_readout(name, seq, **prescription):
             te=te,
             oversampling=protocol["readout_oversampling"],
             readout_bandwidth_hz=protocol["readout_bandwidth_hz"],
-            spoiling_cycles=mod.SPOILING_CYCLES,
+            spoiling_cycles=spoiling,
         )
     shaped = {}
     if protocol["density"] != "constant":
@@ -470,7 +471,7 @@ def solved_readout(name, seq, **prescription):
         density=protocol["density"],
         te=te,
         readout_bandwidth_hz=protocol["readout_bandwidth_hz"],
-        spoiling_cycles=mod.SPOILING_CYCLES,
+        spoiling_cycles=spoiling,
         **shaped,
     )
 

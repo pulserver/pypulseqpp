@@ -21,9 +21,6 @@ TIME_BW_PRODUCT = 4.0
 #: Dephasing each crusher beside the refocusing pulse winds, in cycles
 #: across one voxel.
 CRUSHER_CYCLES = 4.0
-#: Dephasing left on the slice axis at the end of each repetition, in
-#: cycles across one voxel.
-SPOILING_CYCLES = 4.0
 #: Exponent of the normalised radius, for variable density.
 VARIABLE_DENSITY_POWER = 2.0
 #: Normalised radius of the dual-density transition.
@@ -179,7 +176,6 @@ def se_spiral2d(
             density=density,
             te=half_te,
             readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=SPOILING_CYCLES,
             **shaped,
         )
 

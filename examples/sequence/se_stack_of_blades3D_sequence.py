@@ -35,9 +35,6 @@ READOUT_OVERSAMPLING = 2.0
 #: Dephasing each crusher beside the refocusing pulse winds, in cycles
 #: across one voxel.
 CRUSHER_CYCLES = 4.0
-#: Dephasing left on the partition axis at the end of each repetition, in
-#: cycles across one voxel.
-SPOILING_CYCLES = 4.0
 
 
 def se_stack_of_blades3d(
@@ -174,9 +171,6 @@ def se_stack_of_blades3d(
     )
     gz = getattr(exc, "gz", None)
     ref = sequences.NonSelectiveRefocusing(system, spoiling_cycles=CRUSHER_CYCLES)
-    # The in-plane axes turn with the blade, so a spoiler on them would
-    # point a different way from one blade to the next: it plays on z.
-    gz_spoil, _, _ = pp.make_crusher(SPOILING_CYCLES, fov_z / n_z, "z", system=system)
 
     # TE is solved in two halves about the 180. The readout owns the second
     # but counts it through a block holding the 180 alone, where the
@@ -235,16 +229,8 @@ def se_stack_of_blades3d(
     ]
     rotations: dict[float, object] = {}
 
-    # The readout's first block, the 180 alone, is not played; the
-    # partition-axis spoiler closes the repetition.
-    length = (
-        exc.duration
-        + wait
-        + ref.duration
-        + ro.duration
-        - rf_span
-        + pp.ceil_to_raster(pp.calc_duration(gz_spoil), raster)
-    )
+    # The readout's first block, the 180 alone, is not played.
+    length = exc.duration + wait + ref.duration + ro.duration - rf_span
     wait_tr = None
     if tr is not None:
         if tr < length - 1e-9:
@@ -316,7 +302,6 @@ def se_stack_of_blades3d(
             pp.scale_grad(ro.gz_rew, kz),
             rotation,
         )
-        seq.add_block(gz_spoil)
         if wait_tr is not None:
             seq.add_block(wait_tr)
 

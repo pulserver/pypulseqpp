@@ -309,10 +309,7 @@ def mprage_stack_of_stars3d(
         acquire = partition is not None
         z = n_z // 2 if partition is None else partition
         kz = (z - n_z // 2) / (n_z / 2)
-        encoded = {
-            id(ro.gz_pre): pp.scale_grad(ro.gz_pre, kz),
-            id(ro.gz_rew): pp.scale_grad(ro.gz_rew, kz),
-        }
+        encoded = {id(ro.gz_enc): pp.scale_grad(ro.gz_enc, kz)}
         if acquire:
             flags = {"ONCE": 0} if n_dummy else {}
             flags.update(PAR=z, IMA=z in calibration)

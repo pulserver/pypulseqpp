@@ -22,7 +22,7 @@ import numpy as np
 import pypulseqpp as pp
 
 from .._module import SequenceModule
-from ._common import AXES, left_align_rephaser, present, solve_delay, solve_rephasing
+from ._common import AXES, left_align_rephaser, present, solve_delay
 from ._trajectories import NonCartesianGradient, Rosette, Spiral
 
 _READOUT_GRAD_MARGIN = 0.8
@@ -75,8 +75,12 @@ class _ArmedReadout(SequenceModule):
 class _RadialReadout(_ArmedReadout):
     """Radial repetition with spoke, prephaser and rewinder in one waveform.
 
-    The ADC samples the plateau. A slice rephaser may share an axis left
-    invariant by the shot rotation. With ``explicit=True`` the spokes are
+    The prephaser and rewinder each cancel half the plateau area, so the spoke
+    leaves no in-plane moment at any angle and the ADC samples the plateau. A
+    stack plays its partition encode and rewinder as one z waveform in the
+    same block, and the spoiler, when asked for, in a block of its own on a
+    fixed axis. A slice rephaser may share an axis left invariant by the shot
+    rotation. With ``explicit=True`` the spokes are
     written out, one per entry of ``angles``; otherwise the caller rotates one
     base spoke per shot.
 
@@ -142,8 +146,10 @@ class _RadialReadout(_ArmedReadout):
         The spoke from prephaser through rewinder. ``gy`` is the same waveform
         at zero amplitude, so a rotation always has a y event to fill. Lists
         with one entry per angle when ``explicit``.
-    gz_pre, gz_rew : TrapEvent
-        Partition encode and its rewinder. Stacks only.
+    gz_enc : GradEvent
+        Partition encode, ending where the readout starts, and its rewinder,
+        starting where it ends, as one waveform at ``+kmax``; scale it by
+        ``kz / kmax`` per partition. Its net area is zero. Stacks only.
     gz_spoil : GradEvent
         End-of-TR spoiler; present when ``spoiling_cycles`` is nonzero.
     adc : AdcEvent
@@ -226,58 +232,63 @@ class _RadialReadout(_ArmedReadout):
             min_readout_duration=readout_area
             / (_READOUT_GRAD_MARGIN * system.max_grad),
         )
+        gx, pre_span, rew_span = _balanced_spoke(readout_area, readout_duration, system)
 
-        gx = pp.make_trapezoid(
-            channel="x",
-            flat_area=readout_area,
-            flat_time=readout_duration,
+        lobe = _partition_lobe(
+            self._phase_axis, fov_z, matrix_z, type(self).__name__, system
+        )
+        lobe_span = _partition_span(lobe, system)
+        if gz_reph is not None:
+            gz_reph = _accept_rephaser(gz_reph, self, ())
+        reph_span = pp.calc_duration(gz_reph) if gz_reph is not None else 0.0
+
+        gz_spoil = _spoiler(
+            spoiling_cycles,
+            voxel_size_m,
+            fov / int(matrix),
+            spoiling_axis,
+            system,
+            lobe,
+        )
+
+        raster = system.block_duration_raster
+        rf_center = float(rf.delay) + float(rf.center)
+        rf_block = pp.ceil_to_raster(
+            pp.calc_duration(rf, gz) if gz is not None else pp.calc_duration(rf),
+            raster,
+        )
+        lead = max(pre_span, lobe_span)
+        te_base = rf_block - rf_center + 0.5 * readout_duration
+        placement, lead, wait_span, reph_block = _place_rephaser(
+            te,
+            te_base,
+            lead,
+            reph_span,
+            has_partitions=lobe is not None,
             system=system,
         )
-        # The spoke runs out through the centre and back, so one lobe of half
-        # the readout area serves as both prephaser and rewinder.
-        gx_pre = pp.make_trapezoid(channel="x", area=-0.5 * gx.area, system=system)
-        gx_rew = pp.make_trapezoid(channel="x", area=-0.5 * gx.area, system=system)
-        rise_time = gx.rise_time
-        adc = pp.make_adc(
-            num_samples=n_samples, dwell=dwell, delay=rise_time, system=system
+        block_span = pp.ceil_to_raster(
+            lead + readout_duration + max(rew_span, lobe_span), raster
         )
 
-        # Shift each piece to where it is played, then sum them into one
-        # continuous waveform.
-        gx_pre_duration = pp.calc_duration(gx_pre)
-        gx.delay += gx_pre_duration
-        adc.delay += gx_pre_duration
-        gx_rew.delay += pp.calc_duration(gx)
-        gx = pp.add_gradients(grads=[gx_pre, gx, gx_rew], system=system)
+        gx.delay = lead - pre_span
         gy = pp.scale_grad(gx, 0.0)
         gy.channel = "y"
-
-        echo_offset = gx_pre_duration + rise_time + 0.5 * readout_duration
         if explicit:
             angles = np.atleast_1d(np.asarray(angles, dtype=float))
             base = gx
             gx = [pp.scale_grad(base, float(np.cos(angle))) for angle in angles]
             gy = []
             for angle in angles:
-                lobe = pp.scale_grad(base, float(np.sin(angle)))
-                lobe.channel = "y"
-                gy.append(lobe)
-
-        gz_pre, gz_rew = _partition_encode(
-            self._phase_axis, fov_z, matrix_z, type(self).__name__, system
+                turned = pp.scale_grad(base, float(np.sin(angle)))
+                turned.channel = "y"
+                gy.append(turned)
+        gz_enc = (
+            _partition_wave(lobe, lead, lead + readout_duration, system)
+            if lobe is not None
+            else None
         )
-        gz_reph = _accept_rephaser(gz_reph, self, present(self._phase_axis))
-        reph_span = pp.calc_duration(gz_reph) if gz_reph is not None else 0.0
-
-        gz_spoil = None
-        if spoiling_cycles:
-            if voxel_size_m is None:
-                voxel_size_m = fov / int(matrix)
-            if voxel_size_m <= 0:
-                raise ValueError("voxel_size_m must be positive")
-            gz_spoil, _, _ = pp.make_crusher(
-                spoiling_cycles, voxel_size_m, spoiling_axis, system=system
-            )
+        adc = pp.make_adc(num_samples=n_samples, dwell=dwell, delay=lead, system=system)
 
         adc_labels = [
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
@@ -290,62 +301,34 @@ class _RadialReadout(_ArmedReadout):
             for i_echo in range(n_echoes)
         ]
         n_arms = len(gx) if isinstance(gx, list) else 1
-
-        self.seq = pp.Sequence(system)
-
-        rf_center = float(rf.delay) + float(rf.center)
-        rf_block = pp.ceil_to_raster(
-            pp.calc_duration(rf, gz) if gz is not None else pp.calc_duration(rf),
-            system.block_duration_raster,
-        )
-        pre_span = (
-            pp.ceil_to_raster(pp.calc_duration(gz_pre), system.block_duration_raster)
-            if gz_pre is not None
-            else 0.0
-        )
-        # The rephaser has to follow the selection lobe with nothing in
-        # between, so it rides the TE wait when that is long enough to hold it.
-        # Otherwise it sits alongside the prephaser at the head of the spoke,
-        # which costs no echo time at all -- until it outlasts the head room
-        # there, when it has to be given a block of its own before the spoke.
-        head_room = float(adc.delay)
-        reph_alone = reph_span > head_room
-        te_min = (
-            rf_block
-            - rf_center
-            + pre_span
-            + (reph_span if reph_alone else 0.0)
-            + echo_offset
-        )
-        te_delay = solve_delay(te, te_min, "TE", system)
-
-        reph_on_wait = reph_alone or te_delay >= reph_span > 0
-        wait_span = te_delay + (reph_span if reph_alone else 0.0)
         wait_te = pp.make_delay(wait_span) if wait_span else None
 
+        self.seq = pp.Sequence(system)
         for i_arm in range(n_arms):
-            if gz is not None:
-                self.seq.add_block(rf, gz)
-            else:
-                self.seq.add_block(rf)
+            self.seq.add_block(rf, *present(gz))
             if wait_te is not None:
-                self.seq.add_block(wait_te, *(present(gz_reph) if reph_on_wait else ()))
-            if gz_pre is not None:
-                self.seq.add_block(gz_pre, *_armed(trigger))
+                self.seq.add_block(
+                    wait_te, *(present(gz_reph) if placement == "wait" else ())
+                )
+            if placement == "block":
+                self.seq.add_block(gz_reph, pp.make_delay(reph_block))
             for i_echo in range(n_echoes):
                 self.seq.add_block(
                     _at(gx, i_arm),
                     _at(gy, i_arm),
+                    *present(gz_enc),
+                    *(
+                        present(gz_reph)
+                        if placement == "readout" and i_echo == 0
+                        else ()
+                    ),
                     adc,
                     *adc_labels,
                     *([echo_labels[i_echo]] if n_echoes > 1 else []),
-                    *(present(gz_reph) if not reph_on_wait and i_echo == 0 else ()),
-                    *(_armed(trigger) if gz_pre is None else ()),
+                    *(_armed(trigger) if i_echo == 0 else ()),
                 )
-            if gz_rew is not None or gz_spoil is not None:
-                self.seq.add_block(
-                    *(event for event in (gz_rew, gz_spoil) if event is not None)
-                )
+            if gz_spoil is not None:
+                self.seq.add_block(gz_spoil)
 
         tr_min = self.seq.duration()[0] / n_arms
         tr_delay = solve_delay(tr, tr_min, "TR", system)
@@ -356,8 +339,8 @@ class _RadialReadout(_ArmedReadout):
                 self.seq.add_block(wait_tr)
         self._lay_out_arms(n_arms, wait_tr)
 
-        self.echo_time = te_min + te_delay
-        self.echo_spacing = pp.calc_duration(_at(gx, 0)) if n_echoes > 1 else 0.0
+        self.echo_time = te_base + wait_span + reph_block + lead
+        self.echo_spacing = block_span if n_echoes > 1 else 0.0
         self.center = self.echo_time + rf_center
         self.duration = tr_min + tr_delay
         self.bandwidth_hz = 1.0 / dwell
@@ -419,7 +402,7 @@ class RadialStackReadout(_RadialReadout):
     ...     system, slab.rf, slab.gz,
     ...     fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,
     ... )
-    >>> readout.gz_pre.channel
+    >>> readout.gz_enc.channel
     'z'
 
     One spoke of one partition, and the k-space line it reads:
@@ -494,8 +477,10 @@ class RadialProjectionReadout(_RadialReadout):
 class NonCartesianReadout(_ArmedReadout):
     """A solved interleaf with its prewinder, rewinder and repetition-time budget.
 
-    Nonzero k-space endpoints of the interleaf require prewinder or rewinder
-    blocks. ``trajectory`` is any two-channel :class:`NonCartesianGradient`;
+    The prewinder, interleaf and rewinder play as one waveform per in-plane
+    axis, so every interleaf ends at k = 0 whatever its rotation. A stack plays
+    its partition encode and rewinder as one z waveform in the same block, and
+    the spoiler, when asked for, in a block of its own on a fixed axis. ``trajectory`` is any two-channel :class:`NonCartesianGradient`;
     the spiral and rosette readouts design theirs. The caller sets the
     orientation of each shot.
 
@@ -553,14 +538,13 @@ class NonCartesianReadout(_ArmedReadout):
     gz_reph : GradEvent
         Its rephaser, if one was given.
     gx, gy : GradEvent
-        The interleaf. Lists with one entry per angle when ``explicit``.
-    gx_pre, gy_pre : GradEvent
-        Prewinding gradients to the start of the path; present when it does not
-        start at k = 0.
-    gx_rew, gy_rew : GradEvent
-        Rewinding gradients to k = 0; present when the path does not end there.
-    gz_pre, gz_rew : TrapEvent
-        Partition encode and its rewinder. Stacks only.
+        The prewinder, interleaf and rewinder as one waveform per axis, sampled
+        at the gradient raster centres. Lists with one entry per angle when
+        ``explicit``.
+    gz_enc : GradEvent
+        Partition encode, ending where the readout starts, and its rewinder,
+        starting where it ends, as one waveform at ``+kmax``; scale it by
+        ``kz / kmax`` per partition. Its net area is zero. Stacks only.
     gz_spoil : GradEvent
         End-of-TR spoiler; present when ``spoiling_cycles`` is nonzero.
     adc : AdcEvent
@@ -569,9 +553,6 @@ class NonCartesianReadout(_ArmedReadout):
         One per name in ``labels``.
     wait_te, wait_tr : DelayEvent
         Present only when ``te`` or ``tr`` exceeds the minimum.
-    wait_pre, wait_rew : DelayEvent
-        Delays that set the duration of the prewinder and rewinder blocks, which
-        can outlast their gradients; absent when the block is not played.
     trajectory : NonCartesianGradient
         The interleaf, for its k-space path and timings.
     echo_time : float
@@ -667,51 +648,63 @@ class NonCartesianReadout(_ArmedReadout):
             else [trajectory]
         )
 
-        gz_pre, gz_rew = _partition_encode(
+        lobe = _partition_lobe(
             self._phase_axis, fov_z, matrix_z, type(self).__name__, system
         )
-        gz_reph = _accept_rephaser(gz_reph, self, present(self._phase_axis))
+        lobe_span = _partition_span(lobe, system)
+        if gz_reph is not None:
+            gz_reph = _accept_rephaser(gz_reph, self, ())
+        reph_span = pp.calc_duration(gz_reph) if gz_reph is not None else 0.0
+        gz_spoil = _spoiler(
+            spoiling_cycles,
+            voxel_size_m,
+            _resolution(trajectory),
+            spoiling_axis,
+            system,
+            lobe,
+        )
 
-        gz_spoil = None
-        if spoiling_cycles:
-            if voxel_size_m is None:
-                voxel_size_m = _resolution(trajectory)
-            if voxel_size_m <= 0:
-                raise ValueError("voxel_size_m must be positive")
-            gz_spoil, _, _ = pp.make_crusher(
-                spoiling_cycles, voxel_size_m, spoiling_axis, system=system
-            )
-
-        # Every explicit arm plays the base prewinder/rewinder timing corners (rotation
-        # turns the amplitude pair, never the timing), so these spans agree
-        # across arms by construction; the max() is the shared value.
         raster = system.block_duration_raster
-        natural_pre_span = pp.ceil_to_raster(
-            max(
-                (
-                    pp.calc_duration(*arm.prewinders, *present(gz_pre))
-                    for arm in arms
-                    if arm.prewinders or gz_pre is not None
-                ),
-                default=0.0,
-            ),
+        grad_raster = system.grad_raster_time
+        # Rotation turns the amplitudes of the brackets, never their corners,
+        # so every explicit arm has the base arm's spans.
+        pre_span = _natural_span(arms, "prewinders", grad_raster)
+        rew_span = _natural_span(arms, "rewinders", grad_raster)
+        read_span = max(pp.calc_duration(*arm.gradients) for arm in arms)
+        echo_offset = _echo_offset_of(trajectory, grad_raster)
+
+        rf_center = float(rf.delay) + float(rf.center)
+        rf_block = pp.ceil_to_raster(
+            pp.calc_duration(rf, gz) if gz is not None else pp.calc_duration(rf),
             raster,
         )
-        rew_span = pp.ceil_to_raster(
-            max(
-                (
-                    pp.calc_duration(
-                        *arm.rewinders, *present(gz_rew), *present(gz_spoil)
-                    )
-                    for arm in arms
-                    if arm.rewinders or gz_rew is not None or gz_spoil is not None
-                ),
-                default=0.0,
-            ),
-            raster,
+        te_base = rf_block - rf_center + echo_offset
+        placement, lead, wait_span, reph_block = _place_rephaser(
+            te,
+            te_base,
+            max(pre_span, lobe_span),
+            reph_span,
+            has_partitions=lobe is not None,
+            system=system,
+        )
+        block_span = pp.ceil_to_raster(
+            lead + read_span + max(rew_span, lobe_span), raster
         )
 
-        adc = trajectory.adc
+        gx, gy = _merged_arms(arms, lead, pre_span, read_span, rew_span, system)
+        gz_enc = (
+            _partition_wave(lobe, lead, lead + read_span, system)
+            if lobe is not None
+            else None
+        )
+        source = trajectory.adc
+        adc = pp.make_adc(
+            num_samples=int(source.num_samples),
+            dwell=float(source.dwell),
+            delay=float(source.delay) + lead,
+            system=system,
+        )
+
         adc_labels = [
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
         ]
@@ -722,91 +715,34 @@ class NonCartesianReadout(_ArmedReadout):
             pp.make_label(type="SET", label="ECO", value=i_echo)
             for i_echo in range(n_echoes)
         ]
-
-        self.seq = pp.Sequence(system)
-
-        rf_center = float(rf.delay) + float(rf.center)
-        rf_block = pp.ceil_to_raster(
-            pp.calc_duration(rf, gz) if gz is not None else pp.calc_duration(rf), raster
-        )
-        te_base = (
-            rf_block - rf_center + _echo_offset_of(trajectory, system.grad_raster_time)
-        )
-        wait_span, pre_span, echo_time = solve_rephasing(
-            te,
-            te_base,
-            natural_pre_span,
-            pp.calc_duration(gz_reph) if gz_reph is not None else 0.0,
-            system,
-        )
         wait_te = pp.make_delay(wait_span) if wait_span else None
 
-        gx_pre, gy_pre = _bracket(arms, "prewinders", "right", pre_span, system)
-        gx, gy = _bracket(arms, "gradients", None, 0.0, system)
-        gx_rew, gy_rew = _bracket(arms, "rewinders", "left", rew_span, system)
-        wait_pre = pp.make_delay(pre_span) if pre_span else None
-        wait_rew = pp.make_delay(rew_span) if rew_span else None
-
-        # Replaying an arm re-enters k where the last one left it, so an echo
-        # train has to come back to the head of the arm between echoes: the
-        # traversal's own rewinder unwinds it and its prewinder enters again.
-        # This bracket carries the in-plane halves only -- the partition
-        # encode, the slice rewinder and the end-of-TR spoiler bracket the
-        # repetition, not the echo, and replaying them would spoil the train.
-        echo_rew_span = _natural_span(arms, "rewinders", raster)
-        echo_pre_span = _natural_span(arms, "prewinders", raster)
-        gx_echo_rew, gy_echo_rew = _bracket(
-            arms, "rewinders", "left", echo_rew_span, system
-        )
-        gx_echo_pre, gy_echo_pre = _bracket(
-            arms, "prewinders", "right", echo_pre_span, system
-        )
-
+        self.seq = pp.Sequence(system)
         for i_arm in range(len(arms)):
-            if gz is not None:
-                self.seq.add_block(rf, gz)
-            else:
-                self.seq.add_block(rf)
+            self.seq.add_block(rf, *present(gz))
             if wait_te is not None:
-                self.seq.add_block(wait_te, *present(gz_reph))
-            if wait_pre is not None:
                 self.seq.add_block(
-                    *present(_at(gx_pre, i_arm)),
-                    *present(_at(gy_pre, i_arm)),
-                    *present(gz_pre),
-                    *(() if wait_te else present(gz_reph)),
-                    *_armed(trigger),
-                    wait_pre,
+                    wait_te, *(present(gz_reph) if placement == "wait" else ())
                 )
+            if placement == "block":
+                self.seq.add_block(gz_reph, pp.make_delay(reph_block))
             for i_echo in range(n_echoes):
-                if i_echo:
-                    if echo_rew_span:
-                        self.seq.add_block(
-                            *present(_at(gx_echo_rew, i_arm)),
-                            *present(_at(gy_echo_rew, i_arm)),
-                            pp.make_delay(echo_rew_span),
-                        )
-                    if echo_pre_span:
-                        self.seq.add_block(
-                            *present(_at(gx_echo_pre, i_arm)),
-                            *present(_at(gy_echo_pre, i_arm)),
-                            pp.make_delay(echo_pre_span),
-                        )
                 self.seq.add_block(
-                    _at(gx, i_arm),
-                    _at(gy, i_arm),
+                    *present(_at(gx, i_arm)),
+                    *present(_at(gy, i_arm)),
+                    *present(gz_enc),
+                    *(
+                        present(gz_reph)
+                        if placement == "readout" and i_echo == 0
+                        else ()
+                    ),
                     adc,
                     *adc_labels,
                     *([echo_labels[i_echo]] if n_echoes > 1 else []),
+                    *(_armed(trigger) if i_echo == 0 else ()),
                 )
-            if wait_rew is not None:
-                self.seq.add_block(
-                    *present(_at(gx_rew, i_arm)),
-                    *present(_at(gy_rew, i_arm)),
-                    *present(gz_rew),
-                    *present(gz_spoil),
-                    wait_rew,
-                )
+            if gz_spoil is not None:
+                self.seq.add_block(gz_spoil)
 
         tr_min = self.seq.duration()[0] / len(arms)
         tr_delay = solve_delay(tr, tr_min, "TR", system)
@@ -818,21 +754,15 @@ class NonCartesianReadout(_ArmedReadout):
         self._lay_out_arms(len(arms), wait_tr)
 
         self.trajectory = trajectory
-        self.echo_time = echo_time
-        self.echo_spacing = (
-            pp.calc_duration(_at(gx, 0)) + echo_rew_span + echo_pre_span
-            if n_echoes > 1
-            else 0.0
-        )
-        self.center = echo_time + rf_center
+        self.echo_time = te_base + wait_span + reph_block + lead
+        self.echo_spacing = block_span if n_echoes > 1 else 0.0
+        self.center = self.echo_time + rf_center
         self.duration = tr_min + tr_delay
         self.bandwidth_hz = 1.0 / float(adc.dwell)
         self.n_samples = int(adc.num_samples)
         # Where in the window k passes through zero: the first sample of a
         # centre-out arm, halfway along one that runs in and back out.
-        crossing = _echo_offset_of(trajectory, system.grad_raster_time) - float(
-            adc.delay
-        )
+        crossing = echo_offset - float(source.delay)
         self.center_sample = int(
             min(max(round(crossing / float(adc.dwell)), 0), self.n_samples - 1)
         )
@@ -977,7 +907,7 @@ class SpiralStackReadout(_SpiralReadout):
     ...     fov=0.22, matrix=64, design_interleaves=8, n_points=256,
     ...     fov_z=0.12, matrix_z=16,
     ... )
-    >>> readout.gz_pre.channel
+    >>> readout.gz_enc.channel
     'z'
 
     One interleaf of one partition, and the arm it traverses:
@@ -1153,7 +1083,7 @@ class RosetteStackReadout(_RosetteReadout):
     ...     system, slab.rf, slab.gz,
     ...     fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,
     ... )
-    >>> readout.gz_pre.channel
+    >>> readout.gz_enc.channel
     'z'
 
     One interleaf of one partition, and the petals it traverses:
@@ -1272,10 +1202,256 @@ def _accept_rephaser(gz_reph, module, occupied):
     return left_align_rephaser(gz_reph, occupied, type(module).__name__)
 
 
-def _partition_encode(axis, fov_z, matrix_z, owner, system):
-    """Return a stack's partition encode and rewinder.
+def _balanced_spoke(readout_area, readout_duration, system):
+    """Return a spoke whose prephaser and rewinder share the plateau's ramps.
 
-    Reject partition arguments for non-stack readouts.
+    The prephaser ramps from zero into the plateau and the rewinder from the
+    plateau back to zero, each with half the plateau's area and the opposite
+    sign, so the spoke returns to the k-space point it started from.
+
+    Parameters
+    ----------
+    readout_area : float
+        Plateau area (1/m), ``2 * kmax``.
+    readout_duration : float
+        Plateau duration (s), on the gradient raster.
+    system : pypulseqpp.Opts
+        System limits.
+
+    Returns
+    -------
+    gx : GradEvent
+        The spoke on x, its plateau from ``pre_span`` to
+        ``pre_span + readout_duration``.
+    pre_span, rew_span : float
+        Durations of the prephaser and the rewinder (s).
+    """
+    amplitude = readout_area / readout_duration
+    _, pre_times, pre_amplitudes = pp.make_extended_trapezoid_area(
+        area=-0.5 * readout_area,
+        channel="x",
+        grad_start=0.0,
+        grad_end=amplitude,
+        system=system,
+    )
+    _, rew_times, rew_amplitudes = pp.make_extended_trapezoid_area(
+        area=-0.5 * readout_area,
+        channel="x",
+        grad_start=amplitude,
+        grad_end=0.0,
+        system=system,
+    )
+    pre_span = float(pre_times[-1])
+    plateau_end = pre_span + readout_duration
+    gx = pp.make_extended_trapezoid(
+        channel="x",
+        times=np.concatenate([pre_times, [plateau_end], plateau_end + rew_times[1:]]),
+        amplitudes=np.concatenate([pre_amplitudes, [amplitude], rew_amplitudes[1:]]),
+        system=system,
+    )
+    return gx, pre_span, float(rew_times[-1])
+
+
+def _merged_arms(arms, lead, pre_span, read_span, rew_span, system):
+    """Join each arm's prewinders, readout and rewinders into one waveform per axis.
+
+    The prewinders end where the readout starts, at ``lead``, and the
+    rewinders start where it ends; the trajectory designs them to meet the
+    readout at its own amplitude, so each axis plays one continuous waveform,
+    sampled at the centres of the gradient raster like the readout itself.
+
+    Returns
+    -------
+    gx, gy : GradEvent or list of GradEvent
+        One event per axis, or a list with one per arm when the arms differ.
+    """
+    pieces = [
+        (_bracket(arms, "prewinders", "right", pre_span, system), lead - pre_span),
+        (_bracket(arms, "gradients", None, 0.0, system), lead),
+        (_bracket(arms, "rewinders", "left", rew_span, system), lead + read_span),
+    ]
+    raster = system.grad_raster_time
+    n_points = round((lead + read_span + rew_span) / raster)
+    centres = (np.arange(n_points) + 0.5) * raster
+    per_axis = [[], []]
+    for i_arm in range(len(arms)):
+        samples = np.zeros((2, n_points))
+        bracket_mask = np.zeros(n_points, dtype=bool)
+        target = np.zeros(2)
+        present_axes = [False, False]
+        for axis in range(2):
+            parts = [_at(halves[axis], i_arm) for halves, _ in pieces]
+            for (_, offset), part, role in zip(
+                pieces, parts, ("pre", "read", "rew"), strict=True
+            ):
+                if part is None:
+                    continue
+                present_axes[axis] = True
+                times = offset + float(part.delay) + np.asarray(part.tt, dtype=float)
+                inside = (centres > times[0] - 1e-12) & (centres < times[-1] + 1e-12)
+                samples[axis, inside] += np.interp(
+                    centres[inside], times, np.asarray(part.waveform, dtype=float)
+                )
+                target[axis] += _part_area(part, raster)
+                if role != "read":
+                    bracket_mask |= inside
+        samples = _close_moment(samples, bracket_mask, target, raster)
+        for axis, channel in enumerate(("x", "y")):
+            per_axis[axis].append(
+                pp.make_arbitrary_grad(
+                    channel,
+                    samples[axis],
+                    first=0.0,
+                    last=0.0,
+                    delay=0.0,
+                    system=system,
+                )
+                if present_axes[axis]
+                else None
+            )
+    return [axis[0] if len(axis) == 1 else axis for axis in per_axis]
+
+
+def _close_moment(samples, bracket_mask, target, raster):
+    """Restore the designed net moment of an in-plane waveform pair.
+
+    Sampling the corner where a readout meets its bracket at the raster
+    centres trims a sliver of area that the bracket was designed to cancel.
+    Each axis gets back its missing area as a multiple of one profile shared
+    by both axes, the magnitude of the in-plane bracket, so an arm turned in
+    the plane is corrected by the same turn.
+
+    Parameters
+    ----------
+    samples : ndarray, shape (2, n)
+        x and y samples at the raster centres.
+    bracket_mask : ndarray of bool, shape (n,)
+        Samples that belong to a prewinder or rewinder.
+    target : ndarray, shape (2,)
+        Net area each axis was designed to play (1/m).
+    raster : float
+        Gradient raster time (s).
+
+    Returns
+    -------
+    ndarray, shape (2, n)
+        The corrected samples.
+    """
+    profile = np.where(bracket_mask, np.hypot(samples[0], samples[1]), 0.0)
+    weight = _played_area(profile, raster)
+    if weight == 0.0:
+        return samples
+    residual = np.array(
+        [t - _played_area(row, raster) for t, row in zip(target, samples, strict=True)]
+    )
+    return samples + residual[:, None] / weight * profile[None, :]
+
+
+def _played_area(samples, raster, first=0.0, last=0.0):
+    """Area of raster-centre samples joined linearly, from ``first`` to ``last``."""
+    if samples.size == 0:
+        return 0.0
+    inner = float(np.sum(samples)) - 0.5 * float(samples[0] + samples[-1])
+    return raster * (inner + 0.25 * (first + samples[0] + samples[-1] + last))
+
+
+def _part_area(part, raster):
+    """Played area of one bracket or readout event (1/m)."""
+    times = np.asarray(part.tt, dtype=float)
+    values = np.asarray(part.waveform, dtype=float)
+    if part.type == "trap" or times[0] < 0.25 * raster:
+        return (
+            float(part.area)
+            if part.type == "trap"
+            else float(np.trapezoid(values, times))
+        )
+    return _played_area(
+        values, raster, float(part.first or 0.0), float(part.last or 0.0)
+    )
+
+
+def _place_rephaser(te, te_base, lead, reph_span, *, has_partitions, system):
+    """Choose where the slice rephaser plays, and solve the TE wait.
+
+    The rephaser rides the TE wait when the wait is long enough to hold it.
+    Otherwise a 2D readout plays it at the start of the acquisition block,
+    ahead of the plateau, and a stack, whose z axis carries the partition
+    encode there, gives it a block of its own.
+
+    Parameters
+    ----------
+    te : float or None
+        Requested echo time (s); ``None`` is as short as possible.
+    te_base : float
+        Echo time with no wait, no rephaser block and no lead-in (s).
+    lead : float
+        Time from the start of the acquisition block to the readout (s).
+    reph_span : float
+        Rephaser duration (s), zero when there is none.
+    has_partitions : bool
+        Whether the acquisition block carries a partition encode on z.
+    system : pypulseqpp.Opts
+        System limits.
+
+    Returns
+    -------
+    placement : {'wait', 'readout', 'block'} or None
+        Where the rephaser plays; None when there is none.
+    lead : float
+        Lead-in of the acquisition block, lengthened to hold the rephaser.
+    wait_span : float
+        TE wait (s).
+    reph_block : float
+        Duration of the rephaser's own block (s), zero unless it has one.
+
+    Raises
+    ------
+    ValueError
+        If ``te`` is shorter than the layout can achieve.
+    """
+    if not reph_span:
+        return None, lead, solve_delay(te, te_base + lead, "TE", system), 0.0
+    if te is not None:
+        wait_span = solve_delay(te, te_base + lead, "TE", system)
+        if wait_span >= reph_span - 1e-12:
+            return "wait", lead, wait_span, 0.0
+    if has_partitions:
+        reph_block = pp.ceil_to_raster(reph_span, system.block_duration_raster)
+        wait_span = solve_delay(te, te_base + reph_block + lead, "TE", system)
+        return "block", lead, wait_span, reph_block
+    lead = max(lead, reph_span)
+    return "readout", lead, solve_delay(te, te_base + lead, "TE", system), 0.0
+
+
+def _spoiler(cycles, voxel_size_m, default_voxel_m, axis, system, lobe=None):
+    """Return the end-of-TR spoiler, or None when ``cycles`` is zero.
+
+    On the axis of a partition encode ``lobe``, its encode at ``+kmax``, the
+    spoiler has the polarity of the rewinder at ``+kmax``. At the first
+    partition, ``-kmax``, the rewinder then runs into a spoiler of the
+    opposite sign: the largest gradient switching of the scan falls on the
+    partition a check of the edge of k-space plays.
+    """
+    if not cycles:
+        return None
+    if voxel_size_m is None:
+        voxel_size_m = default_voxel_m
+    if voxel_size_m <= 0:
+        raise ValueError("voxel_size_m must be positive")
+    spoiler = pp.make_crusher(cycles, voxel_size_m, axis, system=system)[0]
+    if lobe is not None and lobe.channel == axis and float(lobe.amplitude) > 0:
+        return pp.scale_grad(spoiler, -1.0)
+    return spoiler
+
+
+_PARTITION_SLEW_MARGIN = 0.9
+
+
+def _partition_lobe(axis, fov_z, matrix_z, owner, system):
+    """Return a stack's partition encode at the outermost partition, ``+kmax``.
+
+    Return None for a readout without partitions, and reject partition
+    arguments given to one.
     """
     if axis is None:
         if fov_z is not None or matrix_z is not None:
@@ -1283,11 +1459,81 @@ def _partition_encode(axis, fov_z, matrix_z, owner, system):
                 f"{owner} encodes no partition axis, so fov_z and matrix_z mean nothing to "
                 "it; a stack variant is the class that takes them"
             )
-        return None, None
+        return None
     if not fov_z or not matrix_z:
         raise ValueError("a stack needs fov_z and matrix_z")
-    gz_pre = pp.make_phase_encoding(axis, float(fov_z) / int(matrix_z), system=system)
-    return gz_pre, pp.scale_grad(gz_pre, -1.0)
+    # The lobe is sampled at raster centres and rescaled to its area in
+    # _partition_wave; designing it below the slew limit leaves room for that.
+    return pp.make_trapezoid(
+        axis,
+        area=0.5 * int(matrix_z) / float(fov_z),
+        max_slew=_PARTITION_SLEW_MARGIN * system.max_slew,
+        system=system,
+    )
+
+
+def _partition_span(lobe, system):
+    """Time a partition encode needs before the readout, its guard and zero samples included."""
+    if lobe is None:
+        return 0.0
+    return pp.calc_duration(lobe) + 2 * system.grad_raster_time
+
+
+def _partition_wave(lobe, start, end, system):
+    """Return the partition encode and its rewinder as one waveform.
+
+    The encode ends one gradient raster before ``start`` and the rewinder,
+    its negative, begins one raster after ``end``, both counted from the start
+    of the block, with the gradient off in between. The waveform is sampled at
+    the centres of the gradient raster and opens and closes on a zero sample,
+    so every partition scales one and the same waveform: scaling it by
+    ``kz / kmax`` encodes any partition and leaves its net area zero.
+    """
+    rise, flat, fall = (
+        float(lobe.rise_time),
+        float(lobe.flat_time),
+        float(lobe.fall_time),
+    )
+    amplitude = float(lobe.amplitude)
+    span = rise + flat + fall
+    raster = system.grad_raster_time
+    # Samples at raster centres are joined linearly, so a lobe that ended on
+    # the first sample would still play across its first half raster; one
+    # raster of guard keeps the z gradient off throughout the readout, and
+    # with it kz constant over every sample.
+    encode_end, rewind_start = start - raster, end + raster
+    # A zero sample before the encode and after the rewinder: a player that
+    # holds a raster waveform's end samples over its edge half rasters plays
+    # it exactly as written.
+    first = encode_end - span - raster
+    lobe_start = first + raster
+    corners = np.array(
+        [
+            lobe_start,
+            lobe_start + rise,
+            encode_end - fall,
+            encode_end,
+            rewind_start,
+            rewind_start + rise,
+            rewind_start + rise + flat,
+            rewind_start + span,
+        ]
+    )
+    values = np.array([0.0, 1.0, 1.0, 0.0, 0.0, -1.0, -1.0, 0.0]) * amplitude
+    n_points = round((corners[-1] + raster - first) / raster)
+    centres = first + (np.arange(n_points) + 0.5) * raster
+    samples = np.interp(centres, corners, values)
+    # Joining the samples linearly trims the lobes' corners; rescale so the
+    # encode reaches the lobe's own area by the start of the readout.
+    played_times = np.concatenate([[first], centres, [first + n_points * raster]])
+    played = np.concatenate([[0.0], samples, [0.0]])
+    grid = np.concatenate([played_times[played_times < start], [start]])
+    samples *= float(lobe.area) / np.trapezoid(
+        np.interp(grid, played_times, played), grid
+    )
+    return pp.make_arbitrary_grad(
+        lobe.channel, samples, first=0.0, last=0.0, delay=float(first), system=system
+    )
 
 
 def _armed(trigger):
