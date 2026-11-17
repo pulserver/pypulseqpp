@@ -65,7 +65,7 @@ radius at the Nyquist spacing.
 
  .. code-block:: none
 
-    1208 blocks, 3.13 s
+    1208 blocks, 3.12 s
 
 
 
@@ -148,8 +148,8 @@ origin, whereas angular sampling density decreases with k-space radius.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    Nyquist              1208          3.13           302
-    ry = 3                404          1.05           101
+    Nyquist              1208          3.12           302
+    ry = 3                404          1.04           101
 
 
 
@@ -175,7 +175,7 @@ origin, whereas angular sampling density decreases with k-space radius.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.701 seconds)
+   **Total running time of the script:** (0 minutes 2.073 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_radial2D_sequence.py:

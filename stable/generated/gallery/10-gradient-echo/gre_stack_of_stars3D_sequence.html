@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=da629298"></script>
+    <script src="../../../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="2D radial gradient echo" href="gre_radial2D_sequence.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -527,7 +527,7 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="d-stack-of-stars-gradient-echo">
 <span id="sphx-glr-generated-gallery-10-gradient-echo-gre-stack-of-stars3d-sequence-py"></span><h1>3D stack-of-stars gradient echo<a class="headerlink" href="#d-stack-of-stars-gradient-echo" title="Link to this heading">#</a></h1>
-<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.63/_colab/10-gradient-echo/gre_stack_of_stars3D_sequence.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.69/_colab/10-gradient-echo/gre_stack_of_stars3D_sequence.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>A slab-selective spoiled excitation is followed by one radial spoke with
 Cartesian partition encoding. Gradient and RF spoiling suppress residual
@@ -544,7 +544,7 @@ structural and dynamic imaging.</p>
 </span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/gre_stack_of_stars3D_sequence.html#pypulseqpp.sequences.gre_stack_of_stars3D_sequence" title="pypulseqpp.sequences.gre_stack_of_stars3D_sequence"><span class="n">gre_stack_of_stars3D_sequence</span></a><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">baseline</span></a><span class="o">.</span><span class="n">num_blocks</span><span class="si">}</span><span class="s2"> blocks, </span><span class="si">{</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-method reference internal" href="../../pypulseqpp.Sequence.duration.html#pypulseqpp.Sequence.duration" title="pypulseqpp.Sequence.duration"><span class="n">baseline</span><span class="o">.</span><span class="n">duration</span></a><span class="p">(</span><span class="p">)</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>4832 blocks, 8.84 s
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>3624 blocks, 8.65 s
 </pre></div>
 </div>
 </section>
@@ -566,13 +566,13 @@ fourfold. Every acquired spoke samples the origin of its partition.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp-sequences sphx-glr-backref-type-py-function reference internal" href="../../sequences/gre_stack_of_stars3D_sequence.html#pypulseqpp.sequences.gre_stack_of_stars3D_sequence" title="pypulseqpp.sequences.gre_stack_of_stars3D_sequence"><span class="n">gre_stack_of_stars3D_sequence</span></a><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ry</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">tr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>                   blocks  duration (s)  acquisitions
-Nyquist              4832          8.84          1208
-ry = 4               1216          2.23           304
+Nyquist              3624          8.65          1208
+ry = 4                912          2.18           304
 </pre></div>
 </div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><a class="sphx-glr-backref-module-pypulseqpp-plot sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.plot.plot_kspace.html#pypulseqpp.plot.plot_kspace" title="pypulseqpp.plot.plot_kspace"><span class="n">pp</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_kspace</span></a><span class="p">(</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">alternative</span></a><span class="p">,</span> <span class="n">color_by</span><span class="o">=</span><span class="s2">&quot;</span><span class="s2">shot</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<img src="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_003.png" srcset="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_003.png" alt="gre stack of stars3D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 5.412 seconds)</p>
+<img src="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_003.png" srcset="../../../_images/sphx_glr_gre_stack_of_stars3D_sequence_003.png" alt="gre stack of stars3D sequence" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 4.291 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-10-gradient-echo-gre-stack-of-stars3d-sequence-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/3f07c4cd5ebe0c1d964b1ccf16aec93a/gre_stack_of_stars3D_sequence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">gre_stack_of_stars3D_sequence.ipynb</span></code></a></p>

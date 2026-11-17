@@ -57,7 +57,7 @@ The body is lesson 6, with the constants replaced by the parameters. It
 designs every event once, before the loop, as before, and it checks what
 only it can check: whether the train fits in the TR the user asked for.
 
-.. GENERATED FROM PYTHON SOURCE LINES 40-222
+.. GENERATED FROM PYTHON SOURCE LINES 40-230
 
 .. code-block:: Python
 
@@ -132,7 +132,7 @@ only it can check: whether the train fits in the TR the user asked for.
             return_gz=True,
         )
 
-        # The merged prewinder and readout of lesson 5.
+        # The balanced spoke of lesson 5, and the spoiler on z.
         dwell, readout_time = pp.calc_adc_timing(
             matrix,
             10e-6,
@@ -145,11 +145,15 @@ only it can check: whether the train fits in the TR the user asked for.
         _, times, amplitudes = pp.make_extended_trapezoid_area(
             channel="x", grad_start=0.0, grad_end=G, area=-G * plateau / 2, system=system
         )
+        _, rew_times, rew_amplitudes = pp.make_extended_trapezoid_area(
+            channel="x", grad_start=G, grad_end=0.0, area=-G * plateau / 2, system=system
+        )
         plateau_start = times[-1]
+        plateau_end = plateau_start + plateau
         g_read = pp.make_extended_trapezoid(
             "x",
-            times=np.append(times, plateau_start + plateau),
-            amplitudes=np.append(amplitudes, G),
+            times=np.concatenate([times, plateau_end + rew_times]),
+            amplitudes=np.concatenate([amplitudes, rew_amplitudes]),
             system=system,
         )
         adc = pp.make_adc(
@@ -158,28 +162,32 @@ only it can check: whether the train fits in the TR the user asked for.
             delay=plateau_start + (plateau - readout_time) / 2,
             system=system,
         )
-        g_spoil, _, _ = pp.make_extended_trapezoid_area(
-            channel="x",
-            grad_start=G,
-            grad_end=0.0,
-            area=2 * matrix * delta_k,
+        gz_spoil = pp.make_crusher(4.0, fov / matrix, channel="z", system=system)[0]
+
+        # The partition encoding and its rewinder of lesson 6: one z gradient
+        # either side of the plateau, scaled per partition.
+        kz_max = partitions // 2 / slab
+        lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+        lobe_span = pp.calc_duration(lobe)
+        gz_partition = pp.make_extended_trapezoid(
+            "z",
+            times=np.array(
+                [
+                    plateau_start - lobe_span,
+                    plateau_start - lobe_span + lobe.rise_time,
+                    plateau_start - lobe.fall_time,
+                    plateau_start,
+                    plateau_end,
+                    plateau_end + lobe.rise_time,
+                    plateau_end + lobe_span - lobe.fall_time,
+                    plateau_end + lobe_span,
+                ]
+            ),
+            amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,
             system=system,
         )
-
-        # One partition encoding and one rewinder per partition.
         kz = (np.arange(partitions) - partitions // 2) / slab
-        gz_encode = [
-            pp.make_trapezoid(
-                "z", area=gz_reph.area + k, duration=plateau_start, system=system
-            )
-            for k in kz
-        ]
-        gz_rewind = [
-            pp.make_trapezoid(
-                "z", area=-k, duration=pp.calc_duration(g_spoil), system=system
-            )
-            for k in kz
-        ]
+        gz_encode = [pp.scale_grad(gz_partition, k / kz_max) for k in kz]
 
         # The waits that set TI and TR, and the check that they are possible.
         block_raster = system.block_duration_raster
@@ -197,8 +205,9 @@ only it can check: whether the train fits in the TR the user asked for.
             raise ValueError(f"TI of {1e3 * ti:.1f} ms is shorter than the inversion")
         spoke_tr = (
             pp.calc_duration(rf, gz)
+            + pp.calc_duration(gz_reph)
             + pp.calc_duration(g_read, adc, gz_encode[0])
-            + pp.calc_duration(g_spoil, gz_rewind[0])
+            + pp.calc_duration(gz_spoil)
         )
         played = (
             pp.calc_duration(rf_inv)
@@ -226,12 +235,11 @@ only it can check: whether the train fits in the TR the user asked for.
                 phase = (np.deg2rad(117.0) * spoke * (spoke + 1) / 2) % (2 * np.pi)
                 rf.phase_offset = adc.phase_offset = phase
                 seq.add_block(rf, gz, *labels(LIN=spoke, PAR=partition))
+                seq.add_block(gz_reph)
                 seq.add_block(
                     *pp.rotate(g_read, angle=angle, axis="z"), adc, gz_encode[partition]
                 )
-                seq.add_block(
-                    *pp.rotate(g_spoil, angle=angle, axis="z"), gz_rewind[partition]
-                )
+                seq.add_block(gz_spoil)
                 n += 1
             seq.add_block(wait_recovery)
 
@@ -250,7 +258,7 @@ only it can check: whether the train fits in the TR the user asked for.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 223-228
+.. GENERATED FROM PYTHON SOURCE LINES 231-236
 
 Function call
 -------------
@@ -258,7 +266,7 @@ Function call
 The scanner is a separate argument because the same protocol runs on
 different scanners, and the same scanner runs many protocols:
 
-.. GENERATED FROM PYTHON SOURCE LINES 228-243
+.. GENERATED FROM PYTHON SOURCE LINES 236-251
 
 .. code-block:: Python
 
@@ -291,12 +299,12 @@ different scanners, and the same scanner runs many protocols:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 244-246
+.. GENERATED FROM PYTHON SOURCE LINES 252-254
 
 A protocol the function cannot play is an error, and the message says why,
 in the units the user wrote:
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-251
+.. GENERATED FROM PYTHON SOURCE LINES 254-259
 
 .. code-block:: Python
 
@@ -313,12 +321,12 @@ in the units the user wrote:
 
  .. code-block:: none
 
-    TR of 1500 ms is shorter than the 2529 ms one inversion takes
+    TR of 1500 ms is shorter than the 3201 ms one inversion takes
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 252-260
+.. GENERATED FROM PYTHON SOURCE LINES 260-268
 
 Protocol
 --------
@@ -329,7 +337,7 @@ unit and description from the docstring. This is all a protocol editor
 needs to show your sequence, with no list of parameters written anywhere
 else.
 
-.. GENERATED FROM PYTHON SOURCE LINES 260-265
+.. GENERATED FROM PYTHON SOURCE LINES 268-273
 
 .. code-block:: Python
 
@@ -358,7 +366,7 @@ else.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 266-281
+.. GENERATED FROM PYTHON SOURCE LINES 274-289
 
 Command-line interface
 ----------------------
@@ -376,7 +384,7 @@ that ends with
 runs as ``python radial_mprage.py --ti 1.1 -o mprage.seq``. Its help
 text:
 
-.. GENERATED FROM PYTHON SOURCE LINES 281-288
+.. GENERATED FROM PYTHON SOURCE LINES 289-296
 
 .. code-block:: Python
 
@@ -434,7 +442,7 @@ text:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 289-297
+.. GENERATED FROM PYTHON SOURCE LINES 297-305
 
 File output
 -----------
@@ -445,7 +453,7 @@ sequences, prescans first and the main sequence last; ``write`` then
 writes one file each, linked in order through the ``NextSequence``
 definition.
 
-.. GENERATED FROM PYTHON SOURCE LINES 297-304
+.. GENERATED FROM PYTHON SOURCE LINES 305-312
 
 .. code-block:: Python
 
@@ -469,7 +477,7 @@ definition.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 305-313
+.. GENERATED FROM PYTHON SOURCE LINES 313-321
 
 Shipped sequences
 -----------------
@@ -480,7 +488,7 @@ function. The shipped radial MPRAGE, which you checked in lesson 7, has many
 more parameters than yours, from partial Fourier to the excitation pulse,
 but they are read the same way:
 
-.. GENERATED FROM PYTHON SOURCE LINES 313-316
+.. GENERATED FROM PYTHON SOURCE LINES 321-324
 
 .. code-block:: Python
 
@@ -500,7 +508,7 @@ but they are read the same way:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 317-336
+.. GENERATED FROM PYTHON SOURCE LINES 325-344
 
 Pulserver, which runs these sequences on a scanner, builds its protocol
 editor from the same record, and calls the function with what the user
@@ -525,7 +533,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.313 seconds)
+   **Total running time of the script:** (0 minutes 0.110 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_08_sequence_functions.py:

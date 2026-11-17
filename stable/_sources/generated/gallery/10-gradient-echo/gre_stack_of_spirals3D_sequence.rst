@@ -64,7 +64,7 @@ Sixteen interleaves at every partition.
 
  .. code-block:: none
 
-    512 blocks, 0.91 s
+    384 blocks, 0.99 s
 
 
 
@@ -146,8 +146,8 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 interleaves        512          0.91           128
-    8 interleaves         256          0.61            64
+    16 interleaves        384          0.99           128
+    8 interleaves         192          0.65            64
 
 
 
@@ -173,7 +173,7 @@ the spiral pitch. The resulting peripheral sampling is below the Nyquist rate.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.215 seconds)
+   **Total running time of the script:** (0 minutes 2.483 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_spirals3D_sequence.py:

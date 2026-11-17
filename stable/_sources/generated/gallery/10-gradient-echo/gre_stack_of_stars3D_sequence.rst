@@ -65,7 +65,7 @@ The Nyquist set of spoke angles at every partition. With the default
 
  .. code-block:: none
 
-    4832 blocks, 8.84 s
+    3624 blocks, 8.65 s
 
 
 
@@ -145,8 +145,8 @@ fourfold. Every acquired spoke samples the origin of its partition.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    Nyquist              4832          8.84          1208
-    ry = 4               1216          2.23           304
+    Nyquist              3624          8.65          1208
+    ry = 4                912          2.18           304
 
 
 
@@ -172,7 +172,7 @@ fourfold. Every acquired spoke samples the origin of its partition.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.412 seconds)
+   **Total running time of the script:** (0 minutes 4.291 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_stack_of_stars3D_sequence.py:

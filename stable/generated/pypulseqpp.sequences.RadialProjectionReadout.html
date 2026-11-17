@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=da629298"></script>
+    <script src="../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -523,8 +523,12 @@
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences._module.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a></p>
 <p>Radial spokes for a spherical projection acquisition.</p>
 <p>The loop supplies 3D rotations. Partition encoding is not supported.</p>
-<p>The ADC samples the plateau. A slice rephaser may share an axis left
-invariant by the shot rotation. With <code class="docutils literal notranslate"><span class="pre">explicit=True</span></code> the spokes are
+<p>The prephaser and rewinder each cancel half the plateau area, so the spoke
+leaves no in-plane moment at any angle and the ADC samples the plateau. A
+stack plays its partition encode and rewinder as one z waveform in the
+same block, and the spoiler, when asked for, in a block of its own on a
+fixed axis. A slice rephaser may share an axis left invariant by the shot
+rotation. With <code class="docutils literal notranslate"><span class="pre">explicit=True</span></code> the spokes are
 written out, one per entry of <code class="docutils literal notranslate"><span class="pre">angles</span></code>; otherwise the caller rotates one
 base spoke per shot.</p>
 <p>A compact layout holds one base arm, which the caller rotates per shot; an
@@ -571,7 +575,9 @@ caller.</p></li>
 <li><p><strong>gx, gy</strong> (<em>GradEvent</em>) – The spoke from prephaser through rewinder. <code class="docutils literal notranslate"><span class="pre">gy</span></code> is the same waveform
 at zero amplitude, so a rotation always has a y event to fill. Lists
 with one entry per angle when <code class="docutils literal notranslate"><span class="pre">explicit</span></code>.</p></li>
-<li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – Partition encode and its rewinder. Stacks only.</p></li>
+<li><p><strong>gz_enc</strong> (<em>GradEvent</em>) – Partition encode, ending where the readout starts, and its rewinder,
+starting where it ends, as one waveform at <code class="docutils literal notranslate"><span class="pre">+kmax</span></code>; scale it by
+<code class="docutils literal notranslate"><span class="pre">kz</span> <span class="pre">/</span> <span class="pre">kmax</span></code> per partition. Its net area is zero. Stacks only.</p></li>
 <li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – End-of-TR spoiler; present when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, delayed onto the readout plateau.</p></li>
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>

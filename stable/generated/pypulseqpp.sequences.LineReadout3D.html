@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=da629298"></script>
+    <script src="../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -67,7 +67,7 @@
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -594,7 +594,8 @@ correspondingly less area.</p></li>
 rewinds the part of the line after the echo and, under
 <code class="docutils literal notranslate"><span class="pre">spoiling_position='post'</span></code>, adds the spoiler.</p></li>
 <li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>
-is 3D only.</p></li>
+is 3D only. Right-aligned in the prewinder block, except under
+<code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>, where they start it.</p></li>
 <li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The negated encodes that unwind them.</p></li>
 <li><p><strong>gx_flyback</strong> (<em>TrapEvent</em>) – Rewinder played after every echo but the last of a monopolar train.</p></li>
 <li><p><strong>gx_rev</strong> (<em>GradEvent</em>) – Negated lobe that reads the even echoes of a bipolar train.</p></li>

@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=da629298"></script>
+    <script src="../../../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -71,7 +71,7 @@
     <link rel="prev" title="9. Sequence modules" href="09_sequence_modules.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -531,7 +531,7 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="custom-sequence-module">
 <span id="sphx-glr-generated-gallery-01-course-10-custom-sequence-module-py"></span><h1>10. Custom sequence module<a class="headerlink" href="#custom-sequence-module" title="Link to this heading">#</a></h1>
-<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.63/_colab/01-course/10_custom_sequence_module.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.69/_colab/01-course/10_custom_sequence_module.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>The shipped modules cover the common parts of a sequence, but sooner or later
 you need one that is not there. A module is a small class, and writing one
@@ -758,11 +758,11 @@ T2 preparation.</p>
 </span>        <span class="n">readout_bandwidth_hz</span><span class="o">=</span><span class="mf">100e3</span><span class="p">,</span><span class="w">
 </span>        <span class="n">spoiling_cycles</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span><span class="w">
 </span>    <span class="p">)</span><span class="w">
-</span>    <span class="n">pulse</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">read</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">blocks</span><span class="w">
+</span>    <span class="n">pulse</span><span class="p">,</span> <span class="n">read</span><span class="p">,</span> <span class="n">spoil</span> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">blocks</span><span class="w">
 </span><span class="w">
 </span>    <span class="n">steps</span> <span class="o">=</span> <span class="p">(</span><a class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="n">partitions</span><span class="p">)</span> <span class="o">-</span> <span class="n">partitions</span> <span class="o">/</span><span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">partitions</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="w">
-</span>    <span class="n">gz_encode</span> <span class="o">=</span> <span class="p">[</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.scale_grad.html#pypulseqpp.scale_grad" title="pypulseqpp.scale_grad"><span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span></a><span class="p">(</span><span class="n">readout</span><span class="o">.</span><span class="n">gz_pre</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">]</span><span class="w">
-</span>    <span class="n">gz_rewind</span> <span class="o">=</span> <span class="p">[</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.scale_grad.html#pypulseqpp.scale_grad" title="pypulseqpp.scale_grad"><span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span></a><span class="p">(</span><span class="n">readout</span><span class="o">.</span><span class="n">gz_rew</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">]</span><span class="w">
+</span>    <span class="n">gz_encode</span> <span class="o">=</span> <span class="p">[</span><a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.scale_grad.html#pypulseqpp.scale_grad" title="pypulseqpp.scale_grad"><span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span></a><span class="p">(</span><span class="n">readout</span><span class="o">.</span><span class="n">gz_enc</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">]</span><span class="w">
+</span>    <span class="n">in_plane</span> <span class="o">=</span> <span class="p">[</span><span class="n">event</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">read</span> <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">readout</span><span class="o">.</span><span class="n">gz_enc</span><span class="p">]</span><span class="w">
 </span><span class="w">
 </span>    <span class="n">raster</span> <span class="o">=</span> <a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="float"><span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span></a><span class="w">
 </span>    <span class="n">ti_wait</span> <span class="o">=</span> <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-function reference internal" href="../../pypulseqpp.round_to_raster.html#pypulseqpp.round_to_raster" title="pypulseqpp.round_to_raster"><span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span></a><span class="p">(</span><span class="w">
@@ -795,9 +795,8 @@ T2 preparation.</p>
 </span>        <span class="k">for</span> <span class="n">spoke</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">spokes_per_train</span><span class="p">)</span><span class="p">:</span><span class="w">
 </span>            <span class="n">readout</span><span class="o">.</span><span class="n">rf</span><span class="o">.</span><span class="n">phase_offset</span> <span class="o">=</span> <span class="n">readout</span><span class="o">.</span><span class="n">adc</span><span class="o">.</span><span class="n">phase_offset</span> <span class="o">=</span> <span class="n">phases</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="w">
 </span>            <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">pulse</span><span class="p">,</span> <span class="o">*</span><span class="n">labels</span><span class="p">(</span><span class="n">LIN</span><span class="o">=</span><span class="n">spoke</span><span class="p">,</span> <span class="n">PAR</span><span class="o">=</span><span class="n">partition</span><span class="p">)</span><span class="p">)</span><span class="w">
-</span>            <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_encode</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span><span class="p">)</span><span class="w">
-</span>            <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">read</span><span class="p">,</span> <span class="n">rotations</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="p">)</span><span class="w">
-</span>            <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_rewind</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span><span class="p">,</span> <span class="n">readout</span><span class="o">.</span><span class="n">gz_spoil</span><span class="p">)</span><span class="w">
+</span>            <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">in_plane</span><span class="p">,</span> <span class="n">gz_encode</span><span class="p">[</span><span class="n">partition</span><span class="p">]</span><span class="p">,</span> <span class="n">rotations</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="p">)</span><span class="w">
+</span>            <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="o">*</span><span class="n">spoil</span><span class="p">)</span><span class="w">
 </span>            <span class="n">n</span> <span class="o">+</span><span class="o">=</span> <span class="mi">1</span><span class="w">
 </span>        <a class="sphx-glr-backref-module-pypulseqpp sphx-glr-backref-type-py-class sphx-glr-backref-instance reference internal" href="../../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence"><span class="n">seq</span></a><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_recovery</span><span class="p">)</span><span class="w">
 </span><span class="w">
@@ -878,7 +877,7 @@ this module and the shipped T2Preparation over B1 0.6-1.4 and
 +-250 Hz with sim_bloch.
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.380 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 1.112 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-course-10-custom-sequence-module-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/9492cb78c66f2090c5df6ce34dc65f90/10_custom_sequence_module.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">10_custom_sequence_module.ipynb</span></code></a></p>

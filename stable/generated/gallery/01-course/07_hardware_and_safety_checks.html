@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../_static/documentation_options.js?v=da629298"></script>
+    <script src="../../../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -57,7 +57,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -69,7 +69,7 @@
     <link rel="prev" title="6. Radial MPRAGE" href="06_radial_mprage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -530,7 +530,7 @@ to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="hardware-and-safety-checks">
 <span id="sphx-glr-generated-gallery-01-course-07-hardware-and-safety-checks-py"></span><h1>7. Hardware and safety checks<a class="headerlink" href="#hardware-and-safety-checks" title="Link to this heading">#</a></h1>
-<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.63/_colab/01-course/07_hardware_and_safety_checks.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
+<a class="reference external image-reference" href="https://colab.research.google.com/github/pulserver/pypulseqpp/blob/gh-pages/v0.0.69/_colab/01-course/07_hardware_and_safety_checks.ipynb"><img alt="Open in Colab" class="colab-badge" src="https://colab.research.google.com/assets/colab-badge.svg" />
 </a>
 <p>A sequence that passes <code class="docutils literal notranslate"><span class="pre">check_timing</span></code> is one the scanner can play, block by
 block. Whether it should is a question about the whole scan: does any gradient
@@ -618,7 +618,7 @@ gradient that jumps between two blocks, which the scanner cannot play.</p>
 </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="s2">continuity: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="list"><span class="n">cont</span><span class="o">.</span><span class="n">discontinuities</span></a><span class="p">)</span><span class="si">}</span><span class="s2"> jumps</span><span class="s2">&quot;</span><span class="p">)</span><span class="w">
 </span></pre></div></div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>amplitude: largest 31.4 mT/m on z, vector 31.4 mT/m, limit 32 mT/m
-slew rate: largest 121 T/m/s, limit 130 T/m/s
+slew rate: largest 123 T/m/s, limit 130 T/m/s
 continuity: 0 jumps
 </pre></div>
 </div>
@@ -639,12 +639,12 @@ scanner supplies its own model, which you read from its file.</p>
 </span>    <span class="sa">f</span><span class="s2">&quot;</span><span class="s2">in block </span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">pns</span><span class="o">.</span><span class="n">peak</span><span class="o">.</span><span class="n">block</span></a><span class="si">}</span><span class="s2">&quot;</span><span class="w">
 </span><span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peak 0.79 of threshold at 38.732 s, in block 4286
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>peak 0.81 of threshold at 1.470 s, in block 194
 </pre></div>
 </div>
 <p>With <code class="docutils literal notranslate"><span class="pre">trace=True</span></code> the check also returns the response over time, so you
 can see where the peak comes from. The figure shows the spokes around it.</p>
-<img src="../../../_images/sphx_glr_07_hardware_and_safety_checks_001.png" srcset="../../../_images/sphx_glr_07_hardware_and_safety_checks_001.png" alt="07 hardware and safety checks" class = "sphx-glr-single-img"/><p>The response peaks on the ramps of the merged readout and spoiler, where
+<img src="../../../_images/sphx_glr_07_hardware_and_safety_checks_001.png" srcset="../../../_images/sphx_glr_07_hardware_and_safety_checks_001.png" alt="07 hardware and safety checks" class = "sphx-glr-single-img"/><p>The response peaks on the gradient ramps, where
 the slew rate is highest. Your MPRAGE stays below the threshold.</p>
 </section>
 <section id="mechanical-resonance">
@@ -666,8 +666,8 @@ along the scan, and counts the windows where a band exceeds its tolerance:</p>
 </span>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="int"><span class="n">band</span><span class="o">.</span><span class="n">violations</span></a><span class="si">}</span><span class="s2"> windows over the tolerance</span><span class="s2">&quot;</span><span class="w">
 </span>    <span class="p">)</span><span class="w">
 </span></pre></div></div>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>2.2 mT/m at 600 Hz, 0 windows over the tolerance
-1.6 mT/m at 1253 Hz, 0 windows over the tolerance
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>2.3 mT/m at 620 Hz, 0 windows over the tolerance
+1.7 mT/m at 1293 Hz, 0 windows over the tolerance
 </pre></div>
 </div>
 <p>The spectrum of the window where the first band peaks:</p>
@@ -709,9 +709,9 @@ subject. A real one is read from a file with
 <h2>Check summary<a class="headerlink" href="#check-summary" title="Link to this heading">#</a></h2>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>timing                         pass   0 errors
 gradient amplitude             pass   31.4 mT/m
-slew rate                      pass   121 T/m/s
+slew rate                      pass   123 T/m/s
 gradient continuity            pass   0 jumps
-nerve stimulation              pass   0.79 of threshold
+nerve stimulation              pass   0.81 of threshold
 mechanical resonance           pass   0 windows over
 SAR                            pass   0.33 W/kg local
 </pre></div>
@@ -731,7 +731,7 @@ example_vops. Plot the gradient spectrum against the bands, and print
 every verdict.
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.536 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.408 seconds)</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-generated-gallery-01-course-07-hardware-and-safety-checks-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../../../_downloads/050c43341fa8a8083387eb447a82292f/07_hardware_and_safety_checks.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">07_hardware_and_safety_checks.ipynb</span></code></a></p>

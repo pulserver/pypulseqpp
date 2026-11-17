@@ -110,8 +110,8 @@ gz_crush = pp.make_crusher(4.0, PARTITION_THICKNESS, channel="z", system=system)
 # Readout train
 # -------------
 #
-# The excitation now selects the whole slab, and the readout is the merged
-# radial readout of lesson 5.
+# The excitation now selects the whole slab, the readout is the balanced
+# spoke of lesson 5, and the spoiler plays on z after it, never rotated.
 rf, gz, gz_reph = pp.make_sinc_pulse(
     flip_angle=np.deg2rad(FLIP_ANGLE_DEG),
     duration=1e-3,
@@ -136,11 +136,15 @@ G = MATRIX * delta_k / readout_time
 _, times, amplitudes = pp.make_extended_trapezoid_area(
     channel="x", grad_start=0.0, grad_end=G, area=-G * plateau / 2, system=system
 )
+_, rew_times, rew_amplitudes = pp.make_extended_trapezoid_area(
+    channel="x", grad_start=G, grad_end=0.0, area=-G * plateau / 2, system=system
+)
 plateau_start = times[-1]
+plateau_end = plateau_start + plateau
 g_read = pp.make_extended_trapezoid(
     "x",
-    times=np.append(times, plateau_start + plateau),
-    amplitudes=np.append(amplitudes, G),
+    times=np.concatenate([times, plateau_end + rew_times]),
+    amplitudes=np.concatenate([amplitudes, rew_amplitudes]),
     system=system,
 )
 adc = pp.make_adc(
@@ -149,33 +153,44 @@ adc = pp.make_adc(
     delay=plateau_start + (plateau - readout_time) / 2,
     system=system,
 )
-g_spoil, _, _ = pp.make_extended_trapezoid_area(
-    channel="x", grad_start=G, grad_end=0.0, area=2 * MATRIX * delta_k, system=system
-)
+gz_spoil = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 
 # %%
 # Stack of stars
 # --------------
 #
 # Each partition :math:`p` sits at :math:`k_z = (p - P/2)\,\Delta k_z`. The
-# partition encoding plays on z while the prewinder plays on x and y, in the
-# same block as the slab rephaser, and a block holds one gradient per
-# channel. So you design one z gradient per partition that does both: the
-# rephaser's area plus the partition's :math:`k_z`, as long as the prewinder.
-# After the readout, a z gradient in the spoiler block brings :math:`k_z` back
-# to zero.
+# partition encoding plays on z in the same block as the spoke: it ends where
+# the plateau begins, and its mirror image, which brings :math:`k_z` back to
+# zero, starts where the plateau ends. Both lobes scale with :math:`k_z`, so
+# they are one z gradient, designed once at the largest :math:`k_z`, each lobe
+# as long as the prewinder, and scaled for each partition with :func:`~pypulseqpp.scale_grad`. The scanner
+# then plays one waveform for every partition, at a different amplitude.
 #
-# These are 16 different gradients, and you still design them before the
-# loop, once each.
+# The slab rephaser does not scale with :math:`k_z`, so it cannot join that
+# gradient: it plays in a block of its own, right after the excitation.
+kz_max = PARTITIONS // 2 * delta_kz
+lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+lobe_span = pp.calc_duration(lobe)
+gz_partition = pp.make_extended_trapezoid(
+    "z",
+    times=np.array(
+        [
+            plateau_start - lobe_span,
+            plateau_start - lobe_span + lobe.rise_time,
+            plateau_start - lobe.fall_time,
+            plateau_start,
+            plateau_end,
+            plateau_end + lobe.rise_time,
+            plateau_end + lobe_span - lobe.fall_time,
+            plateau_end + lobe_span,
+        ]
+    ),
+    amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,
+    system=system,
+)
 kz = (np.arange(PARTITIONS) - PARTITIONS // 2) * delta_kz
-gz_encode = [
-    pp.make_trapezoid("z", area=gz_reph.area + k, duration=plateau_start, system=system)
-    for k in kz
-]
-gz_rewind = [
-    pp.make_trapezoid("z", area=-k, duration=pp.calc_duration(g_spoil), system=system)
-    for k in kz
-]
+gz_encode = [pp.scale_grad(gz_partition, k / kz_max) for k in kz]
 
 # %%
 # Inversion time
@@ -196,8 +211,9 @@ ti_wait = pp.round_to_raster(
 
 spoke_tr = (
     pp.calc_duration(rf, gz)
+    + pp.calc_duration(gz_reph)
     + pp.calc_duration(g_read, adc, gz_encode[0])
-    + pp.calc_duration(g_spoil, gz_rewind[0])
+    + pp.calc_duration(gz_spoil)
 )
 train = SPOKES_PER_TRAIN * spoke_tr
 played = pp.calc_duration(rf_inv) + pp.calc_duration(gz_crush) + ti_wait + train
@@ -230,10 +246,11 @@ for partition in range(PARTITIONS):
         phase = (np.deg2rad(117.0) * spoke * (spoke + 1) / 2) % (2 * np.pi)
         rf.phase_offset = adc.phase_offset = phase
         seq.add_block(rf, gz, *labels(LIN=spoke, PAR=partition))
+        seq.add_block(gz_reph)
         seq.add_block(
             *pp.rotate(g_read, angle=angle, axis="z"), adc, gz_encode[partition]
         )
-        seq.add_block(*pp.rotate(g_spoil, angle=angle, axis="z"), gz_rewind[partition])
+        seq.add_block(gz_spoil)
         n += 1
     seq.add_block(pp.make_delay(recovery))
 
@@ -250,8 +267,8 @@ print(f"timing ok: {ok}, scan time {seq.duration()[0]:.1f} s")
 seq.paper_plot(time_range=(0, T_INVERSION))
 
 # %%
-# And the first spokes of the train, where you can see the partition
-# encoding on z next to the prewinder:
+# And the first spokes of the train, where you can see the slab rephaser, the
+# partition encoding on z either side of the plateau, and the spoiler:
 start = pp.calc_duration(rf_inv) + pp.calc_duration(gz_crush) + ti_wait
 seq.paper_plot(time_range=(start, start + 3 * spoke_tr))
 
@@ -347,9 +364,11 @@ print("LIN of the first train:", counters["LIN"][:6], "...")
 #    Write a pypulseqpp 3D radial MPRAGE as a stack of stars: 220 mm FOV,
 #    128 matrix, 16 partitions of 5 mm, 64 golden-angle spokes per inversion
 #    (one partition per inversion, the angle advancing across the whole
-#    scan), 8 degree slab-selective sinc, 10 us dwell, merged prewinder and
-#    readout, TI 900 ms from the inversion centre to the first excitation,
-#    one inversion every 2.5 s with a 10 ms hyperbolic-secant pulse and a z
-#    crusher. Combine the slab rephaser and the partition encoding in one z
-#    gradient per partition, rewind kz in the spoiler block, label LIN and
-#    PAR, RF spoil at 117 degrees, and check the timing.
+#    scan), 8 degree slab-selective sinc, 10 us dwell, balanced spoke
+#    (prewinder, readout and rewinder merged), TI 900 ms from the inversion
+#    centre to the first excitation, one inversion every 2.5 s with a 10 ms
+#    hyperbolic-secant pulse and a z crusher. Play the slab rephaser in its
+#    own block; in the spoke's block, one z gradient that encodes kz before
+#    the plateau and rewinds it after, designed at the largest kz and scaled
+#    per partition; a 4-cycle z spoiler after the spoke, never rotated.
+#    Label LIN and PAR, RF spoil at 117 degrees, and check the timing.

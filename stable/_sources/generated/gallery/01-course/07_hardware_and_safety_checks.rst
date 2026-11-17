@@ -153,7 +153,7 @@ gradient that jumps between two blocks, which the scanner cannot play.
  .. code-block:: none
 
     amplitude: largest 31.4 mT/m on z, vector 31.4 mT/m, limit 32 mT/m
-    slew rate: largest 121 T/m/s, limit 130 T/m/s
+    slew rate: largest 123 T/m/s, limit 130 T/m/s
     continuity: 0 jumps
 
 
@@ -192,7 +192,7 @@ scanner supplies its own model, which you read from its file.
 
  .. code-block:: none
 
-    peak 0.79 of threshold at 38.732 s, in block 4286
+    peak 0.81 of threshold at 1.470 s, in block 194
 
 
 
@@ -218,7 +218,7 @@ can see where the peak comes from. The figure shows the spokes around it.
 
 .. GENERATED FROM PYTHON SOURCE LINES 166-179
 
-The response peaks on the ramps of the merged readout and spoiler, where
+The response peaks on the gradient ramps, where
 the slew rate is highest. Your MPRAGE stays below the threshold.
 
 Mechanical resonance
@@ -255,8 +255,8 @@ along the scan, and counts the windows where a band exceeds its tolerance:
 
  .. code-block:: none
 
-    2.2 mT/m at 600 Hz, 0 windows over the tolerance
-    1.6 mT/m at 1253 Hz, 0 windows over the tolerance
+    2.3 mT/m at 620 Hz, 0 windows over the tolerance
+    1.7 mT/m at 1293 Hz, 0 windows over the tolerance
 
 
 
@@ -348,9 +348,9 @@ Check summary
 
     timing                         pass   0 errors
     gradient amplitude             pass   31.4 mT/m
-    slew rate                      pass   121 T/m/s
+    slew rate                      pass   123 T/m/s
     gradient continuity            pass   0 jumps
-    nerve stimulation              pass   0.79 of threshold
+    nerve stimulation              pass   0.81 of threshold
     mechanical resonance           pass   0 windows over
     SAR                            pass   0.33 W/kg local
 
@@ -380,7 +380,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.536 seconds)
+   **Total running time of the script:** (0 minutes 0.408 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_07_hardware_and_safety_checks.py:

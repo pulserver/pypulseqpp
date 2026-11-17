@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../../_static/documentation_options.js?v=da629298"></script>
+    <script src="../../../../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -575,7 +575,8 @@
 <span class="sd">        ``spoiling_position='post'``, adds the spoiler.</span>
 <span class="sd">    gy_pre, gz_pre : TrapEvent</span>
 <span class="sd">        Phase encodes at their largest step, to be scaled per shot. ``gz_pre``</span>
-<span class="sd">        is 3D only.</span>
+<span class="sd">        is 3D only. Right-aligned in the prewinder block, except under</span>
+<span class="sd">        ``spoiling_position='pre'``, where they start it.</span>
 <span class="sd">    gy_rew, gz_rew : TrapEvent</span>
 <span class="sd">        The negated encodes that unwind them.</span>
 <span class="sd">    gx_flyback : TrapEvent</span>
@@ -889,12 +890,19 @@
         <span class="c1"># writes is part of the event the caller receives. The delay sets the</span>
         <span class="c1"># span everything is right-aligned against and is then dropped: the</span>
         <span class="c1"># aligned gradients already end there, so they hold the block open.</span>
-        <span class="n">_prewinder</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">))</span>
+        <span class="c1"># Before an SSFP-echo the read prephaser carries the spoiler and holds</span>
+        <span class="c1"># the block open well past the encodes; starting them with the block</span>
+        <span class="c1"># lets their eddy currents, which change with every line, decay before</span>
+        <span class="c1"># the first sample.</span>
+        <span class="n">early</span> <span class="o">=</span> <span class="n">_prewinder</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">spoiling_position</span> <span class="o">==</span> <span class="s2">"pre"</span> <span class="ow">and</span> <span class="n">spoil_area</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">late</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">_prewinder</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">_prewinder</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">early</span><span class="p">)],</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">),</span> <span class="o">*</span><span class="n">early</span><span class="p">]</span>
+        <span class="n">aligned</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">late</span><span class="p">)</span> <span class="k">if</span> <span class="n">left</span> <span class="k">else</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="n">late</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">trigger</span><span class="p">,</span> <span class="o">*</span><span class="n">_prewinder</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="p">[</span><span class="n">trigger</span><span class="p">],</span> <span class="n">right</span><span class="o">=</span><span class="n">_prewinder</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">_prewinder</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="n">_prewinder</span><span class="p">)</span>
-        <span class="n">_prewinder</span> <span class="o">=</span> <span class="n">_prewinder</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">trigger</span> <span class="o">=</span> <span class="n">aligned</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">aligned</span> <span class="o">=</span> <span class="n">aligned</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">present</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span> <span class="p">:]</span>
+        <span class="n">early</span><span class="p">,</span> <span class="n">late</span> <span class="o">=</span> <span class="n">aligned</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">early</span><span class="p">)],</span> <span class="n">aligned</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">early</span><span class="p">)</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">_prewinder</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">late</span><span class="p">,</span> <span class="o">*</span><span class="n">early</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span><span class="p">,</span> <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">_prewinder</span>
         <span class="k">else</span><span class="p">:</span>

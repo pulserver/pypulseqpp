@@ -23,7 +23,7 @@ Balanced SSFP
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat with alternating RF phase. Zero net gradient moment in every TR preserves transverse coherence and establishes a steady state governed by T2/T1 and off-resonance. A half-flip preparation reduces transient oscillation. 2D bSSFP is widely used for cardiac cine and dynamic cardiac imaging.">
+    <div class="sphx-glr-thumbcontainer" tooltip="A low-flip-angle excitation and balanced Cartesian gradient-echo readout repeat with alternating RF phase. Zero net gradient moment in every TR preserves transverse coherence and establishes a steady state governed by T2/T1 and off-resonance. A catalyst that ramps the flip angle over the first dummy repetitions damps the transient oscillation. 2D bSSFP is widely used for cardiac cine and dynamic cardiac imaging.">
 
 .. only:: html
 

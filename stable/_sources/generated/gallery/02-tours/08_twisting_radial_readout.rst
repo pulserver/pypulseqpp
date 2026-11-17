@@ -304,8 +304,8 @@ Repetition
 
  .. code-block:: none
 
-    events: adc, gx, gx_rew, gy, gy_rew, gz, gz_reph, gz_spoil, rf, wait_pre, wait_rew
-    TE 2.080 ms over a 9.240 ms repetition
+    events: adc, gx, gy, gz, gz_reph, gz_spoil, rf
+    TE 2.080 ms over a 9.980 ms repetition
 
 
 
@@ -349,7 +349,7 @@ designed once and stored once; only the rotation changes from shot to shot.
 
  .. code-block:: none
 
-    64 blocks, 147.8 ms, timing True
+    48 blocks, 159.7 ms, timing True
 
 
 
@@ -412,7 +412,7 @@ What this Tour built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.286 seconds)
+   **Total running time of the script:** (0 minutes 0.210 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_02-tours_08_twisting_radial_readout.py:

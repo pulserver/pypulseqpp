@@ -64,7 +64,7 @@ phase-encode plane is acquired.
 
  .. code-block:: none
 
-    31960 blocks, 53.45 s
+    31960 blocks, 48.90 s
 
 
 
@@ -147,8 +147,8 @@ acquired view has the prescribed echo time.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    full                31960         53.45          3995
-    2 x 2               10232         17.11          1279
+    full                31960         48.90          3995
+    2 x 2               10232         15.65          1279
 
 
 
@@ -174,7 +174,7 @@ acquired view has the prescribed echo time.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 23.082 seconds)
+   **Total running time of the script:** (0 minutes 18.193 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se3D_sequence.py:

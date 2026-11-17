@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../../../_static/documentation_options.js?v=da629298"></script>
+    <script src="../../../../_static/documentation_options.js?v=a95993cc"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://pulserver.github.io/pypulseqpp/versions.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.63';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v0.0.69';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             true;
         </script>
@@ -66,7 +66,7 @@
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="v0.0.63" />
+  <meta name="docsearch:version" content="v0.0.69" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -466,7 +466,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._module</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceModule</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">AXES</span><span class="p">,</span> <span class="n">left_align_rephaser</span><span class="p">,</span> <span class="n">present</span><span class="p">,</span> <span class="n">solve_delay</span><span class="p">,</span> <span class="n">solve_rephasing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">AXES</span><span class="p">,</span> <span class="n">left_align_rephaser</span><span class="p">,</span> <span class="n">present</span><span class="p">,</span> <span class="n">solve_delay</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._trajectories</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonCartesianGradient</span><span class="p">,</span> <span class="n">Rosette</span><span class="p">,</span> <span class="n">Spiral</span>
 
 <span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">=</span> <span class="mf">0.8</span>
@@ -519,8 +519,12 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">_RadialReadout</span><span class="p">(</span><span class="n">_ArmedReadout</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Radial repetition with spoke, prephaser and rewinder in one waveform.</span>
 
-<span class="sd">    The ADC samples the plateau. A slice rephaser may share an axis left</span>
-<span class="sd">    invariant by the shot rotation. With ``explicit=True`` the spokes are</span>
+<span class="sd">    The prephaser and rewinder each cancel half the plateau area, so the spoke</span>
+<span class="sd">    leaves no in-plane moment at any angle and the ADC samples the plateau. A</span>
+<span class="sd">    stack plays its partition encode and rewinder as one z waveform in the</span>
+<span class="sd">    same block, and the spoiler, when asked for, in a block of its own on a</span>
+<span class="sd">    fixed axis. A slice rephaser may share an axis left invariant by the shot</span>
+<span class="sd">    rotation. With ``explicit=True`` the spokes are</span>
 <span class="sd">    written out, one per entry of ``angles``; otherwise the caller rotates one</span>
 <span class="sd">    base spoke per shot.</span>
 
@@ -586,8 +590,10 @@
 <span class="sd">        The spoke from prephaser through rewinder. ``gy`` is the same waveform</span>
 <span class="sd">        at zero amplitude, so a rotation always has a y event to fill. Lists</span>
 <span class="sd">        with one entry per angle when ``explicit``.</span>
-<span class="sd">    gz_pre, gz_rew : TrapEvent</span>
-<span class="sd">        Partition encode and its rewinder. Stacks only.</span>
+<span class="sd">    gz_enc : GradEvent</span>
+<span class="sd">        Partition encode, ending where the readout starts, and its rewinder,</span>
+<span class="sd">        starting where it ends, as one waveform at ``+kmax``; scale it by</span>
+<span class="sd">        ``kz / kmax`` per partition. Its net area is zero. Stacks only.</span>
 <span class="sd">    gz_spoil : GradEvent</span>
 <span class="sd">        End-of-TR spoiler; present when ``spoiling_cycles`` is nonzero.</span>
 <span class="sd">    adc : AdcEvent</span>
@@ -670,58 +676,72 @@
             <span class="n">min_readout_duration</span><span class="o">=</span><span class="n">readout_area</span>
             <span class="o">/</span> <span class="p">(</span><span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">),</span>
         <span class="p">)</span>
+        <span class="n">gx</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">rew_span</span><span class="p">,</span> <span class="n">ramp_in</span><span class="p">,</span> <span class="n">ramp_out</span> <span class="o">=</span> <span class="n">_balanced_spoke</span><span class="p">(</span>
+            <span class="n">readout_area</span><span class="p">,</span> <span class="n">readout_duration</span><span class="p">,</span> <span class="n">system</span>
+        <span class="p">)</span>
 
-        <span class="n">gx</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
-            <span class="n">flat_area</span><span class="o">=</span><span class="n">readout_area</span><span class="p">,</span>
-            <span class="n">flat_time</span><span class="o">=</span><span class="n">readout_duration</span><span class="p">,</span>
+        <span class="n">lobe</span> <span class="o">=</span> <span class="n">_partition_lobe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phase_axis</span><span class="p">,</span> <span class="n">fov_z</span><span class="p">,</span> <span class="n">matrix_z</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">system</span>
+        <span class="p">)</span>
+        <span class="n">lobe_span</span> <span class="o">=</span> <span class="n">_partition_span</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">_accept_rephaser</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="p">())</span>
+        <span class="n">reph_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="n">gz_spoil</span> <span class="o">=</span> <span class="n">_spoiler</span><span class="p">(</span>
+            <span class="n">spoiling_cycles</span><span class="p">,</span>
+            <span class="n">voxel_size_m</span><span class="p">,</span>
+            <span class="n">fov</span> <span class="o">/</span> <span class="nb">int</span><span class="p">(</span><span class="n">matrix</span><span class="p">),</span>
+            <span class="n">spoiling_axis</span><span class="p">,</span>
+            <span class="n">system</span><span class="p">,</span>
+            <span class="n">lobe</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
+        <span class="n">rf_center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">rf_block</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">),</span>
+            <span class="n">raster</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">lead</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pre_span</span><span class="p">,</span> <span class="n">lobe_span</span> <span class="o">+</span> <span class="n">ramp_in</span><span class="p">)</span>
+        <span class="n">te_base</span> <span class="o">=</span> <span class="n">rf_block</span> <span class="o">-</span> <span class="n">rf_center</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">readout_duration</span>
+        <span class="n">placement</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">wait_span</span><span class="p">,</span> <span class="n">reph_block</span> <span class="o">=</span> <span class="n">_place_rephaser</span><span class="p">(</span>
+            <span class="n">te</span><span class="p">,</span>
+            <span class="n">te_base</span><span class="p">,</span>
+            <span class="n">lead</span><span class="p">,</span>
+            <span class="n">reph_span</span><span class="p">,</span>
+            <span class="n">has_partitions</span><span class="o">=</span><span class="n">lobe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="n">ramp</span><span class="o">=</span><span class="n">ramp_in</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="c1"># The spoke runs out through the centre and back, so one lobe of half</span>
-        <span class="c1"># the readout area serves as both prephaser and rewinder.</span>
-        <span class="n">gx_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">gx</span><span class="o">.</span><span class="n">area</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
-        <span class="n">gx_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">gx</span><span class="o">.</span><span class="n">area</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
-        <span class="n">rise_time</span> <span class="o">=</span> <span class="n">gx</span><span class="o">.</span><span class="n">rise_time</span>
-        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
-            <span class="n">num_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="n">rise_time</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+        <span class="n">block_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="n">lead</span> <span class="o">+</span> <span class="n">readout_duration</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">rew_span</span><span class="p">,</span> <span class="n">lobe_span</span> <span class="o">+</span> <span class="n">ramp_out</span><span class="p">),</span> <span class="n">raster</span>
         <span class="p">)</span>
 
-        <span class="c1"># Shift each piece to where it is played, then sum them into one</span>
-        <span class="c1"># continuous waveform.</span>
-        <span class="n">gx_pre_duration</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gx_pre</span><span class="p">)</span>
-        <span class="n">gx</span><span class="o">.</span><span class="n">delay</span> <span class="o">+=</span> <span class="n">gx_pre_duration</span>
-        <span class="n">adc</span><span class="o">.</span><span class="n">delay</span> <span class="o">+=</span> <span class="n">gx_pre_duration</span>
-        <span class="n">gx_rew</span><span class="o">.</span><span class="n">delay</span> <span class="o">+=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gx</span><span class="p">)</span>
-        <span class="n">gx</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">add_gradients</span><span class="p">(</span><span class="n">grads</span><span class="o">=</span><span class="p">[</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">gx</span><span class="p">,</span> <span class="n">gx_rew</span><span class="p">],</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">gx</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">lead</span> <span class="o">-</span> <span class="n">pre_span</span>
         <span class="n">gy</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">gy</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="s2">"y"</span>
-
-        <span class="n">echo_offset</span> <span class="o">=</span> <span class="n">gx_pre_duration</span> <span class="o">+</span> <span class="n">rise_time</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">readout_duration</span>
         <span class="k">if</span> <span class="n">explicit</span><span class="p">:</span>
             <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
             <span class="n">base</span> <span class="o">=</span> <span class="n">gx</span>
             <span class="n">gx</span> <span class="o">=</span> <span class="p">[</span><span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)))</span> <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">]</span>
             <span class="n">gy</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">:</span>
-                <span class="n">lobe</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)))</span>
-                <span class="n">lobe</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="s2">"y"</span>
-                <span class="n">gy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lobe</span><span class="p">)</span>
-
-        <span class="n">gz_pre</span><span class="p">,</span> <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">_partition_encode</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_phase_axis</span><span class="p">,</span> <span class="n">fov_z</span><span class="p">,</span> <span class="n">matrix_z</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">system</span>
-        <span class="p">)</span>
-        <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">_accept_rephaser</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">present</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phase_axis</span><span class="p">))</span>
-        <span class="n">reph_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
-
-        <span class="n">gz_spoil</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">spoiling_cycles</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">voxel_size_m</span> <span class="o">=</span> <span class="n">fov</span> <span class="o">/</span> <span class="nb">int</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_size_m must be positive"</span><span class="p">)</span>
-            <span class="n">gz_spoil</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_crusher</span><span class="p">(</span>
-                <span class="n">spoiling_cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span><span class="p">,</span> <span class="n">spoiling_axis</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+                <span class="n">turned</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)))</span>
+                <span class="n">turned</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="s2">"y"</span>
+                <span class="n">gy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">turned</span><span class="p">)</span>
+        <span class="n">gz_enc</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_partition_wave</span><span class="p">(</span>
+                <span class="n">lobe</span><span class="p">,</span>
+                <span class="n">lead</span> <span class="o">-</span> <span class="n">ramp_in</span><span class="p">,</span>
+                <span class="n">lead</span> <span class="o">+</span> <span class="n">readout_duration</span> <span class="o">+</span> <span class="n">ramp_out</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">lead</span><span class="p">,</span> <span class="n">lead</span> <span class="o">+</span> <span class="n">readout_duration</span><span class="p">),</span>
+                <span class="n">system</span><span class="p">,</span>
             <span class="p">)</span>
+            <span class="k">if</span> <span class="n">lobe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span><span class="n">num_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="n">lead</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
 
         <span class="n">adc_labels</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">labels</span> <span class="ow">or</span> <span class="p">()</span>
@@ -734,62 +754,34 @@
             <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">)</span>
         <span class="p">]</span>
         <span class="n">n_arms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gx</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-
-        <span class="n">rf_center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
-        <span class="n">rf_block</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">),</span>
-            <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">pre_span</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">gz_pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="mf">0.0</span>
-        <span class="p">)</span>
-        <span class="c1"># The rephaser has to follow the selection lobe with nothing in</span>
-        <span class="c1"># between, so it rides the TE wait when that is long enough to hold it.</span>
-        <span class="c1"># Otherwise it sits alongside the prephaser at the head of the spoke,</span>
-        <span class="c1"># which costs no echo time at all -- until it outlasts the head room</span>
-        <span class="c1"># there, when it has to be given a block of its own before the spoke.</span>
-        <span class="n">head_room</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
-        <span class="n">reph_alone</span> <span class="o">=</span> <span class="n">reph_span</span> <span class="o">&gt;</span> <span class="n">head_room</span>
-        <span class="n">te_min</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">rf_block</span>
-            <span class="o">-</span> <span class="n">rf_center</span>
-            <span class="o">+</span> <span class="n">pre_span</span>
-            <span class="o">+</span> <span class="p">(</span><span class="n">reph_span</span> <span class="k">if</span> <span class="n">reph_alone</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
-            <span class="o">+</span> <span class="n">echo_offset</span>
-        <span class="p">)</span>
-        <span class="n">te_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">te</span><span class="p">,</span> <span class="n">te_min</span><span class="p">,</span> <span class="s2">"TE"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-
-        <span class="n">reph_on_wait</span> <span class="o">=</span> <span class="n">reph_alone</span> <span class="ow">or</span> <span class="n">te_delay</span> <span class="o">&gt;=</span> <span class="n">reph_span</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="n">wait_span</span> <span class="o">=</span> <span class="n">te_delay</span> <span class="o">+</span> <span class="p">(</span><span class="n">reph_span</span> <span class="k">if</span> <span class="n">reph_alone</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">wait_te</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">wait_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">wait_span</span> <span class="k">else</span> <span class="kc">None</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i_arm</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_arms</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">wait_te</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">reph_on_wait</span> <span class="k">else</span> <span class="p">()))</span>
-            <span class="k">if</span> <span class="n">gz_pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">,</span> <span class="o">*</span><span class="n">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
+                    <span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">"wait"</span> <span class="k">else</span> <span class="p">())</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">"block"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">reph_block</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
                     <span class="n">_at</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">),</span>
                     <span class="n">_at</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">),</span>
+                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_enc</span><span class="p">),</span>
+                    <span class="o">*</span><span class="p">(</span>
+                        <span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">"readout"</span> <span class="ow">and</span> <span class="n">i_echo</span> <span class="o">==</span> <span class="mi">0</span>
+                        <span class="k">else</span> <span class="p">()</span>
+                    <span class="p">),</span>
                     <span class="n">adc</span><span class="p">,</span>
                     <span class="o">*</span><span class="n">adc_labels</span><span class="p">,</span>
                     <span class="o">*</span><span class="p">([</span><span class="n">echo_labels</span><span class="p">[</span><span class="n">i_echo</span><span class="p">]]</span> <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[]),</span>
-                    <span class="o">*</span><span class="p">(</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">reph_on_wait</span> <span class="ow">and</span> <span class="n">i_echo</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">()),</span>
-                    <span class="o">*</span><span class="p">(</span><span class="n">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz_pre</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">()),</span>
+                    <span class="o">*</span><span class="p">(</span><span class="n">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span> <span class="k">if</span> <span class="n">i_echo</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">()),</span>
                 <span class="p">)</span>
-            <span class="k">if</span> <span class="n">gz_rew</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gz_spoil</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                    <span class="o">*</span><span class="p">(</span><span class="n">event</span> <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="p">(</span><span class="n">gz_rew</span><span class="p">,</span> <span class="n">gz_spoil</span><span class="p">)</span> <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">gz_spoil</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_spoil</span><span class="p">)</span>
 
         <span class="n">tr_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_arms</span>
         <span class="n">tr_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">tr_min</span><span class="p">,</span> <span class="s2">"TR"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
@@ -800,8 +792,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_tr</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lay_out_arms</span><span class="p">(</span><span class="n">n_arms</span><span class="p">,</span> <span class="n">wait_tr</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">te_min</span> <span class="o">+</span> <span class="n">te_delay</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">echo_spacing</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">te_base</span> <span class="o">+</span> <span class="n">wait_span</span> <span class="o">+</span> <span class="n">reph_block</span> <span class="o">+</span> <span class="n">lead</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_spacing</span> <span class="o">=</span> <span class="n">block_span</span> <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">+</span> <span class="n">rf_center</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">tr_min</span> <span class="o">+</span> <span class="n">tr_delay</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">dwell</span>
@@ -868,7 +860,7 @@
 <span class="sd">    ...     system, slab.rf, slab.gz,</span>
 <span class="sd">    ...     fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; readout.gz_pre.channel</span>
+<span class="sd">    &gt;&gt;&gt; readout.gz_enc.channel</span>
 <span class="sd">    'z'</span>
 
 <span class="sd">    One spoke of one partition, and the k-space line it reads:</span>
@@ -949,8 +941,10 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">NonCartesianReadout</span><span class="p">(</span><span class="n">_ArmedReadout</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A solved interleaf with its prewinder, rewinder and repetition-time budget.</span>
 
-<span class="sd">    Nonzero k-space endpoints of the interleaf require prewinder or rewinder</span>
-<span class="sd">    blocks. ``trajectory`` is any two-channel :class:`NonCartesianGradient`;</span>
+<span class="sd">    The prewinder, interleaf and rewinder play as one waveform per in-plane</span>
+<span class="sd">    axis, so every interleaf ends at k = 0 whatever its rotation. A stack plays</span>
+<span class="sd">    its partition encode and rewinder as one z waveform in the same block, and</span>
+<span class="sd">    the spoiler, when asked for, in a block of its own on a fixed axis. ``trajectory`` is any two-channel :class:`NonCartesianGradient`;</span>
 <span class="sd">    the spiral and rosette readouts design theirs. The caller sets the</span>
 <span class="sd">    orientation of each shot.</span>
 
@@ -1008,14 +1002,13 @@
 <span class="sd">    gz_reph : GradEvent</span>
 <span class="sd">        Its rephaser, if one was given.</span>
 <span class="sd">    gx, gy : GradEvent</span>
-<span class="sd">        The interleaf. Lists with one entry per angle when ``explicit``.</span>
-<span class="sd">    gx_pre, gy_pre : GradEvent</span>
-<span class="sd">        Prewinding gradients to the start of the path; present when it does not</span>
-<span class="sd">        start at k = 0.</span>
-<span class="sd">    gx_rew, gy_rew : GradEvent</span>
-<span class="sd">        Rewinding gradients to k = 0; present when the path does not end there.</span>
-<span class="sd">    gz_pre, gz_rew : TrapEvent</span>
-<span class="sd">        Partition encode and its rewinder. Stacks only.</span>
+<span class="sd">        The prewinder, interleaf and rewinder as one waveform per axis, sampled</span>
+<span class="sd">        at the gradient raster centres. Lists with one entry per angle when</span>
+<span class="sd">        ``explicit``.</span>
+<span class="sd">    gz_enc : GradEvent</span>
+<span class="sd">        Partition encode, ending where the readout starts, and its rewinder,</span>
+<span class="sd">        starting where it ends, as one waveform at ``+kmax``; scale it by</span>
+<span class="sd">        ``kz / kmax`` per partition. Its net area is zero. Stacks only.</span>
 <span class="sd">    gz_spoil : GradEvent</span>
 <span class="sd">        End-of-TR spoiler; present when ``spoiling_cycles`` is nonzero.</span>
 <span class="sd">    adc : AdcEvent</span>
@@ -1024,9 +1017,6 @@
 <span class="sd">        One per name in ``labels``.</span>
 <span class="sd">    wait_te, wait_tr : DelayEvent</span>
 <span class="sd">        Present only when ``te`` or ``tr`` exceeds the minimum.</span>
-<span class="sd">    wait_pre, wait_rew : DelayEvent</span>
-<span class="sd">        Delays that set the duration of the prewinder and rewinder blocks, which</span>
-<span class="sd">        can outlast their gradients; absent when the block is not played.</span>
 <span class="sd">    trajectory : NonCartesianGradient</span>
 <span class="sd">        The interleaf, for its k-space path and timings.</span>
 <span class="sd">    echo_time : float</span>
@@ -1124,51 +1114,69 @@
             <span class="k">else</span> <span class="p">[</span><span class="n">trajectory</span><span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="n">gz_pre</span><span class="p">,</span> <span class="n">gz_rew</span> <span class="o">=</span> <span class="n">_partition_encode</span><span class="p">(</span>
+        <span class="n">lobe</span> <span class="o">=</span> <span class="n">_partition_lobe</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_phase_axis</span><span class="p">,</span> <span class="n">fov_z</span><span class="p">,</span> <span class="n">matrix_z</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">system</span>
         <span class="p">)</span>
-        <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">_accept_rephaser</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">present</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phase_axis</span><span class="p">))</span>
+        <span class="n">lobe_span</span> <span class="o">=</span> <span class="n">_partition_span</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gz_reph</span> <span class="o">=</span> <span class="n">_accept_rephaser</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="p">())</span>
+        <span class="n">reph_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">gz_spoil</span> <span class="o">=</span> <span class="n">_spoiler</span><span class="p">(</span>
+            <span class="n">spoiling_cycles</span><span class="p">,</span>
+            <span class="n">voxel_size_m</span><span class="p">,</span>
+            <span class="n">_resolution</span><span class="p">(</span><span class="n">trajectory</span><span class="p">),</span>
+            <span class="n">spoiling_axis</span><span class="p">,</span>
+            <span class="n">system</span><span class="p">,</span>
+            <span class="n">lobe</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="n">gz_spoil</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">spoiling_cycles</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">voxel_size_m</span> <span class="o">=</span> <span class="n">_resolution</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_size_m must be positive"</span><span class="p">)</span>
-            <span class="n">gz_spoil</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_crusher</span><span class="p">(</span>
-                <span class="n">spoiling_cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span><span class="p">,</span> <span class="n">spoiling_axis</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Every explicit arm plays the base prewinder/rewinder timing corners (rotation</span>
-        <span class="c1"># turns the amplitude pair, never the timing), so these spans agree</span>
-        <span class="c1"># across arms by construction; the max() is the shared value.</span>
         <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span>
-        <span class="n">natural_pre_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="nb">max</span><span class="p">(</span>
-                <span class="p">(</span>
-                    <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">arm</span><span class="o">.</span><span class="n">prewinders</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">))</span>
-                    <span class="k">for</span> <span class="n">arm</span> <span class="ow">in</span> <span class="n">arms</span>
-                    <span class="k">if</span> <span class="n">arm</span><span class="o">.</span><span class="n">prewinders</span> <span class="ow">or</span> <span class="n">gz_pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="p">),</span>
-                <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-            <span class="p">),</span>
+        <span class="n">grad_raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+        <span class="c1"># Rotation turns the amplitudes of the brackets, never their corners,</span>
+        <span class="c1"># so every explicit arm has the base arm's spans.</span>
+        <span class="n">pre_span</span> <span class="o">=</span> <span class="n">_natural_span</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"prewinders"</span><span class="p">,</span> <span class="n">grad_raster</span><span class="p">)</span>
+        <span class="n">rew_span</span> <span class="o">=</span> <span class="n">_natural_span</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"rewinders"</span><span class="p">,</span> <span class="n">grad_raster</span><span class="p">)</span>
+        <span class="n">read_span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">arm</span><span class="o">.</span><span class="n">gradients</span><span class="p">)</span> <span class="k">for</span> <span class="n">arm</span> <span class="ow">in</span> <span class="n">arms</span><span class="p">)</span>
+        <span class="n">echo_offset</span> <span class="o">=</span> <span class="n">_echo_offset_of</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">grad_raster</span><span class="p">)</span>
+
+        <span class="n">rf_center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">rf_block</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">),</span>
             <span class="n">raster</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">rew_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="nb">max</span><span class="p">(</span>
-                <span class="p">(</span>
-                    <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span>
-                        <span class="o">*</span><span class="n">arm</span><span class="o">.</span><span class="n">rewinders</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">),</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_spoil</span><span class="p">)</span>
-                    <span class="p">)</span>
-                    <span class="k">for</span> <span class="n">arm</span> <span class="ow">in</span> <span class="n">arms</span>
-                    <span class="k">if</span> <span class="n">arm</span><span class="o">.</span><span class="n">rewinders</span> <span class="ow">or</span> <span class="n">gz_rew</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gz_spoil</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="p">),</span>
-                <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">raster</span><span class="p">,</span>
+        <span class="n">te_base</span> <span class="o">=</span> <span class="n">rf_block</span> <span class="o">-</span> <span class="n">rf_center</span> <span class="o">+</span> <span class="n">echo_offset</span>
+        <span class="n">placement</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">wait_span</span><span class="p">,</span> <span class="n">reph_block</span> <span class="o">=</span> <span class="n">_place_rephaser</span><span class="p">(</span>
+            <span class="n">te</span><span class="p">,</span>
+            <span class="n">te_base</span><span class="p">,</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">pre_span</span><span class="p">,</span> <span class="n">lobe_span</span><span class="p">),</span>
+            <span class="n">reph_span</span><span class="p">,</span>
+            <span class="n">has_partitions</span><span class="o">=</span><span class="n">lobe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">block_span</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+            <span class="n">lead</span> <span class="o">+</span> <span class="n">read_span</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">rew_span</span><span class="p">,</span> <span class="n">lobe_span</span><span class="p">),</span> <span class="n">raster</span>
         <span class="p">)</span>
 
-        <span class="n">adc</span> <span class="o">=</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">adc</span>
+        <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span> <span class="o">=</span> <span class="n">_merged_arms</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">read_span</span><span class="p">,</span> <span class="n">rew_span</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="n">gz_enc</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_partition_wave</span><span class="p">(</span>
+                <span class="n">lobe</span><span class="p">,</span>
+                <span class="n">lead</span><span class="p">,</span>
+                <span class="n">lead</span> <span class="o">+</span> <span class="n">read_span</span><span class="p">,</span>
+                <span class="n">_adc_window</span><span class="p">(</span><span class="n">trajectory</span><span class="o">.</span><span class="n">adc</span><span class="p">,</span> <span class="n">lead</span><span class="p">),</span>
+                <span class="n">system</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">lobe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">adc</span>
+        <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
+            <span class="n">num_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">num_samples</span><span class="p">),</span>
+            <span class="n">dwell</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">dwell</span><span class="p">),</span>
+            <span class="n">delay</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="n">lead</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="n">adc_labels</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">labels</span> <span class="ow">or</span> <span class="p">()</span>
         <span class="p">]</span>
@@ -1179,91 +1187,34 @@
             <span class="n">pp</span><span class="o">.</span><span class="n">make_label</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"SET"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"ECO"</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">i_echo</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">)</span>
         <span class="p">]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-
-        <span class="n">rf_center</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
-        <span class="n">rf_block</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf</span><span class="p">),</span> <span class="n">raster</span>
-        <span class="p">)</span>
-        <span class="n">te_base</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">rf_block</span> <span class="o">-</span> <span class="n">rf_center</span> <span class="o">+</span> <span class="n">_echo_offset_of</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">wait_span</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">echo_time</span> <span class="o">=</span> <span class="n">solve_rephasing</span><span class="p">(</span>
-            <span class="n">te</span><span class="p">,</span>
-            <span class="n">te_base</span><span class="p">,</span>
-            <span class="n">natural_pre_span</span><span class="p">,</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">gz_reph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
-            <span class="n">system</span><span class="p">,</span>
-        <span class="p">)</span>
         <span class="n">wait_te</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">wait_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">wait_span</span> <span class="k">else</span> <span class="kc">None</span>
 
-        <span class="n">gx_pre</span><span class="p">,</span> <span class="n">gy_pre</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"prewinders"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-        <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"gradients"</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-        <span class="n">gx_rew</span><span class="p">,</span> <span class="n">gy_rew</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"rewinders"</span><span class="p">,</span> <span class="s2">"left"</span><span class="p">,</span> <span class="n">rew_span</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-        <span class="n">wait_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">pre_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">pre_span</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">wait_rew</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">rew_span</span><span class="p">)</span> <span class="k">if</span> <span class="n">rew_span</span> <span class="k">else</span> <span class="kc">None</span>
-
-        <span class="c1"># Replaying an arm re-enters k where the last one left it, so an echo</span>
-        <span class="c1"># train has to come back to the head of the arm between echoes: the</span>
-        <span class="c1"># traversal's own rewinder unwinds it and its prewinder enters again.</span>
-        <span class="c1"># This bracket carries the in-plane halves only -- the partition</span>
-        <span class="c1"># encode, the slice rewinder and the end-of-TR spoiler bracket the</span>
-        <span class="c1"># repetition, not the echo, and replaying them would spoil the train.</span>
-        <span class="n">echo_rew_span</span> <span class="o">=</span> <span class="n">_natural_span</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"rewinders"</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
-        <span class="n">echo_pre_span</span> <span class="o">=</span> <span class="n">_natural_span</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"prewinders"</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
-        <span class="n">gx_echo_rew</span><span class="p">,</span> <span class="n">gy_echo_rew</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span>
-            <span class="n">arms</span><span class="p">,</span> <span class="s2">"rewinders"</span><span class="p">,</span> <span class="s2">"left"</span><span class="p">,</span> <span class="n">echo_rew_span</span><span class="p">,</span> <span class="n">system</span>
-        <span class="p">)</span>
-        <span class="n">gx_echo_pre</span><span class="p">,</span> <span class="n">gy_echo_pre</span> <span class="o">=</span> <span class="n">_bracket</span><span class="p">(</span>
-            <span class="n">arms</span><span class="p">,</span> <span class="s2">"prewinders"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">,</span> <span class="n">echo_pre_span</span><span class="p">,</span> <span class="n">system</span>
-        <span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i_arm</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arms</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">gz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="n">gz</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">wait_te</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">wait_pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx_pre</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy_pre</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">),</span>
-                    <span class="o">*</span><span class="p">(()</span> <span class="k">if</span> <span class="n">wait_te</span> <span class="k">else</span> <span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)),</span>
-                    <span class="o">*</span><span class="n">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">),</span>
-                    <span class="n">wait_pre</span><span class="p">,</span>
+                    <span class="n">wait_te</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span> <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">"wait"</span> <span class="k">else</span> <span class="p">())</span>
                 <span class="p">)</span>
+            <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">"block"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">reph_block</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i_echo</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_echoes</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">i_echo</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">echo_rew_span</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                            <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx_echo_rew</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                            <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy_echo_rew</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                            <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">echo_rew_span</span><span class="p">),</span>
-                        <span class="p">)</span>
-                    <span class="k">if</span> <span class="n">echo_pre_span</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                            <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx_echo_pre</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                            <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy_echo_pre</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                            <span class="n">pp</span><span class="o">.</span><span class="n">make_delay</span><span class="p">(</span><span class="n">echo_pre_span</span><span class="p">),</span>
-                        <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                    <span class="n">_at</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">),</span>
-                    <span class="n">_at</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">),</span>
+                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
+                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
+                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_enc</span><span class="p">),</span>
+                    <span class="o">*</span><span class="p">(</span>
+                        <span class="n">present</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">"readout"</span> <span class="ow">and</span> <span class="n">i_echo</span> <span class="o">==</span> <span class="mi">0</span>
+                        <span class="k">else</span> <span class="p">()</span>
+                    <span class="p">),</span>
                     <span class="n">adc</span><span class="p">,</span>
                     <span class="o">*</span><span class="n">adc_labels</span><span class="p">,</span>
                     <span class="o">*</span><span class="p">([</span><span class="n">echo_labels</span><span class="p">[</span><span class="n">i_echo</span><span class="p">]]</span> <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[]),</span>
+                    <span class="o">*</span><span class="p">(</span><span class="n">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span> <span class="k">if</span> <span class="n">i_echo</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">()),</span>
                 <span class="p">)</span>
-            <span class="k">if</span> <span class="n">wait_rew</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx_rew</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gy_rew</span><span class="p">,</span> <span class="n">i_arm</span><span class="p">)),</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_rew</span><span class="p">),</span>
-                    <span class="o">*</span><span class="n">present</span><span class="p">(</span><span class="n">gz_spoil</span><span class="p">),</span>
-                    <span class="n">wait_rew</span><span class="p">,</span>
-                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">gz_spoil</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gz_spoil</span><span class="p">)</span>
 
         <span class="n">tr_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">duration</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">arms</span><span class="p">)</span>
         <span class="n">tr_delay</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">tr</span><span class="p">,</span> <span class="n">tr_min</span><span class="p">,</span> <span class="s2">"TR"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
@@ -1275,21 +1226,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lay_out_arms</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arms</span><span class="p">),</span> <span class="n">wait_tr</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">=</span> <span class="n">trajectory</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">echo_time</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">echo_spacing</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">_at</span><span class="p">(</span><span class="n">gx</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="n">echo_rew_span</span> <span class="o">+</span> <span class="n">echo_pre_span</span>
-            <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span>
-            <span class="k">else</span> <span class="mf">0.0</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">+</span> <span class="n">rf_center</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">te_base</span> <span class="o">+</span> <span class="n">wait_span</span> <span class="o">+</span> <span class="n">reph_block</span> <span class="o">+</span> <span class="n">lead</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">echo_spacing</span> <span class="o">=</span> <span class="n">block_span</span> <span class="k">if</span> <span class="n">n_echoes</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">+</span> <span class="n">rf_center</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">tr_min</span> <span class="o">+</span> <span class="n">tr_delay</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">dwell</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">num_samples</span><span class="p">)</span>
         <span class="c1"># Where in the window k passes through zero: the first sample of a</span>
         <span class="c1"># centre-out arm, halfway along one that runs in and back out.</span>
-        <span class="n">crossing</span> <span class="o">=</span> <span class="n">_echo_offset_of</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span>
-            <span class="n">adc</span><span class="o">.</span><span class="n">delay</span>
-        <span class="p">)</span>
+        <span class="n">crossing</span> <span class="o">=</span> <span class="n">echo_offset</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
             <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">crossing</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">dwell</span><span class="p">)),</span> <span class="mi">0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="p">)</span></div>
@@ -1441,7 +1386,7 @@
 <span class="sd">    ...     fov=0.22, matrix=64, design_interleaves=8, n_points=256,</span>
 <span class="sd">    ...     fov_z=0.12, matrix_z=16,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; readout.gz_pre.channel</span>
+<span class="sd">    &gt;&gt;&gt; readout.gz_enc.channel</span>
 <span class="sd">    'z'</span>
 
 <span class="sd">    One interleaf of one partition, and the arm it traverses:</span>
@@ -1626,7 +1571,7 @@
 <span class="sd">    ...     system, slab.rf, slab.gz,</span>
 <span class="sd">    ...     fov=0.22, matrix=64, fov_z=0.12, matrix_z=16,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; readout.gz_pre.channel</span>
+<span class="sd">    &gt;&gt;&gt; readout.gz_enc.channel</span>
 <span class="sd">    'z'</span>
 
 <span class="sd">    One interleaf of one partition, and the petals it traverses:</span>
@@ -1749,10 +1694,284 @@
     <span class="k">return</span> <span class="n">left_align_rephaser</span><span class="p">(</span><span class="n">gz_reph</span><span class="p">,</span> <span class="n">occupied</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_partition_encode</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">fov_z</span><span class="p">,</span> <span class="n">matrix_z</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Return a stack's partition encode and rewinder.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_balanced_spoke</span><span class="p">(</span><span class="n">readout_area</span><span class="p">,</span> <span class="n">readout_duration</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a spoke whose prephaser and rewinder share the plateau's ramps.</span>
 
-<span class="sd">    Reject partition arguments for non-stack readouts.</span>
+<span class="sd">    The prephaser ramps from zero into the plateau and the rewinder from the</span>
+<span class="sd">    plateau back to zero, each with half the plateau's area and the opposite</span>
+<span class="sd">    sign, so the spoke returns to the k-space point it started from.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    readout_area : float</span>
+<span class="sd">        Plateau area (1/m), ``2 * kmax``.</span>
+<span class="sd">    readout_duration : float</span>
+<span class="sd">        Plateau duration (s), on the gradient raster.</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gx : GradEvent</span>
+<span class="sd">        The spoke on x, its plateau from ``pre_span`` to</span>
+<span class="sd">        ``pre_span + readout_duration``.</span>
+<span class="sd">    pre_span, rew_span : float</span>
+<span class="sd">        Durations of the prephaser and the rewinder (s).</span>
+<span class="sd">    ramp_in, ramp_out : float</span>
+<span class="sd">        Time from the zero crossing that opens the readout lobe to the</span>
+<span class="sd">        plateau, and from the plateau to the zero crossing that closes it (s),</span>
+<span class="sd">        rounded up to the gradient raster.</span>
+<span class="sd">    """</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="n">readout_area</span> <span class="o">/</span> <span class="n">readout_duration</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">pre_times</span><span class="p">,</span> <span class="n">pre_amplitudes</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid_area</span><span class="p">(</span>
+        <span class="n">area</span><span class="o">=-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">readout_area</span><span class="p">,</span>
+        <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+        <span class="n">grad_start</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">grad_end</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">rew_times</span><span class="p">,</span> <span class="n">rew_amplitudes</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid_area</span><span class="p">(</span>
+        <span class="n">area</span><span class="o">=-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">readout_area</span><span class="p">,</span>
+        <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+        <span class="n">grad_start</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+        <span class="n">grad_end</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">pre_span</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pre_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+    <span class="n">ramp_in</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+        <span class="n">pre_span</span> <span class="o">-</span> <span class="n">_zero_crossing</span><span class="p">(</span><span class="n">pre_times</span><span class="p">,</span> <span class="n">pre_amplitudes</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">raster</span>
+    <span class="p">)</span>
+    <span class="n">ramp_out</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span>
+        <span class="n">_zero_crossing</span><span class="p">(</span><span class="n">rew_times</span><span class="p">,</span> <span class="n">rew_amplitudes</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">raster</span>
+    <span class="p">)</span>
+    <span class="n">plateau_end</span> <span class="o">=</span> <span class="n">pre_span</span> <span class="o">+</span> <span class="n">readout_duration</span>
+    <span class="n">gx</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_extended_trapezoid</span><span class="p">(</span>
+        <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">pre_times</span><span class="p">,</span> <span class="p">[</span><span class="n">plateau_end</span><span class="p">],</span> <span class="n">plateau_end</span> <span class="o">+</span> <span class="n">rew_times</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]),</span>
+        <span class="n">amplitudes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">pre_amplitudes</span><span class="p">,</span> <span class="p">[</span><span class="n">amplitude</span><span class="p">],</span> <span class="n">rew_amplitudes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]),</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">gx</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">rew_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">ramp_in</span><span class="p">,</span> <span class="n">ramp_out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_zero_crossing</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the time a piecewise-linear gradient crosses zero, first or last."""</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">last</span> <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">last</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.0</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the gradient does not cross zero"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_merged_arms</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">read_span</span><span class="p">,</span> <span class="n">rew_span</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Join each arm's prewinders, readout and rewinders into one waveform per axis.</span>
+
+<span class="sd">    The prewinders end where the readout starts, at ``lead``, and the</span>
+<span class="sd">    rewinders start where it ends; the trajectory designs them to meet the</span>
+<span class="sd">    readout at its own amplitude, so each axis plays one continuous waveform,</span>
+<span class="sd">    sampled at the centres of the gradient raster like the readout itself.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gx, gy : GradEvent or list of GradEvent</span>
+<span class="sd">        One event per axis, or a list with one per arm when the arms differ.</span>
+<span class="sd">    """</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"prewinders"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">,</span> <span class="n">pre_span</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span> <span class="n">lead</span> <span class="o">-</span> <span class="n">pre_span</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"gradients"</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span> <span class="n">lead</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">_bracket</span><span class="p">(</span><span class="n">arms</span><span class="p">,</span> <span class="s2">"rewinders"</span><span class="p">,</span> <span class="s2">"left"</span><span class="p">,</span> <span class="n">rew_span</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span> <span class="n">lead</span> <span class="o">+</span> <span class="n">read_span</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">lead</span> <span class="o">+</span> <span class="n">read_span</span> <span class="o">+</span> <span class="n">rew_span</span><span class="p">)</span> <span class="o">/</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">centres</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_points</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span>
+    <span class="n">per_axis</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+    <span class="k">for</span> <span class="n">i_arm</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arms</span><span class="p">)):</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_points</span><span class="p">))</span>
+        <span class="n">bracket_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">present_axes</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">_at</span><span class="p">(</span><span class="n">halves</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="n">i_arm</span><span class="p">)</span> <span class="k">for</span> <span class="n">halves</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pieces</span><span class="p">]</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">offset</span><span class="p">),</span> <span class="n">part</span><span class="p">,</span> <span class="n">role</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">pieces</span><span class="p">,</span> <span class="n">parts</span><span class="p">,</span> <span class="p">(</span><span class="s2">"pre"</span><span class="p">,</span> <span class="s2">"read"</span><span class="p">,</span> <span class="s2">"rew"</span><span class="p">),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">present_axes</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">tt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">inside</span> <span class="o">=</span> <span class="p">(</span><span class="n">centres</span> <span class="o">&gt;</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1e-12</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">centres</span> <span class="o">&lt;</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span>
+                <span class="n">samples</span><span class="p">[</span><span class="n">axis</span><span class="p">,</span> <span class="n">inside</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span>
+                    <span class="n">centres</span><span class="p">[</span><span class="n">inside</span><span class="p">],</span> <span class="n">times</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">waveform</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">target</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">+=</span> <span class="n">_part_area</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">role</span> <span class="o">!=</span> <span class="s2">"read"</span><span class="p">:</span>
+                    <span class="n">bracket_mask</span> <span class="o">|=</span> <span class="n">inside</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">_close_moment</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">bracket_mask</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)):</span>
+            <span class="n">per_axis</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">pp</span><span class="o">.</span><span class="n">make_arbitrary_grad</span><span class="p">(</span>
+                    <span class="n">channel</span><span class="p">,</span>
+                    <span class="n">samples</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span>
+                    <span class="n">first</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">last</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">delay</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">present_axes</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">axis</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">per_axis</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_close_moment</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">bracket_mask</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">raster</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Restore the designed net moment of an in-plane waveform pair.</span>
+
+<span class="sd">    Sampling the corner where a readout meets its bracket at the raster</span>
+<span class="sd">    centres trims a sliver of area that the bracket was designed to cancel.</span>
+<span class="sd">    Each axis gets back its missing area as a multiple of one profile shared</span>
+<span class="sd">    by both axes, the magnitude of the in-plane bracket, so an arm turned in</span>
+<span class="sd">    the plane is corrected by the same turn.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    samples : ndarray, shape (2, n)</span>
+<span class="sd">        x and y samples at the raster centres.</span>
+<span class="sd">    bracket_mask : ndarray of bool, shape (n,)</span>
+<span class="sd">        Samples that belong to a prewinder or rewinder.</span>
+<span class="sd">    target : ndarray, shape (2,)</span>
+<span class="sd">        Net area each axis was designed to play (1/m).</span>
+<span class="sd">    raster : float</span>
+<span class="sd">        Gradient raster time (s).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray, shape (2, n)</span>
+<span class="sd">        The corrected samples.</span>
+<span class="sd">    """</span>
+    <span class="n">profile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bracket_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">samples</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">_played_area</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">samples</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">t</span> <span class="o">-</span> <span class="n">_played_area</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">samples</span> <span class="o">+</span> <span class="n">residual</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">/</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">profile</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_played_area</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Area of raster-centre samples joined linearly, from ``first`` to ``last``."""</span>
+    <span class="k">if</span> <span class="n">samples</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="n">inner</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">samples</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">samples</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">raster</span> <span class="o">*</span> <span class="p">(</span><span class="n">inner</span> <span class="o">+</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="p">(</span><span class="n">first</span> <span class="o">+</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">samples</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">last</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_part_area</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="n">raster</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Played area of one bracket or readout event (1/m)."""</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">tt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">waveform</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"trap"</span> <span class="ow">or</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">raster</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">area</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"trap"</span>
+            <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">times</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_played_area</span><span class="p">(</span>
+        <span class="n">values</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">first</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">last</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_place_rephaser</span><span class="p">(</span><span class="n">te</span><span class="p">,</span> <span class="n">te_base</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">reph_span</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">has_partitions</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">ramp</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Choose where the slice rephaser plays, and solve the TE wait.</span>
+
+<span class="sd">    The rephaser rides the TE wait when the wait is long enough to hold it.</span>
+<span class="sd">    Otherwise a 2D readout plays it at the start of the acquisition block,</span>
+<span class="sd">    done by the time the readout lobe opens, ``ramp`` before the readout, and a</span>
+<span class="sd">    stack, whose z axis carries the partition</span>
+<span class="sd">    encode there, gives it a block of its own.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    te : float or None</span>
+<span class="sd">        Requested echo time (s); ``None`` is as short as possible.</span>
+<span class="sd">    te_base : float</span>
+<span class="sd">        Echo time with no wait, no rephaser block and no lead-in (s).</span>
+<span class="sd">    lead : float</span>
+<span class="sd">        Time from the start of the acquisition block to the readout (s).</span>
+<span class="sd">    reph_span : float</span>
+<span class="sd">        Rephaser duration (s), zero when there is none.</span>
+<span class="sd">    has_partitions : bool</span>
+<span class="sd">        Whether the acquisition block carries a partition encode on z.</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    ramp : float, default=0.0</span>
+<span class="sd">        Time from the opening of the readout lobe to the readout (s).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    placement : {'wait', 'readout', 'block'} or None</span>
+<span class="sd">        Where the rephaser plays; None when there is none.</span>
+<span class="sd">    lead : float</span>
+<span class="sd">        Lead-in of the acquisition block, lengthened to hold the rephaser.</span>
+<span class="sd">    wait_span : float</span>
+<span class="sd">        TE wait (s).</span>
+<span class="sd">    reph_block : float</span>
+<span class="sd">        Duration of the rephaser's own block (s), zero unless it has one.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If ``te`` is shorter than the layout can achieve.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">reph_span</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">te</span><span class="p">,</span> <span class="n">te_base</span> <span class="o">+</span> <span class="n">lead</span><span class="p">,</span> <span class="s2">"TE"</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">te</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wait_span</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">te</span><span class="p">,</span> <span class="n">te_base</span> <span class="o">+</span> <span class="n">lead</span><span class="p">,</span> <span class="s2">"TE"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wait_span</span> <span class="o">&gt;=</span> <span class="n">reph_span</span> <span class="o">-</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"wait"</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">wait_span</span><span class="p">,</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">has_partitions</span><span class="p">:</span>
+        <span class="n">reph_block</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">reph_span</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">)</span>
+        <span class="n">wait_span</span> <span class="o">=</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">te</span><span class="p">,</span> <span class="n">te_base</span> <span class="o">+</span> <span class="n">reph_block</span> <span class="o">+</span> <span class="n">lead</span><span class="p">,</span> <span class="s2">"TE"</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"block"</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">wait_span</span><span class="p">,</span> <span class="n">reph_block</span>
+    <span class="n">lead</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lead</span><span class="p">,</span> <span class="n">reph_span</span> <span class="o">+</span> <span class="n">ramp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"readout"</span><span class="p">,</span> <span class="n">lead</span><span class="p">,</span> <span class="n">solve_delay</span><span class="p">(</span><span class="n">te</span><span class="p">,</span> <span class="n">te_base</span> <span class="o">+</span> <span class="n">lead</span><span class="p">,</span> <span class="s2">"TE"</span><span class="p">,</span> <span class="n">system</span><span class="p">),</span> <span class="mf">0.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_spoiler</span><span class="p">(</span><span class="n">cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span><span class="p">,</span> <span class="n">default_voxel_m</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">lobe</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the end-of-TR spoiler, or None when ``cycles`` is zero.</span>
+
+<span class="sd">    On the axis of a partition encode ``lobe``, its encode at ``+kmax``, the</span>
+<span class="sd">    spoiler has the polarity of the rewinder at ``+kmax``. At the first</span>
+<span class="sd">    partition, ``-kmax``, the rewinder then runs into a spoiler of the</span>
+<span class="sd">    opposite sign: the largest gradient switching of the scan falls on the</span>
+<span class="sd">    partition a check of the edge of k-space plays.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cycles</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">voxel_size_m</span> <span class="o">=</span> <span class="n">default_voxel_m</span>
+    <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_size_m must be positive"</span><span class="p">)</span>
+    <span class="n">spoiler</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_crusher</span><span class="p">(</span><span class="n">cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">lobe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">lobe</span><span class="o">.</span><span class="n">channel</span> <span class="o">==</span> <span class="n">axis</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">lobe</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">spoiler</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">spoiler</span>
+
+
+<span class="n">_PARTITION_SLEW_MARGIN</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_partition_lobe</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">fov_z</span><span class="p">,</span> <span class="n">matrix_z</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a stack's partition encode at the outermost partition, ``+kmax``.</span>
+
+<span class="sd">    Return None for a readout without partitions, and reject partition</span>
+<span class="sd">    arguments given to one.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">fov_z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">matrix_z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1760,11 +1979,103 @@
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2"> encodes no partition axis, so fov_z and matrix_z mean nothing to "</span>
                 <span class="s2">"it; a stack variant is the class that takes them"</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">fov_z</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">matrix_z</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"a stack needs fov_z and matrix_z"</span><span class="p">)</span>
-    <span class="n">gz_pre</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_phase_encoding</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">fov_z</span><span class="p">)</span> <span class="o">/</span> <span class="nb">int</span><span class="p">(</span><span class="n">matrix_z</span><span class="p">),</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gz_pre</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">scale_grad</span><span class="p">(</span><span class="n">gz_pre</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="c1"># The lobe is sampled at raster centres and rescaled to its area in</span>
+    <span class="c1"># _partition_wave; designing it below the slew limit leaves room for that.</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
+        <span class="n">axis</span><span class="p">,</span>
+        <span class="n">area</span><span class="o">=</span><span class="mf">0.5</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">matrix_z</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fov_z</span><span class="p">),</span>
+        <span class="n">max_slew</span><span class="o">=</span><span class="n">_PARTITION_SLEW_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_slew</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_partition_span</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Time a partition encode needs before the readout, its guard and zero samples included."""</span>
+    <span class="k">if</span> <span class="n">lobe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">lobe</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_adc_window</span><span class="p">(</span><span class="n">adc</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the times (s) of the first and last edge of an ADC, from ``offset``."""</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">num_samples</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">adc</span><span class="o">.</span><span class="n">dwell</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_partition_wave</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">encode_end</span><span class="p">,</span> <span class="n">rewind_start</span><span class="p">,</span> <span class="n">adc_window</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the partition encode and its rewinder as one waveform.</span>
+
+<span class="sd">    The encode ends at ``encode_end``, where the readout lobe opens, and the</span>
+<span class="sd">    rewinder, its negative, begins at ``rewind_start``, where the readout lobe</span>
+<span class="sd">    closes, both counted from the start of the block, with the gradient off in</span>
+<span class="sd">    between. Either edge moves away from the readout when it would fall less</span>
+<span class="sd">    than one gradient raster from the ``adc_window``. The waveform is sampled</span>
+<span class="sd">    at the centres of the gradient raster and opens and closes on a zero</span>
+<span class="sd">    sample, so every partition scales one and the same waveform: scaling it by</span>
+<span class="sd">    ``kz / kmax`` encodes any partition and leaves its net area zero.</span>
+<span class="sd">    """</span>
+    <span class="n">rise</span><span class="p">,</span> <span class="n">flat</span><span class="p">,</span> <span class="n">fall</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">lobe</span><span class="o">.</span><span class="n">rise_time</span><span class="p">),</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">lobe</span><span class="o">.</span><span class="n">flat_time</span><span class="p">),</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">lobe</span><span class="o">.</span><span class="n">fall_time</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lobe</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">rise</span> <span class="o">+</span> <span class="n">flat</span> <span class="o">+</span> <span class="n">fall</span>
+    <span class="n">raster</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+    <span class="n">adc_start</span><span class="p">,</span> <span class="n">adc_end</span> <span class="o">=</span> <span class="n">adc_window</span>
+    <span class="c1"># Samples at raster centres are joined linearly, so a lobe that ended on</span>
+    <span class="c1"># the first sample would still play across its first half raster; one</span>
+    <span class="c1"># raster of guard keeps the z gradient off throughout the readout, and</span>
+    <span class="c1"># with it kz constant over every sample.</span>
+    <span class="n">encode_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+        <span class="n">_floor_to_raster</span><span class="p">(</span><span class="n">encode_end</span><span class="p">,</span> <span class="n">raster</span><span class="p">),</span>
+        <span class="n">_floor_to_raster</span><span class="p">(</span><span class="n">adc_start</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="o">-</span> <span class="n">raster</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">rewind_start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">rewind_start</span><span class="p">,</span> <span class="n">raster</span><span class="p">),</span>
+        <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">adc_end</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span> <span class="o">+</span> <span class="n">raster</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># A zero sample before the encode and after the rewinder: a player that</span>
+    <span class="c1"># holds a raster waveform's end samples over its edge half rasters plays</span>
+    <span class="c1"># it exactly as written.</span>
+    <span class="n">lobe_start</span> <span class="o">=</span> <span class="n">encode_end</span> <span class="o">-</span> <span class="n">span</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="n">lobe_start</span> <span class="o">-</span> <span class="n">raster</span>
+    <span class="k">if</span> <span class="n">first</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1e-9</span> <span class="o">*</span> <span class="n">raster</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the partition encode does not fit before the readout"</span><span class="p">)</span>
+    <span class="n">corners</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">lobe_start</span><span class="p">,</span>
+            <span class="n">lobe_start</span> <span class="o">+</span> <span class="n">rise</span><span class="p">,</span>
+            <span class="n">encode_end</span> <span class="o">-</span> <span class="n">fall</span><span class="p">,</span>
+            <span class="n">encode_end</span><span class="p">,</span>
+            <span class="n">rewind_start</span><span class="p">,</span>
+            <span class="n">rewind_start</span> <span class="o">+</span> <span class="n">rise</span><span class="p">,</span>
+            <span class="n">rewind_start</span> <span class="o">+</span> <span class="n">rise</span> <span class="o">+</span> <span class="n">flat</span><span class="p">,</span>
+            <span class="n">rewind_start</span> <span class="o">+</span> <span class="n">span</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span> <span class="o">*</span> <span class="n">amplitude</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">corners</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">raster</span> <span class="o">-</span> <span class="n">first</span><span class="p">)</span> <span class="o">/</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">centres</span> <span class="o">=</span> <span class="n">first</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_points</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">centres</span><span class="p">,</span> <span class="n">corners</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+    <span class="c1"># Joining the samples linearly trims the lobes' corners; rescale so the</span>
+    <span class="c1"># encode reaches the lobe's own area by the start of the readout.</span>
+    <span class="n">played_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="n">first</span><span class="p">],</span> <span class="n">centres</span><span class="p">,</span> <span class="p">[</span><span class="n">first</span> <span class="o">+</span> <span class="n">n_points</span> <span class="o">*</span> <span class="n">raster</span><span class="p">]])</span>
+    <span class="n">played</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">samples</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]])</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">played_times</span><span class="p">[</span><span class="n">played_times</span> <span class="o">&lt;</span> <span class="n">adc_start</span><span class="p">],</span> <span class="p">[</span><span class="n">adc_start</span><span class="p">]])</span>
+    <span class="n">samples</span> <span class="o">*=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lobe</span><span class="o">.</span><span class="n">area</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">played_times</span><span class="p">,</span> <span class="n">played</span><span class="p">),</span> <span class="n">grid</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_arbitrary_grad</span><span class="p">(</span>
+        <span class="n">lobe</span><span class="o">.</span><span class="n">channel</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">first</span><span class="p">),</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_floor_to_raster</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">raster</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">value</span> <span class="o">/</span> <span class="n">raster</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_armed</span><span class="p">(</span><span class="n">trigger</span><span class="p">):</span>

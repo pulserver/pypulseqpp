@@ -108,7 +108,7 @@ def radial_mprage(
         return_gz=True,
     )
 
-    # The merged prewinder and readout of lesson 5.
+    # The balanced spoke of lesson 5, and the spoiler on z.
     dwell, readout_time = pp.calc_adc_timing(
         matrix,
         10e-6,
@@ -121,11 +121,15 @@ def radial_mprage(
     _, times, amplitudes = pp.make_extended_trapezoid_area(
         channel="x", grad_start=0.0, grad_end=G, area=-G * plateau / 2, system=system
     )
+    _, rew_times, rew_amplitudes = pp.make_extended_trapezoid_area(
+        channel="x", grad_start=G, grad_end=0.0, area=-G * plateau / 2, system=system
+    )
     plateau_start = times[-1]
+    plateau_end = plateau_start + plateau
     g_read = pp.make_extended_trapezoid(
         "x",
-        times=np.append(times, plateau_start + plateau),
-        amplitudes=np.append(amplitudes, G),
+        times=np.concatenate([times, plateau_end + rew_times]),
+        amplitudes=np.concatenate([amplitudes, rew_amplitudes]),
         system=system,
     )
     adc = pp.make_adc(
@@ -134,28 +138,32 @@ def radial_mprage(
         delay=plateau_start + (plateau - readout_time) / 2,
         system=system,
     )
-    g_spoil, _, _ = pp.make_extended_trapezoid_area(
-        channel="x",
-        grad_start=G,
-        grad_end=0.0,
-        area=2 * matrix * delta_k,
+    gz_spoil = pp.make_crusher(4.0, fov / matrix, channel="z", system=system)[0]
+
+    # The partition encoding and its rewinder of lesson 6: one z gradient
+    # either side of the plateau, scaled per partition.
+    kz_max = partitions // 2 / slab
+    lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+    lobe_span = pp.calc_duration(lobe)
+    gz_partition = pp.make_extended_trapezoid(
+        "z",
+        times=np.array(
+            [
+                plateau_start - lobe_span,
+                plateau_start - lobe_span + lobe.rise_time,
+                plateau_start - lobe.fall_time,
+                plateau_start,
+                plateau_end,
+                plateau_end + lobe.rise_time,
+                plateau_end + lobe_span - lobe.fall_time,
+                plateau_end + lobe_span,
+            ]
+        ),
+        amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,
         system=system,
     )
-
-    # One partition encoding and one rewinder per partition.
     kz = (np.arange(partitions) - partitions // 2) / slab
-    gz_encode = [
-        pp.make_trapezoid(
-            "z", area=gz_reph.area + k, duration=plateau_start, system=system
-        )
-        for k in kz
-    ]
-    gz_rewind = [
-        pp.make_trapezoid(
-            "z", area=-k, duration=pp.calc_duration(g_spoil), system=system
-        )
-        for k in kz
-    ]
+    gz_encode = [pp.scale_grad(gz_partition, k / kz_max) for k in kz]
 
     # The waits that set TI and TR, and the check that they are possible.
     block_raster = system.block_duration_raster
@@ -173,8 +181,9 @@ def radial_mprage(
         raise ValueError(f"TI of {1e3 * ti:.1f} ms is shorter than the inversion")
     spoke_tr = (
         pp.calc_duration(rf, gz)
+        + pp.calc_duration(gz_reph)
         + pp.calc_duration(g_read, adc, gz_encode[0])
-        + pp.calc_duration(g_spoil, gz_rewind[0])
+        + pp.calc_duration(gz_spoil)
     )
     played = (
         pp.calc_duration(rf_inv)
@@ -202,12 +211,11 @@ def radial_mprage(
             phase = (np.deg2rad(117.0) * spoke * (spoke + 1) / 2) % (2 * np.pi)
             rf.phase_offset = adc.phase_offset = phase
             seq.add_block(rf, gz, *labels(LIN=spoke, PAR=partition))
+            seq.add_block(gz_reph)
             seq.add_block(
                 *pp.rotate(g_read, angle=angle, axis="z"), adc, gz_encode[partition]
             )
-            seq.add_block(
-                *pp.rotate(g_spoil, angle=angle, axis="z"), gz_rewind[partition]
-            )
+            seq.add_block(gz_spoil)
             n += 1
         seq.add_block(wait_recovery)
 

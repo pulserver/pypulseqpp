@@ -67,7 +67,7 @@ Nyquist spacing.
 
  .. code-block:: none
 
-    80 blocks, 0.24 s
+    64 blocks, 0.25 s
 
 
 
@@ -158,8 +158,8 @@ reconstruction that accounts for peripheral undersampling.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    constant               80          0.24            16
-    dual density           80          0.19            16
+    constant               64          0.25            16
+    dual density           64          0.20            16
 
 
 
@@ -185,7 +185,7 @@ reconstruction that accounts for peripheral undersampling.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.378 seconds)
+   **Total running time of the script:** (0 minutes 1.048 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_10-gradient-echo_gre_spiral2D_sequence.py:

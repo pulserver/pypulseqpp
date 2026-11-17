@@ -72,7 +72,7 @@ spokes per partition and produces a compact timing diagram.
 
  .. code-block:: none
 
-    80 blocks, 0.14 s, TI 7 ms, TR 35 ms
+    64 blocks, 0.14 s, TI 7 ms, TR 34 ms
 
 
 
@@ -159,7 +159,7 @@ The spokes of every partition, over the three k-space axes, coloured by shot.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.622 seconds)
+   **Total running time of the script:** (0 minutes 6.749 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_stars3D_sequence.py:
