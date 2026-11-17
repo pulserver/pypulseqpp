@@ -153,7 +153,9 @@ adc = pp.make_adc(
     delay=plateau_start + (plateau - readout_time) / 2,
     system=system,
 )
-gz_spoil = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
+gz_spoil = pp.scale_grad(
+    pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0], -1.0
+)
 
 # %%
 # Stack of stars
@@ -161,29 +163,43 @@ gz_spoil = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 #
 # Each partition :math:`p` sits at :math:`k_z = (p - P/2)\,\Delta k_z`. The
 # partition encoding plays on z in the same block as the spoke: it ends where
-# the plateau begins, and its mirror image, which brings :math:`k_z` back to
-# zero, starts where the plateau ends. Both lobes scale with :math:`k_z`, so
-# they are one z gradient, designed once at the largest :math:`k_z`, each lobe
-# as long as the prewinder, and scaled for each partition with :func:`~pypulseqpp.scale_grad`. The scanner
-# then plays one waveform for every partition, at a different amplitude.
+# the spoke's gradient crosses zero on its way up to the plateau, and its
+# mirror image, which brings :math:`k_z` back to zero, starts where the spoke
+# crosses zero again on its way down. Both lobes scale with :math:`k_z`, so
+# they are one z gradient, designed once at the largest :math:`k_z` and scaled
+# for each partition with :func:`~pypulseqpp.scale_grad`. The scanner then
+# plays one waveform for every partition, at a different amplitude.
+#
+# The spoiler's sign does not matter for spoiling, only that it is the same
+# every repetition. It is negative here, opposite to the encode at the largest
+# :math:`k_z`: the partition at :math:`-k_{z,\max}` then rewinds with a positive
+# lobe straight into it, and that hardest gradient switching of the scan falls
+# on the edge of k-space a stimulation check plays.
 #
 # The slab rephaser does not scale with :math:`k_z`, so it cannot join that
 # gradient: it plays in a block of its own, right after the excitation.
 kz_max = PARTITIONS // 2 * delta_kz
-lobe = pp.make_trapezoid("z", area=kz_max, duration=plateau_start, system=system)
+raster = system.grad_raster_time
+crossing = np.flatnonzero((amplitudes[:-1] <= 0) & (amplitudes[1:] > 0))[-1]
+opening = times[crossing] - amplitudes[crossing] * (
+    times[crossing + 1] - times[crossing]
+) / (amplitudes[crossing + 1] - amplitudes[crossing])
+opening = np.floor(opening / raster + 1e-9) * raster
+closing = plateau_end + plateau_start - opening
+lobe = pp.make_trapezoid("z", area=kz_max, duration=opening, system=system)
 lobe_span = pp.calc_duration(lobe)
 gz_partition = pp.make_extended_trapezoid(
     "z",
     times=np.array(
         [
-            plateau_start - lobe_span,
-            plateau_start - lobe_span + lobe.rise_time,
-            plateau_start - lobe.fall_time,
-            plateau_start,
-            plateau_end,
-            plateau_end + lobe.rise_time,
-            plateau_end + lobe_span - lobe.fall_time,
-            plateau_end + lobe_span,
+            opening - lobe_span,
+            opening - lobe_span + lobe.rise_time,
+            opening - lobe.fall_time,
+            opening,
+            closing,
+            closing + lobe.rise_time,
+            closing + lobe_span - lobe.fall_time,
+            closing + lobe_span,
         ]
     ),
     amplitudes=np.array([0, 1, 1, 0, 0, -1, -1, 0]) * lobe.amplitude,
@@ -368,7 +384,9 @@ print("LIN of the first train:", counters["LIN"][:6], "...")
 #    (prewinder, readout and rewinder merged), TI 900 ms from the inversion
 #    centre to the first excitation, one inversion every 2.5 s with a 10 ms
 #    hyperbolic-secant pulse and a z crusher. Play the slab rephaser in its
-#    own block; in the spoke's block, one z gradient that encodes kz before
-#    the plateau and rewinds it after, designed at the largest kz and scaled
-#    per partition; a 4-cycle z spoiler after the spoke, never rotated.
+#    own block; in the spoke's block, one z gradient that encodes kz up to
+#    where the spoke crosses zero into the plateau and rewinds it from where
+#    the spoke crosses zero again, designed at the largest kz and scaled per
+#    partition; a 4-cycle z spoiler after the spoke, never rotated, opposite in
+#    sign to the largest encode.
 #    Label LIN and PAR, RF spoil at 117 degrees, and check the timing.
