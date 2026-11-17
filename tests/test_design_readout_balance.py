@@ -199,3 +199,25 @@ def test_a_block_refuses_two_gradients_on_one_axis(system):
     seq = pp.Sequence(system)
     with pytest.raises(ValueError, match="sum the gradients"):
         seq.add_block(first, second)
+
+
+def test_a_spoke_encodes_its_partition_up_to_the_opening_of_its_readout_lobe(
+    system, slab
+):
+    """The z lobes end where the spoke crosses zero into the plateau, and resume where it leaves."""
+    readout = design.RadialStackReadout(
+        system, slab.rf, slab.gz, fov=FOV, matrix=MATRIX, fov_z=0.12, matrix_z=8
+    )
+    raster = system.grad_raster_time
+    gx_times = float(readout.gx.delay) + np.asarray(readout.gx.tt, dtype=float)
+    gx = np.asarray(readout.gx.waveform, dtype=float)
+    up = np.flatnonzero((gx[:-1] <= 0) & (gx[1:] > 0))[0]
+    down = np.flatnonzero((gx[:-1] > 0) & (gx[1:] <= 0))[-1]
+    opening = np.interp(0.0, gx[up : up + 2], gx_times[up : up + 2])
+    closing = np.interp(0.0, gx[down : down + 2][::-1], gx_times[down : down + 2][::-1])
+    z_times = float(readout.gz_enc.delay) + np.asarray(readout.gz_enc.tt, dtype=float)
+    z_on = z_times[np.abs(np.asarray(readout.gz_enc.waveform)) > 0]
+    encode_end = z_on[z_on < opening + raster].max() + 0.5 * raster
+    rewind_start = z_on[z_on > closing - raster].min() - 0.5 * raster
+    assert opening - 2 * raster <= encode_end <= opening + raster
+    assert closing - raster <= rewind_start <= closing + 2 * raster

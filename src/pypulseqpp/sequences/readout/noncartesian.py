@@ -232,7 +232,9 @@ class _RadialReadout(_ArmedReadout):
             min_readout_duration=readout_area
             / (_READOUT_GRAD_MARGIN * system.max_grad),
         )
-        gx, pre_span, rew_span = _balanced_spoke(readout_area, readout_duration, system)
+        gx, pre_span, rew_span, ramp_in, ramp_out = _balanced_spoke(
+            readout_area, readout_duration, system
+        )
 
         lobe = _partition_lobe(
             self._phase_axis, fov_z, matrix_z, type(self).__name__, system
@@ -257,7 +259,7 @@ class _RadialReadout(_ArmedReadout):
             pp.calc_duration(rf, gz) if gz is not None else pp.calc_duration(rf),
             raster,
         )
-        lead = max(pre_span, lobe_span)
+        lead = max(pre_span, lobe_span + ramp_in)
         te_base = rf_block - rf_center + 0.5 * readout_duration
         placement, lead, wait_span, reph_block = _place_rephaser(
             te,
@@ -266,10 +268,13 @@ class _RadialReadout(_ArmedReadout):
             reph_span,
             has_partitions=lobe is not None,
             system=system,
+            ramp=ramp_in,
         )
         block_span = pp.ceil_to_raster(
-            lead + readout_duration + max(rew_span, lobe_span), raster
+            lead + readout_duration + max(rew_span, lobe_span + ramp_out), raster
         )
+        if placement == "readout":
+            gz_reph = _ending_at(gz_reph, lead - ramp_in)
 
         gx.delay = lead - pre_span
         gy = pp.scale_grad(gx, 0.0)
@@ -284,7 +289,13 @@ class _RadialReadout(_ArmedReadout):
                 turned.channel = "y"
                 gy.append(turned)
         gz_enc = (
-            _partition_wave(lobe, lead, lead + readout_duration, block_span, system)
+            _partition_wave(
+                lobe,
+                lead - ramp_in,
+                lead + readout_duration + ramp_out,
+                (lead, lead + readout_duration),
+                system,
+            )
             if lobe is not None
             else None
         )
@@ -692,8 +703,16 @@ class NonCartesianReadout(_ArmedReadout):
         )
 
         gx, gy = _merged_arms(arms, lead, pre_span, read_span, rew_span, system)
+        if placement == "readout":
+            gz_reph = _ending_at(gz_reph, lead)
         gz_enc = (
-            _partition_wave(lobe, lead, lead + read_span, block_span, system)
+            _partition_wave(
+                lobe,
+                lead,
+                lead + read_span,
+                _adc_window(trajectory.adc, lead),
+                system,
+            )
             if lobe is not None
             else None
         )
@@ -1225,6 +1244,10 @@ def _balanced_spoke(readout_area, readout_duration, system):
         ``pre_span + readout_duration``.
     pre_span, rew_span : float
         Durations of the prephaser and the rewinder (s).
+    ramp_in, ramp_out : float
+        Time from the zero crossing that opens the readout lobe to the
+        plateau, and from the plateau to the zero crossing that closes it (s),
+        rounded up to the gradient raster.
     """
     amplitude = readout_area / readout_duration
     _, pre_times, pre_amplitudes = pp.make_extended_trapezoid_area(
@@ -1242,6 +1265,13 @@ def _balanced_spoke(readout_area, readout_duration, system):
         system=system,
     )
     pre_span = float(pre_times[-1])
+    raster = system.grad_raster_time
+    ramp_in = pp.ceil_to_raster(
+        pre_span - _zero_crossing(pre_times, pre_amplitudes, last=True), raster
+    )
+    ramp_out = pp.ceil_to_raster(
+        _zero_crossing(rew_times, rew_amplitudes, last=False), raster
+    )
     plateau_end = pre_span + readout_duration
     gx = pp.make_extended_trapezoid(
         channel="x",
@@ -1249,7 +1279,28 @@ def _balanced_spoke(readout_area, readout_duration, system):
         amplitudes=np.concatenate([pre_amplitudes, [amplitude], rew_amplitudes[1:]]),
         system=system,
     )
-    return gx, pre_span, float(rew_times[-1])
+    return gx, pre_span, float(rew_times[-1]), ramp_in, ramp_out
+
+
+def _zero_crossing(times, amplitudes, *, last):
+    """Return the time a piecewise-linear gradient crosses zero, first or last."""
+    times = np.asarray(times, dtype=float)
+    values = np.asarray(amplitudes, dtype=float)
+    segments = range(len(values) - 2, -1, -1) if last else range(len(values) - 1)
+    for i in segments:
+        a, b = values[i], values[i + 1]
+        if a == b or not (min(a, b) <= 0.0 <= max(a, b)):
+            continue
+        if (b > a) == last:
+            return float(times[i] + (0.0 - a) / (b - a) * (times[i + 1] - times[i]))
+    raise ValueError("the gradient does not cross zero")
+
+
+def _ending_at(event, end):
+    """Return a copy of a gradient shifted to end at ``end`` (s) in its block."""
+    shifted = pp.scale_grad(event, 1.0)
+    shifted.delay = float(event.delay) + end - pp.calc_duration(event)
+    return shifted
 
 
 def _merged_arms(arms, lead, pre_span, read_span, rew_span, system):
@@ -1370,12 +1421,12 @@ def _part_area(part, raster):
     )
 
 
-def _place_rephaser(te, te_base, lead, reph_span, *, has_partitions, system):
+def _place_rephaser(te, te_base, lead, reph_span, *, has_partitions, system, ramp=0.0):
     """Choose where the slice rephaser plays, and solve the TE wait.
 
     The rephaser rides the TE wait when the wait is long enough to hold it.
-    Otherwise a 2D readout plays it at the start of the acquisition block,
-    ahead of the plateau, and a stack, whose z axis carries the partition
+    Otherwise a 2D readout plays it in the acquisition block, ending where the
+    readout lobe opens, ``ramp`` before the readout, and a stack, whose z axis carries the partition
     encode there, gives it a block of its own.
 
     Parameters
@@ -1392,6 +1443,8 @@ def _place_rephaser(te, te_base, lead, reph_span, *, has_partitions, system):
         Whether the acquisition block carries a partition encode on z.
     system : pypulseqpp.Opts
         System limits.
+    ramp : float, default=0.0
+        Time from the opening of the readout lobe to the readout (s).
 
     Returns
     -------
@@ -1419,7 +1472,7 @@ def _place_rephaser(te, te_base, lead, reph_span, *, has_partitions, system):
         reph_block = pp.ceil_to_raster(reph_span, system.block_duration_raster)
         wait_span = solve_delay(te, te_base + reph_block + lead, "TE", system)
         return "block", lead, wait_span, reph_block
-    lead = max(lead, reph_span)
+    lead = max(lead, reph_span + ramp)
     return "readout", lead, solve_delay(te, te_base + lead, "TE", system), 0.0
 
 
@@ -1479,24 +1532,23 @@ def _partition_span(lobe, system):
     return pp.calc_duration(lobe) + 2 * system.grad_raster_time
 
 
-def _partition_wave(lobe, start, end, block_span, system):
+def _adc_window(adc, offset):
+    """Return the times (s) of the first and last edge of an ADC, from ``offset``."""
+    start = offset + float(adc.delay)
+    return start, start + int(adc.num_samples) * float(adc.dwell)
+
+
+def _partition_wave(lobe, encode_end, rewind_start, adc_window, system):
     """Return the partition encode and its rewinder as one waveform.
 
-    The encode opens the block and the rewinder, its negative, closes it at
-    ``block_span``, so both play as far from the readout as the block allows
-    and the partition encode has the most time to settle before the first
-    sample. ``start`` and ``end`` bound the readout, counted from the start of
-    the block; the gradient is off from one raster before ``start`` to one
-    raster after ``end``. The waveform is sampled at the centres of the
-    gradient raster and opens and closes on a zero sample, so every partition
-    scales one and the same waveform: scaling it by ``kz / kmax`` encodes any
-    partition and leaves its net area zero.
-
-    Raises
-    ------
-    ValueError
-        If the encode or the rewinder does not fit between the readout and
-        the block edge.
+    The encode ends at ``encode_end``, where the readout lobe opens, and the
+    rewinder, its negative, begins at ``rewind_start``, where the readout lobe
+    closes, both counted from the start of the block, with the gradient off in
+    between. Either edge moves away from the readout when it would fall less
+    than one gradient raster from the ``adc_window``. The waveform is sampled
+    at the centres of the gradient raster and opens and closes on a zero
+    sample, so every partition scales one and the same waveform: scaling it by
+    ``kz / kmax`` encodes any partition and leaves its net area zero.
     """
     rise, flat, fall = (
         float(lobe.rise_time),
@@ -1506,23 +1558,26 @@ def _partition_wave(lobe, start, end, block_span, system):
     amplitude = float(lobe.amplitude)
     span = rise + flat + fall
     raster = system.grad_raster_time
-    # A zero sample opens and closes the block: a player that holds a raster
-    # waveform's end samples over its edge half rasters plays it exactly as
-    # written.
-    first = 0.0
-    lobe_start = first + raster
-    encode_end = lobe_start + span
-    rewind_start = block_span - raster - span
+    adc_start, adc_end = adc_window
     # Samples at raster centres are joined linearly, so a lobe that ended on
     # the first sample would still play across its first half raster; one
     # raster of guard keeps the z gradient off throughout the readout, and
     # with it kz constant over every sample.
-    tol = 1e-9 * raster
-    if encode_end > start - raster + tol or rewind_start < end + raster - tol:
-        raise ValueError(
-            "the partition encode and rewinder do not fit between the readout "
-            "and the edges of its block"
-        )
+    encode_end = min(
+        _floor_to_raster(encode_end, raster),
+        _floor_to_raster(adc_start, raster) - raster,
+    )
+    rewind_start = max(
+        pp.ceil_to_raster(rewind_start, raster),
+        pp.ceil_to_raster(adc_end, raster) + raster,
+    )
+    # A zero sample before the encode and after the rewinder: a player that
+    # holds a raster waveform's end samples over its edge half rasters plays
+    # it exactly as written.
+    lobe_start = encode_end - span
+    first = lobe_start - raster
+    if first < -1e-9 * raster:
+        raise ValueError("the partition encode does not fit before the readout")
     corners = np.array(
         [
             lobe_start,
@@ -1543,13 +1598,17 @@ def _partition_wave(lobe, start, end, block_span, system):
     # encode reaches the lobe's own area by the start of the readout.
     played_times = np.concatenate([[first], centres, [first + n_points * raster]])
     played = np.concatenate([[0.0], samples, [0.0]])
-    grid = np.concatenate([played_times[played_times < start], [start]])
+    grid = np.concatenate([played_times[played_times < adc_start], [adc_start]])
     samples *= float(lobe.area) / np.trapezoid(
         np.interp(grid, played_times, played), grid
     )
     return pp.make_arbitrary_grad(
         lobe.channel, samples, first=0.0, last=0.0, delay=float(first), system=system
     )
+
+
+def _floor_to_raster(value, raster):
+    return np.floor(value / raster + 1e-9) * raster
 
 
 def _armed(trigger):

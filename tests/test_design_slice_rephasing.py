@@ -56,6 +56,25 @@ def peak_kz(module):
     return float(np.abs(k_traj_adc[2, : int(module.adc.num_samples)]).max())
 
 
+def readout_lobe_opening(module):
+    """Time (s) from the start of its block at which the readout lobe opens.
+
+    A spoke's lobe opens where its gradient crosses zero into the plateau,
+    rounded down to the gradient raster; a spiral arm's opens with its ADC.
+    """
+    gx = module.gx[0] if isinstance(module.gx, list) else module.gx
+    if not isinstance(module, design.RadialReadout2D):
+        return float(module.adc.delay)
+    times = float(gx.delay) + np.asarray(gx.tt, dtype=float)
+    values = np.asarray(gx.waveform, dtype=float)
+    i = np.flatnonzero((values[:-1] <= 0) & (values[1:] > 0))[-1]
+    crossing = times[i] - values[i] * (times[i + 1] - times[i]) / (
+        values[i + 1] - values[i]
+    )
+    raster = module.seq.system.grad_raster_time
+    return np.floor(crossing / raster + 1e-9) * raster
+
+
 def block_of(module, event):
     """Index of the block ``event`` was added to."""
     return next(
@@ -97,8 +116,15 @@ def test_at_minimum_te_it_shares_the_block_that_holds_the_prephaser(
 ):
     module = readout(family, system, excitation)
     assert block_of(module, module.gz_reph) == 1
-    assert float(module.gz_reph.delay) == 0.0
     assert not hasattr(module.events, "wait_te")
+
+
+@pytest.mark.parametrize("family", ["radial", "spiral_out", "spiral_in"])
+def test_at_minimum_te_it_ends_where_the_readout_lobe_opens(system, excitation, family):
+    module = readout(family, system, excitation)
+    assert pp.calc_duration(module.gz_reph) == pytest.approx(
+        readout_lobe_opening(module), abs=1e-9
+    )
 
 
 @pytest.mark.parametrize("family", ["line", "radial", "spiral_out", "spiral_in"])
@@ -150,15 +176,18 @@ def test_carrying_it_never_costs_the_requested_echo_time(
     assert module.check_timing()[0]
 
 
-def test_it_costs_nothing_at_all_where_a_prephaser_already_runs(system, excitation):
-    """A spoke prephases for longer than the rephaser lasts, so both fit at once."""
+def test_it_lengthens_te_only_by_what_it_outlasts_the_prephaser(system, excitation):
+    """The rephaser shares the prephaser's time up to the opening of the readout lobe."""
     with_reph = design.RadialReadout2D(
         system, excitation.rf, excitation.gz, excitation.gz_reph, fov=FOV, matrix=MATRIX
     )
     without = design.RadialReadout2D(
         system, excitation.rf, excitation.gz, fov=FOV, matrix=MATRIX
     )
-    assert with_reph.echo_time == pytest.approx(without.echo_time)
+    reph_span = pp.calc_duration(excitation.gz_reph)
+    assert with_reph.echo_time == pytest.approx(
+        without.echo_time + max(0.0, reph_span - readout_lobe_opening(without))
+    )
 
 
 def test_an_outward_spiral_starts_its_arm_after_the_rephaser(system, excitation):
@@ -277,7 +306,7 @@ def test_a_rephaser_longer_than_the_head_room_delays_the_spoke(system):
     without = design.RadialReadout2D(
         system, excitation.rf, excitation.gz, fov=0.4, matrix=32
     )
-    assert reph_span > float(without.adc.delay)
+    assert reph_span > readout_lobe_opening(without)
 
     module = design.RadialReadout2D(
         system, excitation.rf, excitation.gz, excitation.gz_reph, fov=0.4, matrix=32
@@ -285,7 +314,7 @@ def test_a_rephaser_longer_than_the_head_room_delays_the_spoke(system):
     assert len(module.blocks) == len(without.blocks)
     assert block_of(module, module.gz_reph) == block_of(module, module.gx)
     assert module.echo_time == pytest.approx(
-        without.echo_time + reph_span - float(without.adc.delay)
+        without.echo_time + reph_span - readout_lobe_opening(without)
     )
     assert peak_kz(module) == pytest.approx(0.0, abs=1e-6)
     assert module.check_timing()[0]
