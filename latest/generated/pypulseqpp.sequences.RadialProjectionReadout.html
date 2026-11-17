@@ -523,8 +523,12 @@
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.SequenceModule.html#pypulseqpp.sequences.SequenceModule" title="pypulseqpp.sequences._module.SequenceModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceModule</span></code></a></p>
 <p>Radial spokes for a spherical projection acquisition.</p>
 <p>The loop supplies 3D rotations. Partition encoding is not supported.</p>
-<p>The ADC samples the plateau. A slice rephaser may share an axis left
-invariant by the shot rotation. With <code class="docutils literal notranslate"><span class="pre">explicit=True</span></code> the spokes are
+<p>The prephaser and rewinder each cancel half the plateau area, so the spoke
+leaves no in-plane moment at any angle and the ADC samples the plateau. A
+stack plays its partition encode and rewinder as one z waveform in the
+same block, and the spoiler, when asked for, in a block of its own on a
+fixed axis. A slice rephaser may share an axis left invariant by the shot
+rotation. With <code class="docutils literal notranslate"><span class="pre">explicit=True</span></code> the spokes are
 written out, one per entry of <code class="docutils literal notranslate"><span class="pre">angles</span></code>; otherwise the caller rotates one
 base spoke per shot.</p>
 <p>A compact layout holds one base arm, which the caller rotates per shot; an
@@ -571,7 +575,9 @@ caller.</p></li>
 <li><p><strong>gx, gy</strong> (<em>GradEvent</em>) – The spoke from prephaser through rewinder. <code class="docutils literal notranslate"><span class="pre">gy</span></code> is the same waveform
 at zero amplitude, so a rotation always has a y event to fill. Lists
 with one entry per angle when <code class="docutils literal notranslate"><span class="pre">explicit</span></code>.</p></li>
-<li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – Partition encode and its rewinder. Stacks only.</p></li>
+<li><p><strong>gz_enc</strong> (<em>GradEvent</em>) – Partition encode, ending where the readout starts, and its rewinder,
+starting where it ends, as one waveform at <code class="docutils literal notranslate"><span class="pre">+kmax</span></code>; scale it by
+<code class="docutils literal notranslate"><span class="pre">kz</span> <span class="pre">/</span> <span class="pre">kmax</span></code> per partition. Its net area is zero. Stacks only.</p></li>
 <li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – End-of-TR spoiler; present when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window, delayed onto the readout plateau.</p></li>
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>

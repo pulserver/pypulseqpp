@@ -574,17 +574,16 @@ caller.</p></li>
 <li><p><strong>rf</strong> (<em>RfEvent</em>) – The pulse the module was given.</p></li>
 <li><p><strong>gz</strong> (<em>GradEvent</em>) – Its selection gradient, if one was given.</p></li>
 <li><p><strong>gz_reph</strong> (<em>GradEvent</em>) – Its rephaser, if one was given.</p></li>
-<li><p><strong>gx, gy</strong> (<em>GradEvent</em>) – The interleaf. Lists with one entry per angle when <code class="docutils literal notranslate"><span class="pre">explicit</span></code>.</p></li>
-<li><p><strong>gx_pre, gy_pre</strong> (<em>GradEvent</em>) – Prewinding gradients to the start of the path; present when it does not
-start at k = 0.</p></li>
-<li><p><strong>gx_rew, gy_rew</strong> (<em>GradEvent</em>) – Rewinding gradients to k = 0; present when the path does not end there.</p></li>
-<li><p><strong>gz_pre, gz_rew</strong> (<em>TrapEvent</em>) – Partition encode and its rewinder. Stacks only.</p></li>
+<li><p><strong>gx, gy</strong> (<em>GradEvent</em>) – The prewinder, interleaf and rewinder as one waveform per axis, sampled
+at the gradient raster centres. Lists with one entry per angle when
+<code class="docutils literal notranslate"><span class="pre">explicit</span></code>.</p></li>
+<li><p><strong>gz_enc</strong> (<em>GradEvent</em>) – Partition encode, ending where the readout starts, and its rewinder,
+starting where it ends, as one waveform at <code class="docutils literal notranslate"><span class="pre">+kmax</span></code>; scale it by
+<code class="docutils literal notranslate"><span class="pre">kz</span> <span class="pre">/</span> <span class="pre">kmax</span></code> per partition. Its net area is zero. Stacks only.</p></li>
 <li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – End-of-TR spoiler; present when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p></li>
 <li><p><strong>adc</strong> (<em>AdcEvent</em>) – The acquisition window.</p></li>
 <li><p><strong>adc_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>.</p></li>
 <li><p><strong>wait_te, wait_tr</strong> (<em>DelayEvent</em>) – Present only when <code class="docutils literal notranslate"><span class="pre">te</span></code> or <code class="docutils literal notranslate"><span class="pre">tr</span></code> exceeds the minimum.</p></li>
-<li><p><strong>wait_pre, wait_rew</strong> (<em>DelayEvent</em>) – Delays that set the duration of the prewinder and rewinder blocks, which
-can outlast their gradients; absent when the block is not played.</p></li>
 <li><p><strong>trajectory</strong> (<em>NonCartesianGradient</em>) – The interleaf, for its k-space path and timings.</p></li>
 <li><p><strong>echo_time</strong> (<em>float</em>) – Echo time from the RF centre to the point of the path nearest k = 0 (s).</p></li>
 <li><p><strong>echo_spacing</strong> (<em>float</em>) – Time between consecutive echoes (s); zero for a single echo.</p></li>
@@ -610,7 +609,7 @@ can outlast their gradients; absent when the block is not played.</p></li>
 <span class="gp">... </span>    <span class="n">fov</span><span class="o">=</span><span class="mf">0.22</span><span class="p">,</span> <span class="n">matrix</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">design_interleaves</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">fov_z</span><span class="o">=</span><span class="mf">0.12</span><span class="p">,</span> <span class="n">matrix_z</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">readout</span><span class="o">.</span><span class="n">gz_pre</span><span class="o">.</span><span class="n">channel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">readout</span><span class="o">.</span><span class="n">gz_enc</span><span class="o">.</span><span class="n">channel</span>
 <span class="go">'z'</span>
 </pre></div>
 </div>

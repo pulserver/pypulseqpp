@@ -66,7 +66,7 @@ Sixteen lines per blade, at every partition.
 
  .. code-block:: none
 
-    11520 blocks, 16.38 s
+    10240 blocks, 15.87 s
 
 
 
@@ -148,8 +148,8 @@ the shared central-k-space region.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 lines            11520         16.38          1280
-    32 lines            11520         16.38          1280
+    16 lines            10240         15.87          1280
+    32 lines            10240         15.87          1280
 
 
 
@@ -175,7 +175,7 @@ the shared central-k-space region.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.782 seconds)
+   **Total running time of the script:** (0 minutes 8.684 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_blades3D_sequence.py:

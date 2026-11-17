@@ -65,7 +65,7 @@ Sixteen interleaves at a constant pitch.
 
  .. code-block:: none
 
-    112 blocks, 0.40 s
+    96 blocks, 0.38 s
 
 
 
@@ -155,8 +155,8 @@ the pitch at larger radii, reducing the readout duration.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    constant              112          0.40            16
-    dual density          112          0.35            16
+    constant               96          0.38            16
+    dual density           96          0.33            16
 
 
 
@@ -182,7 +182,7 @@ the pitch at larger radii, reducing the readout duration.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.315 seconds)
+   **Total running time of the script:** (0 minutes 1.422 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_spiral2D_sequence.py:

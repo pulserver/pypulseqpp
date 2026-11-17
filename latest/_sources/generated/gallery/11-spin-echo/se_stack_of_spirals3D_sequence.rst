@@ -66,7 +66,7 @@ Sixteen interleaves at every partition.
 
  .. code-block:: none
 
-    1024 blocks, 1.90 s
+    768 blocks, 1.81 s
 
 
 
@@ -148,8 +148,8 @@ peripheral k-space disc.
  .. code-block:: none
 
                        blocks  duration (s)  acquisitions
-    16 interleaves       1024          1.90           128
-    8 interleaves         512          1.10            64
+    16 interleaves        768          1.81           128
+    8 interleaves         384          1.06            64
 
 
 
@@ -175,7 +175,7 @@ peripheral k-space disc.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 3.140 seconds)
+   **Total running time of the script:** (0 minutes 3.204 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_11-spin-echo_se_stack_of_spirals3D_sequence.py:

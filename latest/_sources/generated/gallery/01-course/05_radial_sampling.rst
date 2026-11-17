@@ -37,17 +37,18 @@ and up again in between.
 
 **Learning objectives**
 
-- Rotate the readout and its prewinder with :func:`~pypulseqpp.rotate`.
+- Rotate the readout, its prewinder and its rewinder with
+  :func:`~pypulseqpp.rotate`, and keep the spoiler on z.
 - Relate the number of spokes to the matrix, and order the spokes by the
   golden angle.
-- Merge the prewinder into the readout, and the readout into the spoiler,
-  with :func:`~pypulseqpp.make_extended_trapezoid_area`, and centre the ADC
-  on the plateau.
+- Merge the prewinder, the readout and the rewinder into one balanced
+  gradient with :func:`~pypulseqpp.make_extended_trapezoid_area`, and centre
+  the ADC on the plateau.
 
 Previous: :doc:`04_labels_and_metadata`. Next: :doc:`06_radial_mprage`, where
 the radial gradient echo becomes the readout of an MPRAGE.
 
-.. GENERATED FROM PYTHON SOURCE LINES 31-43
+.. GENERATED FROM PYTHON SOURCE LINES 32-44
 
 
 
@@ -56,7 +57,7 @@ the radial gradient echo becomes the readout of an MPRAGE.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 44-49
+.. GENERATED FROM PYTHON SOURCE LINES 45-50
 
 Events
 ------
@@ -64,7 +65,7 @@ Events
 The scanner, the slice and the spoiler of the previous lessons. The readout
 is shorter, at a 10 µs dwell, so the TR shrinks to a few milliseconds.
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-91
+.. GENERATED FROM PYTHON SOURCE LINES 50-93
 
 .. code-block:: Python
 
@@ -108,7 +109,8 @@ is shorter, at a 10 µs dwell, so the TR shrinks to a few milliseconds.
     )
     adc = pp.make_adc(MATRIX, dwell=dwell, delay=gx.rise_time, system=system)
     gx_pre = pp.make_trapezoid("x", area=-gx.area / 2, system=system)
-    gx_spoil = pp.make_trapezoid("x", area=2 * MATRIX * delta_k, system=system)
+    gx_rew = pp.make_trapezoid("x", area=-gx.area / 2, system=system)
+    gz_spoil = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 
 
 
@@ -117,10 +119,11 @@ is shorter, at a 10 µs dwell, so the TR shrinks to a few milliseconds.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-106
+.. GENERATED FROM PYTHON SOURCE LINES 94-118
 
-The prewinder and the spoiler have no duration this time: the factory makes
-each one as short as the scanner allows.
+The prewinder and the rewinder have no duration this time: the factory makes
+each one as short as the scanner allows. The rewinder has the prewinder's
+area, so the readout ends where it started, at the centre of k-space.
 
 Radial spokes
 -------------
@@ -129,12 +132,21 @@ A spoke is the Cartesian line with no phase encoding, rotated about z by its
 angle :math:`\varphi`. :func:`~pypulseqpp.rotate` does the rotation: it
 takes a gradient on x and returns its projections on x and y, which you add
 to the block together. Rotate everything that moves along the line, the
-prewinder, the readout and the spoiler, by the same angle.
+prewinder, the readout and the rewinder, by the same angle.
+
+The spoiler is *not* rotated. RF spoiling, from lesson 3, works only if
+every repetition leaves the same gradient moment behind: then each echo
+pathway gathers the same phase per repetition, and the quadratic RF phase
+cycle cancels it. A spoiler along the spoke would leave a moment of the
+same size but a different direction after every spoke, so the pathways
+would gather a phase that depends on the spoke order instead. The spoke is
+balanced, with no net moment in the plane, and the spoiler plays on z, the
+axis the rotation leaves alone, identical in every repetition.
 
 The figure shows 64 spokes spread evenly over half a turn: each spoke covers both
 halves of its line, so half a turn covers the whole plane.
 
-.. GENERATED FROM PYTHON SOURCE LINES 106-124
+.. GENERATED FROM PYTHON SOURCE LINES 118-137
 
 .. code-block:: Python
 
@@ -147,7 +159,8 @@ halves of its line, so half a turn covers the whole plane.
             seq.add_block(rf, gz)
             seq.add_block(*pp.rotate(gx_pre, angle=angle, axis="z"), gz_reph)
             seq.add_block(*pp.rotate(gx, angle=angle, axis="z"), adc)
-            seq.add_block(*pp.rotate(gx_spoil, angle=angle, axis="z"))
+            seq.add_block(*pp.rotate(gx_rew, angle=angle, axis="z"))
+            seq.add_block(gz_spoil)
         return seq
 
 
@@ -169,12 +182,12 @@ halves of its line, so half a turn covers the whole plane.
 
  .. code-block:: none
 
-    timing ok: True, TR 4.52 ms
+    timing ok: True, TR 5.88 ms
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 125-142
+.. GENERATED FROM PYTHON SOURCE LINES 138-155
 
 Number of spokes
 ----------------
@@ -194,7 +207,7 @@ Cartesian scan. Fewer spokes undersample the edge of k-space but never the
 centre, which is why an undersampled radial image shows streaks rather than
 the fold-over of an undersampled Cartesian one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-145
+.. GENERATED FROM PYTHON SOURCE LINES 155-158
 
 .. code-block:: Python
 
@@ -214,7 +227,7 @@ the fold-over of an undersampled Cartesian one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 146-155
+.. GENERATED FROM PYTHON SOURCE LINES 159-168
 
 Golden angle
 ------------
@@ -226,7 +239,7 @@ each spoke by the *golden angle* instead,
 consecutive spokes covers the plane nearly evenly. You can stop the
 acquisition anywhere, or cut it into frames afterwards.
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-178
+.. GENERATED FROM PYTHON SOURCE LINES 168-191
 
 .. code-block:: Python
 
@@ -247,7 +260,7 @@ acquisition anywhere, or cut it into frames afterwards.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 179-190
+.. GENERATED FROM PYTHON SOURCE LINES 192-203
 
 Stopping after the first sixth of the spokes leaves one sixth of the plane
 covered with even spacing, and the whole plane, less densely, with the
@@ -258,10 +271,10 @@ Gradient surgery
 
 In the diagram of one repetition, the prewinder ramps down to zero,
 and the readout immediately ramps up again from zero. The readout then ramps
-down, and the spoiler ramps up. Each of those ramps costs time and adds
+down, and the rewinder ramps up. Each of those ramps costs time and adds
 nothing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 190-193
+.. GENERATED FROM PYTHON SOURCE LINES 203-206
 
 .. code-block:: Python
 
@@ -280,7 +293,7 @@ nothing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 194-207
+.. GENERATED FROM PYTHON SOURCE LINES 207-220
 
 You can merge them. Instead of a prewinder that starts and ends at zero, you
 want a gradient that starts at zero, has the prewinder's area, and *ends at
@@ -296,7 +309,7 @@ prewinder's area is
 minus half the plateau's, so the readout crosses the centre of k-space in
 the middle of the plateau, and of the ADC.
 
-.. GENERATED FROM PYTHON SOURCE LINES 207-214
+.. GENERATED FROM PYTHON SOURCE LINES 220-227
 
 .. code-block:: Python
 
@@ -314,24 +327,16 @@ the middle of the plateau, and of the ADC.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 215-219
+.. GENERATED FROM PYTHON SOURCE LINES 228-230
 
-Add the plateau to the corners, and you have the prewinder and the readout
-as one gradient, :func:`~pypulseqpp.make_extended_trapezoid`. The ADC starts
-at the last corner of the prewinder, where the plateau begins, plus half of
-the spare time.
+The plateau begins at the last corner of the prewinder. The ADC starts
+there, plus half of the spare time.
 
-.. GENERATED FROM PYTHON SOURCE LINES 219-233
+.. GENERATED FROM PYTHON SOURCE LINES 230-238
 
 .. code-block:: Python
 
     plateau_start = times[-1]
-    g_read = pp.make_extended_trapezoid(
-        "x",
-        times=np.append(times, plateau_start + plateau),
-        amplitudes=np.append(amplitudes, G),
-        system=system,
-    )
     adc_read = pp.make_adc(
         MATRIX,
         dwell=dwell,
@@ -346,35 +351,50 @@ the spare time.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 234-236
+.. GENERATED FROM PYTHON SOURCE LINES 239-245
 
-The same at the other end: the spoiler starts at the readout amplitude, so
-the readout's ramp-down becomes part of it.
+The same at the other end: the rewinder starts at the readout amplitude
+and ends at zero, with the prewinder's area, so the readout's ramp-down
+becomes part of it. Put its corners after the plateau's, and
+:func:`~pypulseqpp.make_extended_trapezoid` joins the prewinder, the
+readout and the rewinder into one gradient that starts and ends at zero and
+has no net area.
 
-.. GENERATED FROM PYTHON SOURCE LINES 236-240
+.. GENERATED FROM PYTHON SOURCE LINES 245-257
 
 .. code-block:: Python
 
-    g_spoil, _, _ = pp.make_extended_trapezoid_area(
-        channel="x", grad_start=G, grad_end=0.0, area=gx_spoil.area, system=system
+    _, rew_times, rew_amplitudes = pp.make_extended_trapezoid_area(
+        channel="x", grad_start=G, grad_end=0.0, area=-G * plateau / 2, system=system
     )
+    plateau_end = plateau_start + plateau
+    g_read = pp.make_extended_trapezoid(
+        "x",
+        times=np.concatenate([times, plateau_end + rew_times]),
+        amplitudes=np.concatenate([amplitudes, rew_amplitudes]),
+        system=system,
+    )
+    print(f"net area of the spoke: {g_read.area:.1e} 1/m")
 
 
 
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    net area of the spoke: 6.9e-14 1/m
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 241-246
 
-The repetition is now three blocks: the excitation, the merged prewinder and
-readout with the ADC (and the slice rephaser beside them), and the spoiler.
-The gradient on x and y does not return to zero between the last two
-blocks; that is allowed, as long as both blocks agree on the amplitude at
-the boundary, which they do because both were designed with ``G``.
+.. GENERATED FROM PYTHON SOURCE LINES 258-260
 
-.. GENERATED FROM PYTHON SOURCE LINES 246-265
+The repetition is now three blocks: the excitation, the balanced spoke with
+the ADC (and the slice rephaser beside it), and the spoiler on z.
+
+.. GENERATED FROM PYTHON SOURCE LINES 260-279
 
 .. code-block:: Python
 
@@ -386,7 +406,7 @@ the boundary, which they do because both were designed with ``G``.
         for angle in angles:
             seq.add_block(rf, gz)
             seq.add_block(*pp.rotate(g_read, angle=angle, axis="z"), adc_read, gz_reph)
-            seq.add_block(*pp.rotate(g_spoil, angle=angle, axis="z"))
+            seq.add_block(gz_spoil)
         return seq
 
 
@@ -411,17 +431,17 @@ the boundary, which they do because both were designed with ``G``.
  .. code-block:: none
 
     timing ok: True
-    TR 4.52 ms before surgery, 4.26 ms after
+    TR 5.88 ms before surgery, 5.78 ms after
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 266-268
+.. GENERATED FROM PYTHON SOURCE LINES 280-282
 
 The echo must remain at the centre of the readout: the sample closest to
 the centre of k-space is one of the two middle samples, 63 or 64.
 
-.. GENERATED FROM PYTHON SOURCE LINES 268-272
+.. GENERATED FROM PYTHON SOURCE LINES 282-286
 
 .. code-block:: Python
 
@@ -442,7 +462,7 @@ the centre of k-space is one of the two middle samples, 63 or 64.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 273-291
+.. GENERATED FROM PYTHON SOURCE LINES 287-307
 
 The scan is 202 repetitions, so every fraction of a millisecond you remove
 from the TR is saved 202 times, and in a 3D radial scan tens of thousands of
@@ -456,17 +476,19 @@ What this lesson built, stated the way you would ask an agent for it:
 .. code-block:: text
 
    Turn the gradient echo into a 2D radial one: no phase encoding, the
-   prewinder, readout and x spoiler rotated about z by each spoke's angle
-   with pp.rotate, 202 spokes for a 128 matrix ordered by the golden angle
-   pi(3 - sqrt(5))/2, 10 us dwell. Then merge the prewinder into the
-   readout (make_extended_trapezoid_area from 0 to the readout amplitude,
-   area minus half the plateau) and the readout ramp-down into the spoiler,
-   start the ADC at the plateau, check the timing and report the TR saved.
+   prewinder, readout and rewinder (minus half the readout area each)
+   rotated about z by each spoke's angle with pp.rotate, and a 4-cycle
+   spoiler on z that is never rotated. 202 spokes for a 128 matrix ordered
+   by the golden angle pi(3 - sqrt(5))/2, 10 us dwell. Then merge the
+   prewinder, readout and rewinder into one balanced gradient
+   (make_extended_trapezoid_area from 0 to the readout amplitude and back,
+   each with minus half the plateau's area), start the ADC on the plateau,
+   check the timing and report the TR saved.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.508 seconds)
+   **Total running time of the script:** (0 minutes 0.590 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_05_radial_sampling.py:

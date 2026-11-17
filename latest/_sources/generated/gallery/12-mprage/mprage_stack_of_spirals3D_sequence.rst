@@ -72,7 +72,7 @@ produce a compact timing diagram.
 
  .. code-block:: none
 
-    80 blocks, 0.27 s, TI 8 ms, TR 67 ms
+    64 blocks, 0.28 s, TI 8 ms, TR 69 ms
 
 
 
@@ -159,7 +159,7 @@ angle; the rotated set covers the in-plane k-space disc.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.047 seconds)
+   **Total running time of the script:** (0 minutes 11.240 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_12-mprage_mprage_stack_of_spirals3D_sequence.py:

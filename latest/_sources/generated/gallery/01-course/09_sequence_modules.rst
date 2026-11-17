@@ -146,7 +146,7 @@ the excitation, the echo for the readout.
 
     inversion  events gz_spoil, rf_prep                             2 blocks, 10.98 ms, center at  5.10 ms
     excitation events gz, rf                                        1 blocks,  1.28 ms, center at  0.60 ms
-    readout    events adc, gx, gy, gz, gz_pre, gz_rew, gz_spoil, rf 4 blocks,  6.00 ms, center at  2.78 ms
+    readout    events adc, gx, gy, gz, gz_enc, gz_spoil, rf         3 blocks,  5.68 ms, center at  2.48 ms
 
 
 
@@ -154,9 +154,9 @@ the excitation, the echo for the readout.
 .. GENERATED FROM PYTHON SOURCE LINES 100-104
 
 The readout's blocks open with the pulse it was given, so one spoke of your
-train is exactly ``readout.blocks``: the excitation, the partition
-encoding ``gz_pre``, the readout with its ADC, and the partition rewinder
-with the spoiler. It also reports what it achieved:
+train is exactly ``readout.blocks``: the excitation; the spoke with its
+ADC, and on z the partition encoding before the plateau and its rewinder
+after it, ``gz_enc``; and the spoiler. It also reports what it achieved:
 
 .. GENERATED FROM PYTHON SOURCE LINES 104-110
 
@@ -181,16 +181,17 @@ with the spoiler. It also reports what it achieved:
 
  .. code-block:: none
 
-    TE 2.18 ms, spoke TR 6.00 ms, bandwidth 100 kHz
+    TE 1.88 ms, spoke TR 5.68 ms, bandwidth 100 kHz
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-132
+.. GENERATED FROM PYTHON SOURCE LINES 111-133
 
-``gz_pre`` and ``gz_rew`` encode the outermost partition. You scale them to
+``gz_enc`` encodes the outermost partition and rewinds it. You scale it to
 each partition with :func:`~pypulseqpp.scale_grad`, as you scaled the phase
-encoding in lesson 1.
+encoding in lesson 1; both lobes scale together, so every partition leaves
+zero net moment on z.
 
 Rotation extension
 ------------------
@@ -210,7 +211,7 @@ inversion time is placed from the modules' ``center``: from the inversion's
 centre to the end of its layout, then the wait, then the excitation up to
 its centre.
 
-.. GENERATED FROM PYTHON SOURCE LINES 132-240
+.. GENERATED FROM PYTHON SOURCE LINES 133-240
 
 .. code-block:: Python
 
@@ -270,11 +271,11 @@ its centre.
             readout_bandwidth_hz=100e3,
             spoiling_cycles=4.0,
         )
-        pulse, _, read, _ = readout.blocks
+        pulse, read, spoil = readout.blocks
 
         steps = (np.arange(partitions) - partitions // 2) / (partitions / 2)
-        gz_encode = [pp.scale_grad(readout.gz_pre, step) for step in steps]
-        gz_rewind = [pp.scale_grad(readout.gz_rew, step) for step in steps]
+        gz_encode = [pp.scale_grad(readout.gz_enc, step) for step in steps]
+        in_plane = [event for event in read if event is not readout.gz_enc]
 
         raster = system.block_duration_raster
         ti_wait = pp.round_to_raster(
@@ -308,9 +309,8 @@ its centre.
             for spoke in range(spokes_per_train):
                 readout.rf.phase_offset = readout.adc.phase_offset = phases[n]
                 seq.add_block(*pulse, *labels(LIN=spoke, PAR=partition))
-                seq.add_block(gz_encode[partition])
-                seq.add_block(*read, rotations[n])
-                seq.add_block(gz_rewind[partition], readout.gz_spoil)
+                seq.add_block(*in_plane, gz_encode[partition], rotations[n])
+                seq.add_block(*spoil)
                 n += 1
             seq.add_block(wait_recovery)
 
@@ -398,15 +398,15 @@ What this lesson built, stated the way you would ask an agent for it:
    sequence modules: InversionPreparation for the inversion and crusher,
    SpatialSelectiveExcitation(is_slab=True) for the 1 ms slab pulse, and
    RadialStackReadout (100 kHz, spoiling_cycles=4) for the spokes. Play
-   the readout's blocks per spoke with gz_pre and gz_rew scaled to the
-   partition, turn each spoke with a make_rotation extension at the
-   golden angle, RF spoil with make_rf_spoiling_schedule, and place TI
-   from the modules' duration and center.
+   the readout's blocks per spoke with gz_enc scaled to the partition,
+   turn each spoke with a make_rotation extension at the golden angle, RF
+   spoil with make_rf_spoiling_schedule, and place TI from the modules'
+   duration and center.
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.193 seconds)
+   **Total running time of the script:** (0 minutes 0.235 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_09_sequence_modules.py:

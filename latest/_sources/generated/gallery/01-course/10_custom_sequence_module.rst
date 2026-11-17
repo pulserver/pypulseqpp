@@ -230,7 +230,7 @@ it was. ``ti`` becomes the delay from the preparation's centre to the first
 excitation: the inversion time for the inversion, and a short gap for the
 T2 preparation.
 
-.. GENERATED FROM PYTHON SOURCE LINES 181-302
+.. GENERATED FROM PYTHON SOURCE LINES 181-301
 
 .. code-block:: Python
 
@@ -305,11 +305,11 @@ T2 preparation.
             readout_bandwidth_hz=100e3,
             spoiling_cycles=4.0,
         )
-        pulse, _, read, _ = readout.blocks
+        pulse, read, spoil = readout.blocks
 
         steps = (np.arange(partitions) - partitions // 2) / (partitions / 2)
-        gz_encode = [pp.scale_grad(readout.gz_pre, step) for step in steps]
-        gz_rewind = [pp.scale_grad(readout.gz_rew, step) for step in steps]
+        gz_encode = [pp.scale_grad(readout.gz_enc, step) for step in steps]
+        in_plane = [event for event in read if event is not readout.gz_enc]
 
         raster = system.block_duration_raster
         ti_wait = pp.round_to_raster(
@@ -342,9 +342,8 @@ T2 preparation.
             for spoke in range(spokes_per_train):
                 readout.rf.phase_offset = readout.adc.phase_offset = phases[n]
                 seq.add_block(*pulse, *labels(LIN=spoke, PAR=partition))
-                seq.add_block(gz_encode[partition])
-                seq.add_block(*read, rotations[n])
-                seq.add_block(gz_rewind[partition], readout.gz_spoil)
+                seq.add_block(*in_plane, gz_encode[partition], rotations[n])
+                seq.add_block(*spoil)
                 n += 1
             seq.add_block(wait_recovery)
 
@@ -362,11 +361,11 @@ T2 preparation.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 303-304
+.. GENERATED FROM PYTHON SOURCE LINES 302-303
 
 The same function now plays either scan:
 
-.. GENERATED FROM PYTHON SOURCE LINES 304-321
+.. GENERATED FROM PYTHON SOURCE LINES 303-320
 
 .. code-block:: Python
 
@@ -406,13 +405,13 @@ The same function now plays either scan:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 322-325
+.. GENERATED FROM PYTHON SOURCE LINES 321-324
 
 After the preparation, each tissue starts the train with what survived the
 echo time, :math:`e^{-\mathrm{TE}/T_2}`, and the contrast is the reverse of
 the MPRAGE's: CSF, with its long T2, is the brightest.
 
-.. GENERATED FROM PYTHON SOURCE LINES 325-333
+.. GENERATED FROM PYTHON SOURCE LINES 324-332
 
 
 
@@ -429,7 +428,7 @@ the MPRAGE's: CSF, with its long T2, is the brightest.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 334-344
+.. GENERATED FROM PYTHON SOURCE LINES 333-343
 
 Sensitivity to B1 and off-resonance
 ------------------------------------
@@ -442,7 +441,7 @@ The figure below simulates the RF of your module, and of the shipped
 :class:`~pypulseqpp.sequences.T2Preparation`, over a range of both errors
 with :func:`~pypulseqpp.sim_bloch`:
 
-.. GENERATED FROM PYTHON SOURCE LINES 344-404
+.. GENERATED FROM PYTHON SOURCE LINES 343-403
 
 .. code-block:: Python
 
@@ -461,7 +460,7 @@ with :func:`~pypulseqpp.sim_bloch`:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 405-437
+.. GENERATED FROM PYTHON SOURCE LINES 404-436
 
 On resonance your hard-pulse train is robust to :math:`B_1`: the second
 180° pulse undoes most of the error of the first. Off resonance, the
@@ -499,7 +498,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.352 seconds)
+   **Total running time of the script:** (0 minutes 1.438 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_10_custom_sequence_module.py:

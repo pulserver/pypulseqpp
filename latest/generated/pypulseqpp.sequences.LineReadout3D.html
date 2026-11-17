@@ -594,7 +594,8 @@ correspondingly less area.</p></li>
 rewinds the part of the line after the echo and, under
 <code class="docutils literal notranslate"><span class="pre">spoiling_position='post'</span></code>, adds the spoiler.</p></li>
 <li><p><strong>gy_pre, gz_pre</strong> (<em>TrapEvent</em>) – Phase encodes at their largest step, to be scaled per shot. <code class="docutils literal notranslate"><span class="pre">gz_pre</span></code>
-is 3D only.</p></li>
+is 3D only. Right-aligned in the prewinder block, except under
+<code class="docutils literal notranslate"><span class="pre">spoiling_position='pre'</span></code>, where they start it.</p></li>
 <li><p><strong>gy_rew, gz_rew</strong> (<em>TrapEvent</em>) – The negated encodes that unwind them.</p></li>
 <li><p><strong>gx_flyback</strong> (<em>TrapEvent</em>) – Rewinder played after every echo but the last of a monopolar train.</p></li>
 <li><p><strong>gx_rev</strong> (<em>GradEvent</em>) – Negated lobe that reads the even echoes of a bipolar train.</p></li>
