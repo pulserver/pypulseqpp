@@ -163,7 +163,7 @@ plt.show()
 # sphinx_gallery_end_ignore
 
 # %%
-# The response peaks on the ramps of the merged readout and spoiler, where
+# The response peaks on the gradient ramps, where
 # the slew rate is highest. Your MPRAGE stays below the threshold.
 #
 # Mechanical resonance

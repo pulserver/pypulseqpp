@@ -249,11 +249,11 @@ def prepared_radial(
         readout_bandwidth_hz=100e3,
         spoiling_cycles=4.0,
     )
-    pulse, _, read, _ = readout.blocks
+    pulse, read, spoil = readout.blocks
 
     steps = (np.arange(partitions) - partitions // 2) / (partitions / 2)
-    gz_encode = [pp.scale_grad(readout.gz_pre, step) for step in steps]
-    gz_rewind = [pp.scale_grad(readout.gz_rew, step) for step in steps]
+    gz_encode = [pp.scale_grad(readout.gz_enc, step) for step in steps]
+    in_plane = [event for event in read if event is not readout.gz_enc]
 
     raster = system.block_duration_raster
     ti_wait = pp.round_to_raster(
@@ -286,9 +286,8 @@ def prepared_radial(
         for spoke in range(spokes_per_train):
             readout.rf.phase_offset = readout.adc.phase_offset = phases[n]
             seq.add_block(*pulse, *labels(LIN=spoke, PAR=partition))
-            seq.add_block(gz_encode[partition])
-            seq.add_block(*read, rotations[n])
-            seq.add_block(gz_rewind[partition], readout.gz_spoil)
+            seq.add_block(*in_plane, gz_encode[partition], rotations[n])
+            seq.add_block(*spoil)
             n += 1
         seq.add_block(wait_recovery)
 

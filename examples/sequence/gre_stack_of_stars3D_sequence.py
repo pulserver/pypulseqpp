@@ -249,10 +249,7 @@ def gre_stack_of_stars3d(
                 LIN=spoke, PAR=partition, IMA=partition in calibration, ONCE=0
             )
         kz = (partition - n_z // 2) / (n_z / 2)
-        encoded = {
-            id(ro.gz_pre): pp.scale_grad(ro.gz_pre, kz),
-            id(ro.gz_rew): pp.scale_grad(ro.gz_rew, kz),
-        }
+        encoded = {id(ro.gz_enc): pp.scale_grad(ro.gz_enc, kz)}
         rotation = rotation_at(spoke, partition)
 
         seq.add_block(exc.rf, *([] if gz is None else [gz]), *label_events)

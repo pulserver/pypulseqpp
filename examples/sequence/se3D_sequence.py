@@ -21,9 +21,6 @@ FAT_SHIFT_PPM = -3.4
 #: Dephasing each crusher beside the refocusing pulse winds, in cycles
 #: across one voxel.
 CRUSHER_CYCLES = 4.0
-#: Dephasing left on the readout axis at the end of each repetition, in
-#: cycles across one voxel.
-SPOILING_CYCLES = 4.0
 
 
 def se3d(
@@ -208,7 +205,6 @@ def se3d(
             partial_echo=partial_fourier_x,
             oversampling=readout_oversampling,
             readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=SPOILING_CYCLES,
             wave=wave,
             wave_cycles=wave_cycles,
             wave_amplitude=wave_amplitude,

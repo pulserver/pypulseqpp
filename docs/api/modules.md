@@ -76,14 +76,14 @@ from the prescription.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.NonCartesianReadout` | Excitation, a `NonCartesianGradient`, TE, TR | `adc`, `gx`, `gy`, prewinders, rewinders, `gz_spoil` | Readout of a solved interleaf with its TR budget. |
 | {obj}`~pypulseqpp.sequences.RadialReadout2D` | Excitation, FOV, matrix, TE, TR, bandwidth | `adc`, `gx`, `gy`, `gz_spoil` | Full radial spoke through the centre of a plane. |
-| {obj}`~pypulseqpp.sequences.RadialStackReadout` | As `RadialReadout2D`, plus `fov_z`, `matrix_z` | `adc`, `gx`, `gy`, `gz_pre`, `gz_rew` | Radial spokes with Cartesian partitions (stack of stars). |
+| {obj}`~pypulseqpp.sequences.RadialStackReadout` | As `RadialReadout2D`, plus `fov_z`, `matrix_z` | `adc`, `gx`, `gy`, `gz_enc` (partition encode and rewinder, one waveform) | Radial spokes with Cartesian partitions (stack of stars). |
 | {obj}`~pypulseqpp.sequences.RadialProjectionReadout` | Excitation, FOV, matrix, TE, TR, bandwidth | `adc`, `gx`, `gy`, `gz_spoil` | Radial spokes of a 3D projection acquisition. |
 | {obj}`~pypulseqpp.sequences.SpiralReadout2D` | Excitation, FOV, matrix, design interleaves, density | `adc`, `gx`, `gy`, prewinders, rewinders, `trajectory` | One spiral arm in a plane. |
-| {obj}`~pypulseqpp.sequences.SpiralStackReadout` | As `SpiralReadout2D`, plus `fov_z`, `matrix_z` | As `SpiralReadout2D`, plus `gz_pre`, `gz_rew` | Spiral arms with Cartesian partitions along z. |
+| {obj}`~pypulseqpp.sequences.SpiralStackReadout` | As `SpiralReadout2D`, plus `fov_z`, `matrix_z` | As `SpiralReadout2D`, plus `gz_enc` (partition encode and rewinder, one waveform) | Spiral arms with Cartesian partitions along z. |
 | {obj}`~pypulseqpp.sequences.SpiralProjectionReadout` | As `SpiralReadout2D` | As `SpiralReadout2D` | Spiral arms rotated over a sphere. |
 | {obj}`~pypulseqpp.sequences.SpiralNavigator` | FOV, matrix, slab thickness, flip angle, navigator TR | `excitation`, `readout`, per-plane `rotations` | Three orthogonal thick-slab spiral navigators. |
 | {obj}`~pypulseqpp.sequences.RosetteReadout2D` | Excitation, FOV, matrix, petals, frequency ratio | `adc`, `gx`, `gy`, `trajectory` | One multi-petal rosette interleaf in a plane. |
-| {obj}`~pypulseqpp.sequences.RosetteStackReadout` | As `RosetteReadout2D`, plus `fov_z`, `matrix_z` | As `RosetteReadout2D`, plus `gz_pre`, `gz_rew` | Rosette petals with Cartesian partitions along z. |
+| {obj}`~pypulseqpp.sequences.RosetteStackReadout` | As `RosetteReadout2D`, plus `fov_z`, `matrix_z` | As `RosetteReadout2D`, plus `gz_enc` (partition encode and rewinder, one waveform) | Rosette petals with Cartesian partitions along z. |
 | {obj}`~pypulseqpp.sequences.RosetteProjectionReadout` | As `RosetteReadout2D` | As `RosetteReadout2D` | Rosette petals rotated over a sphere. |
 | {obj}`~pypulseqpp.sequences.ZteReadout` | Non-selective `rf`, FOV, matrix, spoke directions or count | `g_ramp`, `g_hold`, `g_read`, `adc`, `shot_rotations` | Continuous-gradient ZTE shell with its initial and final ramps. |
 

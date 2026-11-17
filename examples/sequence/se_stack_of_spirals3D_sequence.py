@@ -36,9 +36,6 @@ FAT_SHIFT_PPM = -3.4
 #: Dephasing each crusher beside the refocusing pulse winds, in cycles
 #: across one voxel.
 CRUSHER_CYCLES = 4.0
-#: Dephasing left on the partition axis at the end of each repetition, in
-#: cycles across one voxel.
-SPOILING_CYCLES = 4.0
 #: Exponent of the normalised radius, for variable density.
 VARIABLE_DENSITY_POWER = 2.0
 #: Normalised radius of the dual-density transition.
@@ -228,7 +225,6 @@ def se_stack_of_spirals3d(
             density=density,
             te=None if half_te is None else half_te - crusher,
             readout_bandwidth_hz=readout_bandwidth_hz,
-            spoiling_cycles=SPOILING_CYCLES,
             **shaped,
         )
 
@@ -310,10 +306,7 @@ def se_stack_of_spirals3d(
                 LIN=arm, PAR=partition, IMA=partition in calibration, ONCE=0
             )
         kz = (partition - n_z // 2) / (n_z / 2)
-        encoded = {
-            id(ro.gz_pre): pp.scale_grad(ro.gz_pre, kz),
-            id(ro.gz_rew): pp.scale_grad(ro.gz_rew, kz),
-        }
+        encoded = {id(ro.gz_enc): pp.scale_grad(ro.gz_enc, kz)}
         rotation = rotation_at(arm, partition)
 
         seq.add_block(exc.rf, *([] if gz is None else [gz]), *label_events)

@@ -31,6 +31,16 @@ def slab(system):
     return design.SpatialSelectiveExcitation(system, 8.0, 0.12, is_slab=True)
 
 
+def _area_before(event, time):
+    """Area a raster-centre waveform has played by ``time`` from its block start."""
+    times = float(event.delay) + np.asarray(event.tt, dtype=float)
+    end = float(event.delay) + float(event.shape_dur)
+    times = np.concatenate([[float(event.delay)], times, [end]])
+    values = np.concatenate([[float(event.first)], event.waveform, [float(event.last)]])
+    grid = np.concatenate([times[times < time], [min(time, end)]])
+    return float(np.trapezoid(np.interp(grid, times, values), grid))
+
+
 def _radius(path):
     return np.linalg.norm(np.asarray(path)[:, :2], axis=1)
 
@@ -171,11 +181,16 @@ def test_every_family_lays_out_valid_pulseq(system, excitation, cls, kwargs):
 @pytest.mark.parametrize(
     ("cls", "kwargs"), STACKS, ids=lambda value: getattr(value, "__name__", "")
 )
-def test_a_stack_adds_a_partition_encode_and_its_rewinder(system, slab, cls, kwargs):
+def test_a_stack_encodes_kmax_by_the_first_sample_and_rewinds_it_by_the_end(
+    system, slab, cls, kwargs
+):
     readout = _readout(cls, system, slab, fov_z=0.12, matrix_z=32, **kwargs)
-    assert readout.gz_pre.channel == "z"
-    assert readout.gz_pre.area == pytest.approx(1.0 / (2.0 * (0.12 / 32)))
-    assert readout.gz_rew.area == pytest.approx(-readout.gz_pre.area)
+    wave = readout.gz_enc
+    assert wave.channel == "z"
+    assert _area_before(wave, float(readout.adc.delay)) == pytest.approx(
+        1.0 / (2.0 * (0.12 / 32)), rel=1e-9
+    )
+    assert _area_before(wave, np.inf) == pytest.approx(0.0, abs=1e-9)
     assert readout.check_timing()[0]
 
 
@@ -227,10 +242,6 @@ def test_the_default_lays_out_one_interleave_for_the_loop_to_turn(system, excita
         turn = pp.make_rotation(Rotation.from_euler("z", float(angle)))
         seq.add_block(readout.rf, readout.gz)
         seq.add_block(readout.gx, readout.gy, readout.adc, turn)
-        # The rewinder undoes the arm, so it is played in the arm's frame: a
-        # rewinder left unturned undoes the arm the loop would have played at
-        # zero, and k ends up somewhere the counters do not say it is.
-        seq.add_block(readout.gx_rew, readout.gy_rew, turn)
 
     assert seq.check_timing()[0]
     count = int(readout.adc.num_samples)
@@ -492,14 +503,12 @@ def test_a_stack_of_spirals_is_a_plain_pypulseq_loop(system, slab, tmp_path):
         rotation = pp.make_rotation(Rotation.from_euler("z", float(angles[arm])))
 
         seq.add_block(readout.rf, readout.gz)
-        seq.add_block(pp.scale_grad(readout.gz_pre, kz))
         seq.add_block(
-            readout.gx, readout.gy, readout.adc, *readout.adc_labels, rotation
-        )
-        seq.add_block(
-            readout.gx_rew,
-            readout.gy_rew,
-            pp.scale_grad(readout.gz_rew, kz),
+            readout.gx,
+            readout.gy,
+            pp.scale_grad(readout.gz_enc, kz),
+            readout.adc,
+            *readout.adc_labels,
             rotation,
         )
         seq.add_block(readout.wait_tr)
@@ -562,7 +571,6 @@ def test_a_rotated_interleave_is_still_playable(system, excitation):
         rotation = pp.make_rotation(Rotation.from_euler("z", float(angle)))
         seq.add_block(readout.rf, readout.gz)
         seq.add_block(readout.gx, readout.gy, readout.adc, rotation)
-        seq.add_block(readout.gx_rew, readout.gy_rew, rotation)
     assert seq.check_timing()[0]
 
 

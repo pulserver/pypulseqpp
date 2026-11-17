@@ -131,7 +131,8 @@ class _LineReadout(SequenceModule):
         ``spoiling_position='post'``, adds the spoiler.
     gy_pre, gz_pre : TrapEvent
         Phase encodes at their largest step, to be scaled per shot. ``gz_pre``
-        is 3D only.
+        is 3D only. Right-aligned in the prewinder block, except under
+        ``spoiling_position='pre'``, where they start it.
     gy_rew, gz_rew : TrapEvent
         The negated encodes that unwind them.
     gx_flyback : TrapEvent
@@ -445,12 +446,19 @@ class _LineReadout(SequenceModule):
         # writes is part of the event the caller receives. The delay sets the
         # span everything is right-aligned against and is then dropped: the
         # aligned gradients already end there, so they hold the block open.
-        _prewinder.append(pp.make_delay(pre_span))
+        # Before an SSFP-echo the read prephaser carries the spoiler and holds
+        # the block open well past the encodes; starting them with the block
+        # lets their eddy currents, which change with every line, decay before
+        # the first sample.
+        early = _prewinder[1:] if spoiling_position == "pre" and spoil_area else []
+        late = [*_prewinder[: len(_prewinder) - len(early)], pp.make_delay(pre_span)]
+        left = [*present(trigger), *early]
+        aligned = pp.align(left=left, right=late) if left else pp.align(right=late)
         if trigger is not None:
-            trigger, *_prewinder = pp.align(left=[trigger], right=_prewinder)
-        else:
-            _prewinder = pp.align(right=_prewinder)
-        _prewinder = _prewinder[:-1]
+            trigger = aligned[0]
+        aligned = aligned[len(present(trigger)) :]
+        early, late = aligned[: len(early)], aligned[len(early) : -1]
+        _prewinder = [*late, *early]
         if ndim == 3:
             gx_pre, gy_pre, gz_pre = _prewinder
         else:

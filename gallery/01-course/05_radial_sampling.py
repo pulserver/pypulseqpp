@@ -18,12 +18,13 @@ and up again in between.
 
 **Learning objectives**
 
-- Rotate the readout and its prewinder with :func:`~pypulseqpp.rotate`.
+- Rotate the readout, its prewinder and its rewinder with
+  :func:`~pypulseqpp.rotate`, and keep the spoiler on z.
 - Relate the number of spokes to the matrix, and order the spokes by the
   golden angle.
-- Merge the prewinder into the readout, and the readout into the spoiler,
-  with :func:`~pypulseqpp.make_extended_trapezoid_area`, and centre the ADC
-  on the plateau.
+- Merge the prewinder, the readout and the rewinder into one balanced
+  gradient with :func:`~pypulseqpp.make_extended_trapezoid_area`, and centre
+  the ADC on the plateau.
 
 Previous: :doc:`04_labels_and_metadata`. Next: :doc:`06_radial_mprage`, where
 the radial gradient echo becomes the readout of an MPRAGE.
@@ -86,11 +87,13 @@ gx = pp.make_trapezoid(
 )
 adc = pp.make_adc(MATRIX, dwell=dwell, delay=gx.rise_time, system=system)
 gx_pre = pp.make_trapezoid("x", area=-gx.area / 2, system=system)
-gx_spoil = pp.make_trapezoid("x", area=2 * MATRIX * delta_k, system=system)
+gx_rew = pp.make_trapezoid("x", area=-gx.area / 2, system=system)
+gz_spoil = pp.make_crusher(4.0, FOV / MATRIX, channel="z", system=system)[0]
 
 # %%
-# The prewinder and the spoiler have no duration this time: the factory makes
-# each one as short as the scanner allows.
+# The prewinder and the rewinder have no duration this time: the factory makes
+# each one as short as the scanner allows. The rewinder has the prewinder's
+# area, so the readout ends where it started, at the centre of k-space.
 #
 # Radial spokes
 # -------------
@@ -99,7 +102,16 @@ gx_spoil = pp.make_trapezoid("x", area=2 * MATRIX * delta_k, system=system)
 # angle :math:`\varphi`. :func:`~pypulseqpp.rotate` does the rotation: it
 # takes a gradient on x and returns its projections on x and y, which you add
 # to the block together. Rotate everything that moves along the line, the
-# prewinder, the readout and the spoiler, by the same angle.
+# prewinder, the readout and the rewinder, by the same angle.
+#
+# The spoiler is *not* rotated. RF spoiling, from lesson 3, works only if
+# every repetition leaves the same gradient moment behind: then each echo
+# pathway gathers the same phase per repetition, and the quadratic RF phase
+# cycle cancels it. A spoiler along the spoke would leave a moment of the
+# same size but a different direction after every spoke, so the pathways
+# would gather a phase that depends on the spoke order instead. The spoke is
+# balanced, with no net moment in the plane, and the spoiler plays on z, the
+# axis the rotation leaves alone, identical in every repetition.
 #
 # The figure shows 64 spokes spread evenly over half a turn: each spoke covers both
 # halves of its line, so half a turn covers the whole plane.
@@ -112,7 +124,8 @@ def radial(angles):
         seq.add_block(rf, gz)
         seq.add_block(*pp.rotate(gx_pre, angle=angle, axis="z"), gz_reph)
         seq.add_block(*pp.rotate(gx, angle=angle, axis="z"), adc)
-        seq.add_block(*pp.rotate(gx_spoil, angle=angle, axis="z"))
+        seq.add_block(*pp.rotate(gx_rew, angle=angle, axis="z"))
+        seq.add_block(gz_spoil)
     return seq
 
 
@@ -185,7 +198,7 @@ plt.show()
 #
 # In the diagram of one repetition, the prewinder ramps down to zero,
 # and the readout immediately ramps up again from zero. The readout then ramps
-# down, and the spoiler ramps up. Each of those ramps costs time and adds
+# down, and the rewinder ramps up. Each of those ramps costs time and adds
 # nothing.
 seq = radial(golden)
 seq.paper_plot(tr=1)
@@ -212,17 +225,9 @@ _, times, amplitudes = pp.make_extended_trapezoid_area(
 )
 
 # %%
-# Add the plateau to the corners, and you have the prewinder and the readout
-# as one gradient, :func:`~pypulseqpp.make_extended_trapezoid`. The ADC starts
-# at the last corner of the prewinder, where the plateau begins, plus half of
-# the spare time.
+# The plateau begins at the last corner of the prewinder. The ADC starts
+# there, plus half of the spare time.
 plateau_start = times[-1]
-g_read = pp.make_extended_trapezoid(
-    "x",
-    times=np.append(times, plateau_start + plateau),
-    amplitudes=np.append(amplitudes, G),
-    system=system,
-)
 adc_read = pp.make_adc(
     MATRIX,
     dwell=dwell,
@@ -231,18 +236,27 @@ adc_read = pp.make_adc(
 )
 
 # %%
-# The same at the other end: the spoiler starts at the readout amplitude, so
-# the readout's ramp-down becomes part of it.
-g_spoil, _, _ = pp.make_extended_trapezoid_area(
-    channel="x", grad_start=G, grad_end=0.0, area=gx_spoil.area, system=system
+# The same at the other end: the rewinder starts at the readout amplitude
+# and ends at zero, with the prewinder's area, so the readout's ramp-down
+# becomes part of it. Put its corners after the plateau's, and
+# :func:`~pypulseqpp.make_extended_trapezoid` joins the prewinder, the
+# readout and the rewinder into one gradient that starts and ends at zero and
+# has no net area.
+_, rew_times, rew_amplitudes = pp.make_extended_trapezoid_area(
+    channel="x", grad_start=G, grad_end=0.0, area=-G * plateau / 2, system=system
 )
+plateau_end = plateau_start + plateau
+g_read = pp.make_extended_trapezoid(
+    "x",
+    times=np.concatenate([times, plateau_end + rew_times]),
+    amplitudes=np.concatenate([amplitudes, rew_amplitudes]),
+    system=system,
+)
+print(f"net area of the spoke: {g_read.area:.1e} 1/m")
 
 # %%
-# The repetition is now three blocks: the excitation, the merged prewinder and
-# readout with the ADC (and the slice rephaser beside them), and the spoiler.
-# The gradient on x and y does not return to zero between the last two
-# blocks; that is allowed, as long as both blocks agree on the amplitude at
-# the boundary, which they do because both were designed with ``G``.
+# The repetition is now three blocks: the excitation, the balanced spoke with
+# the ADC (and the slice rephaser beside it), and the spoiler on z.
 
 
 def radial_surgery(angles):
@@ -251,7 +265,7 @@ def radial_surgery(angles):
     for angle in angles:
         seq.add_block(rf, gz)
         seq.add_block(*pp.rotate(g_read, angle=angle, axis="z"), adc_read, gz_reph)
-        seq.add_block(*pp.rotate(g_spoil, angle=angle, axis="z"))
+        seq.add_block(gz_spoil)
     return seq
 
 
@@ -282,9 +296,11 @@ print(f"closest samples to the centre: {sorted(np.argsort(radius)[:2].tolist())}
 # .. code-block:: text
 #
 #    Turn the gradient echo into a 2D radial one: no phase encoding, the
-#    prewinder, readout and x spoiler rotated about z by each spoke's angle
-#    with pp.rotate, 202 spokes for a 128 matrix ordered by the golden angle
-#    pi(3 - sqrt(5))/2, 10 us dwell. Then merge the prewinder into the
-#    readout (make_extended_trapezoid_area from 0 to the readout amplitude,
-#    area minus half the plateau) and the readout ramp-down into the spoiler,
-#    start the ADC at the plateau, check the timing and report the TR saved.
+#    prewinder, readout and rewinder (minus half the readout area each)
+#    rotated about z by each spoke's angle with pp.rotate, and a 4-cycle
+#    spoiler on z that is never rotated. 202 spokes for a 128 matrix ordered
+#    by the golden angle pi(3 - sqrt(5))/2, 10 us dwell. Then merge the
+#    prewinder, readout and rewinder into one balanced gradient
+#    (make_extended_trapezoid_area from 0 to the readout amplitude and back,
+#    each with minus half the plateau's area), start the ADC on the plateau,
+#    check the timing and report the TR saved.

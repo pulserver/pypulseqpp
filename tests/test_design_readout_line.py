@@ -563,3 +563,19 @@ def test_a_whole_table_is_one_repeating_unit(system, slab):
 
     assert seq.repetition() == (4, 1)
     assert len(seq) == 4 * len(lines)
+
+
+@pytest.mark.parametrize(("position", "starts_block"), [("pre", True), ("post", False)])
+def test_the_encodes_start_the_block_only_before_an_ssfp_echo(
+    system, slab, position, starts_block
+):
+    """A prephaser carrying the spoiler leaves the encodes time to settle before the readout."""
+    module = readout3d(system, slab, spoiling_cycles=4.0, spoiling_position=position)
+    block = module.blocks[1]
+    span = pp.calc_duration(*block)
+    for encode in (module.gy_pre, module.gz_pre):
+        assert any(event is encode for event in block)
+        if starts_block:
+            assert float(encode.delay) == 0.0
+        else:
+            assert pp.calc_duration(encode) == pytest.approx(span)

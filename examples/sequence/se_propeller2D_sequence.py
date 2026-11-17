@@ -21,9 +21,6 @@ READOUT_OVERSAMPLING = 2.0
 #: Dephasing each crusher beside the refocusing pulse winds, in cycles
 #: across one voxel.
 CRUSHER_CYCLES = 4.0
-#: Dephasing left on the slice axis at the end of each repetition, in
-#: cycles across the slice.
-SPOILING_CYCLES = 4.0
 
 
 def se_propeller2d(
@@ -130,11 +127,6 @@ def se_propeller2d(
         spoiling_cycles=CRUSHER_CYCLES,
     )
     ref_phase = float(ref.rf_ref.phase_offset)
-    # The in-plane axes turn with the blade, so a spoiler on them would
-    # point a different way from one blade to the next: it plays on z.
-    gz_spoil, _, _ = pp.make_crusher(
-        SPOILING_CYCLES, slice_thickness, "z", system=system
-    )
 
     # TE is solved in two halves about the 180. The readout owns the second,
     # from the 180's centre to the echo; a delay before the 180 sets the
@@ -178,8 +170,7 @@ def se_propeller2d(
     # Slices one TR cannot hold are dealt round-robin into packets, even
     # slices of a packet first. Every shot closes with a pure delay: one
     # raster, and on the last slice of a packet whatever is left of the TR.
-    spoil = pp.ceil_to_raster(pp.calc_duration(gz_spoil), raster)
-    shot = exc.duration + wait + ro.duration + spoil + raster
+    shot = exc.duration + wait + ro.duration + raster
     per_packet = n_slices if tr is None else max(1, int(tr / shot + 1e-9))
     n_packets = -(-n_slices // per_packet)
     dealt = [range(start, n_slices, n_packets) for start in range(n_packets)]
@@ -246,7 +237,6 @@ def se_propeller2d(
         seq.add_block(ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), rotation)
         seq.add_block(ro.gx, *([] if view is None else [ro.adc]), rotation)
         seq.add_block(ro.gx_spoil, pp.scale_grad(ro.gy_rew, ky), rotation)
-        seq.add_block(gz_spoil)
         seq.add_block(pp.make_delay(pad))
 
     played = [None] * n_dummy + views
