@@ -514,3 +514,47 @@ def test_two_views_in_a_row_may_not_coincide(system, hard):
             n_views=None,
             directions=[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]],
         )
+
+
+# ----------------------------------------------------------------------
+# Shot ordering
+
+
+def _azimuths(rotations):
+    return np.mod(np.arctan2(rotations[:, 1, 0], rotations[:, 0, 0]), 2 * np.pi)
+
+
+def _widest_gap(azimuths):
+    """Widest azimuth gap of a set of shots, in units of their mean spacing."""
+    ordered = np.sort(azimuths)
+    gaps = np.diff(np.append(ordered, ordered[0] + 2 * np.pi))
+    return gaps.max() / (2 * np.pi / len(azimuths))
+
+
+@pytest.mark.parametrize("n_shots", [13, 40, 128, 401])
+def test_golden_ordering_plays_every_turn_of_the_set_once(n_shots):
+    _, sequential = calc_projection_shell(8, n_shots)
+    _, golden = calc_projection_shell(8, n_shots, ordering="golden")
+    assert np.sort(_azimuths(golden)) == pytest.approx(np.sort(_azimuths(sequential)))
+
+
+@pytest.mark.parametrize("n_shots", [40, 128, 401])
+@pytest.mark.parametrize("fraction", [8, 4, 2])
+def test_every_run_of_golden_shots_spreads_evenly_in_azimuth(n_shots, fraction):
+    _, golden = calc_projection_shell(8, n_shots, ordering="golden")
+    azimuths = _azimuths(golden)
+    run = n_shots // fraction
+    widest = max(
+        _widest_gap(azimuths[start : start + run]) for start in range(n_shots - run + 1)
+    )
+    assert widest <= 2.0 + 1e-9
+
+
+def test_the_first_sequential_shots_leave_a_wedge_of_the_sphere_unsampled():
+    _, sequential = calc_projection_shell(8, 128)
+    assert _widest_gap(_azimuths(sequential[:32])) > 20
+
+
+def test_an_unknown_shot_ordering_is_refused():
+    with pytest.raises(ValueError, match="ordering"):
+        calc_projection_shell(8, 4, ordering="random")

@@ -58,6 +58,10 @@ class ZteReadout(SequenceModule):
         the shots undersamples in angle. ``None`` is ``ceil(pi * (matrix - 1))``.
     scheme : {'spiral', 'quiet', 'meridian'}, default='spiral'
         Shape of the shell, as in :func:`pypulseqpp.calc_projection_shell`.
+    ordering : {'sequential', 'golden'}, default='sequential'
+        Order of ``shot_rotations``, as in
+        :func:`pypulseqpp.calc_projection_shell`. Under ``'golden'`` the first
+        shots, or any run of consecutive ones, spread evenly in azimuth.
     oversampling : float, default=2.0
         Radial oversampling: the k-space sample spacing along the spoke is
         ``1 / (oversampling * fov)``.
@@ -178,6 +182,7 @@ class ZteReadout(SequenceModule):
         n_views: int | None = None,
         n_shots: int | None = None,
         scheme: str = "spiral",
+        ordering: str = "sequential",
         oversampling: float = 2.0,
         readout_bandwidth_hz: float = 62.5e3,
         tr: float | None = None,
@@ -208,7 +213,7 @@ class ZteReadout(SequenceModule):
                 max(3, -(-total // int(n_shots))) if n_views is None else int(n_views)
             )
             directions, shot_rotations = calc_projection_shell(
-                n_views, n_shots, scheme=scheme
+                n_views, n_shots, scheme=scheme, ordering=ordering
             )
         directions = _unit(directions)
         dead_time_s = (

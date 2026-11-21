@@ -32,6 +32,7 @@ def zte3d(
     r: int = 1,
     n_shots: int | None = None,
     scheme: str = "quiet",
+    ordering: str = "sequential",
     n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
@@ -43,8 +44,10 @@ def zte3d(
     turned about z, the turn applied in the design: every axis plays its own
     gradients, each turn one of a few shapes scaled to its amplitude
     (:meth:`~pypulseqpp.sequences.ZteReadout.shell`). The Nyquist set is ``ceil(pi * n **
-    2)`` spokes over the sphere, dealt into ``n_shots`` shells; every ``r``-th
-    shell is played, in order, which is angular undersampling. The dead-time
+    2)`` spokes over the sphere, dealt into ``n_shots`` shells, of which
+    ``ceil(n_shots / r)`` are played, which is angular undersampling: every
+    ``r``-th in turn order, or under ``ordering='golden'`` the first ones in
+    golden-ratio order, any consecutive run of which spreads evenly in azimuth. The dead-time
     gap after each pulse leaves ``MissingSamples`` at the centre of k-space
     unacquired. Dummy shells precede the first shot, played as it is without
     the ADC. Acquisitions carry the view as ``LIN`` and the shot as ``SEG``.
@@ -74,7 +77,7 @@ def zte3d(
         Requested receiver bandwidth (Hz). It sets the gradient amplitude
         too, the spoke being traversed at one sample per ``delta_k``.
     r : int, default=1
-        Angular undersampling: one shell in every ``r`` of the set is
+        Angular undersampling: ``ceil(n_shots / r)`` shells of the set are
         played.
     n_shots : int | None, default=None
         Shells the sphere is dealt into, each the same one turned about
@@ -84,6 +87,11 @@ def zte3d(
         Shape of the shell, as :data:`SCHEMES` names them. ``'quiet'``
         samples the directions of ``'spiral'`` in steps about a ring gap
         long; ``'spiral'`` strides across many rings at a constant step.
+    ordering : {'sequential', 'golden'}, default='sequential'
+        Order the shells are played in, as in
+        :func:`~pypulseqpp.calc_projection_shell`. ``'golden'`` spreads every
+        run of consecutive shells evenly in azimuth, for a sliding-window or
+        time-resolved reconstruction.
     n_dummy : int | None, default=None
         Whole shells played without acquiring before the first shot. ``None``
         is the fewest that hold the repetitions bringing the longitudinal
@@ -136,21 +144,21 @@ def zte3d(
         matrix=n,
         n_shots=n_shots,
         scheme=scheme,
+        ordering=ordering,
         tr=tr,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
     )
 
-    # Every shell is written out in the logical frame, turned in the design
-    # rather than by a rotation extension, so each axis plays only its own
-    # events and the turns on an axis share a few shapes at their own
-    # amplitudes. A quiet shell alternates direction, counted in play order
-    # so that the last dummy hands over to the first shot at the pole they
-    # share.
+    # Every shell is written out in the logical frame, turned in the design,
+    # so the turns on an axis share a few shapes at their own amplitudes. A
+    # quiet shell alternates direction, counted in play order so that the
+    # last dummy hands over to the first shot at the pole they share.
     if n_dummy is None:
         repetitions = sequences.steady_state_dummies(ro.tr, flip_angle_deg)
         n_dummy = -(-repetitions // len(ro.directions))
-    shots = list(range(0, len(ro.shot_rotations), r))
+    n_set = len(ro.shot_rotations)
+    shots = list(range(-(-n_set // r)) if ordering == "golden" else range(0, n_set, r))
     plays = [(0, False)] * n_dummy + [(shot, True) for shot in shots]
     turns = np.asarray(ro.shot_rotations)[[shot for shot, _ in plays]]
     if scheme == "quiet":

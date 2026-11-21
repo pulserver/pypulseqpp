@@ -518,6 +518,31 @@ def test_playing_one_zte_shell_in_every_r_acquires_that_fraction_of_the_shots():
     assert sorted(set(seg)) == [0, 2]
 
 
+def test_golden_zte_with_undersampling_plays_the_first_golden_shots():
+    """Under golden ordering ``r`` shortens the scan to a prefix, not a stride."""
+    seq = built(
+        "zte3D_sequence", n_shots=9, r=4, n_dummy=0, scheme="spiral", ordering="golden"
+    )
+    n_views = int(definition(seq, "ViewsPerShot"))
+    shell, golden = pp.calc_projection_shell(
+        n_views, 9, scheme="spiral", ordering="golden"
+    )
+    (seg,) = adc_labels(seq, "SEG")
+
+    assert definition(seq, "NumShots") == 3
+    assert sorted(set(seg)) == [0, 1, 2]
+    held = np.array(
+        [
+            [float(g.first) for g in (block.gx, block.gy, block.gz)]
+            for block in blocks(seq)
+            if block.rf is not None
+        ]
+    ).reshape(3, n_views, 3)
+    held /= np.linalg.norm(held, axis=-1, keepdims=True)
+    for shot in range(3):
+        assert held[shot] == pytest.approx(shell @ golden[shot].T, abs=2 / 128)
+
+
 def test_a_zte_shell_count_left_to_the_design_is_written_as_the_shells_played():
     """The shells balance the spacing within one against the spacing between them."""
     seq = built("zte3D_sequence", n=16, n_shots=None)

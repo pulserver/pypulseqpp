@@ -232,7 +232,13 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     return _accumulated(n, 0.0 if n == 0 else float(span) / n)
 
 
-def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spiral"):
+def calc_projection_shell(
+    n_views: int,
+    n_shots: int = 1,
+    *,
+    scheme: str = "spiral",
+    ordering: str = "sequential",
+):
     """Return a pole-to-pole base shell and z-axis rotations for each shot.
 
     Rotated shells share both poles; each nonpolar ring has one spoke per
@@ -253,21 +259,29 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
         stride across many rings' worth of azimuth. ``'meridian'`` is a half
         great circle in the x-z plane at equal polar steps, which is simpler
         and oversamples the poles.
+    ordering : {'sequential', 'golden'}, default='sequential'
+        Order of the shots. ``'sequential'`` turns each shot ``2*pi/n_shots``
+        past the one before. ``'golden'`` plays the same set of turns with
+        shot ``j`` on the grid turn ranked as ``frac(j / phi)``, so the first
+        shots, or any run of consecutive ones, spread near-uniformly in
+        azimuth: a shortened scan undersamples evenly and a sliding window of
+        shots covers the whole sphere.
 
     Returns
     -------
     directions : numpy.ndarray
         Unit spoke directions of the base shell, shape ``(n_views, 3)``.
     rotations : numpy.ndarray
-        Rotation matrices, shape ``(n_shots, 3, 3)``: rotations about the z
-        axis by ``2*pi*k/n_shots``, ``k = 0..n_shots-1``. Each maps the whole
-        base shell to the directions that shot samples.
+        Rotation matrices, shape ``(n_shots, 3, 3)``, in play order:
+        rotations about the z axis by ``2*pi*k/n_shots``, each ``k`` in
+        ``0..n_shots-1`` once. Each maps the whole base shell to the
+        directions that shot samples.
 
     Raises
     ------
     ValueError
-        If ``n_views`` is below 3, ``n_shots`` is below 1 or ``scheme`` is
-        unknown.
+        If ``n_views`` is below 3, ``n_shots`` is below 1, or ``scheme`` or
+        ``ordering`` is unknown.
 
     Examples
     --------
@@ -296,11 +310,22 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     >>> bool(np.median(quiet_steps) < np.median(steps) / 2)
     True
 
+    Under ``'golden'`` the first quarter of the shots leaves no azimuth gap
+    wider than twice their mean spacing:
+
+    >>> _, golden = pp.calc_projection_shell(32, n_shots=40, ordering="golden")
+    >>> azimuth = np.sort(np.arctan2(golden[:10, 1, 0], golden[:10, 0, 0]))
+    >>> gaps = np.diff(np.append(azimuth, azimuth[0] + 2 * np.pi))
+    >>> bool(gaps.max() < 2 * 2 * np.pi / 10)
+    True
+
     See Also
     --------
     calc_golden_angles : in-plane spoke angles, one per shot, for 2D radial.
     """
     n_views, n_shots = int(n_views), int(n_shots)
+    if ordering not in ("sequential", "golden"):
+        raise ValueError(f"ordering must be 'sequential' or 'golden', got {ordering!r}")
     if n_views < 3:
         raise ValueError("a pole-to-pole shell needs at least three views")
     if n_shots < 1:
@@ -317,9 +342,10 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
         raise ValueError(
             f"scheme must be 'spiral', 'quiet' or 'meridian', got {scheme!r}"
         )
-    return directions, _turns_about_z(
-        2.0 * np.pi * np.arange(n_shots, dtype=float) / n_shots
-    )
+    slots = np.arange(n_shots, dtype=float)
+    if ordering == "golden":
+        slots = np.argsort(np.argsort(np.mod(slots / _PHI, 1.0), kind="stable"))
+    return directions, _turns_about_z(2.0 * np.pi * slots / n_shots)
 
 
 def _constant_step_spiral(n_views: int, shot_turn: float | None = None) -> np.ndarray:
