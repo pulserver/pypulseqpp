@@ -8,6 +8,7 @@ modulation and view ordering jointly determine the k-space weighting.
 | {doc}`/generated/gallery/13-fast-spin-echo/fse3D_sequence` | Fixed optimized train with radial view ordering and its k-space modulation |
 | {doc}`/generated/gallery/13-fast-spin-echo/fse3D_adaptive` | Individually optimized train length, TR, and adaptive radial ordering |
 | {doc}`/generated/gallery/13-fast-spin-echo/fse3D_shuffling` | Variable-density shuffled sampling for echo-resolved reconstruction |
+| {doc}`/generated/gallery/13-fast-spin-echo/ssfse2D_sequence` | Single-shot 2D train with partial Fourier, a target-signal refocusing train and an optional slab inversion |
 
 ```{toctree}
 :hidden:
@@ -15,4 +16,5 @@ modulation and view ordering jointly determine the k-space weighting.
 /generated/gallery/13-fast-spin-echo/fse3D_sequence
 /generated/gallery/13-fast-spin-echo/fse3D_adaptive
 /generated/gallery/13-fast-spin-echo/fse3D_shuffling
+/generated/gallery/13-fast-spin-echo/ssfse2D_sequence
 ```
