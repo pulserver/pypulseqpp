@@ -176,7 +176,11 @@ def excitations(seq):
         ),
         (
             lambda: scan2d(n_dummy=1),
-            [("scan.seq", "epi_2d_reference"), ("scan_epi_2d.seq", "epi_2d")],
+            [
+                ("scan.seq", "epi_2d_calibration"),
+                ("scan_epi_2d_reference.seq", "epi_2d_reference"),
+                ("scan_epi_2d.seq", "epi_2d"),
+            ],
         ),
         (
             lambda: scan2d(n_slices=4, multiband=2, n_acs_y=4),
@@ -196,10 +200,20 @@ def excitations(seq):
         ),
         (
             lambda: scan3d(n_dummy=1),
-            [("scan.seq", "epi_3d_reference"), ("scan_epi_3d.seq", "epi_3d")],
+            [
+                ("scan.seq", "epi_3d_calibration"),
+                ("scan_epi_3d_reference.seq", "epi_3d_reference"),
+                ("scan_epi_3d.seq", "epi_3d"),
+            ],
         ),
     ],
-    ids=["2D undersampled", "2D", "2D multiband", "3D undersampled", "3D"],
+    ids=[
+        "2D undersampled",
+        "2D fully sampled",
+        "2D multiband",
+        "3D undersampled",
+        "3D fully sampled",
+    ],
 )
 def test_the_chain_is_written_in_play_order_each_file_naming_the_next(
     tmp_path, scan, files

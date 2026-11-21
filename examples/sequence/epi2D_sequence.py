@@ -224,7 +224,7 @@ OUTPUT_DURATION = 1e-3
 #: plays a fiftieth of a 70 degree pulse's RF power. The calibration measures
 #: coil sensitivities, which do not depend on the contrast.
 CALIBRATION_FLIP_DEG = 10.0
-#: Calibrations of an undersampled or multiband scan.
+#: Calibrations the scan opens with.
 CALIBRATIONS = ("fleet", "gre")
 #: Non-acquiring shots that open the FLEET calibration of each slice, so its
 #: first acquiring shot does not read relaxed magnetization.
@@ -284,7 +284,8 @@ def epi2d(
 
     Two prescans are linked ahead of the imaging: the ``calibration`` of the
     central ``n_acs_y`` lines (``REF``) at ``CALIBRATION_FLIP_DEG``, single
-    band, when undersampled or multiband; and the ``reference``, one volume
+    band, from which the coil sensitivities of the whole volume are
+    estimated once; and the ``reference``, one volume
     with the phase encode reversed (``SET = 1``), for distortion correction.
     The FLEET calibration (Polimeni et al., Magn Reson Med 2016,
     doi:10.1002/mrm.25628) reads those lines in ``n_shots * ry`` interleaved
@@ -351,7 +352,7 @@ def epi2d(
         Phase-encode lines of the calibration; FLEET rounds them up to a
         whole number of lines per shot.
     calibration : {'fleet', 'gre'}, default='fleet'
-        The calibration played when undersampled or multiband: FLEET,
+        The calibration: FLEET,
         segmented EPI at the imaging train's echo spacing, or a gradient echo
         per line.
     volume_output : bool, default=False
@@ -368,9 +369,8 @@ def epi2d(
     Returns
     -------
     list of pypulseqpp.Sequence
-        The designed sequences in play order: the ``calibration`` when
-        undersampled or multiband, the ``reference``, then the scan, which is
-        the main sequence. ``sequences.write`` writes them as files linked
+        The designed sequences in play order: the ``calibration``, the
+        ``reference``, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked
         through ``NextSequence``.
 
     Raises
@@ -388,7 +388,7 @@ def epi2d(
     >>> from pypulseqpp import sequences
     >>> *prescans, seq = sequences.epi2D_sequence(n_x=32, n_y=16, n_dummy=0)
     >>> [prescan.definitions["Name"] for prescan in prescans]
-    ['epi_2d_reference']
+    ['epi_2d_calibration', 'epi_2d_reference']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["EPIFactor"], seq.definitions["Name"]
@@ -581,9 +581,7 @@ def epi2d(
 
     # The calibration lines: centred, and a whole number per shot for FLEET.
     acs_shots = n_shots * ry if calibration == "fleet" else 1
-    acs_lines = (
-        fleet_lines(n_y, n_acs_y, acs_shots) if ry > 1 or multiband > 1 else range(0)
-    )
+    acs_lines = fleet_lines(n_y, n_acs_y, acs_shots)
     weak = None
     if acs_lines:
         # The single-band pulse's samples scaled to the calibration's flip
