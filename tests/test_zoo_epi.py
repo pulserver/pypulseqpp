@@ -1063,3 +1063,25 @@ def test_a_higher_b_value_lengthens_the_shortest_spin_echo():
 def test_an_impossible_spin_echo_prescription_is_refused(prescription):
     with pytest.raises(ValueError):
         scan2d(**prescription)
+
+
+@pytest.mark.parametrize("b_value", [500.0, 2000.0])
+def test_a_spin_echo_at_the_minimum_te_it_reports_is_designed(b_value):
+    shortest = scan2d(
+        spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=b_value
+    )
+    longer = scan2d(
+        spin_echo=True,
+        diffusion_table=str(DIFFUSION_TABLE),
+        b_value=b_value,
+        te=round(shortest.echo_time, 4) + 1e-4,
+    )
+    with pytest.raises(ValueError, match=f"{shortest.echo_time * 1e3:.2f} ms"):
+        scan2d(
+            spin_echo=True,
+            diffusion_table=str(DIFFUSION_TABLE),
+            b_value=b_value,
+            te=shortest.echo_time - 1e-3,
+        )
+
+    assert longer.echo_time >= shortest.echo_time

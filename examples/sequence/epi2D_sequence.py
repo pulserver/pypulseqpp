@@ -262,30 +262,43 @@ def spin_echo_timing(system, exc, refocus, make_train, te, b_value):
             system=system,
         )
 
-    def halves(duration):
+    def halves(duration, half=None):
         excitation = exc_tail + duration + refocus_centre
         readout = float(probe.echo_time) + duration
-        half = max(excitation, readout) if te is None else te / 2
-        if half < max(excitation, readout) - 1e-9:
-            raise ValueError(
-                f"TE {te * 1e3:.2f} ms is shorter than the spin echo admits; "
-                f"the minimum is {2 * max(excitation, readout) * 1e3:.2f} ms"
-            )
+        shortest = max(excitation, readout)
+        if half is None:
+            half = shortest
+        if half < shortest - 1e-9:
+            return None
         return half, pp.round_to_raster(half - excitation, raster)
 
-    duration, reached = 0.0, 0.0
-    if b_value is not None:
+    def search(half):
+        """Return the shortest lobe that reaches ``b_value`` at ``half``, with its b-value."""
+        duration, reached = 0.0, 0.0
+        if b_value is None:
+            return (duration, reached) if halves(duration, half) else None
         rise = system.max_grad / system.max_slew
         duration = pp.round_to_raster(2 * rise + DIFFUSION_LOBE_STEP, raster)
         while True:
-            _, wait = halves(duration)
+            timing = halves(duration, half)
+            if timing is None:
+                return None
             reached = sequences.diffusion_pair_b_value(
-                lobe(duration), wait + refocus_block, system.grad_raster_time
+                lobe(duration), timing[1] + refocus_block, system.grad_raster_time
             )
             if reached >= b_value:
-                break
+                return duration, reached
             duration = pp.round_to_raster(duration + DIFFUSION_LOBE_STEP, raster)
-    half, wait = halves(duration)
+
+    shortest = search(None)
+    shortest_half = halves(shortest[0])[0]
+    if te is not None and te / 2 < shortest_half - 1e-9:
+        raise ValueError(
+            f"TE {te * 1e3:.2f} ms is shorter than the spin echo admits; "
+            f"the minimum is {2 * shortest_half * 1e3:.2f} ms"
+        )
+    duration, reached = shortest if te is None else search(te / 2)
+    half, wait = halves(duration, None if te is None else te / 2)
     train = make_train(half - duration)
     echo_time = (
         exc_tail + duration + wait + refocus_centre + float(train.echo_time) + duration
