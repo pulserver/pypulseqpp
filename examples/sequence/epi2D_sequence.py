@@ -1,4 +1,4 @@
-"""Multi-slice 2D gradient-echo EPI, optionally segmented and multiband."""
+"""Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted."""
 
 from __future__ import annotations
 
@@ -205,6 +205,104 @@ def fleet_train(
     return train
 
 
+def spin_echo_timing(system, exc, refocus, make_train, te, b_value):
+    """Return the timing of a spin-echo EPI shot and its diffusion lobes.
+
+    The shot plays the excitation and its rephaser, the first diffusion lobe,
+    a wait, the refocusing pulse between its crushers, the second lobe and
+    the train. Each half of the echo time holds one lobe; the lobes are
+    lengthened by ``DIFFUSION_LOBE_STEP`` at ``system.max_grad`` until they
+    reach ``b_value``, and the echo time is the shortest the longer half
+    admits unless ``te`` is given.
+
+    Parameters
+    ----------
+    system : pypulseqpp.Opts
+        System limits.
+    exc : SpatialSelectiveExcitation
+        The 90 degree excitation.
+    refocus : SpatialSelectiveRefocusing
+        The refocusing pulse and its crushers.
+    make_train : callable
+        Returns the train opened by the refocusing pulse at a given echo time
+        from that pulse (s), ``None`` for the shortest.
+    te : float | None
+        Echo time (s); ``None`` is the shortest.
+    b_value : float | None
+        b-value (s/mm^2) of the lobes; ``None`` plays no lobes.
+
+    Returns
+    -------
+    types.SimpleNamespace
+        ``train``, ``echo_time`` (s), ``wait_half`` (the excitation half's
+        wait, or None), ``lobes`` (the lobe at ``system.max_grad`` on x, y
+        and z, or None), ``lobe_duration`` (s), ``b_value`` (s/mm^2, that of
+        the lobes at full amplitude) and ``excitation_half`` (s, from the
+        excitation's start to the refocusing block).
+
+    Raises
+    ------
+    ValueError
+        If ``te`` is shorter than either half admits, or the lobes cannot
+        reach ``b_value`` within it.
+    """
+    import types
+
+    raster = system.block_duration_raster
+    exc_tail = float(exc.seq.duration()[0]) - float(exc.rf.delay + exc.rf.center)
+    refocus_block = pp.calc_duration(refocus.rf_ref, refocus.gz)
+    refocus_centre = float(refocus.rf_ref.delay + refocus.rf_ref.center)
+    probe = make_train(None)
+
+    def lobe(duration, channel="x"):
+        return pp.make_trapezoid(
+            channel=channel,
+            amplitude=system.max_grad,
+            duration=duration,
+            system=system,
+        )
+
+    def halves(duration):
+        excitation = exc_tail + duration + refocus_centre
+        readout = float(probe.echo_time) + duration
+        half = max(excitation, readout) if te is None else te / 2
+        if half < max(excitation, readout) - 1e-9:
+            raise ValueError(
+                f"TE {te * 1e3:.2f} ms is shorter than the spin echo admits; "
+                f"the minimum is {2 * max(excitation, readout) * 1e3:.2f} ms"
+            )
+        return half, pp.round_to_raster(half - excitation, raster)
+
+    duration, reached = 0.0, 0.0
+    if b_value is not None:
+        rise = system.max_grad / system.max_slew
+        duration = pp.round_to_raster(2 * rise + DIFFUSION_LOBE_STEP, raster)
+        while True:
+            _, wait = halves(duration)
+            reached = sequences.diffusion_pair_b_value(
+                lobe(duration), wait + refocus_block, system.grad_raster_time
+            )
+            if reached >= b_value:
+                break
+            duration = pp.round_to_raster(duration + DIFFUSION_LOBE_STEP, raster)
+    half, wait = halves(duration)
+    train = make_train(half - duration)
+    echo_time = (
+        exc_tail + duration + wait + refocus_centre + float(train.echo_time) + duration
+    )
+    return types.SimpleNamespace(
+        train=train,
+        echo_time=echo_time,
+        wait_half=pp.make_delay(wait) if wait > 0 else None,
+        lobes=None
+        if b_value is None
+        else tuple(lobe(duration, channel) for channel in "xyz"),
+        lobe_duration=duration,
+        b_value=reached,
+        excitation_half=float(exc.seq.duration()[0]) + duration + wait,
+    )
+
+
 NAME = "epi_2d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
@@ -213,6 +311,12 @@ MAX_SLEW = 200.0
 #: thickness.
 PULSE_DURATION = 3e-3
 TIME_BW_PRODUCT = 4.0
+#: Dephasing of each crusher around the refocusing pulse of a spin echo, in
+#: cycles across the slice.
+CRUSHER_CYCLES = 4.0
+#: Step (s) by which the diffusion lobes are lengthened until they reach the
+#: b-value.
+DIFFUSION_LOBE_STEP = 0.2e-3
 #: Centre lines read without blips at the start of every shot when
 #: ``navigator_lines`` asks for a navigator.
 NAVIGATOR_LINES = 3
@@ -269,8 +373,23 @@ def epi2d(
     volume_output: bool = False,
     phase_reference: bool = False,
     navigator_lines: int | None = None,
+    spin_echo: bool = False,
+    diffusion_table: str | None = None,
+    b_value: float = 1000.0,
+    diffusion_directions: int | None = None,
 ) -> list[pp.Sequence]:
-    """Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.
+    """Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.
+
+    With ``spin_echo``, a 90 degree excitation and a slice-selective
+    refocusing pulse between crushers form a spin echo at ``te``, which the
+    centre line reads. With a ``diffusion_table``, a pair of identical
+    trapezoidal diffusion lobes surrounds the refocusing pulse (Stejskal and
+    Tanner, J Chem Phys 1965, doi:10.1063/1.1695690), lengthened at
+    ``system.max_grad`` until they reach ``b_value``, and each volume plays
+    one row of the table: its direction, in the logical frame, scales the
+    lobes of the three channels, and its b-value their amplitude. The table
+    repeats ``n_frames`` times. The FLEET or gradient-echo calibration stays a
+    gradient echo.
 
     With ``phase_reference``, the last dummy shot of each slice (of each
     FLEET slice, its dummy shot) is a reference train for odd/even phase
@@ -377,6 +496,19 @@ def epi2d(
         Centre lines read without blips at the start of every shot, for
         odd/even phase correction. ``None`` is ``NAVIGATOR_LINES`` without
         ``phase_reference`` and none with it.
+    spin_echo : bool, default=False
+        Refocus the echo with a slice-selective 180 degree pulse; the
+        excitation is then 90 degrees, whatever ``flip_angle_deg``.
+    diffusion_table : str | None, default=None
+        Diffusion table file, one volume per row, in any layout
+        :func:`~pypulseqpp.io.read_diffusion_table` reads. It needs
+        ``spin_echo``.
+    b_value : float, default=1000.0
+        Largest b-value (s/mm^2) of the diffusion table, which its unit
+        vectors reach and the lobes are designed for.
+    diffusion_directions : int | None, default=None
+        Count of the block a block direction table is read from; ``None``
+        for a table of one block.
 
     Returns
     -------
@@ -434,6 +566,17 @@ def epi2d(
             f"the slice count {n_slices} is not a multiple of the multiband "
             f"factor {multiband}"
         )
+
+    if diffusion_table is not None and not spin_echo:
+        raise ValueError("a diffusion table needs spin_echo")
+    if spin_echo and multiband > 1:
+        raise ValueError("a spin echo is designed single-band; set multiband to 1")
+    b_table = g_table = None
+    if diffusion_table is not None:
+        b_table, g_table = pp.io.read_diffusion_table(
+            diffusion_table, b_value, diffusion_directions
+        )
+    volumes = n_frames * (1 if b_table is None else len(b_table))
 
     fov = (fov_x, fov_y)
     raster = system.block_duration_raster
@@ -513,6 +656,43 @@ def epi2d(
         ]
         group_centres = [c + lead for c in centers]
         partition_fov = multiband * n_groups * slice_step
+    elif spin_echo:
+        exc = sequences.SpatialSelectiveExcitation(
+            system,
+            90.0,
+            slice_thickness,
+            duration_s=PULSE_DURATION,
+            time_bw_product=TIME_BW_PRODUCT,
+        )
+        refocus = sequences.SpatialSelectiveRefocusing(
+            system,
+            slice_thickness,
+            duration_s=PULSE_DURATION,
+            time_bw_product=TIME_BW_PRODUCT,
+            spoiling_cycles=CRUSHER_CYCLES,
+        )
+        echo = spin_echo_timing(
+            system,
+            exc,
+            refocus,
+            lambda half: sequences.EpiReadout2D(
+                system,
+                refocus.rf_ref,
+                refocus.gz,
+                **{**train_arguments, "te": half},
+                order=steps,
+                fov=fov,
+                matrix=(n_x, n_y),
+                labels=("LIN",),
+            ),
+            te,
+            None if b_table is None else b_value,
+        )
+        shot_trains = [echo.train] * n_shots
+        selection_amplitude = refocus.selection_amplitude
+        centers = list(positions)
+        group_centres = [0.0] * len(centers)
+        partition_fov = 1.0
     else:
         readout = sequences.EpiReadout2D(
             system,
@@ -531,7 +711,11 @@ def epi2d(
         group_centres = [0.0] * len(centers)
         partition_fov = 1.0
     epi = shot_trains[0]
-    echo_time = epi.echo_time
+    echo_time = echo.echo_time if spin_echo else epi.echo_time
+    # The excitation half of a spin echo and its second diffusion lobe play
+    # around the train, which opens with the refocusing pulse.
+    echo_extra = echo.excitation_half + echo.lobe_duration if spin_echo else 0.0
+    excited = exc.rf if spin_echo else epi.rf
 
     fatsat = (
         sequences.FatSaturation(
@@ -548,13 +732,13 @@ def epi2d(
     # n_shots cycles.
     prep = [fatsat] if fatsat is not None else []
     prep_duration = sum(module.duration for module in prep)
-    shot_duration = prep_duration + epi.duration + raster
+    shot_duration = prep_duration + echo_extra + epi.duration + raster
     cycle = None if tr is None else tr / n_shots
     per_packet = (
         n_groups if cycle is None else max(1, int(cycle / shot_duration + 1e-9))
     )
     packets = packets_of(n_groups, per_packet)
-    if n_frames > 1 and len(packets) > 1:
+    if volumes > 1 and len(packets) > 1:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms cannot hold the "
             f"{n_groups} excitations of a volume, {shot_duration * 1e3:.3f} ms each "
@@ -567,7 +751,10 @@ def epi2d(
         # in the steady state of one saturation every shot. The pulse's
         # duration is its bandwidth's, so the timing stands.
         to_excitation = (
-            fatsat.duration - fatsat.center + float(epi.rf.delay) + float(epi.rf.center)
+            fatsat.duration
+            - fatsat.center
+            + float(excited.delay)
+            + float(excited.center)
         )
         fatsat = sequences.FatSaturation(
             pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
@@ -588,15 +775,20 @@ def epi2d(
     repetition_time = n_shots * max(packet_time.values())
     if n_dummy is None:
         # A slice is excited once a cycle; a volume holds n_shots cycles.
-        excitations = sequences.steady_state_dummies(cycle, flip_angle_deg)
-        n_dummy = -(-excitations // n_shots) if n_frames > 1 else excitations
-    dummy_cycles = n_dummy * (n_shots if n_frames > 1 else 1)
+        excitations = sequences.steady_state_dummies(
+            cycle, 90.0 if spin_echo else flip_angle_deg
+        )
+        n_dummy = -(-excitations // n_shots) if volumes > 1 else excitations
+    dummy_cycles = n_dummy * (n_shots if volumes > 1 else 1)
     if phase_reference:
         # The reference plays in the last dummy cycle, so there is one.
         dummy_cycles = max(dummy_cycles, 1)
     output_pulse = pp.make_digital_output_pulse(
         OUTPUT_CHANNEL,
-        duration=min(OUTPUT_DURATION, pp.calc_duration(epi.rf, epi.gz)),
+        duration=min(
+            OUTPUT_DURATION,
+            pp.calc_duration(excited, exc.gz if spin_echo else epi.gz),
+        ),
         system=system,
     )
 
@@ -786,6 +978,16 @@ def epi2d(
                 flags["PHASECORR"] = 0
             if not dummy_cycles:
                 del flags["ONCE"]
+        half, lobe = (), None
+        if spin_echo:
+            exc.rf.freq_offset = exc.selection_amplitude * centers[g]
+            exc.rf.phase_offset = -2 * np.pi * exc.rf.freq_offset * exc.rf.center
+            half = [(exc.rf, exc.gz), (exc.gz_reph,)]
+            if echo.lobes is not None:
+                lobe = lobes(None if frame is None else frame % len(b_table))
+                half.append(lobe)
+            if echo.wait_half is not None:
+                half.append((echo.wait_half,))
         shot_blocks(
             seq,
             labels,
@@ -800,7 +1002,25 @@ def epi2d(
             reversed_encode=reversed_encode and not reference,
             prep=prep,
             reference=reference,
+            half=half,
+            lobe=lobe,
         )
+
+    made_lobes: dict = {}
+
+    def lobes(row: int | None) -> tuple:
+        """Return the diffusion lobe of table row ``row`` on the three channels; ``None`` and b = 0 are a delay."""
+        if row not in made_lobes:
+            if row is None or b_table[row] <= 0:
+                made_lobes[row] = (pp.make_delay(echo.lobe_duration),)
+            else:
+                scale = math.sqrt(b_table[row] / echo.b_value)
+                made_lobes[row] = tuple(
+                    pp.scale_grad(event, scale * float(component))
+                    for event, component in zip(echo.lobes, g_table[row], strict=True)
+                    if component != 0.0
+                ) or (pp.make_delay(echo.lobe_duration),)
+        return made_lobes[row]
 
     def shot_blocks(
         seq: pp.Sequence,
@@ -816,8 +1036,14 @@ def epi2d(
         reversed_encode: bool = False,
         prep: list = (),
         reference: bool = False,
+        half: list = (),
+        lobe: tuple | None = None,
     ) -> None:
         """Add one shot of ``train`` from line ``origin``, its pulse ``offset`` Hz off resonance.
+
+        A spin echo's ``half`` (its excitation, rephaser, first diffusion lobe
+        and wait) plays before the train, whose pulse refocuses, and ``lobe``,
+        the second diffusion lobe, after that pulse.
 
         A multiband line is received at the phase its partition encode gives
         a spin at ``group_centre`` (m), so its bands carry the phases of a
@@ -832,6 +1058,8 @@ def epi2d(
         """
         train.rf.freq_offset = offset
         train.rf.phase_offset = -2 * np.pi * train.rf.freq_offset * train.rf.center
+        if half:
+            train.rf.phase_offset += np.pi / 2
         sign = -1.0 if reversed_encode else 1.0
         train.shot_labels[0].value = n_y - origin if reversed_encode else origin
         # The prewinder and the rewinder closing the shot are scaled alike.
@@ -884,6 +1112,9 @@ def epi2d(
             for block in module.blocks:
                 seq.add_block(*block, *label_events)
                 label_events = []
+        for block in half:
+            seq.add_block(*block, *label_events)
+            label_events = []
         navigator = {id(event) for event in getattr(train, "gx_navigator", ())}
         readouts = {id(event) for event in train.gx}
         polarity, line = 0, 0
@@ -920,6 +1151,8 @@ def epi2d(
                     events += labels(**flags)
                 polarity ^= 1
             seq.add_block(*events)
+            if index == 0 and lobe is not None:
+                seq.add_block(*lobe)
         seq.add_block(pp.make_delay(closing))
 
     def play(frames, reversed_encode: bool = False):
@@ -977,7 +1210,7 @@ def epi2d(
         prescans.append(fleet())
     else:
         prescans.append(reference())
-    seq, (plot_tr_start, plot_tr_size) = play(frames=range(n_frames))
+    seq, (plot_tr_start, plot_tr_size) = play(frames=range(volumes))
 
     # The volume's offset is applied to the finished sequence with
     # pp.TransformFOV (compat=False: the lines are sampled on the ramps).
@@ -1005,6 +1238,8 @@ def epi2d(
         definitions["SliceTiming"] = [when[s % n_groups] for s in range(n_slices)]
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    if diffusion_table is not None:
+        pp.io.set_diffusion_table(seq, diffusion_table, b_value, diffusion_directions)
     seq.set_definition(
         key="NumGainCalibrationReadouts",
         value=sequences.gain_calibration_readouts(seq),
