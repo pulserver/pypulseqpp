@@ -266,8 +266,8 @@ def epi3d(
     n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 1.0,
-    n_acs_y: int = 24,
-    n_acs_z: int = 16,
+    n_acs_y: int = 32,
+    n_acs_z: int = 32,
     calibration: str = "fleet",
     volume_output: bool = False,
     phase_reference: bool = False,
@@ -363,10 +363,10 @@ def epi3d(
     readout_oversampling : float, default=1.0
         Minimum EPI readout oversampling factor, at least one. Additional
         samples preserve the requested dwell under the gradient limits.
-    n_acs_y : int, default=24
+    n_acs_y : int, default=32
         Extent of the calibration rectangle along the phase encode; FLEET
         rounds it up to a whole number of lines per shot.
-    n_acs_z : int, default=16
+    n_acs_z : int, default=32
         Extent of the calibration rectangle along the partition encode.
     calibration : {'fleet', 'gre'}, default='fleet'
         The calibration: FLEET, segmented EPI at
