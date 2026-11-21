@@ -879,3 +879,39 @@ def test_the_prescan_gain_calibration_does_not_count_the_reference_as_imaging():
     # shot, which the prescan plays through.
     assert sequences.gain_calibration_readouts(scan.main) >= 2 * scan.etl
     assert np.count_nonzero(pc) == scan.etl
+
+
+@pytest.mark.parametrize("multiband", [2, 3, 4])
+def test_each_multiband_excitation_places_its_bands_on_the_slices_of_its_group(
+    multiband,
+):
+    n_slices = 2 * multiband
+    *_, seq = sequences.epi2D_sequence(
+        **SMALL_2D, n_slices=n_slices, multiband=multiband, slice_spacing=1e-3
+    )
+    positions = np.asarray(seq.get_definition("SlicePositions"), dtype=float)
+    groups = n_slices // multiband
+    pulse = sequences.SmsExcitation(
+        seq.system,
+        70.0,
+        thickness_m=5e-3,
+        slice_gap_m=groups * (positions[1] - positions[0]),
+        n_bands=multiband,
+        duration_s=3e-3,
+        time_bw_product=4.0,
+    )
+    offsets = sorted(
+        {
+            round(float(seq.get_block(n).rf.freq_offset), 6)
+            for n in seq.block_events
+            if seq.get_block(n).rf is not None
+            and getattr(seq.get_block(n).rf, "use", "") == "excitation"
+        }
+    )
+
+    excited = [
+        np.sort(offset / float(pulse.gz.amplitude) + np.asarray(pulse.band_positions_m))
+        for offset in offsets
+    ]
+    expected = [np.sort(positions[g::groups]) for g in range(groups)]
+    np.testing.assert_allclose(sorted(excited, key=lambda b: b[0]), expected, atol=1e-6)

@@ -490,8 +490,13 @@ def epi2d(
                 )
             shot_trains.append(trains[key])
         selection_amplitude = float(exc.gz.amplitude)
+        # The pulse places its bands at band_positions_m from the slice its
+        # frequency offset selects, which is not their mean for an even band
+        # count: the offset aims that mean at the group's centre.
+        lead = float(np.mean(exc.band_positions_m))
         centers = [
             (g - (n_slices - 1) / 2 + (multiband - 1) / 2 * n_groups) * slice_step
+            - lead
             for g in range(n_groups)
         ]
     else:
