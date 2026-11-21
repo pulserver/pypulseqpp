@@ -50,32 +50,6 @@ def caipi_shift(ry: int, rz: int) -> int:
     return max(range(rz), key=lambda shift: (shortest(shift), -shift))
 
 
-def default_shift(ry: int, rz: int) -> int:
-    """Return the CAIPI shift a scan plays unless its protocol names one.
-
-    Without phase-encode undersampling the partition aliases fall on top of
-    each other, and the shift :func:`caipi_shift` picks moves them along the
-    phase encode, where a head array separates them well. With ``ry`` above
-    one the aliases already lie ``1 / ry`` of the field of view apart along
-    the phase encode; a shift adds aliases nearer along it that differ only
-    in partition, across which the receive sensitivities change little, so
-    the lattice is left unshifted.
-
-    Parameters
-    ----------
-    ry : int
-        Acceleration along the phase-encode axis.
-    rz : int
-        Acceleration along the partition axis.
-
-    Returns
-    -------
-    int
-        The shift, in partitions per ``ry`` lines.
-    """
-    return caipi_shift(ry, rz) if ry == 1 else 0
-
-
 def train_lines(
     n: int, ry: int, n_shots: int, partial_fourier: float
 ) -> tuple[int, int]:
@@ -286,7 +260,6 @@ def epi3d(
     readout_bandwidth_hz: float = 500e3,
     ry: int = 1,
     rz: int = 1,
-    shift: int | None = None,
     partial_fourier_y: float = 1.0,
     partial_fourier_z: float = 1.0,
     n_shots: int = 1,
@@ -305,7 +278,7 @@ def epi3d(
     The views sampled form a CAIPIRINHA lattice holding the centre of
     k-space: line ``y`` is read when ``(y - n_y // 2) % ry == 0``, at the
     partitions ``z`` with ``(z - n_z // 2 - d * j) % rz == 0``, ``j`` being the
-    line's lattice index and ``d`` the ``shift``. A
+    line's lattice index and ``d`` the shift :func:`caipi_shift` picks. A
     shell is ``rz`` consecutive partitions, and each of its lines holds one
     lattice partition. Shot ``s`` of a shell reads every ``n_shots``-th
     lattice line from the ``s``-th, blipping to that line's partition
@@ -375,9 +348,6 @@ def epi3d(
     ry, rz : int, default=1
         Undersampling along the phase and the partition encode; ``rz`` is
         also the shell height.
-    shift : int | None, default=None
-        CAIPI shift ``d`` of the lattice, in partitions per ``ry`` lines, in
-        ``[0, rz)``; ``None`` for :func:`default_shift`.
     partial_fourier_y, partial_fourier_z : float, default=1.0
         Fraction of the phase- and partition-encode extent read, in
         ``[0.5, 1]``. Truncates the lines and the shells before the centre.
@@ -425,8 +395,8 @@ def epi3d(
         If ``excitation`` or ``calibration`` is unknown, a partial Fourier
         fraction is outside
         ``[0.5, 1]``, a count is below one, the shots cannot share the lines
-        or the partitions hold no shell, ``shift`` is outside ``[0, rz)``, or
-        the TE or TR is shorter than the shots take.
+        or the partitions hold no shell, or the TE or TR is shorter than
+        the shots take.
 
     Examples
     --------
@@ -489,10 +459,7 @@ def epi3d(
     start, etl = train_lines(n_y, ry, n_shots, partial_fourier_y)
     origins = [start + s * ry for s in range(n_shots)]
     shells = shell_bases(n_z, rz, partial_fourier_z)
-    if shift is None:
-        shift = default_shift(ry, rz)
-    elif not 0 <= shift < rz:
-        raise ValueError(f"shift must be in [0, rz), got {shift} for rz={rz}")
+    shift = caipi_shift(ry, rz)
     steps = np.arange(etl) * n_shots * ry
     # Every shell starts at the same residue modulo rz, so a shot's offsets
     # within its shell depend on the shot alone.
