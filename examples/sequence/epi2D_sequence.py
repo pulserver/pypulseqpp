@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import math
 import sys
 
@@ -327,6 +328,8 @@ TIME_BW_PRODUCT = 4.0
 #: Dephasing of each crusher around the refocusing pulse of a spin echo, in
 #: cycles across the slice.
 CRUSHER_CYCLES = 4.0
+#: Duration of the adiabatic inversion pulse (s) while it fits the peak B1.
+INVERSION_DURATION = 10e-3
 #: Step (s) by which the diffusion lobes are lengthened until they reach the
 #: b-value.
 DIFFUSION_LOBE_STEP = 0.2e-3
@@ -390,6 +393,8 @@ def epi2d(
     diffusion_table: str | None = None,
     b_value: float = 1000.0,
     diffusion_directions: int | None = None,
+    ti: float | None = None,
+    inversion_slab: float = 2.0,
 ) -> list[pp.Sequence]:
     """Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.
 
@@ -522,6 +527,15 @@ def epi2d(
     diffusion_directions : int | None, default=None
         Count of the block a block direction table is read from; ``None``
         for a table of one block.
+    ti : float | None, default=None
+        Inversion time (s), from the centre of a slice's inversion to the
+        centre of its excitation. Each shot is followed by the adiabatic
+        inversion of the slice excited the inversion time later, so the
+        inversions of later slices sit between the shots of earlier ones,
+        and enough dummy cycles open the scan for every acquired slice to
+        have been inverted. ``None`` plays no inversion.
+    inversion_slab : float, default=2.0
+        Thickness of the inverted slab, in slice thicknesses.
 
     Returns
     -------
@@ -538,7 +552,9 @@ def epi2d(
         ``n_slices``, the shots cannot
         share the lines, the TE is shorter than the train admits, or the TR
         cannot hold one slice, or every slice when ``n_frames`` is above
-        one.
+        one; or if ``ti`` is given with ``multiband`` or ``n_shots`` above
+        one, ``inversion_slab`` is not positive, or an inversion ``ti``
+        before an excitation would overlap a shot at the TR.
 
     Examples
     --------
@@ -584,6 +600,13 @@ def epi2d(
         raise ValueError("a diffusion table needs spin_echo")
     if spin_echo and multiband > 1:
         raise ValueError("a spin echo is designed single-band; set multiband to 1")
+    if ti is not None and (multiband > 1 or n_shots > 1):
+        raise ValueError(
+            "an inversion is designed for single-band single-shot EPI; set "
+            "multiband and n_shots to 1"
+        )
+    if inversion_slab <= 0:
+        raise ValueError("inversion_slab must be positive")
     b_table = g_table = None
     if diffusion_table is not None:
         b_table, g_table = pp.io.read_diffusion_table(
@@ -746,19 +769,32 @@ def epi2d(
     prep = [fatsat] if fatsat is not None else []
     prep_duration = sum(module.duration for module in prep)
     shot_duration = prep_duration + echo_extra + epi.duration + raster
+    inversion = (
+        None
+        if ti is None
+        else sequences.InversionPreparation(
+            system,
+            INVERSION_DURATION,
+            slab_thickness_m=inversion_slab * slice_thickness,
+            voxel_size_m=slice_thickness,
+        )
+    )
+    # With an inversion, each slot holds a shot and the inversion of a later
+    # slice.
+    slot_duration = shot_duration + (0.0 if inversion is None else inversion.duration)
     cycle = None if tr is None else tr / n_shots
     per_packet = (
-        n_groups if cycle is None else max(1, int(cycle / shot_duration + 1e-9))
+        n_groups if cycle is None else max(1, int(cycle / slot_duration + 1e-9))
     )
     packets = packets_of(n_groups, per_packet)
     if volumes > 1 and len(packets) > 1:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms cannot hold the "
-            f"{n_groups} excitations of a volume, {shot_duration * 1e3:.3f} ms each "
+            f"{n_groups} excitations of a volume, {slot_duration * 1e3:.3f} ms each "
             f"per shot"
         )
     if cycle is None:
-        cycle = max(map(len, packets)) * shot_duration
+        cycle = max(map(len, packets)) * slot_duration
     if fatsat is not None:
         # The flip that leaves fat at zero when the train's excitation comes,
         # in the steady state of one saturation every shot. The pulse's
@@ -771,20 +807,23 @@ def epi2d(
         )
         fatsat = sequences.FatSaturation(
             pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
-            flip_angle_deg=sequences.fat_null_flip_deg(to_excitation, shot_duration),
+            flip_angle_deg=sequences.fat_null_flip_deg(
+                to_excitation,
+                shot_duration if inversion is None else cycle / max(map(len, packets)),
+            ),
             voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
         )
         prep = [fatsat]
     pads = {
-        size: pp.round_to_raster(cycle - size * shot_duration, raster) + raster
+        size: pp.round_to_raster(cycle - size * slot_duration, raster) + raster
         for size in {len(packet) for packet in packets}
     }
     if min(pads.values()) < raster:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
-            f"{n_shots * shot_duration * 1e3:.3f} ms the shots of one slice take"
+            f"{n_shots * slot_duration * 1e3:.3f} ms the shots of one slice take"
         )
-    packet_time = {n: n * shot_duration - raster + pad for n, pad in pads.items()}
+    packet_time = {n: n * slot_duration - raster + pad for n, pad in pads.items()}
     repetition_time = n_shots * max(packet_time.values())
     if n_dummy is None:
         # A slice is excited once a cycle; a volume holds n_shots cycles.
@@ -1168,6 +1207,84 @@ def epi2d(
                 seq.add_block(*lobe)
         seq.add_block(pp.make_delay(closing))
 
+    def excitation_offset() -> float:
+        """Return the time from the start of a shot to the centre of its excitation, and its length without its closing delay."""
+        probe = pp.Sequence(system)
+        kernel(probe, sequences.Labels(), 0, 0, 0, raster)
+        t, centre = 0.0, None
+        for i in range(1, probe.num_blocks + 1):
+            block = probe.get_block(i)
+            rf = getattr(block, "rf", None)
+            if centre is None and rf is not None and rf.use == "excitation":
+                centre = t + float(rf.delay) + float(rf.center)
+            t += float(block.block_duration)
+        return centre, t - raster
+
+    @dataclasses.dataclass(frozen=True)
+    class InversionSlots:
+        """Where the inversions of a packet of ``size`` slices sit.
+
+        Every slot is ``slot`` long: a shot, its closing delay ``closing``,
+        the inversion of the slice excited ``lag`` slots later, and ``tail``.
+        """
+
+        slot: float
+        closing: float
+        tail: float
+        lag: int
+        ti: float
+
+    def inversion_slots(size: int) -> InversionSlots:
+        centre, shot = excitation_offset()
+        slot = math.floor(packet_time[size] / size / raster + 1e-9) * raster
+        # The inversion that precedes an excitation by ti starts ``start``
+        # into a slot ``lag`` slots before the excitation's.
+        before = centre - ti - inversion.center
+        lag = -math.floor(before / slot)
+        start = pp.round_to_raster(before + lag * slot, raster)
+        tail = pp.round_to_raster(slot - start - inversion.duration, raster)
+        if start - shot < raster - 1e-12 or tail < -1e-12:
+            # The inversion times nearest ti whose inversion starts 0.1 ms
+            # inside either end of the free part of a slot, so they fit as
+            # printed.
+            nearest = sorted(
+                centre - inversion.center - free + n * slot
+                for free in (shot + raster + 1e-4, slot - inversion.duration - 1e-4)
+                for n in (lag - 1, lag, lag + 1)
+            )
+            below = max((t for t in nearest if t < ti), default=None)
+            above = min(t for t in nearest if t > ti)
+            raise ValueError(
+                f"an inversion {ti * 1e3:.1f} ms before an excitation overlaps a "
+                f"shot at {slot * 1e3:.1f} ms per slice; the nearest inversion "
+                f"times that fit are "
+                + (f"{below * 1e3:.1f} ms and " if below and below > 0 else "")
+                + f"{above * 1e3:.1f} ms, or the TR can change"
+            )
+        achieved = lag * slot + centre - start - inversion.center
+        return InversionSlots(slot, start - shot, tail, lag, achieved)
+
+    def invert(seq: pp.Sequence, g: int, tail: float) -> None:
+        """Add the slab inversion of slice ``g``, then ``tail`` of delay."""
+        rf = inversion.rf_prep
+        rf.freq_offset = float(inversion.gz_prep.amplitude) * centers[g]
+        rf.phase_offset = -2 * np.pi * rf.freq_offset * rf.center
+        for block in inversion.blocks:
+            seq.add_block(*block)
+        if tail > 0:
+            seq.add_block(pp.make_delay(tail))
+
+    slots = {}
+    if inversion is not None:
+        slots = {size: inversion_slots(size) for size in packet_time}
+        packet_time = {size: size * plan.slot for size, plan in slots.items()}
+        repetition_time = n_shots * max(packet_time.values())
+        # Every acquired slice is inverted in the cycle before it, or earlier.
+        dummy_cycles = max(
+            dummy_cycles,
+            *(-(-plan.lag // size) for size, plan in slots.items()),
+        )
+
     def play(frames, reversed_encode: bool = False):
         """Design the dummies and then ``frames``, packet by packet.
 
@@ -1186,13 +1303,14 @@ def epi2d(
                 for i, g in enumerate(packet):
                     last = i == len(packet) - 1
                     before = seq.num_blocks
+                    plan = slots.get(len(packet))
                     kernel(
                         seq,
                         labels,
                         g,
                         shot,
                         frame,
-                        pad if last else raster,
+                        plan.closing if plan else pad if last else raster,
                         output=volume_output
                         and not reversed_encode
                         and i == 0
@@ -1200,6 +1318,8 @@ def epi2d(
                         reversed_encode=reversed_encode,
                         reference=reference,
                     )
+                    if plan:
+                        invert(seq, packet[(i + plan.lag) % len(packet)], plan.tail)
                     if frame is not None and first_image_shot is None:
                         first_image_shot = (before + 1, seq.num_blocks - before)
         return seq, first_image_shot
@@ -1247,10 +1367,13 @@ def epi2d(
     if len(packets) == 1:
         # Excitation time of each slice from the start of its volume.
         (packet,) = packets
-        when = {g: i * shot_duration for i, g in enumerate(packet)}
+        spacing = slots[len(packet)].slot if slots else shot_duration
+        when = {g: i * spacing for i, g in enumerate(packet)}
         definitions["SliceTiming"] = [when[s % n_groups] for s in range(n_slices)]
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    if slots:
+        seq.set_definition(key="TI", value=slots[len(packets[0])].ti)
     if diffusion_table is not None:
         pp.io.set_diffusion_table(seq, diffusion_table, b_value, diffusion_directions)
     seq.set_definition(
