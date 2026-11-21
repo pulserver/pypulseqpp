@@ -238,6 +238,7 @@ def calc_projection_shell(
     *,
     scheme: str = "spiral",
     ordering: str = "sequential",
+    tiny_index: int = 1,
 ):
     """Return a pole-to-pole base shell and z-axis rotations for each shot.
 
@@ -259,13 +260,19 @@ def calc_projection_shell(
         stride across many rings' worth of azimuth. ``'meridian'`` is a half
         great circle in the x-z plane at equal polar steps, which is simpler
         and oversamples the poles.
-    ordering : {'sequential', 'golden'}, default='sequential'
+    ordering : {'sequential', 'golden', 'raga'}, default='sequential'
         Order of the shots. ``'sequential'`` turns each shot ``2*pi/n_shots``
         past the one before. ``'golden'`` plays the same set of turns with
-        shot ``j`` on the grid turn ranked as ``frac(j / phi)``, so the first
-        shots, or any run of consecutive ones, spread near-uniformly in
-        azimuth: a shortened scan undersamples evenly and a sliding window of
-        shots covers the whole sphere.
+        shot ``j`` on the grid turn ranked as ``frac(j / (phi + tiny_index -
+        1))``, so the first shots, or any run of consecutive ones, spread
+        near-uniformly in azimuth. ``'raga'`` steps through the grid by the
+        whole number of turns nearest ``n_shots / (phi + tiny_index - 1)``
+        that is coprime with ``n_shots``: the rational approximation of the
+        same golden step, which visits every turn once with only a few
+        distinct steps between consecutive shots.
+    tiny_index : int, default=1
+        Tiny-golden index ``N`` of the golden step: 1 is the golden ratio,
+        larger indices turn consecutive shots by less.
 
     Returns
     -------
@@ -324,8 +331,12 @@ def calc_projection_shell(
     calc_golden_angles : in-plane spoke angles, one per shot, for 2D radial.
     """
     n_views, n_shots = int(n_views), int(n_shots)
-    if ordering not in ("sequential", "golden"):
-        raise ValueError(f"ordering must be 'sequential' or 'golden', got {ordering!r}")
+    if ordering not in ("sequential", "golden", "raga"):
+        raise ValueError(
+            f"ordering must be 'sequential', 'golden' or 'raga', got {ordering!r}"
+        )
+    if int(tiny_index) < 1:
+        raise ValueError("tiny_index must be >= 1")
     if n_views < 3:
         raise ValueError("a pole-to-pole shell needs at least three views")
     if n_shots < 1:
@@ -342,9 +353,16 @@ def calc_projection_shell(
         raise ValueError(
             f"scheme must be 'spiral', 'quiet' or 'meridian', got {scheme!r}"
         )
+    ratio = _PHI + int(tiny_index) - 1
     slots = np.arange(n_shots, dtype=float)
     if ordering == "golden":
-        slots = np.argsort(np.argsort(np.mod(slots / _PHI, 1.0), kind="stable"))
+        slots = np.argsort(np.argsort(np.mod(slots / ratio, 1.0), kind="stable"))
+    elif ordering == "raga":
+        step = min(
+            (k for k in range(1, n_shots + 1) if math.gcd(k, n_shots) == 1),
+            key=lambda k: abs(k - n_shots / ratio),
+        )
+        slots = np.mod(np.arange(n_shots) * step, n_shots).astype(float)
     return directions, _turns_about_z(2.0 * np.pi * slots / n_shots)
 
 

@@ -574,3 +574,33 @@ def test_consecutive_gradients_of_a_turned_shell_meet_without_a_step(system, har
                 assert float(right.first) == pytest.approx(
                     float(left.last), abs=1e-9 * zte.gradient_amplitude
                 )
+
+
+@pytest.mark.parametrize("ordering", ["golden", "raga"])
+@pytest.mark.parametrize("tiny_index", [1, 3, 5])
+def test_every_golden_ordering_plays_every_turn_of_the_set_once(ordering, tiny_index):
+    _, sequential = calc_projection_shell(8, 198)
+    _, played = calc_projection_shell(8, 198, ordering=ordering, tiny_index=tiny_index)
+    assert np.sort(_azimuths(played)) == pytest.approx(np.sort(_azimuths(sequential)))
+
+
+def test_raga_on_a_fibonacci_number_of_shots_is_the_golden_order():
+    _, golden = calc_projection_shell(8, 233, ordering="golden")
+    _, raga = calc_projection_shell(8, 233, ordering="raga")
+    assert _azimuths(raga) == pytest.approx(_azimuths(golden))
+
+
+def test_raga_turns_every_shot_by_the_same_step():
+    _, raga = calc_projection_shell(8, 198, ordering="raga", tiny_index=3)
+    steps = np.mod(np.diff(_azimuths(raga)), 2 * np.pi)
+    assert np.ptp(steps) == pytest.approx(0.0, abs=1e-9)
+
+
+def test_a_larger_tiny_index_turns_consecutive_shots_by_less():
+    def median_turn(tiny_index):
+        _, played = calc_projection_shell(
+            8, 198, ordering="golden", tiny_index=tiny_index
+        )
+        return np.median(np.abs(np.angle(np.exp(1j * np.diff(_azimuths(played))))))
+
+    assert median_turn(5) < median_turn(3) < median_turn(1)
