@@ -9,7 +9,7 @@ import pytest
 from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
-from pypulseqpp import calc_projection_shell
+from pypulseqpp import calc_projection_shell, calc_raga_size
 from pypulseqpp import sequences as design
 
 FOV = 0.24
@@ -632,21 +632,56 @@ def test_an_unknown_turn_or_a_negative_ramp_is_refused(system, hard, kwargs, mes
 @pytest.mark.parametrize("ordering", ["golden", "raga"])
 @pytest.mark.parametrize("tiny_index", [1, 3, 5])
 def test_every_golden_ordering_plays_every_turn_of_the_set_once(ordering, tiny_index):
-    _, sequential = calc_projection_shell(8, 198)
-    _, played = calc_projection_shell(8, 198, ordering=ordering, tiny_index=tiny_index)
+    n_shots = calc_raga_size(198, tiny_index=tiny_index)
+    _, sequential = calc_projection_shell(8, n_shots)
+    _, played = calc_projection_shell(
+        8, n_shots, ordering=ordering, tiny_index=tiny_index
+    )
     assert np.sort(_azimuths(played)) == pytest.approx(np.sort(_azimuths(sequential)))
 
 
-def test_raga_on_a_fibonacci_number_of_shots_is_the_golden_order():
-    _, golden = calc_projection_shell(8, 233, ordering="golden")
-    _, raga = calc_projection_shell(8, 233, ordering="raga")
+@pytest.mark.parametrize("tiny_index", [1, 3, 5])
+def test_raga_on_its_support_size_is_the_golden_order(tiny_index):
+    n_shots = calc_raga_size(198, tiny_index=tiny_index)
+    _, golden = calc_projection_shell(
+        8, n_shots, ordering="golden", tiny_index=tiny_index
+    )
+    _, raga = calc_projection_shell(8, n_shots, ordering="raga", tiny_index=tiny_index)
     assert _azimuths(raga) == pytest.approx(_azimuths(golden))
 
 
-def test_raga_turns_every_shot_by_the_same_step():
-    _, raga = calc_projection_shell(8, 198, ordering="raga", tiny_index=3)
-    steps = np.mod(np.diff(_azimuths(raga)), 2 * np.pi)
+def test_raga_turns_every_shot_by_the_same_step_across_repetitions():
+    _, raga = calc_projection_shell(8, 191, ordering="raga", tiny_index=5)
+    azimuths = _azimuths(np.concatenate([raga, raga]))
+    steps = np.mod(np.diff(azimuths), 2 * np.pi)
     assert np.ptp(steps) == pytest.approx(0.0, abs=1e-9)
+
+
+def test_raga_refuses_a_shot_count_off_its_support_and_names_the_nearest():
+    with pytest.raises(ValueError, match="nearest to 198 is 233"):
+        calc_projection_shell(8, 198, ordering="raga")
+
+
+@pytest.mark.parametrize(
+    ("n", "tiny_index", "size"),
+    [(198, 1, 233), (198, 5, 191), (1, 1, 1), (150, 1, 144)],
+)
+def test_the_raga_support_size_is_the_generalized_fibonacci_number_nearest_in_ratio(
+    n, tiny_index, size
+):
+    assert calc_raga_size(n, tiny_index=tiny_index) == size
+
+
+def test_the_raga_support_size_refuses_a_count_below_one():
+    with pytest.raises(ValueError, match="n and tiny_index"):
+        calc_raga_size(0)
+
+
+def test_a_raga_readout_without_a_shot_count_takes_the_nearest_support_size(
+    system, hard
+):
+    zte = readout(system, hard, matrix=64, n_views=8, ordering="raga", tiny_index=5)
+    assert len(zte.shot_rotations) == 191
 
 
 def test_a_larger_tiny_index_turns_consecutive_shots_by_less():
@@ -657,3 +692,8 @@ def test_a_larger_tiny_index_turns_consecutive_shots_by_less():
         return np.median(np.abs(np.angle(np.exp(1j * np.diff(_azimuths(played))))))
 
     assert median_turn(5) < median_turn(3) < median_turn(1)
+
+
+def test_a_tiny_golden_index_below_one_is_refused():
+    with pytest.raises(ValueError, match="tiny_index"):
+        calc_projection_shell(8, 5, ordering="golden", tiny_index=0)

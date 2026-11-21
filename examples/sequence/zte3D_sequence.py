@@ -130,7 +130,9 @@ def zte3d(
         :func:`~pypulseqpp.calc_projection_shell`. ``'golden'`` spreads every
         run of consecutive shells evenly in azimuth, for a sliding-window or
         time-resolved reconstruction; ``'raga'`` is its rational
-        approximation, exact when ``n_shots`` is a Fibonacci number.
+        approximation, on a generalized Fibonacci number of shells (the
+        default ``n_shots`` moves to the nearest), whose order stays golden
+        across repetitions of the set.
     tiny_index : int, default=1
         Tiny-golden index of the golden step.
     turn : {'after', 'spread'} | None, default=None

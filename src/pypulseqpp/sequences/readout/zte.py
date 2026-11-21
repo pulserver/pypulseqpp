@@ -12,7 +12,7 @@ import numpy as np
 
 import pypulseqpp as pp
 
-from ..._angles import calc_projection_shell
+from ..._angles import calc_projection_shell, calc_raga_size
 from .._module import SequenceModule
 from ._common import AXES, solve_delay
 
@@ -55,7 +55,9 @@ class ZteReadout(SequenceModule):
     n_shots : int, default=None
         Shells the sphere is split into, each the shell turned about z by
         ``2 * pi / n_shots`` relative to the previous one. Playing only some of
-        the shots undersamples in angle. ``None`` is ``ceil(pi * (matrix - 1))``.
+        the shots undersamples in angle. ``None`` is ``ceil(pi * (matrix - 1))``,
+        or under ``'raga'`` the support size nearest it
+        (:func:`pypulseqpp.calc_raga_size`).
     scheme : {'spiral', 'quiet', 'meridian'}, default='spiral'
         Shape of the shell, as in :func:`pypulseqpp.calc_projection_shell`.
     ordering : {'sequential', 'golden', 'raga'}, default='sequential'
@@ -230,6 +232,8 @@ class ZteReadout(SequenceModule):
             # the whole set puts n_views at the matrix size.
             if n_shots is None:
                 n_shots = max(1, math.ceil(np.pi * (int(matrix) - 1)))
+                if ordering == "raga":
+                    n_shots = calc_raga_size(n_shots, tiny_index=tiny_index)
             total = math.ceil(np.pi * int(matrix) ** 2)
             n_views = (
                 max(3, -(-total // int(n_shots))) if n_views is None else int(n_views)

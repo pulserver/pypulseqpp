@@ -288,6 +288,7 @@ _SAMPLING = {
         "calc_golden_angles",
         "calc_projection_shell",
         "calc_raga_angles",
+        "calc_raga_size",
         "calc_tiny_golden_angles",
         "calc_uniform_angles",
     ),
