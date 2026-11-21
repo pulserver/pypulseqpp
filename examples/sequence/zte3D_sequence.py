@@ -77,8 +77,8 @@ def zte3d(
         Requested receiver bandwidth (Hz). It sets the gradient amplitude
         too, the spoke being traversed at one sample per ``delta_k``.
     r : int, default=1
-        Angular undersampling: ``ceil(n_shots / r)`` shells of the set are
-        played.
+        Angular undersampling: one shell in every ``r`` of the set is
+        played, the count rounded up.
     n_shots : int | None, default=None
         Shells the sphere is dealt into, each the same one turned about
         ``z``. ``None`` balances the spacing within a shell against the
