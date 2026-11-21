@@ -379,6 +379,7 @@ def test_lobes_that_overlap_are_refused(system):
         lambda system: design.BlochSiegertPreparation(system),
         lambda system: design.DiffusionPreparation(system, 500.0),
         lambda system: design.InversionPreparation(system),
+        lambda system: design.InversionPreparation(system, slab_thickness_m=8e-3),
         lambda system: design.FatSaturation(system),
     ],
 )
@@ -425,3 +426,43 @@ def test_both_diffusion_preparation_gaps_are_published(system):
     prep = design.DiffusionPreparation(system, 500.0)
     played = [prep.wait_first, prep.wait_last]
     assert _delay_blocks(prep) == pytest.approx([pp.calc_duration(w) for w in played])
+
+
+def _slab_mz(module, positions_m, b1_scale):
+    """Mz after the slab inversion at each position, from a hard-pulse integration."""
+    rf, gz = module.rf_prep, module.gz_prep
+    times = rf.delay + np.asarray(rf.t, dtype=float)
+    dt = float(np.mean(np.diff(times)))
+    if getattr(gz, "type", "") == "trap":
+        gradient = np.full(times.shape, gz.amplitude)
+    else:
+        gradient = np.interp(times, gz.delay + np.asarray(gz.tt), gz.waveform)
+    bz = np.outer(positions_m, gradient)
+    return pp.sim_bloch(b1_scale * np.asarray(rf.signal), bz, dt)[:, 2]
+
+
+@pytest.mark.parametrize(
+    ("pulse_type", "bandwidth_hz"), [("hypsec", 40e3), ("goia_wurst", 4e3)]
+)
+@pytest.mark.parametrize("b1_scale", [1.0, 1.3])
+def test_slab_inversion_inverts_the_slab_and_leaves_its_surroundings(
+    system, pulse_type, bandwidth_hz, b1_scale
+):
+    slab = 8e-3
+    module = design.InversionPreparation(
+        system, slab_thickness_m=slab, pulse_type=pulse_type, bandwidth_hz=bandwidth_hz
+    )
+    inside = _slab_mz(module, np.linspace(-0.3, 0.3, 7) * slab, b1_scale)
+    outside = _slab_mz(module, np.array([-1.5, -1.0, 1.0, 1.5]) * slab, b1_scale)
+    assert inside.max() < -0.9
+    assert outside.min() > 0.9
+
+
+def test_slab_inversion_plays_its_gradient_on_the_crusher_axis(system):
+    module = design.InversionPreparation(system, slab_thickness_m=8e-3, axis="x")
+    assert module.gz_prep.channel == "x"
+
+
+def test_slab_inversion_refuses_a_slab_that_is_not_positive(system):
+    with pytest.raises(ValueError, match="slab_thickness_m"):
+        design.InversionPreparation(system, slab_thickness_m=0.0)
