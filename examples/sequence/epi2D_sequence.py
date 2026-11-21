@@ -933,6 +933,7 @@ def epi2d(
             TR=repetition_time,
             EchoSpacing=epi.esp,
             kSpaceCenterLine=n_y // 2,
+            **({"MultibandFactor": multiband} if multiband > 1 else {}),
         )
         return seq
 
