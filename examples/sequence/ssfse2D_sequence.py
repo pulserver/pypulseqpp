@@ -128,7 +128,7 @@ def ssfse2d(
     time_bw_product : float, default=2.0
         Time-bandwidth product of the excitation and refocusing pulses.
     flip_modulation : {'constant', 'traps', 'pd_target'}, default='pd_target'
-        Refocusing train (:func:`refocusing_train`).
+        Refocusing train, as :func:`refocusing_train` designs it.
     refocusing_angle_deg : float, default=150.0
         Refocusing angle (degrees): every angle of a constant train, the
         angle a TRAPS train settles on, the largest of a target-signal
