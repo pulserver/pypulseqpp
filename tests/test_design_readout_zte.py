@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pytest
 from scipy.spatial.transform import Rotation
@@ -558,3 +560,17 @@ def test_the_first_sequential_shots_leave_a_wedge_of_the_sphere_unsampled():
 def test_an_unknown_shot_ordering_is_refused():
     with pytest.raises(ValueError, match="ordering"):
         calc_projection_shell(8, 4, ordering="random")
+
+
+def test_consecutive_gradients_of_a_turned_shell_meet_without_a_step(system, hard):
+    zte = readout(system, hard, n_views=24, n_shots=7)
+    for shot in zte.shot_rotations:
+        shell = zte.shell(shot)
+        events = [shell.ramp]
+        for hold, read in zip(shell.hold, shell.read, strict=True):
+            events += [hold, read]
+        for before, after in itertools.pairwise(events):
+            for left, right in zip(before, after, strict=True):
+                assert float(right.first) == pytest.approx(
+                    float(left.last), abs=1e-9 * zte.gradient_amplitude
+                )

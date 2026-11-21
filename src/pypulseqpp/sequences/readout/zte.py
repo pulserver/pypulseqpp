@@ -79,10 +79,11 @@ class ZteReadout(SequenceModule):
         Labels set to 0 on the acquisition block, to be changed per shot by the
         caller.
     turn_step : float, default=0.0078125
-        Grid of the ratio between the smaller and the larger end of a turn on
-        one axis. Every turn on an axis is then one of about ``4 / turn_step``
-        shapes scaled by an amplitude, and a view's gradient lands within
-        ``turn_step`` of the gradient amplitude of its direction on each axis.
+        Relative step of the geometric grid a view's gradient lies on, on each
+        axis: ``+-(1 + turn_step) ** k`` times the spoke amplitude, or zero
+        below ``turn_step`` of it. A turn between two grid values is one shape
+        per pair of signs and difference of powers, scaled by its larger end,
+        so the turns on an axis share a few shapes and meet without a step.
 
 
     Attributes
@@ -362,11 +363,10 @@ class ZteReadout(SequenceModule):
         """Return the gradients of the shell turned by ``rotation``, in the logical frame.
 
         Each view holds its gradient under the pulse and the acquisition, then
-        turns onto the next view. On every axis the turn is one of a small set
-        of shapes scaled by an amplitude: the ratio of its smaller end to its
-        larger lies on a grid of ``turn_step``, so a view lands on the
-        direction the shape reaches, within ``turn_step`` of the gradient
-        amplitude on each axis, and the next turn starts from there.
+        turns onto the next view. On every axis the held gradient is rounded to
+        the geometric grid of ``turn_step``, so the direction a view plays is
+        within about ``turn_step`` of its own, and each turn is one of a few
+        shapes scaled by its larger end.
 
         Parameters
         ----------
@@ -388,36 +388,56 @@ class ZteReadout(SequenceModule):
             if rotation is None
             else self._directions @ np.asarray(rotation, dtype=float).T
         )
-        step = self._turn_step
-        held = np.empty_like(targets)
-        held[0] = targets[0]
-        reads = []
-        for view in range(len(targets)):
-            last = view == len(targets) - 1
-            end = np.zeros(3) if last else targets[view + 1]
-            axes = []
-            for axis in range(3):
-                landed, ends, scale = _turn(held[view, axis], end[axis], step)
-                if not last:
-                    held[view + 1, axis] = landed
-                axes.append(
-                    self._scaled(axis, "close" if last else "turn", ends, scale)
-                )
-            reads.append(axes)
+        signs, powers = _on_grid(targets / self.gradient_amplitude, self._turn_step)
+        levels = 1.0 + self._turn_step
+
+        def held(view, axis):
+            return (
+                signs[view, axis]
+                * self.gradient_amplitude
+                * levels ** float(powers[view, axis])
+            )
+
+        def level(view, axis):
+            return int(signs[view, axis]), int(powers[view, axis])
+
+        def turn(axis, view, kind):
+            here = level(view, axis)
+            if kind == "ramp":
+                ends = ((0, 0), here)
+            elif kind == "hold":
+                ends = (here, here)
+            elif kind == "close":
+                ends = (here, (0, 0))
+            else:
+                ends = (here, level(view + 1, axis))
+            peak = max((power for sign, power in ends if sign), default=0)
+            unit = tuple(
+                float(sign) * levels ** float(power - peak) if sign else 0.0
+                for sign, power in ends
+            )
+            return self._scaled(
+                axis, kind, unit, self.gradient_amplitude * levels ** float(peak)
+            )
+
+        n_views = len(targets)
+        values = np.array(
+            [[held(view, axis) for axis in range(3)] for view in range(n_views)]
+        )
         return SimpleNamespace(
-            ramp=[
-                self._scaled(axis, "ramp", (0.0, 1.0), held[0, axis])
-                for axis in range(3)
-            ],
+            ramp=[turn(axis, 0, "ramp") for axis in range(3)],
             hold=[
+                [turn(axis, view, "hold") for axis in range(3)]
+                for view in range(n_views)
+            ],
+            read=[
                 [
-                    self._scaled(axis, "hold", (1.0, 1.0), value[axis])
+                    turn(axis, view, "close" if view == n_views - 1 else "turn")
                     for axis in range(3)
                 ]
-                for value in held
+                for view in range(n_views)
             ],
-            read=reads,
-            directions=held / np.linalg.norm(held, axis=1, keepdims=True),
+            directions=values / np.linalg.norm(values, axis=1, keepdims=True),
         )
 
     def _scaled(self, axis: int, kind: str, ends: tuple[float, float], scale: float):
@@ -437,24 +457,21 @@ class ZteReadout(SequenceModule):
         return pp.scale_grad(unit, float(scale))
 
 
-def _turn(
-    start: float, target: float, step: float
-) -> tuple[float, tuple[float, float], float]:
-    """Return where a turn from ``start`` towards ``target`` lands, its unit-peak ends and its scale.
+def _on_grid(values: np.ndarray, step: float) -> tuple[np.ndarray, np.ndarray]:
+    """Return the signs and integer powers of ``1 + step`` nearest ``values``.
 
-    The smaller end over the larger is rounded to a multiple of ``step``, and
-    the larger end is kept. A shrinking axis keeps its start and lands within
-    ``step * start`` of the target; a growing axis lands on the target and
-    starts within ``step * target`` of where the view before left it, a step
-    no larger than one raster interval of slew.
+    A value is ``sign * (1 + step) ** power``, or zero where its magnitude is
+    below ``step``. Any two values on the grid are then in a ratio that is
+    itself a power of ``1 + step``, so a turn between them is one shape per
+    pair of signs and difference of powers, scaled by its larger end, and
+    consecutive turns meet exactly.
     """
-    if abs(target) <= abs(start):
-        if start == 0.0:
-            return 0.0, (1.0, 1.0), 0.0
-        ratio = round(target / start / step) * step
-        return start * ratio, (1.0, ratio), start
-    ratio = round(start / target / step) * step
-    return target, (ratio, 1.0), target
+    magnitude = np.abs(values)
+    on = magnitude >= step
+    powers = np.zeros(values.shape, dtype=int)
+    powers[on] = np.rint(np.log(magnitude[on]) / math.log1p(step)).astype(int)
+    signs = np.where(on, np.sign(values), 0).astype(int)
+    return signs, powers
 
 
 def _unit(directions: Any) -> np.ndarray:
