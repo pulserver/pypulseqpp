@@ -78,7 +78,8 @@ def ssfse2d(
     refocusing_angle_deg: float = 150.0,
     ti: float | None = None,
     inversion_slab: float = 2.0,
-    shot_interval: float | None = None,
+    tr: float | None = None,
+    n_dummy: int = 0,
 ) -> pp.Sequence:
     """Multi-slice 2D single-shot fast spin echo: one CPMG train reads one slice.
 
@@ -137,9 +138,13 @@ def ssfse2d(
         of the excitation. ``None`` plays no inversion.
     inversion_slab : float, default=2.0
         Thickness of the inverted slab, in slice thicknesses.
-    shot_interval : float | None, default=None
-        Time from one excitation to the next (s). ``None`` is as short as
-        the shot allows.
+    tr : float | None, default=None
+        Repetition time (s): the time to play every slice once, divided
+        evenly between the shots. ``None`` is as short as the shots allow.
+    n_dummy : int, default=0
+        Passes over every slice played without acquiring before the acquired
+        pass. A single shot reads each slice from equilibrium, so none are
+        needed unless the shots repeat.
 
     Returns
     -------
@@ -151,7 +156,8 @@ def ssfse2d(
     ValueError
         If ``partial_fourier_y`` is outside ``[0.5, 1]``, ``ry`` is below one,
         ``flip_modulation`` is unknown, ``inversion_slab`` is not positive,
-        or ``ti`` or ``shot_interval`` is shorter than the pulses allow.
+        ``n_dummy`` is negative, or ``ti`` or ``tr`` is shorter
+        than the pulses allow.
 
     Examples
     --------
@@ -177,6 +183,8 @@ def ssfse2d(
         )
     if inversion_slab <= 0:
         raise ValueError("inversion_slab must be positive")
+    if n_dummy < 0:
+        raise ValueError(f"n_dummy must not be negative, got {n_dummy}")
 
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
@@ -264,12 +272,12 @@ def ssfse2d(
         + (0.0 if wait_ti is None else wait_ti.delay)
         + fse.duration
     )
-    interval = shot + raster if shot_interval is None else shot_interval
+    interval = shot + raster if tr is None else tr / n_slices
     pad = pp.round_to_raster(interval - shot, raster)
     if pad < raster - 1e-12:
         raise ValueError(
-            f"a shot interval of {interval * 1e3:.1f} ms is shorter than one shot "
-            f"takes ({shot * 1e3:.1f} ms)"
+            f"a TR of {n_slices * interval * 1e3:.1f} ms is shorter than the "
+            f"{n_slices * shot * 1e3:.1f} ms the shots of {n_slices} slices take"
         )
 
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
@@ -283,31 +291,42 @@ def ssfse2d(
         rf.freq_offset = amplitude * position
         rf.phase_offset = phase - 2 * np.pi * rf.freq_offset * rf.center
 
-    for s in order:
+    def play(s: int, acquire: bool) -> None:
         position = positions[s]
+        once = list(labels(ONCE=int(not acquire))) if n_dummy else []
         if inversion is not None:
             place(inversion.rf_prep, float(inversion.gz_prep.amplitude), position)
-            for block in inversion.blocks:
-                seq.add_block(*block)
+            for i, block in enumerate(inversion.blocks):
+                seq.add_block(*block, *(once if i == 0 else ()))
+            once = []
             if wait_ti is not None:
                 seq.add_block(wait_ti)
         place(exc.rf, exc.selection_amplitude, position)
         place(ref.rf_ref, ref.selection_amplitude, position, ref_phase)
-        seq.add_block(exc.rf, exc.gz)
+        seq.add_block(exc.rf, exc.gz, *once)
         seq.add_block(fse.gx_pre, exc.gz_reph)
         for line, flip in zip(lines, flips, strict=True):
             ky = (line - n_y // 2) / (n_y / 2)
             ref.rf_ref.amplitude = nominal * float(flip) / designed_deg
             seq.add_block(ref.rf_ref, ref.gz)
             seq.add_block(fse.gx_bridge_pre, pp.scale_grad(fse.gy_pre, ky))
-            seq.add_block(
-                fse.gx,
-                fse.adc,
-                *labels(SLC=s, LIN=line, IMA=line in calibration),
-            )
+            if acquire:
+                seq.add_block(
+                    fse.gx,
+                    fse.adc,
+                    *labels(SLC=s, LIN=line, IMA=line in calibration),
+                )
+            else:
+                seq.add_block(fse.gx)
             seq.add_block(fse.gx_bridge_post, pp.scale_grad(fse.gy_rew, ky))
         ref.rf_ref.amplitude = nominal
         seq.add_block(pp.make_delay(pad))
+
+    for _ in range(n_dummy):
+        for s in order:
+            play(s, acquire=False)
+    for s in order:
+        play(s, acquire=True)
 
     centre_echo = lines.index(n_y // 2)
     definitions = {
@@ -315,7 +334,7 @@ def ssfse2d(
         "Matrix": [n_x, n_y, n_slices],
         "Name": NAME,
         "TE": float(fse.echo_times[centre_echo]),
-        "TR": n_slices * interval,
+        "TR": n_slices * (shot + pad),
         "EchoSpacing": fse.esp,
         "EchoTrainLength": etl,
         "FlipModulation": flip_modulation,

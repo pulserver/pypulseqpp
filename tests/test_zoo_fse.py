@@ -627,6 +627,18 @@ def test_ssfse_inversion_precedes_each_excitation_by_the_inversion_time():
     np.testing.assert_allclose(np.subtract(excitations, inversions), ti, atol=RASTER)
 
 
+def test_ssfse_dummy_passes_excite_every_slice_without_acquiring():
+    plain, dummied = ssfse_built(), ssfse_built(n_dummy=1)
+    excitations = [
+        sum(use == "excitation" for _, use, _ in pulses(seq))
+        for seq in (plain, dummied)
+    ]
+    assert excitations == [SSFSE["n_slices"], 2 * SSFSE["n_slices"]]
+    np.testing.assert_array_equal(
+        labels(dummied, "SLC", "LIN"), labels(plain, "SLC", "LIN")
+    )
+
+
 @pytest.mark.parametrize(
     "bad",
     [
@@ -635,7 +647,8 @@ def test_ssfse_inversion_precedes_each_excitation_by_the_inversion_time():
         {"flip_modulation": "busse"},
         {"inversion_slab": 0.0},
         {"ti": 1e-3},
-        {"shot_interval": 1e-3},
+        {"tr": 1e-3},
+        {"n_dummy": -1},
     ],
 )
 def test_ssfse_refuses_a_prescription_it_cannot_play(bad):

@@ -92,5 +92,7 @@ pp.plot.plot_kspace(seq, color_by="order", plane="xy", show_trajectory=False)
 # does not saturate the slice played after it.
 
 flair = ssfse2D_sequence(n_slices=4, ti=2.5)
-print(f"{flair.duration()[0]:.1f} s for four slices")
-flair.paper_plot()
+print(
+    f"{flair.duration()[0]:.1f} s for four slices, "
+    f"slice order {flair.get_definition('SliceOrder')}"
+)

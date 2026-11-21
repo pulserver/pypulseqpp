@@ -65,12 +65,13 @@ def test_built_in_sequence_galleries_defer_constraint_checks_to_safety_example()
 
 
 def test_fast_spin_echo_modes_have_separate_scientific_examples():
-    """Fixed, adaptive, and shuffled FSE acquisitions have focused pages."""
+    """Fixed, adaptive, shuffled and single-shot FSE acquisitions have focused pages."""
     directory = GALLERY / "13-fast-spin-echo"
     assert {path.name for path in directory.glob("*.py")} == {
         "fse3D_sequence.py",
         "fse3D_adaptive.py",
         "fse3D_shuffling.py",
+        "ssfse2D_sequence.py",
     }
 
 
