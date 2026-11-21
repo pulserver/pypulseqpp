@@ -16,6 +16,18 @@ from pypulseqpp import cli, sequences
 PREPARATION_MAX_SLEW = 40.0
 
 
+def _received_at(adc, phase: float, system: pp.Opts):
+    """Return ``adc`` with its receiver phase advanced by ``phase`` rad."""
+    return pp.make_adc(
+        num_samples=adc.num_samples,
+        system=system,
+        dwell=adc.dwell,
+        delay=adc.delay,
+        freq_offset=adc.freq_offset,
+        phase_offset=adc.phase_offset + phase,
+    )
+
+
 def caipi_shift(ry: int, rz: int) -> int:
     """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
 
@@ -499,6 +511,8 @@ def epi2d(
             - lead
             for g in range(n_groups)
         ]
+        group_centres = [c + lead for c in centers]
+        partition_fov = multiband * n_groups * slice_step
     else:
         readout = sequences.EpiReadout2D(
             system,
@@ -514,6 +528,8 @@ def epi2d(
         shot_trains = [readout] * n_shots
         selection_amplitude = single.selection_amplitude
         centers = list(positions)
+        group_centres = [0.0] * len(centers)
+        partition_fov = 1.0
     epi = shot_trains[0]
     echo_time = epi.echo_time
 
@@ -779,6 +795,7 @@ def epi2d(
             selection_amplitude * centers[g],
             [*labels(**flags), *([output_pulse] if output else [])],
             pad,
+            group_centre=group_centres[g],
             acquire=acquire,
             reversed_encode=reversed_encode and not reference,
             prep=prep,
@@ -794,12 +811,17 @@ def epi2d(
         offset: float,
         first_events: list,
         pad: float,
+        group_centre: float = 0.0,
         acquire: bool = False,
         reversed_encode: bool = False,
         prep: list = (),
         reference: bool = False,
     ) -> None:
         """Add one shot of ``train`` from line ``origin``, its pulse ``offset`` Hz off resonance.
+
+        A multiband line is received at the phase its partition encode gives
+        a spin at ``group_centre`` (m), so its bands carry the phases of a
+        partition volume centred on their group.
 
         ``first_events`` ride the first block, and ``shot`` sets the echo
         shift. ``reversed_encode`` negates every phase-encode event, so each
@@ -880,6 +902,14 @@ def epi2d(
                 for event in block
                 if sampled or event.type != "adc"
             ]
+            if reading and sampled and not reference and len(train.shot_labels) > 1:
+                kz = (int(train.order[echo, 1]) - multiband // 2) / partition_fov
+                events = [
+                    _received_at(event, 2 * np.pi * kz * group_centre, system)
+                    if event.type == "adc"
+                    else event
+                    for event in events
+                ]
             if index == 0:
                 events += label_events
             elif id(head) in navigator or id(head) in readouts:

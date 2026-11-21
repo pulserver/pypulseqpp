@@ -915,3 +915,41 @@ def test_each_multiband_excitation_places_its_bands_on_the_slices_of_its_group(
     ]
     expected = [np.sort(positions[g::groups]) for g in range(groups)]
     np.testing.assert_allclose(sorted(excited, key=lambda b: b[0]), expected, atol=1e-6)
+
+
+@pytest.mark.parametrize("ry", [1, 2])
+def test_each_multiband_line_is_received_at_the_phase_its_partition_encode_gives_its_group_centre(
+    ry,
+):
+    *_, seq = sequences.epi2D_sequence(
+        **SMALL_2D, n_slices=4, multiband=2, ry=ry, slice_spacing=1e-3
+    )
+    positions = np.asarray(seq.get_definition("SlicePositions"), dtype=float)
+    pulse = sequences.SmsExcitation(
+        seq.system,
+        70.0,
+        thickness_m=5e-3,
+        slice_gap_m=2 * (positions[1] - positions[0]),
+        n_bands=2,
+        duration_s=3e-3,
+        time_bw_product=4.0,
+    )
+    k_adc = seq.calculate_kspace()[0]
+
+    sample, centre, checked = 0, 0.0, 0
+    for n in seq.block_events:
+        block = seq.get_block(n)
+        if block.rf is not None and getattr(block.rf, "use", "") == "excitation":
+            offset = float(block.rf.freq_offset) / float(pulse.gz.amplitude)
+            centre = offset + float(np.mean(pulse.band_positions_m))
+        if block.adc is None:
+            continue
+        samples = int(block.adc.num_samples)
+        kz = k_adc[2, sample + samples // 2]
+        sample += samples
+        expected = 2 * np.pi * kz * centre
+        assert np.angle(
+            np.exp(1j * (block.adc.phase_offset - expected))
+        ) == pytest.approx(0.0, abs=1e-6)
+        checked += abs(kz) > 0
+    assert checked > 0
