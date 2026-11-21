@@ -1,10 +1,15 @@
-"""Diffusion tables read from file and recorded in a sequence by path."""
+"""Diffusion tables: read from file, recorded in a sequence, and spread over the sphere."""
 
 import numpy as np
 import pytest
 
 import pypulseqpp as pp
-from pypulseqpp.io import get_diffusion_table, read_diffusion_table, set_diffusion_table
+from pypulseqpp.io import (
+    get_diffusion_table,
+    read_diffusion_table,
+    set_diffusion_table,
+    uniform_directions,
+)
 
 BLOCKS = """# comment
 3
@@ -83,3 +88,22 @@ def test_table_read_back_from_a_written_sequence_matches_the_one_played(
 
 def test_sequence_without_a_table_has_none():
     assert get_diffusion_table(pp.Sequence()) is None
+
+
+def test_six_uniform_directions_are_the_icosahedral_set_63_degrees_apart():
+    directions = uniform_directions(6)
+    cosines = np.abs(directions @ directions.T)[~np.eye(6, dtype=bool)]
+
+    assert np.linalg.norm(directions, axis=1) == pytest.approx(1.0)
+    assert np.degrees(np.arccos(cosines)) == pytest.approx(63.43, abs=0.1)
+
+
+@pytest.mark.parametrize("count", [1, 12, 30])
+def test_uniform_directions_are_the_same_for_the_same_count(count):
+    assert np.array_equal(uniform_directions(count), uniform_directions(count))
+    assert np.all(uniform_directions(count)[:, 2] >= 0)
+
+
+def test_no_directions_cannot_be_spread():
+    with pytest.raises(ValueError):
+        uniform_directions(0)

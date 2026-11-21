@@ -988,8 +988,6 @@ def test_a_fleet_calibration_takes_the_place_of_the_reversed_reference_volume(ma
 
 # -- spin echo and diffusion weighting ---------------------------------------
 
-DIFFUSION_TABLE = Path(__file__).parent / "fixtures" / "diffusion_six_directions.txt"
-
 
 def shot_b_values(seq, echo_time):
     """The b-value (s/mm^2) of every excitation's echo at ``echo_time``, from the played gradients."""
@@ -1027,8 +1025,8 @@ def test_a_spin_echo_refocuses_the_centre_line_at_the_echo_time_written():
 def test_each_diffusion_volume_is_weighted_with_the_b_value_of_its_table_row():
     # The crushers and the read and phase-encode prewinders add cross terms
     # of a few percent to the lobes' b-value.
-    b_table, _ = pp.io.read_diffusion_table(DIFFUSION_TABLE, b_value=1000.0)
-    scan = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=1000.0)
+    scan = scan2d(spin_echo=True, diffusion_directions=6, diffusion_b0=2)
+    b_table, _ = pp.io.get_diffusion_table(scan.main)
     played = shot_b_values(scan.main, scan.echo_time)
 
     assert played.size == b_table.size
@@ -1036,17 +1034,18 @@ def test_each_diffusion_volume_is_weighted_with_the_b_value_of_its_table_row():
     assert played[b_table > 0] == pytest.approx(b_table[b_table > 0], rel=0.08)
 
 
-def test_a_diffusion_scan_records_its_table_for_the_reconstruction():
-    scan = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=1000.0)
-    b, g = pp.io.get_diffusion_table(scan.main)
+def test_a_diffusion_scan_file_carries_its_table_for_the_reconstruction(tmp_path):
+    scan = scan2d(spin_echo=True, diffusion_directions=6, diffusion_b0=2)
+    scan.main.write(tmp_path / "dwi.seq")
+    b, g = pp.io.get_diffusion_table(pp.io.read(tmp_path / "dwi.seq"))
 
-    assert b.size == 7
-    assert np.linalg.norm(g[b > 0], axis=1) == pytest.approx(1.0)
+    assert b.tolist() == [0.0, 0.0] + [1000.0] * 6
+    assert g[2:] == pytest.approx(pp.io.uniform_directions(6), abs=1e-6)
 
 
 def test_a_higher_b_value_lengthens_the_shortest_spin_echo():
-    low = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=500.0)
-    high = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=2000.0)
+    low = scan2d(spin_echo=True, diffusion_directions=6, b_value=500e6)
+    high = scan2d(spin_echo=True, diffusion_directions=6, b_value=2000e6)
 
     assert high.echo_time > low.echo_time
 
@@ -1054,32 +1053,36 @@ def test_a_higher_b_value_lengthens_the_shortest_spin_echo():
 @pytest.mark.parametrize(
     "prescription",
     [
-        {"diffusion_table": str(DIFFUSION_TABLE)},
+        {"diffusion_directions": 6},
         {"spin_echo": True, "n_slices": 2, "multiband": 2},
-        {"spin_echo": True, "diffusion_table": str(DIFFUSION_TABLE), "te": 30e-3},
+        {"spin_echo": True, "diffusion_directions": 6, "te": 30e-3},
+        {"spin_echo": True, "diffusion_directions": 6, "diffusion_b0": -1},
     ],
-    ids=["diffusion without spin echo", "multiband spin echo", "TE too short for b"],
+    ids=[
+        "diffusion without spin echo",
+        "multiband spin echo",
+        "TE too short for b",
+        "negative b = 0 count",
+    ],
 )
 def test_an_impossible_spin_echo_prescription_is_refused(prescription):
     with pytest.raises(ValueError):
         scan2d(**prescription)
 
 
-@pytest.mark.parametrize("b_value", [500.0, 2000.0])
+@pytest.mark.parametrize("b_value", [500e6, 2000e6])
 def test_a_spin_echo_at_the_minimum_te_it_reports_is_designed(b_value):
-    shortest = scan2d(
-        spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=b_value
-    )
+    shortest = scan2d(spin_echo=True, diffusion_directions=6, b_value=b_value)
     longer = scan2d(
         spin_echo=True,
-        diffusion_table=str(DIFFUSION_TABLE),
+        diffusion_directions=6,
         b_value=b_value,
         te=round(shortest.echo_time, 4) + 1e-4,
     )
     with pytest.raises(ValueError, match=f"{shortest.echo_time * 1e3:.2f} ms"):
         scan2d(
             spin_echo=True,
-            diffusion_table=str(DIFFUSION_TABLE),
+            diffusion_directions=6,
             b_value=b_value,
             te=shortest.echo_time - 1e-3,
         )
