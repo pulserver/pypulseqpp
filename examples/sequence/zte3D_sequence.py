@@ -40,7 +40,9 @@ def zte3d(
 
     One shell of views, written out as one continuous waveform that ramps up
     once at its first view and down once after its last, is replayed per shot
-    turned about z by a rotation extension. The Nyquist set is ``ceil(pi * n **
+    turned about z, the turn applied in the design: every axis plays its own
+    gradients, each turn one of a few shapes scaled to its amplitude
+    (:meth:`~pypulseqpp.sequences.ZteReadout.shell`). The Nyquist set is ``ceil(pi * n **
     2)`` spokes over the sphere, dealt into ``n_shots`` shells; every ``r``-th
     shell is played, in order, which is angular undersampling. The dead-time
     gap after each pulse leaves ``MissingSamples`` at the centre of k-space
@@ -139,10 +141,12 @@ def zte3d(
         readout_bandwidth_hz=readout_bandwidth_hz,
     )
 
-    # One rotation for the whole shell: the shell is written out view by
-    # view, so this only places the shot. A quiet shell alternates direction,
-    # counted in play order so that the last dummy hands over to the first
-    # shot at the pole they share.
+    # Every shell is written out in the logical frame, turned in the design
+    # rather than by a rotation extension, so each axis plays only its own
+    # events and the turns on an axis share a few shapes at their own
+    # amplitudes. A quiet shell alternates direction, counted in play order
+    # so that the last dummy hands over to the first shot at the pole they
+    # share.
     if n_dummy is None:
         repetitions = sequences.steady_state_dummies(ro.tr, flip_angle_deg)
         n_dummy = -(-repetitions // len(ro.directions))
@@ -157,18 +161,19 @@ def zte3d(
 
     def kernel(shot: int, turn, acquire: bool = True) -> None:
         """Add one shell labelled ``shot``; ``acquire=False`` leaves the ADC off."""
-        seq.add_block(*ro.g_ramp, turn)
+        shell = ro.shell(turn)
+        seq.add_block(*shell.ramp)
         for view in range(len(ro.directions)):
             once = labels(ONCE=int(not acquire)) if n_dummy else []
-            seq.add_block(ro.rf, *ro.g_hold[view], turn, *once)
+            seq.add_block(ro.rf, *shell.hold[view], *once)
             if acquire:
                 label_events = labels(LIN=view, SEG=shot)
-                seq.add_block(ro.adc, *ro.g_read[view], turn, *label_events)
+                seq.add_block(ro.adc, *shell.read[view], *label_events)
             else:
-                seq.add_block(*ro.g_read[view], turn)
+                seq.add_block(*shell.read[view])
 
     # The dummy shells play first, then every shot the undersampling keeps.
-    for (shot, acquire), turn in zip(plays, pp.make_rotation(turns), strict=True):
+    for (shot, acquire), turn in zip(plays, turns, strict=True):
         kernel(shot, turn, acquire)
 
     # The volume's offset is applied to the finished sequence with

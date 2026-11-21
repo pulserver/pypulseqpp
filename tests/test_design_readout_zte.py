@@ -12,6 +12,8 @@ from pypulseqpp import sequences as design
 
 FOV = 0.24
 MATRIX = 96
+#: The default grid of a turn's end ratio, within which a view lands on its direction.
+STEP = 1.0 / 128.0
 
 
 @pytest.fixture
@@ -110,14 +112,16 @@ def test_the_shell_carries_no_rotation_of_its_own(system, hard):
 def test_every_view_holds_its_own_direction(system, hard):
     zte = readout(system, hard)
     held = np.array([plateau(hold) for hold in zte.g_hold])
-    assert held == pytest.approx(zte.gradient_amplitude * zte.directions, rel=1e-9)
+    assert held == pytest.approx(
+        zte.gradient_amplitude * zte.directions, abs=STEP * zte.gradient_amplitude
+    )
 
 
 def test_the_shell_plays_the_directions_it_was_given(system, hard):
     zte = readout(system, hard, n_views=12)
     ends = spokes(zte)[:, -1, :]
     played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
-    assert played == pytest.approx(zte.directions, abs=1e-4)
+    assert played == pytest.approx(zte.directions, abs=2 * STEP)
 
 
 def test_a_rotated_shell_lands_where_the_shot_rotation_says(system, hard):
@@ -126,7 +130,7 @@ def test_a_rotated_shell_lands_where_the_shot_rotation_says(system, hard):
     seq = build_shot(system, zte, shot)
     ends = spokes(zte, seq)[:, -1, :]
     played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
-    assert played == pytest.approx(zte.directions @ shot.T, abs=1e-4)
+    assert played == pytest.approx(zte.directions @ shot.T, abs=2 * STEP)
 
 
 def test_an_ordering_whose_step_wanders_is_played_as_it_stands(system, hard):
@@ -142,7 +146,58 @@ def test_an_ordering_whose_step_wanders_is_played_as_it_stands(system, hard):
     zte = readout(system, hard, n_views=None, directions=phyllotaxis)
     ends = spokes(zte)[:, -1, :]
     played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
-    assert played == pytest.approx(zte.directions, abs=1e-4)
+    assert played == pytest.approx(zte.directions, abs=2 * STEP)
+
+
+def test_a_turned_shell_plays_the_turned_directions_without_a_rotation(system, hard):
+    zte = readout(system, hard, n_views=12, n_shots=5)
+    shot = zte.shot_rotations[3]
+    shell = zte.shell(shot)
+    seq = pp.Sequence(system)
+    seq.add_block(*shell.ramp)
+    for hold, read in zip(shell.hold, shell.read, strict=True):
+        seq.add_block(zte.rf, *hold)
+        seq.add_block(zte.adc, *read)
+    ends = spokes(zte, seq)[:, -1, :]
+    played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
+    assert played == pytest.approx(zte.directions @ shot.T, abs=2 * STEP)
+    assert shell.directions == pytest.approx(zte.directions @ shot.T, abs=2 * STEP)
+    assert seq.check_timing()[0]
+
+
+def test_every_turn_on_an_axis_is_one_of_a_few_shapes_at_its_own_amplitude(
+    system, hard
+):
+    """A shape is fixed by the ratio of its two ends, on a grid of the turn step."""
+    zte = readout(system, hard, n_views=24, n_shots=60)
+    shapes = set()
+    for shot in zte.shot_rotations:
+        for read in zte.shell(shot).read:
+            for gradient in read:
+                waveform = np.asarray(gradient.waveform, dtype=float)
+                peak = np.abs(waveform).max()
+                if peak > 0.0:
+                    shapes.add((gradient.channel, *np.round(waveform / peak, 9)))
+    assert len(shapes) <= 3 * (4 / STEP + 2)
+
+
+def test_a_coarser_turn_step_shares_fewer_shapes(system, hard):
+    def count(step):
+        zte = readout(system, hard, n_views=24, n_shots=30, turn_step=step)
+        return len(
+            {
+                (
+                    g.channel,
+                    *np.round(np.asarray(g.waveform) / np.abs(g.waveform).max(), 9),
+                )
+                for shot in zte.shot_rotations
+                for read in zte.shell(shot).read
+                for g in read
+                if np.abs(g.waveform).max() > 0
+            }
+        )
+
+    assert count(1 / 16) < count(1 / 128)
 
 
 # ----------------------------------------------------------------------
@@ -167,10 +222,16 @@ def test_a_view_hands_the_gradient_to_the_next_without_passing_through_zero(
     for view in range(len(zte.directions) - 1):
         held = plateau(zte.g_read[view])
         handover = plateau(zte.g_read[view], -1)
-        assert np.linalg.norm(held) == pytest.approx(zte.gradient_amplitude)
-        assert np.linalg.norm(handover) == pytest.approx(zte.gradient_amplitude)
+        assert np.linalg.norm(held) == pytest.approx(
+            zte.gradient_amplitude, rel=2 * STEP
+        )
+        assert np.linalg.norm(handover) == pytest.approx(
+            zte.gradient_amplitude, rel=2 * STEP
+        )
         # It turned onto the next view rather than dropping and climbing again.
-        assert handover == pytest.approx(plateau(zte.g_hold[view + 1]), rel=1e-9)
+        assert handover == pytest.approx(
+            plateau(zte.g_hold[view + 1]), abs=STEP * zte.gradient_amplitude
+        )
 
 
 def test_only_the_last_view_ramps_down(system, hard):
@@ -261,7 +322,7 @@ def test_every_view_traces_the_same_spoke_from_the_centre(system, hard):
     """The trajectory has to restart at each pulse, not accumulate."""
     zte = readout(system, hard)
     radius = np.linalg.norm(spokes(zte), axis=-1)
-    assert radius[1] == pytest.approx(radius[0], rel=1e-9)
+    assert radius[1] == pytest.approx(radius[0], rel=2 * STEP)
 
 
 # ----------------------------------------------------------------------
@@ -429,6 +490,7 @@ def test_a_pulse_too_long_for_the_dwell_is_refused(system):
     [
         ({"fov": 0.0}, "fov"),
         ({"matrix": 1}, "matrix"),
+        ({"turn_step": 0.0}, "turn_step"),
         ({"oversampling": 0.5}, "oversampling"),
         ({"readout_bandwidth_hz": 0.0}, "readout_bandwidth_hz"),
         ({"dead_time_s": 0.0}, "dead_time_s"),

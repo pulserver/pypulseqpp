@@ -443,32 +443,41 @@ def test_every_zte_view_of_every_shot_is_acquired_once_in_order():
 
 
 def test_every_spiral_zte_acquisition_is_turned_by_its_shot_rotation():
-    """Each spiral shot is the first turned about z by a whole share of the turn."""
+    """Each spiral shot is the first turned about z by a whole share of the turn, in the design."""
     seq = built("zte3D_sequence", n_shots=3, n_dummy=1, scheme="spiral")
     (seg,) = adc_labels(seq, "SEG")
+    n_views = int(definition(seq, "ViewsPerShot"))
+    shell, _ = pp.calc_projection_shell(n_views, 3, scheme="spiral")
 
     assert sorted(set(seg)) == [0, 1, 2]
-    for block, shot in zip(acquisitions(seq), seg, strict=True):
-        assert matrix_of(block.rotation.quaternion) == pytest.approx(
-            about_z(2 * np.pi * shot / 3), abs=1e-9
+    assert all(block.rotation is None for block in blocks(seq))
+    held = np.array(
+        [
+            [float(g.first) for g in (block.gx, block.gy, block.gz)]
+            for block in blocks(seq)
+            if block.rf is not None
+        ]
+    ).reshape(4, n_views, 3)
+    held /= np.linalg.norm(held, axis=-1, keepdims=True)
+    for play, shot in enumerate([0, 0, 1, 2]):
+        assert held[play] == pytest.approx(
+            shell @ about_z(2 * np.pi * shot / 3).T, abs=2 / 128
         )
-    # A dummy shell is the first shot without the ADC.
-    first = seq.get_block(1).rotation.quaternion
-    assert matrix_of(first) == pytest.approx(about_z(0.0), abs=1e-9)
 
 
 @pytest.mark.parametrize("r", [1, 2])
 def test_each_zte_shell_starts_at_the_pole_the_last_one_ended_on(r):
     """By default shells alternate direction in play order, dummies included."""
     seq = built("zte3D_sequence", n_shots=4, r=r, n_dummy=1)
-    poles = []
-    for block in blocks(seq):
-        if block.rf is None:
-            continue
-        hold = np.array([float(g.first) for g in (block.gx, block.gy, block.gz)])
-        poles.append(matrix_of(block.rotation.quaternion) @ hold)
-    poles = np.array(poles).reshape(1 + 4 // r, -1, 3)
-    assert poles[1:, 0] == pytest.approx(poles[:-1, -1], abs=1e-6)
+    poles = np.array(
+        [
+            [float(g.first) for g in (block.gx, block.gy, block.gz)]
+            for block in blocks(seq)
+            if block.rf is not None
+        ]
+    )
+    poles = poles.reshape(1 + 4 // r, -1, 3)
+    assert poles[1:, 0] == pytest.approx(poles[:-1, -1], abs=1e-6 * np.abs(poles).max())
     # The first shot plays forward, from +z, so the dummy before it runs back.
     assert poles[1, 0, 2] > 0 and poles[0, 0, 2] < 0
 

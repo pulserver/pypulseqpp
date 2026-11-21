@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = ["ZteReadout"]
 
 import math
-from itertools import pairwise
+from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
@@ -24,9 +24,10 @@ class ZteReadout(SequenceModule):
     """Continuous-gradient ZTE shell, including its initial and final ramps.
 
     Each view excites on a held gradient, then acquires while the gradient
-    slews toward the next direction. The final view ramps to zero. A generated
-    shell is replayed under ``shot_rotations``; the views are not to be
-    rotated individually as well.
+    slews toward the next direction. The final view ramps to zero. Each shot
+    plays ``shell(rotation)`` for one of ``shot_rotations``: the gradients of
+    the turned shell, with no rotation event, built from a few turn shapes
+    per axis scaled by their amplitudes.
 
     Transmit ringdown and receiver dead time leave ``n_missing`` central
     samples unacquired; the module reports them and does not fill them. A
@@ -73,6 +74,11 @@ class ZteReadout(SequenceModule):
     labels : sequence of str, default=None
         Labels set to 0 on the acquisition block, to be changed per shot by the
         caller.
+    turn_step : float, default=0.0078125
+        Grid of the ratio between the smaller and the larger end of a turn on
+        one axis. Every turn on an axis is then one of about ``4 / turn_step``
+        shapes scaled by an amplitude, and a view's gradient lands within
+        ``turn_step`` of the gradient amplitude of its direction on each axis.
 
 
     Attributes
@@ -177,6 +183,7 @@ class ZteReadout(SequenceModule):
         tr: float | None = None,
         dead_time_s: float | None = None,
         labels: tuple[str, ...] | None = None,
+        turn_step: float = 0.0078125,
     ) -> None:
         if fov <= 0 or int(matrix) < 2:
             raise ValueError("fov must be positive and matrix must be >= 2")
@@ -184,6 +191,8 @@ class ZteReadout(SequenceModule):
             raise ValueError("oversampling must be >= 1")
         if readout_bandwidth_hz <= 0:
             raise ValueError("readout_bandwidth_hz must be positive")
+        if not 0.0 < turn_step <= 0.5:
+            raise ValueError("turn_step must be in (0, 0.5]")
 
         shot_rotations = None
         if directions is None:
@@ -276,13 +285,16 @@ class ZteReadout(SequenceModule):
         # Where the gradient sits under each view, and the chord it crosses to
         # reach the next one. Every turn gets the same slot -- the repetition
         # is what the magnetisation sees, so it has to be one number -- and the
-        # slot is the widest chord's. Closing the shell is the long one: from
-        # full amplitude down to zero.
+        # slot is the widest chord's, with room for the turn's end to land on
+        # the shape grid. Closing the shell is the long one: from full
+        # amplitude down to zero.
         vertices = amplitude * directions
         chords = np.linalg.norm(np.diff(vertices, axis=0), axis=1)
         if not np.all(chords > 0.0):
             raise ValueError("consecutive views must not coincide")
-        widest_turn = _slew_span(system, float(chords.max()))
+        widest_turn = _slew_span(
+            system, float(chords.max()) + math.sqrt(3.0) * turn_step * amplitude
+        )
         ramp_span = _slew_span(system, amplitude)
 
         tr_min = pp.ceil_to_raster(
@@ -295,37 +307,34 @@ class ZteReadout(SequenceModule):
         turn_span = view_span - hold_span - read_span
         close_span = max(ramp_span, turn_span)
 
-        g_ramp = _gradients(system, [0.0, ramp_span], [np.zeros(3), vertices[0]])
-        g_hold = [
-            _gradients(system, [0.0, hold_span], [vertex, vertex])
-            for vertex in vertices
-        ]
-        g_read = [
-            _gradients(
-                system,
-                [0.0, read_span, read_span + turn_span],
-                [start, start, end],
-            )
-            for start, end in pairwise(vertices)
-        ]
-        g_read.append(
-            _gradients(
-                system,
-                [0.0, read_span, read_span + close_span],
-                [vertices[-1], vertices[-1], np.zeros(3)],
-            )
-        )
         adc_labels = [
             pp.make_label(type="SET", label=name, value=0) for name in labels or ()
         ]
+        self._system = system
+        self._turn_step = float(turn_step)
+        self._units: dict = {}
+        self._times = {
+            "ramp": [0.0, ramp_span],
+            "hold": [0.0, hold_span],
+            "turn": [0.0, read_span, read_span + turn_span],
+            "close": [0.0, read_span, read_span + close_span],
+        }
+        self._directions = directions
+        self.gradient_amplitude = amplitude
+        played = self.shell()
 
         self.seq = pp.Sequence(system)
-        self.seq.add_block(*g_ramp)
+        self.seq.add_block(*played.ramp)
         for view in range(len(directions)):
-            self.seq.add_block(rf, *g_hold[view])
-            self.seq.add_block(adc, *g_read[view], *adc_labels)
+            self.seq.add_block(rf, *played.hold[view])
+            self.seq.add_block(adc, *played.read[view], *adc_labels)
 
-        self.register(g_hold=g_hold, g_read=g_read, directions=directions)
+        self.register(
+            g_ramp=played.ramp,
+            g_hold=played.hold,
+            g_read=played.read,
+            directions=directions,
+        )
         if shot_rotations is not None:
             self.register(shot_rotations=shot_rotations, reversal=_reversal(directions))
         self.center = ramp_span + rf_center
@@ -343,7 +352,104 @@ class ZteReadout(SequenceModule):
         self.bandwidth_hz = 1.0 / dwell
         self.delta_k = delta_k
         self.kmax = kmax
-        self.gradient_amplitude = amplitude
+
+    def shell(self, rotation: Any = None) -> SimpleNamespace:
+        """Return the gradients of the shell turned by ``rotation``, in the logical frame.
+
+        Each view holds its gradient under the pulse and the acquisition, then
+        turns onto the next view. On every axis the turn is one of a small set
+        of shapes scaled by an amplitude: the ratio of its smaller end to its
+        larger lies on a grid of ``turn_step``, so a view lands on the
+        direction the shape reaches, within ``turn_step`` of the gradient
+        amplitude on each axis, and the next turn starts from there.
+
+        Parameters
+        ----------
+        rotation : array_like, default=None
+            3x3 rotation applied to :attr:`directions`; ``None`` is the
+            identity.
+
+        Returns
+        -------
+        types.SimpleNamespace
+            ``ramp``, the three ramps from zero; ``hold`` and ``read``, per
+            view, the three plateaus under the pulse and the three readout
+            gradients with their turn, the last ramping to zero; and
+            ``directions``, the unit directions the views play, ``(n_views,
+            3)``.
+        """
+        targets = self.gradient_amplitude * (
+            self._directions
+            if rotation is None
+            else self._directions @ np.asarray(rotation, dtype=float).T
+        )
+        step = self._turn_step
+        held = np.empty_like(targets)
+        held[0] = targets[0]
+        reads = []
+        for view in range(len(targets)):
+            last = view == len(targets) - 1
+            end = np.zeros(3) if last else targets[view + 1]
+            axes = []
+            for axis in range(3):
+                landed, ends, scale = _turn(held[view, axis], end[axis], step)
+                if not last:
+                    held[view + 1, axis] = landed
+                axes.append(
+                    self._scaled(axis, "close" if last else "turn", ends, scale)
+                )
+            reads.append(axes)
+        return SimpleNamespace(
+            ramp=[
+                self._scaled(axis, "ramp", (0.0, 1.0), held[0, axis])
+                for axis in range(3)
+            ],
+            hold=[
+                [
+                    self._scaled(axis, "hold", (1.0, 1.0), value[axis])
+                    for axis in range(3)
+                ]
+                for value in held
+            ],
+            read=reads,
+            directions=held / np.linalg.norm(held, axis=1, keepdims=True),
+        )
+
+    def _scaled(self, axis: int, kind: str, ends: tuple[float, float], scale: float):
+        """Return the unit-peak shape ``kind`` with ``ends`` on ``axis``, scaled to ``scale``."""
+        key = (axis, kind, ends)
+        unit = self._units.get(key)
+        if unit is None:
+            times = self._times[kind]
+            amplitudes = (ends[0],) * (len(times) - 1) + (ends[1],)
+            unit = pp.make_extended_trapezoid(
+                channel=AXES[axis],
+                times=np.asarray(times, dtype=float),
+                amplitudes=np.asarray(amplitudes, dtype=float),
+                system=self._system,
+            )
+            self._units[key] = unit
+        return pp.scale_grad(unit, float(scale))
+
+
+def _turn(
+    start: float, target: float, step: float
+) -> tuple[float, tuple[float, float], float]:
+    """Return where a turn from ``start`` towards ``target`` lands, its unit-peak ends and its scale.
+
+    The smaller end over the larger is rounded to a multiple of ``step``, and
+    the larger end is kept. A shrinking axis keeps its start and lands within
+    ``step * start`` of the target; a growing axis lands on the target and
+    starts within ``step * target`` of where the view before left it, a step
+    no larger than one raster interval of slew.
+    """
+    if abs(target) <= abs(start):
+        if start == 0.0:
+            return 0.0, (1.0, 1.0), 0.0
+        ratio = round(target / start / step) * step
+        return start * ratio, (1.0, ratio), start
+    ratio = round(start / target / step) * step
+    return target, (ratio, 1.0), target
 
 
 def _unit(directions: Any) -> np.ndarray:
@@ -382,17 +488,3 @@ def _slew_span(system: pp.Opts, delta: float) -> float:
         system.grad_raster_time,
         pp.ceil_to_raster(delta / system.max_slew, system.grad_raster_time),
     )
-
-
-def _gradients(system: pp.Opts, times, amplitudes) -> list:
-    """One extended trapezoid per axis, every axis present so a rotation can turn it."""
-    amplitudes = np.asarray(amplitudes, dtype=float)
-    return [
-        pp.make_extended_trapezoid(
-            channel=axis,
-            times=np.asarray(times, dtype=float),
-            amplitudes=amplitudes[:, index],
-            system=system,
-        )
-        for index, axis in enumerate(AXES)
-    ]
