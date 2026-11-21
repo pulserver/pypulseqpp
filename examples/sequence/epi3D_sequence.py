@@ -209,14 +209,17 @@ def fleet_train(
     shots: int,
     **arguments,
 ):
-    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe, blip window and echo time.
+    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe and blip window, at its shortest echo time.
 
     Shot ``s`` reads ``lines[s::shots]``, a step of ``shots`` lines, and is
     delayed by ``esp / shots``, so the echo time grows across the lines as it
-    does across the lines of the imaging. It is timed to ``epi``'s echo time
-    where its shorter run of lines before the centre admits it, and else as
-    early as it can be. ``arguments`` are those of the imaging train: matrix,
-    field of view, navigator, sampling and spoiling.
+    does across the lines of the imaging and the calibration is distorted as
+    the imaging is. The echo time is the shortest the train admits: the
+    phase an off-resonance accrues by the imaging echo time at 7T wraps
+    within one calibration voxel near air-tissue interfaces, and coil maps
+    fitted to that calibration take on its structure. ``arguments`` are those
+    of the imaging train: matrix, field of view, navigator, sampling and
+    spoiling.
 
     Raises
     ------
@@ -234,8 +237,6 @@ def fleet_train(
         blip_span=epi.blip_span,
     )
     train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=None))
-    if train.echo_time < epi.echo_time - 1e-9:
-        train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=epi.echo_time))
     if abs(train.esp - epi.esp) > 1e-9:
         raise ValueError(
             f"the FLEET calibration's echo spacing {train.esp * 1e3:.3f} ms is not "
@@ -308,8 +309,8 @@ def epi3d(
     calibration (Polimeni et al., Magn Reson Med 2016, doi:10.1002/mrm.25628)
     reads the lines of each partition in ``n_shots * ry`` interleaved EPI
     shots, which step as far per echo spacing as an imaging shot, with its
-    read lobe, navigator, blip and echo time, so the calibration is distorted
-    as the imaging is. A partition's shots follow one another, forward
+    read lobe, navigator and blip, so the calibration is distorted as the
+    imaging is, at the shortest echo time they admit. A partition's shots follow one another, forward
     (``SET = 0``) and then reversed (``SET = 1``), after
     ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration. The
     gradient-echo calibration reads one view per excitation, undistorted.

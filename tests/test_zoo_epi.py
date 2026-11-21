@@ -696,14 +696,16 @@ def _echo_slope(seq, sets):
     ],
     ids=["2D", "2D segmented", "2D multiband", "3D"],
 )
-def test_the_fleet_calibration_steps_through_its_lines_as_the_imaging_does(make):
+def test_the_fleet_calibration_steps_through_its_lines_as_the_imaging_does_at_a_shorter_echo_time(
+    make,
+):
     scan = make()
     calibration = scan.prescan("calibration")
     forward, reversed_ = _echo_slope(calibration, (0, 1))
     (imaging,) = _echo_slope(scan.main, (0,))
 
     assert written(calibration, "EchoSpacing") == pytest.approx(scan.esp)
-    assert written(calibration, "TE") == pytest.approx(scan.echo_time)
+    assert written(calibration, "TE") < scan.echo_time
     assert forward == pytest.approx(imaging, rel=0.02)
     assert reversed_ == pytest.approx(-imaging, rel=0.02)
 
