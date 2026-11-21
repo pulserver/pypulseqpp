@@ -390,9 +390,9 @@ def epi2d(
     phase_reference: bool = False,
     navigator_lines: int | None = None,
     spin_echo: bool = False,
-    diffusion_table: str | None = None,
-    b_value: float = 1000.0,
-    diffusion_directions: int | None = None,
+    diffusion_directions: int = 0,
+    b_value: float = 1.0e9,
+    diffusion_b0: int = 1,
     ti: float | None = None,
     inversion_slab: float = 2.0,
 ) -> list[pp.Sequence]:
@@ -400,13 +400,13 @@ def epi2d(
 
     With ``spin_echo``, a 90 degree excitation and a slice-selective
     refocusing pulse between crushers form a spin echo at ``te``, which the
-    centre line reads. With a ``diffusion_table``, a pair of identical
+    centre line reads. With ``diffusion_directions``, a pair of identical
     trapezoidal diffusion lobes surrounds the refocusing pulse (Stejskal and
     Tanner, J Chem Phys 1965, doi:10.1063/1.1695690), lengthened at
-    ``system.max_grad`` until they reach ``b_value``, and each volume plays
-    one row of the table: its direction, in the logical frame, scales the
-    lobes of the three channels, and its b-value their amplitude. The table
-    repeats ``n_frames`` times. The FLEET or gradient-echo calibration stays a
+    ``system.max_grad`` until they reach ``b_value``. The scan plays
+    ``diffusion_b0`` volumes at b = 0, then one volume per direction of
+    :func:`~pypulseqpp.io.uniform_directions`, in the logical frame, and
+    records that table in the file. The table repeats ``n_frames`` times. The FLEET or gradient-echo calibration stays a
     gradient echo.
 
     With ``phase_reference``, the last dummy shot of each slice (of each
@@ -517,16 +517,13 @@ def epi2d(
     spin_echo : bool, default=False
         Refocus the echo with a slice-selective 180 degree pulse; the
         excitation is then 90 degrees, whatever ``flip_angle_deg``.
-    diffusion_table : str | None, default=None
-        Diffusion table file, one volume per row, in any layout
-        :func:`~pypulseqpp.io.read_diffusion_table` reads. It needs
-        ``spin_echo``.
-    b_value : float, default=1000.0
-        Largest b-value (s/mm^2) of the diffusion table, which its unit
-        vectors reach and the lobes are designed for.
-    diffusion_directions : int | None, default=None
-        Count of the block a block direction table is read from; ``None``
-        for a table of one block.
+    diffusion_directions : int, default=0
+        Count of diffusion-encoding directions; 0 plays no diffusion
+        weighting. It needs ``spin_echo``.
+    b_value : float, default=1000000000.0
+        b-value (s/m^2) of each diffusion-encoding direction.
+    diffusion_b0 : int, default=1
+        Count of b = 0 volumes played before the directions.
     ti : float | None, default=None
         Inversion time (s), from the centre of a slice's inversion to the
         centre of its excitation. Each shot is followed by the adiabatic
@@ -596,8 +593,12 @@ def epi2d(
             f"factor {multiband}"
         )
 
-    if diffusion_table is not None and not spin_echo:
-        raise ValueError("a diffusion table needs spin_echo")
+    if diffusion_directions < 0 or diffusion_b0 < 0:
+        raise ValueError(
+            "diffusion_directions and diffusion_b0 count volumes and cannot be negative"
+        )
+    if diffusion_directions and not spin_echo:
+        raise ValueError("diffusion weighting needs spin_echo")
     if spin_echo and multiband > 1:
         raise ValueError("a spin echo is designed single-band; set multiband to 1")
     if ti is not None and (multiband > 1 or n_shots > 1):
@@ -608,10 +609,14 @@ def epi2d(
     if inversion_slab <= 0:
         raise ValueError("inversion_slab must be positive")
     b_table = g_table = None
-    if diffusion_table is not None:
-        b_table, g_table = pp.io.read_diffusion_table(
-            diffusion_table, b_value, diffusion_directions
+    if diffusion_directions:
+        g_table = np.concatenate(
+            [
+                np.zeros((diffusion_b0, 3)),
+                pp.io.uniform_directions(diffusion_directions),
+            ]
         )
+        b_table = np.where(np.any(g_table != 0, axis=1), b_value * 1e-6, 0.0)
     volumes = n_frames * (1 if b_table is None else len(b_table))
 
     fov = (fov_x, fov_y)
@@ -722,7 +727,7 @@ def epi2d(
                 labels=("LIN",),
             ),
             te,
-            None if b_table is None else b_value,
+            None if b_table is None else b_value * 1e-6,
         )
         shot_trains = [echo.train] * n_shots
         selection_amplitude = refocus.selection_amplitude
@@ -1374,8 +1379,8 @@ def epi2d(
         seq.set_definition(key=key, value=value)
     if slots:
         seq.set_definition(key="TI", value=slots[len(packets[0])].ti)
-    if diffusion_table is not None:
-        pp.io.set_diffusion_table(seq, diffusion_table, b_value, diffusion_directions)
+    if b_table is not None:
+        pp.io.record_diffusion_table(seq, b_table, g_table)
     seq.set_definition(
         key="NumGainCalibrationReadouts",
         value=sequences.gain_calibration_readouts(seq),

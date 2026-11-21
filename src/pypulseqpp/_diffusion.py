@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-__all__ = ["get_diffusion_table", "read_diffusion_table", "set_diffusion_table"]
+__all__ = [
+    "get_diffusion_table",
+    "read_diffusion_table",
+    "record_diffusion_table",
+    "set_diffusion_table",
+    "uniform_directions",
+]
 
 import os
 from pathlib import Path
@@ -11,6 +17,10 @@ import numpy as np
 
 #: Definitions a sequence records its diffusion table under.
 TABLE, B_VALUE, DIRECTIONS = "DiffusionTable", "DiffusionBValue", "DiffusionDirections"
+#: Definitions a sequence records its diffusion table in, value by value.
+B_VALUES, VECTORS = "DiffusionBValues", "DiffusionVectors"
+#: Steps of the electrostatic repulsion that spreads directions.
+_REPULSION_STEPS = 500
 
 
 def _rows(path: Path) -> list[list[float]]:
@@ -132,6 +142,72 @@ def read_diffusion_table(
     return b, g
 
 
+def uniform_directions(count: int) -> np.ndarray:
+    """Return unit directions spread uniformly over the sphere for diffusion encoding.
+
+    Each direction and its opposite repel every other pair as point charges
+    (Jones et al., Magn Reson Med 42:515, 1999), starting from a Fibonacci
+    lattice on the upper half sphere, so the same count always gives the
+    same directions.
+
+    Parameters
+    ----------
+    count : int
+        Number of directions, at least 1.
+
+    Returns
+    -------
+    numpy.ndarray
+        ``(count, 3)`` unit vectors, each with z >= 0.
+
+    Raises
+    ------
+    ValueError
+        If ``count`` is below 1.
+    """
+    if count < 1:
+        raise ValueError(f"count must be at least 1, got {count}")
+    index = np.arange(count) + 0.5
+    z = 1.0 - index / count
+    azimuth = np.pi * (3.0 - np.sqrt(5.0)) * index
+    radius = np.sqrt(1.0 - z**2)
+    points = np.stack([radius * np.cos(azimuth), radius * np.sin(azimuth), z], 1)
+    step = 0.1 / count
+    for _ in range(_REPULSION_STEPS):
+        charges = np.concatenate([points, -points])
+        force = np.zeros_like(points)
+        for charge in charges:
+            apart = points - charge
+            distance = np.linalg.norm(apart, axis=1, keepdims=True)
+            near = distance[:, 0] > 1e-9
+            force[near] += apart[near] / distance[near] ** 3
+        force -= np.sum(force * points, axis=1, keepdims=True) * points
+        points = points + step * force
+        points /= np.linalg.norm(points, axis=1, keepdims=True)
+    return np.where(points[:, 2:] < 0, -points, points)
+
+
+def record_diffusion_table(seq, b: np.ndarray, g: np.ndarray) -> None:
+    """Record a diffusion table in a sequence's definitions, value by value.
+
+    ``DiffusionBValues`` holds the b-values and ``DiffusionVectors`` the
+    directions, x, y and z of each volume in turn, so that
+    :func:`get_diffusion_table` reads the table from the file alone.
+
+    Parameters
+    ----------
+    seq : Sequence
+        The sequence that plays the table, one volume per row.
+    b : numpy.ndarray
+        ``(volumes,)``, s/mm².
+    g : numpy.ndarray
+        ``(volumes, 3)``, unit directions in the logical frame, zero where
+        ``b`` is zero.
+    """
+    seq.set_definition(B_VALUES, [float(value) for value in np.ravel(b)])
+    seq.set_definition(VECTORS, [round(float(value), 6) for value in np.ravel(g)])
+
+
 def set_diffusion_table(
     seq,
     path: str | os.PathLike[str],
@@ -166,14 +242,23 @@ def set_diffusion_table(
 
 
 def get_diffusion_table(seq) -> tuple[np.ndarray, np.ndarray] | None:
-    """Read the diffusion table a sequence's definitions name.
+    """Read the diffusion table a sequence's definitions record.
+
+    A table recorded value by value with :func:`record_diffusion_table` is
+    read from the definitions; one recorded by path with
+    :func:`set_diffusion_table` is read from its file.
 
     Returns
     -------
     (b, g) or None
         As :func:`read_diffusion_table` returns them; None when the sequence
-        names no table.
+        records no table.
     """
+    values = seq.get_definition(B_VALUES)
+    if values not in ("", None):
+        b = np.atleast_1d(np.asarray(values, dtype=float))
+        g = np.asarray(seq.get_definition(VECTORS), dtype=float).reshape(-1, 3)
+        return b, g
     path = seq.get_definition(TABLE)
     if path in ("", None):
         return None
