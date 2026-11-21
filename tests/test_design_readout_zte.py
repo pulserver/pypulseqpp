@@ -639,3 +639,8 @@ def test_a_larger_tiny_index_turns_consecutive_shots_by_less():
         return np.median(np.abs(np.angle(np.exp(1j * np.diff(_azimuths(played))))))
 
     assert median_turn(5) < median_turn(3) < median_turn(1)
+
+
+def test_a_tiny_golden_index_below_one_is_refused():
+    with pytest.raises(ValueError, match="tiny_index"):
+        calc_projection_shell(8, 5, ordering="golden", tiny_index=0)
