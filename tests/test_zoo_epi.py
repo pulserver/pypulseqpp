@@ -590,8 +590,9 @@ def blip_cycle(steps):
 )
 def test_the_partition_blips_are_the_two_the_paper_derives(ry, rz, n_shots):
     """Stirnberg and Stöcker (MRM 2021), Appendix, equations A1 and A2."""
-    scan = scan3d(n_y=48, n_z=2 * rz, ry=ry, rz=rz, n_shots=n_shots)
-    b1 = (n_shots * epi3d.caipi_shift(ry, rz)) % rz
+    shift = epi3d.caipi_shift(ry, rz)
+    scan = scan3d(n_y=48, n_z=2 * rz, ry=ry, rz=rz, n_shots=n_shots, shift=shift)
+    b1 = (n_shots * shift) % rz
     b2 = (rz - b1) % rz
     smallest = min(b1, b2)
     if smallest == 0:
@@ -615,7 +616,7 @@ def test_every_lattice_view_is_read_once_per_volume(ry, rz, n_shots):
     scan = scan3d(n_y=24, n_z=12, ry=ry, rz=rz, n_shots=n_shots)
     lin, par, nav = labels(scan.main, "LIN", "PAR", "NAV")
     views = list(zip(lin[nav == 0], par[nav == 0], strict=True))
-    shift = epi3d.caipi_shift(ry, rz)
+    shift = epi3d.default_shift(ry, rz)
     lattice = {
         (y, z)
         for y in range(24)
@@ -652,6 +653,21 @@ def test_shots_that_climb_a_whole_cycle_stay_in_their_partition():
 
     assert written(scan.main, "CaipiShift") * scan.n_shots % 2 == 0
     assert all(len(set(shot)) == 1 for shot in shots)
+
+
+@pytest.mark.parametrize(
+    ("ry", "rz", "shift"), [(1, 2, 1), (1, 4, 2), (2, 2, 0), (2, 4, 0)]
+)
+def test_a_scan_shifts_its_lattice_only_when_the_phase_encode_is_fully_sampled(
+    ry, rz, shift
+):
+    assert epi3d.default_shift(ry, rz) == shift
+
+
+@pytest.mark.parametrize("shift", [-1, 2])
+def test_a_shift_outside_the_shell_is_refused(shift):
+    with pytest.raises(ValueError, match="shift"):
+        scan3d(ry=2, rz=2, shift=shift)
 
 
 def test_one_shot_per_shell_is_blipped_caipi():
