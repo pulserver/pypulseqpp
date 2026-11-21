@@ -79,6 +79,7 @@ shot's origin `(y0, z0)`; echo `e` then acquires `(y0, z0) + offsets[e]`.
 | {obj}`~pypulseqpp.calc_golden_angles` | Count, half or full circle | Angles (rad), modulo 2π | Golden-angle increment. |
 | {obj}`~pypulseqpp.calc_tiny_golden_angles` | Count, tiny-golden index | Angles (rad), modulo 2π | Smaller golden increment. |
 | {obj}`~pypulseqpp.calc_raga_angles` | Count, approximation order | Angles (rad) from a finite equidistant set | Rational approximation of the golden angle. |
+| {obj}`~pypulseqpp.calc_raga_size` | Wanted count, tiny-golden index | Nearest RAGA support size | Generalized Fibonacci number a RAGA order needs. |
 | {obj}`~pypulseqpp.calc_projection_shell` | Views per shell, shots, scheme | Unit directions `(n_views, 3)` and rotations `(n_shots, 3, 3)` | 3D radial shell and its per-shot rotations. |
 
 ## RF phase and flip schedules
