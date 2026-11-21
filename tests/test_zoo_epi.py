@@ -116,6 +116,7 @@ CASES = {
     "2D": lambda **kw: scan2d(**kw),
     "2D segmented": lambda **kw: scan2d(n_y=32, ry=2, n_shots=3, **kw),
     "2D multiband": lambda **kw: scan2d(n_slices=4, multiband=2, n_shots=2, **kw),
+    "2D spin echo": lambda **kw: scan2d(spin_echo=True, ry=2, n_y=32, **kw),
     "3D": lambda **kw: scan3d(**kw),
     "3D skipped-CAIPI": lambda **kw: scan3d(ry=2, rz=2, n_shots=2, **kw),
 }
@@ -156,8 +157,12 @@ def played_slices(scan):
 
 
 def excitations(seq):
+    """The excitation pulses of ``seq``; a refocusing pulse is not one."""
     blocks = (seq.get_block(i) for i in range(1, len(seq.block_events) + 1))
-    return sum(block.rf is not None for block in blocks)
+    return sum(
+        block.rf is not None and getattr(block.rf, "use", "") != "refocusing"
+        for block in blocks
+    )
 
 
 # -- the linked chain ------------------------------------------------------
@@ -286,8 +291,12 @@ def test_every_line_is_labelled_with_the_view_it_samples(case, prescan):
     imaging = nav == 0
     n_y = scan.matrix[1]
 
-    assert rows[imaging, 0] == pytest.approx((lin[imaging] - n_y // 2) / scan.fov[1])
-    if case != "2D" and case != "2D segmented":
+    # The centre line's k is the sum of the encodes played, inverted by a
+    # refocusing pulse, zero to the rounding of those additions.
+    assert rows[imaging, 0] == pytest.approx(
+        (lin[imaging] - n_y // 2) / scan.fov[1], abs=1e-9
+    )
+    if case not in ("2D", "2D segmented", "2D spin echo"):
         fov, n = partition_fov(scan)
         # A centre partition's k is the sum of the encodes it played, zero to
         # the rounding of a few hundred additions.
@@ -975,3 +984,82 @@ def test_a_fleet_calibration_takes_the_place_of_the_reversed_reference_volume(ma
     names = [seq.definitions["Name"] for seq in make(ry=2).chain[:-1]]
 
     assert names == [make().main.definitions["Name"] + "_calibration"]
+
+
+# -- spin echo and diffusion weighting ---------------------------------------
+
+DIFFUSION_TABLE = Path(__file__).parent / "fixtures" / "diffusion_six_directions.txt"
+
+
+def shot_b_values(seq, echo_time):
+    """The b-value (s/mm^2) of every excitation's echo at ``echo_time``, from the played gradients."""
+    wave, t_excitation, t_refocusing, _, _ = seq.waveforms_and_times()
+    raster = 1e-6
+    values = []
+    for start in np.asarray(t_excitation[0]):
+        t = np.arange(start, start + echo_time, raster)
+        sign = np.where(
+            (np.asarray(t_refocusing[0])[None, :] > start)
+            & (np.asarray(t_refocusing[0])[None, :] < t[:, None]),
+            -1.0,
+            1.0,
+        ).prod(axis=1)
+        k = np.zeros((3, t.size))
+        for axis, channel in enumerate(wave[:3]):
+            if np.size(channel):
+                g = np.interp(t, channel[0], channel[1], left=0.0, right=0.0)
+                k[axis] = np.cumsum(sign * g) * raster
+        values.append((2 * np.pi) ** 2 * np.sum(k**2) * raster / 1e6)
+    return np.array(values)
+
+
+def test_a_spin_echo_refocuses_the_centre_line_at_the_echo_time_written():
+    scan = scan2d(spin_echo=True, te=60e-3)
+    _, _, _, t_refocusing, _ = scan.main.calculate_kspace()
+    _, _, t_excitation, _, _ = scan.main.calculate_kspace()
+
+    assert scan.echo_time == pytest.approx(60e-3, abs=scan.system.block_duration_raster)
+    assert np.asarray(t_refocusing)[0] - np.asarray(t_excitation)[0] == pytest.approx(
+        scan.echo_time / 2, abs=scan.system.block_duration_raster
+    )
+
+
+def test_each_diffusion_volume_is_weighted_with_the_b_value_of_its_table_row():
+    # The crushers and the read and phase-encode prewinders add cross terms
+    # of a few percent to the lobes' b-value.
+    b_table, _ = pp.io.read_diffusion_table(DIFFUSION_TABLE, b_value=1000.0)
+    scan = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=1000.0)
+    played = shot_b_values(scan.main, scan.echo_time)
+
+    assert played.size == b_table.size
+    assert played[b_table == 0] == pytest.approx(0.0, abs=5.0)
+    assert played[b_table > 0] == pytest.approx(b_table[b_table > 0], rel=0.08)
+
+
+def test_a_diffusion_scan_records_its_table_for_the_reconstruction():
+    scan = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=1000.0)
+    b, g = pp.io.get_diffusion_table(scan.main)
+
+    assert b.size == 7
+    assert np.linalg.norm(g[b > 0], axis=1) == pytest.approx(1.0)
+
+
+def test_a_higher_b_value_lengthens_the_shortest_spin_echo():
+    low = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=500.0)
+    high = scan2d(spin_echo=True, diffusion_table=str(DIFFUSION_TABLE), b_value=2000.0)
+
+    assert high.echo_time > low.echo_time
+
+
+@pytest.mark.parametrize(
+    "prescription",
+    [
+        {"diffusion_table": str(DIFFUSION_TABLE)},
+        {"spin_echo": True, "n_slices": 2, "multiband": 2},
+        {"spin_echo": True, "diffusion_table": str(DIFFUSION_TABLE), "te": 30e-3},
+    ],
+    ids=["diffusion without spin echo", "multiband spin echo", "TE too short for b"],
+)
+def test_an_impossible_spin_echo_prescription_is_refused(prescription):
+    with pytest.raises(ValueError):
+        scan2d(**prescription)

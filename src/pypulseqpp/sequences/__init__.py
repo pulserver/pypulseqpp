@@ -47,6 +47,7 @@ from .preparation import (
     SpatialSaturation,
     T1T2Preparation,
     T2Preparation,
+    diffusion_pair_b_value,
     fat_null_flip_deg,
     spatial_saturations,
 )
@@ -99,6 +100,7 @@ PREPARATION = (
     "DiffusionPreparation",
     "FAT_T1_S",
     "FatSaturation",
+    "diffusion_pair_b_value",
     "fat_null_flip_deg",
     "IhMtPreparation",
     "InversionPreparation",
