@@ -574,3 +574,56 @@ def test_consecutive_gradients_of_a_turned_shell_meet_without_a_step(system, har
                 assert float(right.first) == pytest.approx(
                     float(left.last), abs=1e-9 * zte.gradient_amplitude
                 )
+
+
+# ----------------------------------------------------------------------
+# Quiet turns and ramps
+
+
+def _peak_slew(events):
+    return max(
+        np.abs(np.diff(np.asarray(g.waveform)) / np.diff(np.asarray(g.tt))).max()
+        for g in events
+        if len(np.asarray(g.tt)) > 1 and np.ptp(np.asarray(g.waveform)) > 0
+    )
+
+
+def test_a_spread_turn_slews_through_the_whole_acquisition_block(system, hard):
+    zte = readout(system, hard, n_shots=5, turn="spread")
+    shell = zte.shell(zte.shot_rotations[2])
+    for view, read in enumerate(shell.read[:-1]):
+        block = pp.calc_duration(zte.adc, *read)
+        for axis, gradient in enumerate(read):
+            assert len(np.asarray(gradient.tt)) == 2
+            assert float(gradient.shape_dur) == pytest.approx(block)
+            assert float(gradient.first) == pytest.approx(
+                float(shell.hold[view][axis].last)
+            )
+            assert float(gradient.last) == pytest.approx(
+                float(shell.hold[view + 1][axis].first)
+            )
+
+
+def test_a_spread_turn_slews_more_gently_than_one_after_the_acquisition(system, hard):
+    after = readout(system, hard, n_shots=5, turn="after")
+    spread = readout(system, hard, n_shots=5, turn="spread", tr=after.tr)
+    turns = slice(0, -1)
+    assert _peak_slew(
+        [g for read in spread.shell().read[turns] for g in read]
+    ) < 0.5 * _peak_slew([g for read in after.shell().read[turns] for g in read])
+
+
+def test_a_shell_ramps_over_the_duration_asked_for(system, hard):
+    zte = readout(system, hard, n_shots=5, ramp_duration_s=3e-3)
+    shell = zte.shell()
+    assert pp.calc_duration(*shell.ramp) == pytest.approx(3e-3)
+    assert pp.calc_duration(*shell.read[-1]) >= 3e-3
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [({"turn": "during"}, "turn"), ({"ramp_duration_s": -1e-3}, "ramp_duration_s")],
+)
+def test_an_unknown_turn_or_a_negative_ramp_is_refused(system, hard, kwargs, message):
+    with pytest.raises(ValueError, match=message):
+        readout(system, hard, **kwargs)

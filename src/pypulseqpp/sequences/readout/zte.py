@@ -84,6 +84,17 @@ class ZteReadout(SequenceModule):
         below ``turn_step`` of it. A turn between two grid values is one shape
         per pair of signs and difference of powers, scaled by its larger end,
         so the turns on an axis share a few shapes and meet without a step.
+    turn : {'after', 'spread'}, default='after'
+        When a view turns onto the next. ``'after'`` holds the gradient
+        through the acquisition, so the spoke is straight, and turns in the
+        rest of the repetition. ``'spread'`` slews linearly from the end of
+        the pulse to the next view, through the acquisition: the spoke bends
+        by a fraction of the step between views, and the slew is the lowest
+        the repetition allows, which is quieter.
+    ramp_duration_s : float, default=None
+        Duration of the ramp from zero to the first view and of the ramp back
+        to zero after the last (s). ``None`` is as fast as the slew allows; a
+        long one is quieter.
 
 
     Attributes
@@ -190,6 +201,8 @@ class ZteReadout(SequenceModule):
         dead_time_s: float | None = None,
         labels: tuple[str, ...] | None = None,
         turn_step: float = 0.0078125,
+        turn: str = "after",
+        ramp_duration_s: float | None = None,
     ) -> None:
         if fov <= 0 or int(matrix) < 2:
             raise ValueError("fov must be positive and matrix must be >= 2")
@@ -199,6 +212,10 @@ class ZteReadout(SequenceModule):
             raise ValueError("readout_bandwidth_hz must be positive")
         if not 0.0 < turn_step <= 0.5:
             raise ValueError("turn_step must be in (0, 0.5]")
+        if turn not in ("after", "spread"):
+            raise ValueError(f"turn must be 'after' or 'spread', got {turn!r}")
+        if ramp_duration_s is not None and ramp_duration_s < 0.0:
+            raise ValueError("ramp_duration_s must not be negative")
 
         shot_rotations = None
         if directions is None:
@@ -301,11 +318,20 @@ class ZteReadout(SequenceModule):
         widest_turn = _slew_span(
             system, float(chords.max()) + math.sqrt(3.0) * turn_step * amplitude
         )
-        ramp_span = _slew_span(system, amplitude)
-
-        tr_min = pp.ceil_to_raster(
-            hold_span + read_span + widest_turn, system.block_duration_raster
+        ramp_span = max(
+            _slew_span(system, amplitude),
+            pp.ceil_to_raster(float(ramp_duration_s or 0.0), system.grad_raster_time),
         )
+
+        # A spread turn lasts the whole block, which the receiver's dead time
+        # after the last sample may lengthen past the acquisition.
+        acquisition = pp.ceil_to_raster(pp.calc_duration(adc), system.grad_raster_time)
+        moving = (
+            read_span + widest_turn
+            if turn == "after"
+            else max(acquisition, widest_turn)
+        )
+        tr_min = pp.ceil_to_raster(hold_span + moving, system.block_duration_raster)
         view_span = tr_min + solve_delay(tr, tr_min, "TR", system)
         # Whatever the repetition leaves over is spent turning more slowly, not
         # sitting still: a gentler slew is a quieter one, and nothing is
@@ -322,7 +348,11 @@ class ZteReadout(SequenceModule):
         self._times = {
             "ramp": [0.0, ramp_span],
             "hold": [0.0, hold_span],
-            "turn": [0.0, read_span, read_span + turn_span],
+            "turn": (
+                [0.0, read_span, read_span + turn_span]
+                if turn == "after"
+                else [0.0, read_span + turn_span]
+            ),
             "close": [0.0, read_span, read_span + close_span],
         }
         self._directions = directions
@@ -362,8 +392,8 @@ class ZteReadout(SequenceModule):
     def shell(self, rotation: Any = None) -> SimpleNamespace:
         """Return the gradients of the shell turned by ``rotation``, in the logical frame.
 
-        Each view holds its gradient under the pulse and the acquisition, then
-        turns onto the next view. On every axis the held gradient is rounded to
+        Each view holds its gradient under the pulse, then turns onto the next
+        view, after the acquisition or through it as ``turn`` sets. On every axis the held gradient is rounded to
         the geometric grid of ``turn_step``, so the direction a view plays is
         within about ``turn_step`` of its own, and each turn is one of a few
         shapes scaled by its larger end.
@@ -432,7 +462,11 @@ class ZteReadout(SequenceModule):
             ],
             read=[
                 [
-                    turn(axis, view, "close" if view == n_views - 1 else "turn")
+                    turn(
+                        axis,
+                        view,
+                        "close" if view == n_views - 1 else "turn",
+                    )
                     for axis in range(3)
                 ]
                 for view in range(n_views)

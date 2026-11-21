@@ -12,6 +12,10 @@ from pypulseqpp import cli, sequences
 #: The shell shapes ``scheme`` selects from.
 SCHEMES = ("quiet", "spiral", "meridian")
 
+#: Duration of a quiet shell's ramp up and down (s): long beside the
+#: repetition, short beside the shell.
+QUIET_RAMP = 5e-3
+
 NAME = "zte_3d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
@@ -19,6 +23,37 @@ MAX_SLEW = 200.0
 #: gradient, so its bandwidth has to cover the whole spoke, and the
 #: readout refuses a pulse the dead-time gap cannot hold.
 HARD_PULSE_DURATION = 10e-6
+
+
+def shell_timing(
+    scheme: str, turn: str | None = None, ramp_duration_s: float | None = None
+) -> dict:
+    """Return the ``turn`` and ``ramp_duration_s`` a shell of ``scheme`` is designed with.
+
+    Parameters
+    ----------
+    scheme : str
+        Shape of the shell, one of :data:`SCHEMES`.
+    turn : {'after', 'spread'} | None, default=None
+        As in :func:`zte3d`; ``None`` is ``'spread'`` under ``'quiet'`` and
+        ``'after'`` otherwise.
+    ramp_duration_s : float | None, default=None
+        As in :func:`zte3d`; ``None`` is :data:`QUIET_RAMP` under ``'quiet'``
+        and as fast as the slew allows otherwise.
+
+    Returns
+    -------
+    dict
+        The ``turn`` and ``ramp_duration_s`` keywords of
+        :class:`~pypulseqpp.sequences.ZteReadout`.
+    """
+    quiet = scheme == "quiet"
+    return {
+        "turn": ("spread" if quiet else "after") if turn is None else turn,
+        "ramp_duration_s": (QUIET_RAMP if quiet else None)
+        if ramp_duration_s is None
+        else ramp_duration_s,
+    }
 
 
 def zte3d(
@@ -33,6 +68,8 @@ def zte3d(
     n_shots: int | None = None,
     scheme: str = "quiet",
     ordering: str = "sequential",
+    turn: str | None = None,
+    ramp_duration_s: float | None = None,
     n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
@@ -92,6 +129,16 @@ def zte3d(
         :func:`~pypulseqpp.calc_projection_shell`. ``'golden'`` spreads every
         run of consecutive shells evenly in azimuth, for a sliding-window or
         time-resolved reconstruction.
+    turn : {'after', 'spread'} | None, default=None
+        When a view turns onto the next, as in
+        :class:`~pypulseqpp.sequences.ZteReadout`: ``'spread'`` slews through
+        the acquisition at the lowest rate the repetition allows. ``None`` is
+        ``'spread'`` under ``scheme='quiet'`` and ``'after'`` otherwise.
+    ramp_duration_s : float | None, default=None
+        Duration of each shell's ramp up and down (s), :data:`QUIET_RAMP`
+        under ``scheme='quiet'`` when ``None``, and otherwise as fast as the
+        slew allows. A shell's ramps are the loudest part of the scan when
+        they are slew-limited.
     n_dummy : int | None, default=None
         Whole shells played without acquiring before the first shot. ``None``
         is the fewest that hold the repetitions bringing the longitudinal
@@ -145,6 +192,12 @@ def zte3d(
         n_shots=n_shots,
         scheme=scheme,
         ordering=ordering,
+        turn=("spread" if scheme == "quiet" else "after") if turn is None else turn,
+        ramp_duration_s=(
+            QUIET_RAMP
+            if ramp_duration_s is None and scheme == "quiet"
+            else ramp_duration_s
+        ),
         tr=tr,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,

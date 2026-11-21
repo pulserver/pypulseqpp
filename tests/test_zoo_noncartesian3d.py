@@ -543,6 +543,20 @@ def test_golden_zte_with_undersampling_plays_the_first_golden_shots():
         assert held[shot] == pytest.approx(shell @ golden[shot].T, abs=2 / 128)
 
 
+def test_a_quiet_zte_is_quieter_than_a_spiral_one_by_its_ramps_and_turns():
+    """A-weighted level through a flat response, relative between the two."""
+    from pypulseqpp import safety
+
+    flat = safety.AcousticResponse(np.full((3, 2001), 1.0 + 0j), 5.0)
+    levels = {
+        scheme: safety.check_spl(
+            built("zte3D_sequence", n_shots=4, n_dummy=0, scheme=scheme), flat
+        )[1].average
+        for scheme in ("spiral", "quiet")
+    }
+    assert levels["quiet"] < levels["spiral"] - 5.0
+
+
 def test_a_zte_shell_count_left_to_the_design_is_written_as_the_shells_played():
     """The shells balance the spacing within one against the spacing between them."""
     seq = built("zte3D_sequence", n=16, n_shots=None)
