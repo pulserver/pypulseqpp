@@ -25,6 +25,8 @@ from ._common import (
 
 #: Fraction of ``max_grad`` the readout plateau may reach.
 _READOUT_GRAD_MARGIN = 0.8
+#: Window widenings tried before a read lobe is declared unsampleable.
+_NYQUIST_ATTEMPTS = 500
 
 
 class _EpiReadout(SequenceModule):
@@ -336,15 +338,36 @@ class _EpiReadout(SequenceModule):
         n_full = round(oversampling * n[0])
         k_width = n_full * delta_k[0]
         lobe_blip = 0.0 if flyback else blip_span
-        n_samples, dwell, sample_span = _adc_timing(
+        target_dwell = max(
+            system.adc_raster_time,
+            pp.round_to_raster(1.0 / readout_bandwidth_hz, system.adc_raster_time),
+        )
+        # The window widens until the read gradient's peak, where samples
+        # one dwell apart are furthest apart in k, stays within one step of
+        # the field of view: a wider spacing aliases the read axis.
+        sampling_step = delta_k[0] * oversampling
+        span = _min_sample_span(
             system,
-            n_full,
-            1.0 / readout_bandwidth_hz,
-            _min_sample_span(system, k_width, lobe_blip, ramp_sampling),
+            k_width,
+            lobe_blip,
+            ramp_sampling,
+            nyquist=sampling_step / target_dwell,
         )
-        lobe, echo_offset = _read_lobe(
-            system, k_width, sample_span, lobe_blip, ramp_sampling
-        )
+        for _ in range(_NYQUIST_ATTEMPTS):
+            n_samples, dwell, sample_span = _adc_timing(
+                system, n_full, target_dwell, span
+            )
+            lobe, echo_offset = _read_lobe(
+                system, k_width, sample_span, lobe_blip, ramp_sampling
+            )
+            if abs(_peak(lobe)) * dwell <= sampling_step * (1.0 + 1e-9):
+                break
+            span = sample_span + 2.0 * system.grad_raster_time
+        else:
+            raise ValueError(
+                "could not sample the read lobe at the Nyquist rate of its "
+                "field of view; lower readout_bandwidth_hz's dwell or the matrix"
+            )
         adc = pp.make_adc(
             num_samples=n_samples,
             dwell=dwell,
@@ -697,21 +720,32 @@ def _ramp_sampled_area(system: pp.Opts, k_width: float, pad: float) -> float:
 
 
 def _min_sample_span(
-    system: pp.Opts, k_width: float, blip_span: float, ramp_sampling: bool
+    system: pp.Opts,
+    k_width: float,
+    blip_span: float,
+    ramp_sampling: bool,
+    nyquist: float = math.inf,
 ) -> float:
     """Shortest acquisition window (s) a read lobe sweeping ``k_width`` fits.
 
-    A plateau reaches at most ``_READOUT_GRAD_MARGIN`` of ``max_grad``. A
-    ramp-sampled lobe also has to hold its first area within the window and
-    its pads, which the slew rate decides when the window is short. That
-    bound is a whole number of rasters and is lowered by 1 ns, so that a
-    window equal to it is not lost to rounding.
+    A plateau reaches at most ``_READOUT_GRAD_MARGIN`` of ``max_grad``, and at
+    most ``nyquist`` (Hz/m), the amplitude at which consecutive samples one
+    dwell apart are one k-space step of the field of view apart: above it the
+    plateau samples alias along the read axis. A ramp-sampled lobe also has
+    to hold its first area within the window and its pads, which the slew
+    rate decides when the window is short. That bound is a whole number of
+    rasters and is lowered by 1 ns, so that a window equal to it is not lost
+    to rounding.
     """
-    span = k_width / (_READOUT_GRAD_MARGIN * system.max_grad)
+    amplitude = min(_READOUT_GRAD_MARGIN * system.max_grad, nyquist)
+    span = k_width / amplitude
     if ramp_sampling:
         pad = _lobe_pad(system, blip_span)
         shortest = pp.make_trapezoid(
-            channel="x", area=_ramp_sampled_area(system, k_width, pad), system=system
+            channel="x",
+            area=_ramp_sampled_area(system, k_width, pad),
+            max_grad=amplitude,
+            system=system,
         )
         span = max(span, pp.calc_duration(shortest) - 2.0 * pad - 1e-9)
     return span
@@ -816,6 +850,13 @@ def _span(system: pp.Opts, *events: Any) -> float:
     if not events:
         return 0.0
     return pp.ceil_to_raster(pp.calc_duration(*events), system.block_duration_raster)
+
+
+def _peak(event: Any) -> float:
+    """Return a read lobe's largest amplitude (Hz/m)."""
+    if event.type == "trap":
+        return float(event.amplitude)
+    return float(np.max(np.abs(np.asarray(event.waveform))))
 
 
 def _area(event: Any) -> float:

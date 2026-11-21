@@ -665,9 +665,26 @@ def test_oversampling_widens_the_read_field_of_view_not_the_resolution(
     wide = readout(system, excitation, oversampling=2.0, readout_bandwidth_hz=20e3)
     kx_plain, kx_wide = lines(plain)[0, 0, :, 0], lines(wide)[0, 0, :, 0]
 
-    assert wide.n_samples == 2 * plain.n_samples
-    assert wide.delta_kx == pytest.approx(plain.delta_kx / 2)
+    assert wide.n_samples >= 2 * MATRIX
+    assert wide.delta_kx == pytest.approx(1.0 / (2.0 * FOV))
     assert np.ptp(kx_wide) == pytest.approx(np.ptp(kx_plain), rel=0.05)
+
+
+@pytest.mark.parametrize("ry", [1, 2, 3, 4])
+@pytest.mark.parametrize("bandwidth", [100e3, 250e3, 500e3])
+def test_a_ramp_sampled_line_samples_the_read_field_of_view_at_or_above_nyquist(
+    system, excitation, ry, bandwidth
+):
+    epi = readout(
+        system,
+        excitation,
+        order=np.arange(0, MATRIX, ry),
+        readout_bandwidth_hz=bandwidth,
+    )
+
+    kx = lines(epi)[0, 0, :, 0]
+
+    assert np.max(np.abs(np.diff(kx))) <= (1.0 / FOV) * (1.0 + 1e-6)
 
 
 @pytest.mark.parametrize("dimension", [2, 3])
