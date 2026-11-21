@@ -208,6 +208,14 @@ SEQUENCES: tuple[SequenceDoc, ...] = (
         readout="One CPMG train per excitation, one (line, partition) view per echo",
     ),
     SequenceDoc(
+        module="ssfse2D_sequence",
+        title="2D single-shot fast spin echo",
+        family="Fast spin echo",
+        dimensionality="2D, multi-slice",
+        sampling="Cartesian, partial Fourier",
+        readout="One CPMG train per slice, one line per echo",
+    ),
+    SequenceDoc(
         module="mprage3D_sequence",
         title="3D Cartesian MPRAGE",
         family="MPRAGE",

@@ -556,3 +556,88 @@ def test_pclo_rings_start_at_the_te_echo_and_step_at_most_two_echoes(etl):
         assert sorted(rings) == list(range(etl))
         assert rings[0] == te_echo
         assert all(abs(a - b) <= 2 for a, b in itertools.pairwise(rings))
+
+
+# --- 2D single-shot FSE ---------------------------------------------------
+
+ssfse2d = sequences.ssfse2D_sequence
+
+#: A short single-shot prescription.
+SSFSE = {"n_x": 64, "n_y": 48, "n_slices": 3, "n_acs_y": 4}
+
+
+def ssfse_built(**kwargs):
+    return ssfse2d.main(pp.Opts(), **{**SSFSE, **kwargs})
+
+
+def test_ssfse_reads_every_kept_line_of_every_slice_once_in_one_train():
+    seq = ssfse_built()
+    slc, lin = labels(seq, "SLC", "LIN")
+    etl = int(definition(seq, "EchoTrainLength"))
+    assert len(lin) == SSFSE["n_slices"] * etl
+    for s in range(SSFSE["n_slices"]):
+        read = lin[slc == s]
+        assert len(set(read.tolist())) == etl
+        assert np.all(np.diff(read) > 0)
+
+
+def test_ssfse_plays_even_slices_before_odd_ones():
+    seq = ssfse_built(n_slices=5)
+    (slc,) = labels(seq, "SLC")
+    played = list(dict.fromkeys(slc.tolist()))
+    assert played == [0, 2, 4, 1, 3]
+
+
+def test_ssfse_effective_echo_time_is_the_echo_of_the_centre_line():
+    seq = ssfse_built(n_slices=1)
+    centre_line = SSFSE["n_y"] // 2
+    sample = int(definition(seq, "kSpaceCenterSample"))
+    t, excitation, echoes = 0.0, None, []
+    for block in blocks(seq):
+        rf = getattr(block, "rf", None)
+        if rf is not None and rf.use == "excitation":
+            excitation = t + rf.delay + rf.center
+        adc = getattr(block, "adc", None)
+        if adc is not None:
+            echoes.append(t + adc.delay + (sample + 0.5) * adc.dwell)
+        t += block.block_duration
+    (lin,) = labels(seq, "LIN")
+    echo = lin.tolist().index(centre_line)
+    assert echoes[echo] - excitation == pytest.approx(
+        definition(seq, "TE"), abs=2 * RASTER
+    )
+
+
+@pytest.mark.parametrize("modulation", ["constant", "traps", "pd_target"])
+def test_ssfse_refocusing_amplitudes_follow_the_prescribed_angles(modulation):
+    seq = ssfse_built(n_slices=1, flip_modulation=modulation)
+    flips = np.asarray(seq.definitions["RefocusingFlipAngles"], dtype=float)
+    peaks = np.array([peak for _, use, peak in pulses(seq) if use == "refocusing"])
+    assert peaks.size == flips.size
+    np.testing.assert_allclose(peaks / peaks.max(), flips / flips.max(), rtol=1e-6)
+
+
+def test_ssfse_inversion_precedes_each_excitation_by_the_inversion_time():
+    ti = 0.8
+    seq = ssfse_built(ti=ti)
+    played = pulses(seq)
+    inversions = [t for t, use, _ in played if use == "inversion"]
+    excitations = [t for t, use, _ in played if use == "excitation"]
+    assert len(inversions) == len(excitations) == SSFSE["n_slices"]
+    np.testing.assert_allclose(np.subtract(excitations, inversions), ti, atol=RASTER)
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"partial_fourier_y": 0.4},
+        {"ry": 0},
+        {"flip_modulation": "busse"},
+        {"inversion_slab": 0.0},
+        {"ti": 1e-3},
+        {"shot_interval": 1e-3},
+    ],
+)
+def test_ssfse_refuses_a_prescription_it_cannot_play(bad):
+    with pytest.raises(ValueError):
+        ssfse_built(**bad)

@@ -32,6 +32,7 @@ __all__ = [
     "se_stack_of_blades3D_sequence",
     "se_stack_of_spirals3D_sequence",
     "se_stack_of_stars3D_sequence",
+    "ssfse2D_sequence",
     "zte3D_sequence",
 ]
 
