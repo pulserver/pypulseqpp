@@ -70,6 +70,7 @@ def zte3d(
     ordering: str = "sequential",
     turn: str | None = None,
     ramp_duration_s: float | None = None,
+    tiny_index: int = 1,
     n_dummy: int | None = None,
     readout_oversampling: float = 2.0,
     n_gain_calibration_repetitions: int | None = None,
@@ -83,7 +84,7 @@ def zte3d(
     (:meth:`~pypulseqpp.sequences.ZteReadout.shell`). The Nyquist set is ``ceil(pi * n **
     2)`` spokes over the sphere, dealt into ``n_shots`` shells, of which
     ``ceil(n_shots / r)`` are played, which is angular undersampling: every
-    ``r``-th in turn order, or under ``ordering='golden'`` the first ones in
+    ``r``-th in turn order, or under a golden ``ordering`` the first ones in
     golden-ratio order, any consecutive run of which spreads evenly in azimuth. The dead-time
     gap after each pulse leaves ``MissingSamples`` at the centre of k-space
     unacquired. Dummy shells precede the first shot, played as it is without
@@ -124,11 +125,14 @@ def zte3d(
         Shape of the shell, as :data:`SCHEMES` names them. ``'quiet'``
         samples the directions of ``'spiral'`` in steps about a ring gap
         long; ``'spiral'`` strides across many rings at a constant step.
-    ordering : {'sequential', 'golden'}, default='sequential'
+    ordering : {'sequential', 'golden', 'raga'}, default='sequential'
         Order the shells are played in, as in
         :func:`~pypulseqpp.calc_projection_shell`. ``'golden'`` spreads every
         run of consecutive shells evenly in azimuth, for a sliding-window or
-        time-resolved reconstruction.
+        time-resolved reconstruction; ``'raga'`` is its rational
+        approximation, exact when ``n_shots`` is a Fibonacci number.
+    tiny_index : int, default=1
+        Tiny-golden index of the golden step.
     turn : {'after', 'spread'} | None, default=None
         When a view turns onto the next, as in
         :class:`~pypulseqpp.sequences.ZteReadout`: ``'spread'`` slews through
@@ -192,12 +196,8 @@ def zte3d(
         n_shots=n_shots,
         scheme=scheme,
         ordering=ordering,
-        turn=("spread" if scheme == "quiet" else "after") if turn is None else turn,
-        ramp_duration_s=(
-            QUIET_RAMP
-            if ramp_duration_s is None and scheme == "quiet"
-            else ramp_duration_s
-        ),
+        tiny_index=tiny_index,
+        **shell_timing(scheme, turn, ramp_duration_s),
         tr=tr,
         oversampling=readout_oversampling,
         readout_bandwidth_hz=readout_bandwidth_hz,
@@ -211,7 +211,9 @@ def zte3d(
         repetitions = sequences.steady_state_dummies(ro.tr, flip_angle_deg)
         n_dummy = -(-repetitions // len(ro.directions))
     n_set = len(ro.shot_rotations)
-    shots = list(range(-(-n_set // r)) if ordering == "golden" else range(0, n_set, r))
+    shots = list(
+        range(-(-n_set // r)) if ordering != "sequential" else range(0, n_set, r)
+    )
     plays = [(0, False)] * n_dummy + [(shot, True) for shot in shots]
     turns = np.asarray(ro.shot_rotations)[[shot for shot, _ in plays]]
     if scheme == "quiet":
