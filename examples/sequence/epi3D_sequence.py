@@ -167,7 +167,7 @@ OUTPUT_DURATION = 1e-3
 #: calibration measures coil sensitivities, which do not depend on the
 #: contrast.
 CALIBRATION_FLIP_DEG = 10.0
-#: Calibrations of an undersampled scan.
+#: Calibrations the scan opens with.
 CALIBRATIONS = ("fleet", "gre")
 #: Non-acquiring shots that open the FLEET calibration, so its first
 #: acquiring shot does not read relaxed magnetization.
@@ -209,14 +209,17 @@ def fleet_train(
     shots: int,
     **arguments,
 ):
-    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe, blip window and echo time.
+    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe and blip window, at its shortest echo time.
 
     Shot ``s`` reads ``lines[s::shots]``, a step of ``shots`` lines, and is
     delayed by ``esp / shots``, so the echo time grows across the lines as it
-    does across the lines of the imaging. It is timed to ``epi``'s echo time
-    where its shorter run of lines before the centre admits it, and else as
-    early as it can be. ``arguments`` are those of the imaging train: matrix,
-    field of view, navigator, sampling and spoiling.
+    does across the lines of the imaging and the calibration is distorted as
+    the imaging is. The echo time is the shortest the train admits: the
+    phase an off-resonance accrues by the imaging echo time at 7T wraps
+    within one calibration voxel near air-tissue interfaces, and coil maps
+    fitted to that calibration take on its structure. ``arguments`` are those
+    of the imaging train: matrix, field of view, navigator, sampling and
+    spoiling.
 
     Raises
     ------
@@ -234,8 +237,6 @@ def fleet_train(
         blip_span=epi.blip_span,
     )
     train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=None))
-    if train.echo_time < epi.echo_time - 1e-9:
-        train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=epi.echo_time))
     if abs(train.esp - epi.esp) > 1e-9:
         raise ValueError(
             f"the FLEET calibration's echo spacing {train.esp * 1e3:.3f} ms is not "
@@ -266,8 +267,8 @@ def epi3d(
     n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 1.0,
-    n_acs_y: int = 24,
-    n_acs_z: int = 16,
+    n_acs_y: int = 32,
+    n_acs_z: int = 32,
     calibration: str = "fleet",
     volume_output: bool = False,
     phase_reference: bool = False,
@@ -300,18 +301,20 @@ def epi3d(
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,
     ``SEG`` (the shot) and ``REP``.
 
-    Two prescans are linked ahead of the imaging: the ``calibration``, when
-    undersampled, of the central ``n_acs_y x n_acs_z`` rectangle (``REF``) at
-    ``CALIBRATION_FLIP_DEG``; and the ``reference``, one volume with the
-    phase encode reversed (``SET = 1``), for distortion correction. The FLEET
+    The ``calibration`` of the central ``n_acs_y x n_acs_z`` rectangle
+    (``REF``) at ``CALIBRATION_FLIP_DEG`` is linked ahead of the imaging; the
+    coil sensitivities of the volume are estimated from it once. The FLEET
     calibration (Polimeni et al., Magn Reson Med 2016, doi:10.1002/mrm.25628)
     reads the lines of each partition in ``n_shots * ry`` interleaved EPI
     shots, which step as far per echo spacing as an imaging shot, with its
-    read lobe, navigator, blip and echo time, so the calibration is distorted
-    as the imaging is. A partition's shots follow one another, forward
+    read lobe, navigator and blip, so the calibration is distorted as the
+    imaging is, at the shortest echo time they admit. A partition's shots follow one another, forward
     (``SET = 0``) and then reversed (``SET = 1``), after
-    ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration. The
-    gradient-echo calibration reads one view per excitation, undistorted.
+    ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration, and the
+    two polarities give the field that corrects the distortion. The
+    gradient-echo calibration reads one view per excitation, undistorted;
+    after it, a ``reference`` volume with the phase encode reversed
+    (``SET = 1``) is linked for distortion correction.
 
     Parameters
     ----------
@@ -362,13 +365,13 @@ def epi3d(
     readout_oversampling : float, default=1.0
         Minimum EPI readout oversampling factor, at least one. Additional
         samples preserve the requested dwell under the gradient limits.
-    n_acs_y : int, default=24
+    n_acs_y : int, default=32
         Extent of the calibration rectangle along the phase encode; FLEET
         rounds it up to a whole number of lines per shot.
-    n_acs_z : int, default=16
+    n_acs_z : int, default=32
         Extent of the calibration rectangle along the partition encode.
     calibration : {'fleet', 'gre'}, default='fleet'
-        The calibration played when undersampled: FLEET, segmented EPI at
+        The calibration: FLEET, segmented EPI at
         the imaging train's echo spacing, or a gradient echo per view.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
@@ -384,9 +387,8 @@ def epi3d(
     Returns
     -------
     list of pypulseqpp.Sequence
-        The designed sequences in play order: the ``calibration`` when
-        undersampled, the ``reference``, then the scan, which is the main
-        sequence. ``sequences.write`` writes them as files linked through
+        The designed sequences in play order: the ``calibration``, the
+        ``reference`` after a gradient-echo calibration, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked through
         ``NextSequence``.
 
     Raises
@@ -403,7 +405,7 @@ def epi3d(
     >>> from pypulseqpp import sequences
     >>> *prescans, seq = sequences.epi3D_sequence(n_x=32, n_y=16, n_z=4, n_dummy=0)
     >>> [prescan.definitions["Name"] for prescan in prescans]
-    ['epi_3d_reference']
+    ['epi_3d_calibration']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["Matrix"], seq.definitions["Name"]
@@ -524,9 +526,8 @@ def epi3d(
         system=system,
     )
 
-    # The calibration of an undersampled scan: a gradient echo per view, or
-    # FLEET's interleaved shots per partition.
-    undersampled = ry > 1 or rz > 1 or partial_fourier_y < 1 or partial_fourier_z < 1
+    # The calibration: a gradient echo per view, or FLEET's interleaved shots
+    # per partition.
     acs_shots = n_shots * ry
     low_z = n_z // 2 - n_acs_z // 2
     partitions = list(range(max(low_z, 0), min(low_z + n_acs_z, n_z)))
@@ -537,7 +538,7 @@ def epi3d(
             max(n_y // 2 - n_acs_y // 2, 0), min(n_y // 2 - n_acs_y // 2 + n_acs_y, n_y)
         )
     )
-    views = [(y, z) for y in lines_y for z in partitions] if undersampled else []
+    views = [(y, z) for y in lines_y for z in partitions]
     gre = acs = None
     if views:
         # The imaging pulse at the calibration's flip angle and at its
@@ -850,7 +851,8 @@ def epi3d(
     prescans = [calibrate()] if gre is not None else []
     if acs is not None:
         prescans.append(fleet())
-    prescans.append(reference())
+    else:
+        prescans.append(reference())
     seq = play(frames=range(n_frames))
 
     # The volume's offset is applied to the finished sequence with

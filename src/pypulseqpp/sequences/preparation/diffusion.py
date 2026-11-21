@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["DiffusionPreparation"]
+__all__ = ["DiffusionPreparation", "diffusion_pair_b_value"]
 
 import math
 
@@ -180,7 +180,7 @@ class DiffusionPreparation(RfModule):
         first_gap = pp.round_to_raster(0.5 * remaining, raster)
         second_gap = pp.round_to_raster(remaining - first_gap, raster)
 
-        max_b_value = _pair_b_value(
+        max_b_value = diffusion_pair_b_value(
             g_full,
             first_gap + pp.calc_duration(rf_ref) + second_gap,
             system.grad_raster_time,
@@ -248,10 +248,26 @@ class DiffusionPreparation(RfModule):
         return math.sqrt(b_value / self.b_value) if self.b_value else 0.0
 
 
-def _pair_b_value(lobe, middle_duration: float, raster: float) -> float:
-    """Return b (s/mm^2) of two identical lobes around a refocusing pulse.
+def diffusion_pair_b_value(lobe, middle_duration: float, raster: float) -> float:
+    """Return the b-value of two identical trapezoidal lobes around a refocusing pulse.
 
-    The second lobe is negated in the effective gradient.
+    The refocusing pulse negates the second lobe in the effective gradient,
+    which is sampled on ``raster``.
+
+    Parameters
+    ----------
+    lobe : TrapEvent
+        The diffusion lobe, played identically on both sides of the pulse.
+    middle_duration : float
+        Time from the end of the first lobe to the start of the second (s).
+    raster : float
+        Sampling interval of the effective gradient (s), such as
+        ``system.grad_raster_time``.
+
+    Returns
+    -------
+    float
+        b-value (s/mm^2).
     """
     count = round(pp.calc_duration(lobe) / raster)
     times = (np.arange(count) + 0.5) * raster
