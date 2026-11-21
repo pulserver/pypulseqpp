@@ -170,7 +170,6 @@ def excitations(seq):
             lambda: scan2d(n_slices=2, ry=2, n_acs_y=4),
             [
                 ("scan.seq", "epi_2d_calibration"),
-                ("scan_epi_2d_reference.seq", "epi_2d_reference"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -178,7 +177,6 @@ def excitations(seq):
             lambda: scan2d(n_dummy=1),
             [
                 ("scan.seq", "epi_2d_calibration"),
-                ("scan_epi_2d_reference.seq", "epi_2d_reference"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -186,7 +184,6 @@ def excitations(seq):
             lambda: scan2d(n_slices=4, multiband=2, n_acs_y=4),
             [
                 ("scan.seq", "epi_2d_calibration"),
-                ("scan_epi_2d_reference.seq", "epi_2d_reference"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -194,12 +191,26 @@ def excitations(seq):
             lambda: scan3d(ry=2, n_acs_y=4, n_acs_z=2),
             [
                 ("scan.seq", "epi_3d_calibration"),
-                ("scan_epi_3d_reference.seq", "epi_3d_reference"),
                 ("scan_epi_3d.seq", "epi_3d"),
             ],
         ),
         (
             lambda: scan3d(n_dummy=1),
+            [
+                ("scan.seq", "epi_3d_calibration"),
+                ("scan_epi_3d.seq", "epi_3d"),
+            ],
+        ),
+        (
+            lambda: scan2d(n_slices=2, ry=2, n_acs_y=4, calibration="gre"),
+            [
+                ("scan.seq", "epi_2d_calibration"),
+                ("scan_epi_2d_reference.seq", "epi_2d_reference"),
+                ("scan_epi_2d.seq", "epi_2d"),
+            ],
+        ),
+        (
+            lambda: scan3d(ry=2, n_acs_y=4, n_acs_z=2, calibration="gre"),
             [
                 ("scan.seq", "epi_3d_calibration"),
                 ("scan_epi_3d_reference.seq", "epi_3d_reference"),
@@ -213,6 +224,8 @@ def excitations(seq):
         "2D multiband",
         "3D undersampled",
         "3D fully sampled",
+        "2D gradient-echo calibration",
+        "3D gradient-echo calibration",
     ],
 )
 def test_the_chain_is_written_in_play_order_each_file_naming_the_next(
@@ -266,7 +279,7 @@ def test_every_file_of_the_chain_repeats_from_its_first_block(tmp_path, case):
 @pytest.mark.parametrize("case", CASES)
 @pytest.mark.parametrize("prescan", [None, "reference"], ids=["main", "reference"])
 def test_every_line_is_labelled_with_the_view_it_samples(case, prescan):
-    scan = CASES[case]()
+    scan = CASES[case](**({} if prescan is None else {"calibration": "gre"}))
     seq = scan.main if prescan is None else scan.prescan(prescan)
     rows = echoes(seq, scan.samples)
     lin, par, nav = labels(seq, "LIN", "PAR", "NAV")
@@ -286,7 +299,7 @@ def test_every_line_is_labelled_with_the_view_it_samples(case, prescan):
 @pytest.mark.parametrize("case", CASES)
 @pytest.mark.parametrize("prescan", [None, "reference"], ids=["main", "reference"])
 def test_every_shot_opens_with_its_navigator_at_the_centre_of_k_space(case, prescan):
-    scan = CASES[case]()
+    scan = CASES[case](**({} if prescan is None else {"calibration": "gre"}))
     rows = echoes(scan.main, scan.samples)
     nav, rev, lin = labels(scan.main, "NAV", "REV", "LIN")
     navigator = scan.module.NAVIGATOR_LINES
@@ -342,7 +355,7 @@ def test_shifted_echoes_grow_evenly_across_the_lattice_lines(case):
 
 @pytest.mark.parametrize("case", CASES)
 def test_the_reference_reads_the_mirror_of_every_line_and_is_labelled_there(case):
-    scan = CASES[case]()
+    scan = CASES[case](calibration="gre")
     forward, reversed_ = scan.main, scan.prescan("reference")
     n, n_y = scan.samples, scan.matrix[1]
     ahead, behind = echoes(forward, n), echoes(reversed_, n)
@@ -360,7 +373,7 @@ def test_the_reference_reads_the_mirror_of_every_line_and_is_labelled_there(case
 
 @pytest.mark.parametrize("case", CASES)
 def test_the_reference_defines_the_echo_and_repetition_time_of_the_main_scan(case):
-    scan = CASES[case]()
+    scan = CASES[case](calibration="gre")
     reference = scan.prescan("reference")
 
     for key in ("TE", "TR"):
@@ -369,7 +382,7 @@ def test_the_reference_defines_the_echo_and_repetition_time_of_the_main_scan(cas
 
 @pytest.mark.parametrize("prescan", ["calibration", "reference"])
 def test_each_prescan_of_a_2d_scan_places_its_slices_as_the_scan_does(prescan):
-    scan = scan2d(n_slices=3, slice_spacing=2e-3, ry=2, n_acs_y=4)
+    scan = scan2d(n_slices=3, slice_spacing=2e-3, ry=2, n_acs_y=4, calibration="gre")
     seq = scan.prescan(prescan)
 
     for key in ("SlicePositions", "SliceThickness", "SliceGap"):
@@ -955,3 +968,10 @@ def test_each_multiband_line_is_received_at_the_phase_its_partition_encode_gives
         ) == pytest.approx(0.0, abs=1e-6)
         checked += abs(kz) > 0
     assert checked > 0
+
+
+@pytest.mark.parametrize("make", [scan2d, scan3d], ids=["2D", "3D"])
+def test_a_fleet_calibration_takes_the_place_of_the_reversed_reference_volume(make):
+    names = [seq.definitions["Name"] for seq in make(ry=2).chain[:-1]]
+
+    assert names == [make().main.definitions["Name"] + "_calibration"]

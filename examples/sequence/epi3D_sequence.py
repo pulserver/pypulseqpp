@@ -301,19 +301,20 @@ def epi3d(
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,
     ``SEG`` (the shot) and ``REP``.
 
-    Two prescans are linked ahead of the imaging: the ``calibration`` of the
-    central ``n_acs_y x n_acs_z`` rectangle (``REF``) at
-    ``CALIBRATION_FLIP_DEG``, from which the coil sensitivities of the volume
-    are estimated once; and the ``reference``, one volume with the
-    phase encode reversed (``SET = 1``), for distortion correction. The FLEET
+    The ``calibration`` of the central ``n_acs_y x n_acs_z`` rectangle
+    (``REF``) at ``CALIBRATION_FLIP_DEG`` is linked ahead of the imaging; the
+    coil sensitivities of the volume are estimated from it once. The FLEET
     calibration (Polimeni et al., Magn Reson Med 2016, doi:10.1002/mrm.25628)
     reads the lines of each partition in ``n_shots * ry`` interleaved EPI
     shots, which step as far per echo spacing as an imaging shot, with its
     read lobe, navigator and blip, so the calibration is distorted as the
     imaging is, at the shortest echo time they admit. A partition's shots follow one another, forward
     (``SET = 0``) and then reversed (``SET = 1``), after
-    ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration. The
-    gradient-echo calibration reads one view per excitation, undistorted.
+    ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration, and the
+    two polarities give the field that corrects the distortion. The
+    gradient-echo calibration reads one view per excitation, undistorted;
+    after it, a ``reference`` volume with the phase encode reversed
+    (``SET = 1``) is linked for distortion correction.
 
     Parameters
     ----------
@@ -387,7 +388,7 @@ def epi3d(
     -------
     list of pypulseqpp.Sequence
         The designed sequences in play order: the ``calibration``, the
-        ``reference``, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked through
+        ``reference`` after a gradient-echo calibration, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked through
         ``NextSequence``.
 
     Raises
@@ -404,7 +405,7 @@ def epi3d(
     >>> from pypulseqpp import sequences
     >>> *prescans, seq = sequences.epi3D_sequence(n_x=32, n_y=16, n_z=4, n_dummy=0)
     >>> [prescan.definitions["Name"] for prescan in prescans]
-    ['epi_3d_calibration', 'epi_3d_reference']
+    ['epi_3d_calibration']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["Matrix"], seq.definitions["Name"]
@@ -850,7 +851,8 @@ def epi3d(
     prescans = [calibrate()] if gre is not None else []
     if acs is not None:
         prescans.append(fleet())
-    prescans.append(reference())
+    else:
+        prescans.append(reference())
     seq = play(frames=range(n_frames))
 
     # The volume's offset is applied to the finished sequence with

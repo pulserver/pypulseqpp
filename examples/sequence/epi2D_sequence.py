@@ -293,19 +293,20 @@ def epi2d(
     one. A multiband shot excites ``multiband`` slices at once and a
     blipped-CAIPI train encodes the band in ``PAR``.
 
-    Two prescans are linked ahead of the imaging: the ``calibration`` of the
-    central ``n_acs_y`` lines (``REF``) at ``CALIBRATION_FLIP_DEG``, single
-    band, from which the coil sensitivities of the whole volume are
-    estimated once; and the ``reference``, one volume
-    with the phase encode reversed (``SET = 1``), for distortion correction.
+    The ``calibration`` of the central ``n_acs_y`` lines (``REF``) at
+    ``CALIBRATION_FLIP_DEG``, single band, is linked ahead of the imaging;
+    the coil sensitivities of the whole volume are estimated from it once.
     The FLEET calibration (Polimeni et al., Magn Reson Med 2016,
     doi:10.1002/mrm.25628) reads those lines in ``n_shots * ry`` interleaved
     EPI shots, which step as far per echo spacing as an imaging shot, with
     its read lobe, navigator and blip, so the calibration is distorted as the
     imaging is, at the shortest echo time they admit. The shots of a slice follow one another
     after ``FLEET_DUMMY_SHOTS`` unsampled ones, forward (``SET = 0``) and then
-    reversed (``SET = 1``), so each phase-encode polarity has its own. The
-    gradient-echo calibration reads one line per excitation, undistorted.
+    reversed (``SET = 1``), so each phase-encode polarity has its own, and
+    the two polarities give the field that corrects the distortion. The
+    gradient-echo calibration reads one line per excitation, undistorted;
+    after it, a ``reference`` volume with the phase encode reversed
+    (``SET = 1``) is linked for distortion correction.
 
     Parameters
     ----------
@@ -381,7 +382,7 @@ def epi2d(
     -------
     list of pypulseqpp.Sequence
         The designed sequences in play order: the ``calibration``, the
-        ``reference``, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked
+        ``reference`` after a gradient-echo calibration, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked
         through ``NextSequence``.
 
     Raises
@@ -399,7 +400,7 @@ def epi2d(
     >>> from pypulseqpp import sequences
     >>> *prescans, seq = sequences.epi2D_sequence(n_x=32, n_y=16, n_dummy=0)
     >>> [prescan.definitions["Name"] for prescan in prescans]
-    ['epi_2d_calibration', 'epi_2d_reference']
+    ['epi_2d_calibration']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["EPIFactor"], seq.definitions["Name"]
@@ -974,7 +975,8 @@ def epi2d(
     prescans = [calibrate()] if gre is not None else []
     if acs is not None:
         prescans.append(fleet())
-    prescans.append(reference())
+    else:
+        prescans.append(reference())
     seq, (plot_tr_start, plot_tr_size) = play(frames=range(n_frames))
 
     # The volume's offset is applied to the finished sequence with
