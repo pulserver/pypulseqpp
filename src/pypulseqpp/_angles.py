@@ -144,6 +144,60 @@ def calc_raga_angles(
     return support[visited]
 
 
+def calc_raga_size(n: int, *, tiny_index: int = 1) -> int:
+    """Return the RAGA support size nearest ``n``.
+
+    The support sizes are the generalized Fibonacci numbers of ``tiny_index``,
+    ``1, N, N + 1, 2N + 1, ...``; on one of them the RAGA order visits every
+    angle once and its first pass is the (tiny) golden-angle order.
+
+    Parameters
+    ----------
+    n : int
+        Wanted number of angles, at least 1.
+    tiny_index : int, default=1
+        Tiny-golden index ``N``, at least 1.
+
+    Returns
+    -------
+    int
+        The support size closest to ``n`` in ratio.
+
+    Raises
+    ------
+    ValueError
+        If ``n`` or ``tiny_index`` is below 1.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> pp.calc_raga_size(198), pp.calc_raga_size(198, tiny_index=5)
+    (233, 191)
+    """
+    n, tiny_index = int(n), int(tiny_index)
+    if n < 1 or tiny_index < 1:
+        raise ValueError("n and tiny_index must be >= 1")
+    order = 1
+    while _generalized_fibonacci(order + 1, tiny_index) < n:
+        order += 1
+    below = _generalized_fibonacci(order, tiny_index)
+    above = _generalized_fibonacci(order + 1, tiny_index)
+    return below if n * n <= below * above else above
+
+
+def _raga_order(n: int, tiny_index: int) -> int:
+    order = 1
+    while _generalized_fibonacci(order, tiny_index) < n:
+        order += 1
+    if order < 2 or _generalized_fibonacci(order, tiny_index) != n:
+        raise ValueError(
+            f"a RAGA order needs n_shots to be a generalized Fibonacci number "
+            f"of tiny_index={tiny_index}; the nearest to {n} is "
+            f"{calc_raga_size(n, tiny_index=tiny_index)}"
+        )
+    return order
+
+
 def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
     """Return tiny-golden rotations with increment ``pi / (phi + index - 1)``.
 
@@ -265,11 +319,14 @@ def calc_projection_shell(
         past the one before. ``'golden'`` plays the same set of turns with
         shot ``j`` on the grid turn ranked as ``frac(j / (phi + tiny_index -
         1))``, so the first shots, or any run of consecutive ones, spread
-        near-uniformly in azimuth. ``'raga'`` steps through the grid by the
-        whole number of turns nearest ``n_shots / (phi + tiny_index - 1)``
-        that is coprime with ``n_shots``: the rational approximation of the
-        same golden step, which visits every turn once with only a few
-        distinct steps between consecutive shots.
+        near-uniformly in azimuth. ``'raga'`` is the rational approximation
+        of the same golden step, as in :func:`calc_raga_angles`: ``n_shots``
+        must be a generalized Fibonacci number of ``tiny_index`` (see
+        :func:`calc_raga_size`), the grid is visited in steps of the preceding
+        Fibonacci number, and the order is cyclic, so a run of consecutive
+        shots that wraps past the last one into a repetition of the set is as
+        uniform as any other. On such an ``n_shots`` the first pass is the
+        ``'golden'`` order.
     tiny_index : int, default=1
         Tiny-golden index ``N`` of the golden step: 1 is the golden ratio,
         larger indices turn consecutive shots by less.
@@ -287,8 +344,9 @@ def calc_projection_shell(
     Raises
     ------
     ValueError
-        If ``n_views`` is below 3, ``n_shots`` is below 1, or ``scheme`` or
-        ``ordering`` is unknown.
+        If ``n_views`` is below 3, ``n_shots`` is below 1, ``scheme`` or
+        ``ordering`` is unknown, or ``ordering`` is ``'raga'`` and ``n_shots``
+        is not a generalized Fibonacci number of ``tiny_index``.
 
     Examples
     --------
@@ -358,11 +416,10 @@ def calc_projection_shell(
     if ordering == "golden":
         slots = np.argsort(np.argsort(np.mod(slots / ratio, 1.0), kind="stable"))
     elif ordering == "raga":
-        step = min(
-            (k for k in range(1, n_shots + 1) if math.gcd(k, n_shots) == 1),
-            key=lambda k: abs(k - n_shots / ratio),
+        order = _raga_order(n_shots, int(tiny_index))
+        return directions, _turns_about_z(
+            calc_raga_angles(n_shots, tiny_index=tiny_index, approximation_order=order)
         )
-        slots = np.mod(np.arange(n_shots) * step, n_shots).astype(float)
     return directions, _turns_about_z(2.0 * np.pi * slots / n_shots)
 
 
