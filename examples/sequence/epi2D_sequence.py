@@ -998,7 +998,9 @@ def _designed(
         pulse = getattr(module, "rf_prep", None)
         if pulse is not None:
             n = next(saturations)
-            pulse.phase_offset = math.radians(RF_SPOIL_INCREMENT_DEG * n * (n + 1) / 2)
+            pulse.phase_offset = math.radians(
+                RF_SPOIL_INCREMENT_DEG * n * (n + 1) / 2 % 360.0
+            )
 
     def calibration_prep(probe) -> tuple[list, float]:
         """Return the fat saturation of a calibration shot and the wait (s) that closes the shot.
