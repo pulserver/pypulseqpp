@@ -112,8 +112,9 @@ def mprage3d(
     time-resolved reconstruction. Each acquisition
     carries its view as ``LIN`` and ``PAR``, and, shuffled, its place in the
     train, the time a time-resolved reconstruction resolves, as ``ECO``;
-    calibration views are marked ``IMA``, and under wave-CAIPI the calibration
-    region is first acquired wave-free in trains of its own, marked ``REF``.
+    calibration views are marked ``IMA``, and under wave-CAIPI or shuffling
+    the calibration region is first acquired wave-free in trains of its own,
+    read centre-out, marked ``REF``.
 
     Parameters
     ----------
@@ -306,11 +307,13 @@ def mprage3d(
     calibration = set(calibrating)
     views = sorted({*calibrating, *imaging})
     shots = trains(views, n_readouts, n_y, n_z, ordering)
-    # A wave-encoded view calibrates nothing, so with the wave on the
-    # calibration region is acquired again wave-free, in shots of its own,
-    # the last filled with the views nearest the centre.
+    # A wave-encoded view calibrates nothing, and a shuffled one carries the
+    # contrast of a random train position, so with the wave on or shuffled
+    # the calibration region is acquired again wave-free, in shots of its
+    # own read centre-out, the last filled with the views nearest the centre.
     reference = []
-    if waves:
+    referenced = bool(waves) or ordering == "shuffling"
+    if referenced:
         nearest = sorted(views, key=lambda v: (radius(v, n_y, n_z), v))
         region = [v for v in nearest if v in calibration]
         extra = [v for v in nearest if v not in calibration]
@@ -384,7 +387,7 @@ def mprage3d(
             flags = {"ONCE": 1}
         else:
             flags = {"ONCE": 0} if n_dummy else {}
-            if waves:
+            if referenced:
                 flags["REF"] = int(kind == "reference")
 
         seq.add_block(inv.rf_prep, *labels(**flags))
@@ -405,7 +408,7 @@ def mprage3d(
                 ro.gx_pre, pp.scale_grad(ro.gy_pre, ky), pp.scale_grad(ro.gz_pre, kz)
             )
             if kind != "dummy" and view is not None:
-                is_calibration = not waves and view in calibration
+                is_calibration = not referenced and view in calibration
                 counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
                 if ordering == "shuffling":
                     counters["ECO"] = echo

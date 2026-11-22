@@ -662,8 +662,10 @@ def fse3d(
     2017;77:1774-1785), for an echo-resolved reconstruction. Every acquisition carries its line and partition as ``LIN``
     and ``PAR``, and, shuffled, its echo, the contrast an echo-resolved
     reconstruction resolves, as ``ECO``; calibration views are marked ``IMA``;
-    under wave-CAIPI the calibration region is first acquired wave-free in
-    trains of its own, marked ``REF``.
+    under wave-CAIPI or shuffling the calibration region is first acquired
+    wave-free in trains of its own, marked ``REF``, shuffled read centre-out
+    across those trains so that the coil sensitivities are fitted to one
+    smoothly T2-weighted image rather than to views of random echoes.
 
     The refocusing angle is constant, or, under ``optimized``, the angle at the
     TE echo of a train :func:`design_trains` shapes around it. ``busse`` uses
@@ -1512,11 +1514,15 @@ def fse3d(
         shot_flips = refocusing_angle_deg * played.astype(float)
         shot_flips[:, 0] = 180.0
 
-    # A wave-encoded view calibrates nothing, so with the wave on the
+    # A wave-encoded view calibrates nothing, and a shuffled one carries the
+    # contrast of a random echo, so with the wave on or shuffled the
     # calibration region is acquired again wave-free, in trains of its own
-    # played as the first shot is.
+    # played as the first shot is. Shuffled, the region is read centre-out
+    # across the trains, so that its contrast changes smoothly with |k| and
+    # the coil sensitivities fitted to it see one consistent image.
     reference = []
-    if waves:
+    referenced = bool(waves) or ordering == "shuffling"
+    if referenced:
         region = [v for v in sampled if v in calibration]
         if not individual:
             # The last reference train is filled with the views nearest the
@@ -1529,6 +1535,20 @@ def fse3d(
                 ),
             )
             region += nearest[: -len(region) % etl]
+        if ordering == "shuffling":
+            count = -(-len(region) // lengths[0])
+            by_radius = sorted(
+                region,
+                key=lambda v: (
+                    ((v[0] - n_y // 2) / n_y) ** 2 + ((v[1] - n_z // 2) / n_z) ** 2,
+                    v,
+                ),
+            )
+            region = [
+                view
+                for train in range(count)
+                for view in by_radius[train::count]
+            ]
         for start in range(0, len(region), lengths[0]):
             chunk = region[start : start + lengths[0]]
             reference.append([None] * startup + chunk + [None] * (etl_max - len(chunk)))
@@ -1571,7 +1591,7 @@ def fse3d(
             flags = {"ONCE": 1}
         else:
             flags = {"ONCE": 0} if n_dummy else {}
-            if waves:
+            if referenced:
                 flags["REF"] = int(kind == "reference")
 
         fse.layout.excitation(seq, list(labels(**flags)))
@@ -1586,7 +1606,7 @@ def fse3d(
             kz = (partition - n_z // 2) / (n_z / 2)
             fse.layout.encoding(seq, ky, kz)
             if kind != "dummy" and view is not None:
-                is_calibration = not waves and view in calibration
+                is_calibration = not referenced and view in calibration
                 counters = {"LIN": line, "PAR": partition, "IMA": is_calibration}
                 if ordering == "shuffling":
                     counters["ECO"] = echo - startup
