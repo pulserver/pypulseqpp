@@ -42,6 +42,7 @@ from .preparation import (
     FatSaturation,
     IhMtPreparation,
     InversionPreparation,
+    InversionSlots,
     MtPreparation,
     OffResonanceSaturation,
     SpatialSaturation,
@@ -49,6 +50,8 @@ from .preparation import (
     T2Preparation,
     diffusion_pair_b_value,
     fat_null_flip_deg,
+    inversion_slots,
+    shortest_inversion_slot,
     spatial_saturations,
 )
 from .readout import (
@@ -104,6 +107,9 @@ PREPARATION = (
     "fat_null_flip_deg",
     "IhMtPreparation",
     "InversionPreparation",
+    "InversionSlots",
+    "inversion_slots",
+    "shortest_inversion_slot",
     "MtPreparation",
     "OffResonanceSaturation",
     "STEADY_STATE_T1_S",

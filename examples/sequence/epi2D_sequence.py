@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import math
 import sys
 
@@ -1225,49 +1224,10 @@ def epi2d(
             t += float(block.block_duration)
         return centre, t - raster
 
-    @dataclasses.dataclass(frozen=True)
-    class InversionSlots:
-        """Where the inversions of a packet of ``size`` slices sit.
-
-        Every slot is ``slot`` long: a shot, its closing delay ``closing``,
-        the inversion of the slice excited ``lag`` slots later, and ``tail``.
-        """
-
-        slot: float
-        closing: float
-        tail: float
-        lag: int
-        ti: float
-
-    def inversion_slots(size: int) -> InversionSlots:
+    def inversion_slots(size: int) -> sequences.InversionSlots:
         centre, shot = excitation_offset()
         slot = math.floor(packet_time[size] / size / raster + 1e-9) * raster
-        # The inversion that precedes an excitation by ti starts ``start``
-        # into a slot ``lag`` slots before the excitation's.
-        before = centre - ti - inversion.center
-        lag = -math.floor(before / slot)
-        start = pp.round_to_raster(before + lag * slot, raster)
-        tail = pp.round_to_raster(slot - start - inversion.duration, raster)
-        if start - shot < raster - 1e-12 or tail < -1e-12:
-            # The inversion times nearest ti whose inversion starts 0.1 ms
-            # inside either end of the free part of a slot, so they fit as
-            # printed.
-            nearest = sorted(
-                centre - inversion.center - free + n * slot
-                for free in (shot + raster + 1e-4, slot - inversion.duration - 1e-4)
-                for n in (lag - 1, lag, lag + 1)
-            )
-            below = max((t for t in nearest if t < ti), default=None)
-            above = min(t for t in nearest if t > ti)
-            raise ValueError(
-                f"an inversion {ti * 1e3:.1f} ms before an excitation overlaps a "
-                f"shot at {slot * 1e3:.1f} ms per slice; the nearest inversion "
-                f"times that fit are "
-                + (f"{below * 1e3:.1f} ms and " if below and below > 0 else "")
-                + f"{above * 1e3:.1f} ms, or the TR can change"
-            )
-        achieved = lag * slot + centre - start - inversion.center
-        return InversionSlots(slot, start - shot, tail, lag, achieved)
+        return sequences.inversion_slots(ti, slot, shot, centre, inversion, raster)
 
     def invert(seq: pp.Sequence, g: int, tail: float) -> None:
         """Add the slab inversion of slice ``g``, then ``tail`` of delay."""

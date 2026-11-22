@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pytest
 
@@ -466,3 +468,34 @@ def test_slab_inversion_plays_its_gradient_on_the_crusher_axis(system):
 def test_slab_inversion_refuses_a_slab_that_is_not_positive(system):
     with pytest.raises(ValueError, match="slab_thickness_m"):
         design.InversionPreparation(system, slab_thickness_m=0.0)
+
+
+@pytest.fixture(scope="module")
+def slab_inversion():
+    return design.InversionPreparation(pp.Opts(), slab_thickness_m=8e-3)
+
+
+@pytest.mark.parametrize("ti", [0.3, 0.52, 0.8, 1.6])
+def test_interleaved_inversion_sits_between_shots_and_holds_the_inversion_time(
+    slab_inversion, ti
+):
+    raster, shot, excitation = 1e-5, 0.05, 0.01
+    slot = design.shortest_inversion_slot(
+        ti, 0.07, shot, excitation, slab_inversion, raster
+    )
+    plan = design.inversion_slots(ti, slot, shot, excitation, slab_inversion, raster)
+    assert slot >= 0.07
+    assert plan.closing >= raster - 1e-12 and plan.tail >= 0
+    total = shot + plan.closing + slab_inversion.duration + plan.tail
+    assert total == pytest.approx(slot, abs=1e-9)
+    assert plan.ti == pytest.approx(ti, abs=raster)
+
+
+def test_the_inversion_times_an_overlap_names_are_ones_that_fit(slab_inversion):
+    raster, slot, shot, excitation = 1e-5, 0.1, 0.05, 0.01
+    with pytest.raises(ValueError, match="nearest inversion times") as refused:
+        design.inversion_slots(0.58, slot, shot, excitation, slab_inversion, raster)
+    named = [float(t) / 1e3 for t in re.findall(r"([\d.]+) ms", str(refused.value))[2:]]
+    assert named
+    for ti in named:
+        design.inversion_slots(ti, slot, shot, excitation, slab_inversion, raster)

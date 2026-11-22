@@ -94,7 +94,10 @@ def ssfse2d(
     The refocusing angles follow ``flip_modulation``, each pulse scaled from
     one design at the train's largest angle. With ``ti``, a slice-selective
     adiabatic inversion over ``inversion_slab`` slice thicknesses precedes
-    every excitation by ``ti``.
+    every excitation by ``ti``. The inversions are interleaved: each train
+    is followed by the inversion of the slice it will excite ``ti`` later,
+    so the inversions of the first slices lead the pass and the train
+    interval, not ``ti``, sets the duration.
 
     Parameters
     ----------
@@ -135,12 +138,15 @@ def ssfse2d(
         train.
     ti : float | None, default=None
         Inversion time (s), from the centre of the inversion to the centre
-        of the excitation. ``None`` plays no inversion.
+        of the excitation, held to the block raster. ``None`` plays no
+        inversion. A value that would put an inversion on top of a train is
+        refused, and the error names the nearest inversion times that fit.
     inversion_slab : float, default=2.0
         Thickness of the inverted slab, in slice thicknesses.
     tr : float | None, default=None
         Repetition time (s): the time to play every slice once, divided
-        evenly between the shots. ``None`` is as short as the shots allow.
+        evenly between the shots. ``None`` is as short as the shots and,
+        with ``ti``, an inversion time that fits between them allow.
     n_dummy : int, default=0
         Passes over every slice played without acquiring before the acquired
         pass. A single shot reads each slice from equilibrium, so none are
@@ -245,40 +251,39 @@ def ssfse2d(
     ref_phase = float(ref.rf_ref.phase_offset)
 
     raster = system.block_duration_raster
-    inversion = wait_ti = None
-    if ti is not None:
-        inversion = sequences.InversionPreparation(
+    inversion = (
+        None
+        if ti is None
+        else sequences.InversionPreparation(
             system,
             INVERSION_DURATION,
             slab_thickness_m=inversion_slab * slice_thickness,
             voxel_size_m=slice_thickness,
         )
-        floor = (
-            inversion.duration
-            - inversion.center
-            + float(exc.rf.delay)
-            + float(exc.rf.center)
-        )
-        if ti < floor - 1e-9:
-            raise ValueError(
-                f"TI {ti * 1e3:.1f} ms is shorter than the {floor * 1e3:.1f} ms the "
-                "inversion and the excitation take"
-            )
-        wait = pp.round_to_raster(ti - floor, raster)
-        wait_ti = pp.make_delay(wait) if wait > 0 else None
-
-    shot = (
-        (0.0 if inversion is None else inversion.duration)
-        + (0.0 if wait_ti is None else wait_ti.delay)
-        + fse.duration
     )
-    interval = shot + raster if tr is None else tr / n_slices
-    pad = pp.round_to_raster(interval - shot, raster)
-    if pad < raster - 1e-12:
+    shot = fse.duration
+    occupied = shot + (0.0 if inversion is None else inversion.duration)
+    interval = (
+        pp.round_to_raster(occupied, raster) + raster
+        if tr is None
+        else math.floor(tr / n_slices / raster + 1e-9) * raster
+    )
+    if interval - occupied < raster - 1e-12:
         raise ValueError(
             f"a TR of {n_slices * interval * 1e3:.1f} ms is shorter than the "
-            f"{n_slices * shot * 1e3:.1f} ms the shots of {n_slices} slices take"
+            f"{n_slices * occupied * 1e3:.1f} ms the shots of {n_slices} slices take"
         )
+    slots = None
+    if inversion is not None:
+        excitation = float(exc.rf.delay) + float(exc.rf.center)
+        if tr is None:
+            interval = sequences.shortest_inversion_slot(
+                ti, interval, shot, excitation, inversion, raster
+            )
+        slots = sequences.inversion_slots(
+            ti, interval, shot, excitation, inversion, raster
+        )
+    pad = pp.round_to_raster(interval - shot, raster)
 
     positions = (np.arange(n_slices) - (n_slices - 1) / 2) * (
         slice_thickness + slice_spacing
@@ -291,16 +296,16 @@ def ssfse2d(
         rf.freq_offset = amplitude * position
         rf.phase_offset = phase - 2 * np.pi * rf.freq_offset * rf.center
 
-    def play(s: int, acquire: bool) -> None:
+    def invert(s: int, tail: float) -> None:
+        place(inversion.rf_prep, float(inversion.gz_prep.amplitude), positions[s])
+        for block in inversion.blocks:
+            seq.add_block(*block)
+        if tail > 0:
+            seq.add_block(pp.make_delay(tail))
+
+    def shot_of(s: int, acquire: bool, closing: float) -> None:
         position = positions[s]
         once = list(labels(ONCE=int(not acquire))) if n_dummy else []
-        if inversion is not None:
-            place(inversion.rf_prep, float(inversion.gz_prep.amplitude), position)
-            for i, block in enumerate(inversion.blocks):
-                seq.add_block(*block, *(once if i == 0 else ()))
-            once = []
-            if wait_ti is not None:
-                seq.add_block(wait_ti)
         place(exc.rf, exc.selection_amplitude, position)
         place(ref.rf_ref, ref.selection_amplitude, position, ref_phase)
         seq.add_block(exc.rf, exc.gz, *once)
@@ -320,13 +325,31 @@ def ssfse2d(
                 seq.add_block(fse.gx)
             seq.add_block(fse.gx_bridge_post, pp.scale_grad(fse.gy_rew, ky))
         ref.rf_ref.amplitude = nominal
-        seq.add_block(pp.make_delay(pad))
+        seq.add_block(pp.make_delay(closing))
+
+    def play_pass(acquire: bool) -> None:
+        """Play every slice once; with an inversion, the inversions of the first slices lead."""
+        if slots is None:
+            for s in order:
+                shot_of(s, acquire, pad)
+            return
+        lag = slots.lag
+        for j in range(-lag, n_slices):
+            inverted = order[j + lag] if j + lag < n_slices else None
+            if j < 0:
+                idle = shot + slots.closing if inverted is not None else interval
+                seq.add_block(pp.make_delay(idle))
+            else:
+                closing = slots.closing
+                if inverted is None:
+                    closing = interval - shot
+                shot_of(order[j], acquire, closing)
+            if inverted is not None:
+                invert(inverted, slots.tail)
 
     for _ in range(n_dummy):
-        for s in order:
-            play(s, acquire=False)
-    for s in order:
-        play(s, acquire=True)
+        play_pass(acquire=False)
+    play_pass(acquire=True)
 
     centre_echo = lines.index(n_y // 2)
     definitions = {
@@ -334,7 +357,7 @@ def ssfse2d(
         "Matrix": [n_x, n_y, n_slices],
         "Name": NAME,
         "TE": float(fse.echo_times[centre_echo]),
-        "TR": n_slices * (shot + pad),
+        "TR": n_slices * interval,
         "EchoSpacing": fse.esp,
         "EchoTrainLength": etl,
         "FlipModulation": flip_modulation,
@@ -346,8 +369,8 @@ def ssfse2d(
         "SliceThickness": exc.slice_thickness,
         "SliceGap": slice_thickness + slice_spacing - exc.slice_thickness,
     }
-    if ti is not None:
-        definitions["TI"] = ti
+    if slots is not None:
+        definitions["TI"] = slots.ti
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
     seq.set_definition(
