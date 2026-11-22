@@ -181,7 +181,7 @@ Segment length sets the temporal footprint of each cardiac phase.
                        blocks  duration (s)  acquisitions
     ungated               576          0.68           192
     prospective          6501          5.11           288
-    retrospective        7632          6.00          2544
+    retrospective        9216          7.25          3072
 
 
 
@@ -207,7 +207,7 @@ Segment length sets the temporal footprint of each cardiac phase.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.055 seconds)
+   **Total running time of the script:** (0 minutes 1.413 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_14-bssfp_bssfp2D_sequence.py:

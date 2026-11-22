@@ -521,7 +521,7 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.InversionPreparation">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">InversionPreparation</span></span><a class="reference internal" href="../_modules/pypulseqpp/sequences/preparation/inversion.html#InversionPreparation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.InversionPreparation" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="pypulseqpp.sequences.RfModule.html#pypulseqpp.sequences.RfModule" title="pypulseqpp.sequences.excitation._base.RfModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">RfModule</span></code></a></p>
-<p>Non-selective adiabatic inversion, followed by an optional crusher.</p>
+<p>Adiabatic inversion, non-selective or of a slab, followed by an optional crusher.</p>
 <p>The module contains no inversion-time delay; the caller adds it. A pulse
 whose peak exceeds <a class="reference internal" href="pypulseqpp.MAX_B1_DERATE.html#pypulseqpp.MAX_B1_DERATE" title="pypulseqpp.MAX_B1_DERATE"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_B1_DERATE</span></code></a> of
 <code class="docutils literal notranslate"><span class="pre">system.max_b1</span></code> is lengthened at the same adiabaticity and swept
@@ -547,6 +547,11 @@ sweeps <code class="docutils literal notranslate"><span class="pre">mu</span> <s
 the system’s peak B1.</p></li>
 <li><p><strong>labels</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><em>default=None</em>) – Labels the inversion block sets to 0, to be changed per shot by the
 caller.</p></li>
+<li><p><strong>thickness_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Thickness of the inverted slab (m), selected by a gradient under the
+pulse; zero inverts the whole transmit volume.</p></li>
+<li><p><strong>selection_axis</strong> (<em>{'z'</em><em>, </em><em>'x'</em><em>, </em><em>'y'}</em><em>, </em><em>default='z'</em>) – Logical axis the slab is selected along.</p></li>
+<li><p><strong>offset_m</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Offset of the slab centre from the field-of-view centre along
+<code class="docutils literal notranslate"><span class="pre">selection_axis</span></code> (m).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
@@ -557,14 +562,15 @@ under the system’s peak B1.</p></li>
 <li><p><strong>adiabaticity</strong> (<em>float</em>) – Adiabaticity the pulse was designed at: the requested one, or lower
 under the system’s peak B1.</p></li>
 <li><p><strong>gz_spoil</strong> (<em>GradEvent</em>) – The crusher, when <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is nonzero.</p></li>
+<li><p><strong>g_select</strong> (<em>GradEvent</em>) – The slab-selection gradient, when <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> is nonzero.</p></li>
 <li><p><strong>prep_labels</strong> (<em>LabelSetEvent or list of LabelSetEvent</em>) – One per name in <code class="docutils literal notranslate"><span class="pre">labels</span></code>, in order. Absent when <code class="docutils literal notranslate"><span class="pre">labels</span></code> is
 empty, and a bare event rather than a list when there is one.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code> is not positive, <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> is negative,
-    <code class="docutils literal notranslate"><span class="pre">axis</span></code> is not a gradient channel, or the pulse cannot fit the
-    system’s peak B1.</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">voxel_size_m</span></code> is not positive, <code class="docutils literal notranslate"><span class="pre">spoiling_cycles</span></code> or
+    <code class="docutils literal notranslate"><span class="pre">thickness_m</span></code> is negative, <code class="docutils literal notranslate"><span class="pre">axis</span></code> or <code class="docutils literal notranslate"><span class="pre">selection_axis</span></code> is not a
+    gradient channel, or the pulse cannot fit the system’s peak B1.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -577,6 +583,14 @@ empty, and a bare event rather than a list when there is one.</p></li>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">design</span><span class="o">.</span><span class="n">InversionPreparation</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(),</span> <span class="n">spoiling_cycles</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span>
 <span class="go">1</span>
+</pre></div>
+</div>
+<p>A 10 cm slab along x, 5 cm off centre:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">slab</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">InversionPreparation</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">(),</span> <span class="n">thickness_m</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">selection_axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">offset_m</span><span class="o">=</span><span class="mf">0.05</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">slab</span><span class="o">.</span><span class="n">g_select</span><span class="o">.</span><span class="n">channel</span>
+<span class="go">'x'</span>
 </pre></div>
 </div>
 <p>Under an 11.2 uT limit the 13.2 uT pulse is lengthened, at the same

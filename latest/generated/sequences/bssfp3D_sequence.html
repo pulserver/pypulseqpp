@@ -556,6 +556,22 @@ had in the cycle, while the oscillating transient settles. The files are chained
 in that order, so the scanner plays them as one table. Acquisitions carry
 their line, partition and cycle as <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code> and <code class="docutils literal notranslate"><span class="pre">SET</span></code>, and
 calibration views are marked <code class="docutils literal notranslate"><span class="pre">IMA</span></code>.</p>
+<p>Under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating the views are acquired in segments of
+<code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code>, one per trigger on <code class="docutils literal notranslate"><span class="pre">trigger_channel</span></code>: an ECG
+trigger for whole-heart coronary MRA, a respiratory one for inflow MRA.
+Each segment waits for its trigger and <code class="docutils literal notranslate"><span class="pre">trigger_delay</span></code>, then plays in
+order a slab-selective or non-selective adiabatic inversion and
+<code class="docutils literal notranslate"><span class="pre">inversion_time</span></code> of recovery, an adiabatic T2 preparation, a fat
+saturation, and opens from rest with <code class="docutils literal notranslate"><span class="pre">n_ramp</span></code> excitations whose flip
+angle ramps linearly to <code class="docutils literal notranslate"><span class="pre">flip_angle_deg</span></code> before its views. The views
+are dealt to the segments by angle in the ky-kz plane, and each segment
+reads its wedge from the k-space centre outwards (<code class="xref py py-func docutils literal notranslate"><span class="pre">segment_views()</span></code>),
+so every segment samples the centre right after its preparations and
+steps between neighbouring views. With <code class="docutils literal notranslate"><span class="pre">navigator</span></code> the ramp
+excitations read lines of the central partition, <code class="docutils literal notranslate"><span class="pre">NAV</span></code> set: an image
+navigator, the projection of the slab along the partition axis, from
+which a reconstruction tracks each segment’s motion. Segments carry
+<code class="docutils literal notranslate"><span class="pre">SEG</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -594,7 +610,27 @@ encode, acquired ahead of the rest when undersampled.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Repetitions each catalyst plays without acquiring after the half
 flip. <code class="docutils literal notranslate"><span class="pre">None</span></code> is as many as bring the balanced steady state within
 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a> at
-<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>).</p></li>
+<code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>). Unused under
+<code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating, whose segments open with their ramp.</p></li>
+<li><p><strong>gating</strong> (<em>{'none'</em><em>, </em><em>'prospective'}</em><em>, </em><em>default='none'</em>) – Free-running acquisition, or segments each waiting for a trigger.</p></li>
+<li><p><strong>trigger_channel</strong> (<em>{'physio1'</em><em>, </em><em>'physio2'}</em><em>, </em><em>default='physio2'</em>) – Physiological signal a segment waits for.</p></li>
+<li><p><strong>trigger_delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Time from a trigger to the segment’s first preparation (s); zero, or
+at least 1 ms.</p></li>
+<li><p><strong>trigger_period</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Nominal interval between triggers (s): the R-R interval, or the
+respiratory period. A segment must fit in it.</p></li>
+<li><p><strong>views_per_segment</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=32</em>) – Views a segment acquires.</p></li>
+<li><p><strong>n_ramp</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=CATALYST_RAMP</em>) – Excitations of a segment’s catalyst ramp, at least one.</p></li>
+<li><p><strong>navigator</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Read an image navigator during the catalyst ramp.</p></li>
+<li><p><strong>t2_prep_te</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Echo time of an adiabatic T2 preparation ahead of each segment (s);
+zero for none.</p></li>
+<li><p><strong>fat_saturation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Saturate fat ahead of each segment.</p></li>
+<li><p><strong>inversion_time</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Time from an adiabatic inversion to the segment’s first imaging
+excitation (s); zero for none.</p></li>
+<li><p><strong>inversion_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Thickness of the inverted slab (m); zero inverts the whole transmit
+volume.</p></li>
+<li><p><strong>inversion_axis</strong> (<em>{'x'</em><em>, </em><em>'y'</em><em>, </em><em>'z'}</em><em>, </em><em>default='x'</em>) – Logical axis the inverted slab is selected along.</p></li>
+<li><p><strong>inversion_offset</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Offset of the inverted slab from the field-of-view centre along
+<code class="docutils literal notranslate"><span class="pre">inversion_axis</span></code> (m).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -608,7 +644,11 @@ its train. The last is the main sequence.</p>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">excitation</span></code> is unknown, a partial Fourier fraction is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, a count is below one, <code class="docutils literal notranslate"><span class="pre">caipi_shift</span></code> is outside
     <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">rz)</span></code>, or the TR is shorter than the repetition, or too short
-    beside the pulse for the half flip.</p>
+    beside the pulse for the half flip; if <code class="docutils literal notranslate"><span class="pre">gating</span></code>,
+    <code class="docutils literal notranslate"><span class="pre">trigger_channel</span></code> or <code class="docutils literal notranslate"><span class="pre">inversion_axis</span></code> is unknown, a prospective
+    scan has more than one phase cycle, a trigger delay below 1 ms, an
+    inversion time shorter than what follows the inversion, or a segment
+    longer than <code class="docutils literal notranslate"><span class="pre">trigger_period</span></code>.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -618,6 +658,17 @@ its train. The last is the main sequence.</p>
 <span class="go">['bssfp_3d_catalyst', 'bssfp_3d']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">all</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">)</span>
 <span class="go">True</span>
+</pre></div>
+</div>
+<p>A whole-heart coronary MRA: ECG-triggered segments with a T2
+preparation, fat saturation and an image navigator:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">coronary</span><span class="p">]</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">bssfp3D_sequence</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">n_x</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">gating</span><span class="o">=</span><span class="s2">"prospective"</span><span class="p">,</span> <span class="n">trigger_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">t2_prep_te</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">fat_saturation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">navigator</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">views_per_segment</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coronary</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="s2">"NumSegments"</span><span class="p">)</span>
+<span class="go">[6.0]</span>
 </pre></div>
 </div>
 </dd></dl>

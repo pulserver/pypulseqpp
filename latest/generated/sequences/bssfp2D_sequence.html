@@ -555,17 +555,33 @@ a steady state does not survive interleaving.</p>
 row, the steady state carried from one frame into the next with no
 dummies between them, the frame counted in <code class="docutils literal notranslate"><span class="pre">PHS</span></code>. With gating, the
 phase-encode lines are played <code class="docutils literal notranslate"><span class="pre">views_per_segment</span></code> at a time. Under
-<code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled as many times as a full
-segment fits in a heartbeat, the same number for every segment, so each
-cycle samples every line; the interpreter’s ECG log bins them into cardiac
-phases. Under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating each slice’s first excitation waits
-for one trigger event on <code class="docutils literal notranslate"><span class="pre">TRIGGER_CHANNEL</span></code>, and the slice then runs free
+<code class="docutils literal notranslate"><span class="pre">retrospective</span></code> gating each segment is cycled for
+<code class="docutils literal notranslate"><span class="pre">RETROSPECTIVE_WINDOW</span></code> nominal heartbeats, the same number of cycles
+for every segment, so each line spans a whole beat even when it runs
+longer than the nominal one; the interpreter’s ECG log bins the cycles
+into cardiac phases. Under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating each slice’s first excitation waits
+for one trigger event on <code class="docutils literal notranslate"><span class="pre">trigger_channel</span></code>, and the slice then runs free
 at the nominal heart rate: every heartbeat plays its segment once per
 cardiac phase, and repetitions that do not acquire fill the rest of it
 and the trigger delay (<code class="xref py py-func docutils literal notranslate"><span class="pre">prospective_starts()</span></code>), so the steady state
 is kept from one heartbeat into the next and a heart rate away from the
-nominal one drifts against the phases. A slice held in one heartbeat is
-a triggered single shot. A gated slice’s blocks join on the slice axis
+nominal one drifts against the phases. With a <code class="docutils literal notranslate"><span class="pre">trigger_window</span></code>, every
+heartbeat instead waits for a trigger of its own and opens with the
+catalyst ramp and dummies again (<code class="xref py py-func docutils literal notranslate"><span class="pre">triggered_starts()</span></code>), the
+acquisition held within the heartbeat less the window, so a heartbeat
+shorter than the nominal one by up to the window still finds its next
+trigger and the phases stay locked to the trigger at any heart rate; a
+respiratory trigger is used this way, one segment per breath. A slice
+held in one heartbeat is a triggered single shot. Under <code class="docutils literal notranslate"><span class="pre">golden</span></code>
+ordering, a free-running series visits every line of the full grid once
+a frame in the order of <code class="xref py py-func docutils literal notranslate"><span class="pre">golden_order()</span></code>, so any window of
+consecutive readouts is an undersampled frame with no calibration lines,
+for a real-time reconstruction or a binning by a recorded physiological
+signal. Under <code class="docutils literal notranslate"><span class="pre">interleaved</span></code> ordering, the real-time cine of the
+scanner, a free-running series acquires the central <code class="docutils literal notranslate"><span class="pre">phase_resolution</span></code>
+of the lines, frame <code class="docutils literal notranslate"><span class="pre">f</span></code> every <code class="docutils literal notranslate"><span class="pre">ry</span></code>-th of them from the <code class="docutils literal notranslate"><span class="pre">f</span> <span class="pre">mod</span> <span class="pre">ry</span></code>-th,
+so <code class="docutils literal notranslate"><span class="pre">ry</span></code> consecutive frames sample each line once and a reconstruction
+unfolds each frame by the coil sensitivities those frames calibrate. A gated slice’s blocks join on the slice axis
 (<code class="docutils literal notranslate"><span class="pre">bridge</span></code>), so the gated train has no rest in it and its timing against
 the heartbeat is the designed one. Without gating, every repetition
 opens from rest and closes to it, so a scanner that prepares a segment
@@ -620,6 +636,19 @@ without gating.</p></li>
 <li><p><strong>trigger_delay</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Time from a slice’s prospective trigger to its first excitation’s
 place in its first heartbeat, played as repetitions that do not
 acquire, to the nearest repetition (s).</p></li>
+<li><p><strong>trigger_window</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.0</em>) – Time at the end of each nominal heartbeat left free for the next
+trigger under <code class="docutils literal notranslate"><span class="pre">prospective</span></code> gating (s). Zero triggers each slice
+once; more triggers every heartbeat.</p></li>
+<li><p><strong>trigger_channel</strong> (<em>{'physio1'</em><em>, </em><em>'physio2'}</em><em>, </em><em>default='physio1'</em>) – Physiological signal a prospective trigger waits for.</p></li>
+<li><p><strong>ordering</strong> (<em>{'sequential'</em><em>, </em><em>'golden'}</em><em>, </em><em>default='sequential'</em>) – Phase-encode order of a free-running series: the lines in k-space
+order, calibration first, once a frame; or every line of the grid in
+the order of <code class="xref py py-func docutils literal notranslate"><span class="pre">golden_order()</span></code>, <code class="docutils literal notranslate"><span class="pre">ry</span></code> and <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> then
+unused; or the central <code class="docutils literal notranslate"><span class="pre">phase_resolution</span></code> of the lines, every
+<code class="docutils literal notranslate"><span class="pre">ry</span></code>-th of them a frame, interleaved across <code class="docutils literal notranslate"><span class="pre">ry</span></code> frames,
+<code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> then unused. Unused with gating.</p></li>
+<li><p><strong>phase_resolution</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Fraction of the phase-encode lines, about the centre, an
+<code class="docutils literal notranslate"><span class="pre">interleaved</span></code> series acquires; the rest of k-space is left
+empty. Unused with other orderings.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -630,7 +659,8 @@ each slice’s dummies and frames, in play order, slice by slice.</p>
 <dd class="field-odd"><p><a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a> or <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">gating</span></code> is unknown, <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">gating</span></code> or <code class="docutils literal notranslate"><span class="pre">ordering</span></code> is unknown, <code class="docutils literal notranslate"><span class="pre">trigger_window</span></code> is
+    negative or not shorter than the heartbeat, <code class="docutils literal notranslate"><span class="pre">partial_fourier_y</span></code> is outside
     <code class="docutils literal notranslate"><span class="pre">[0.75,</span> <span class="pre">1]</span></code>, a count is below one, a prospective heartbeat cannot
     hold its phases, or the TR is shorter than the balanced repetition.</p>
 </dd>

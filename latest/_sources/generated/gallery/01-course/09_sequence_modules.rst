@@ -144,7 +144,7 @@ the excitation, the echo for the readout.
 
  .. code-block:: none
 
-    inversion  events gz_spoil, rf_prep                             2 blocks, 10.98 ms, center at  5.10 ms
+    inversion  events designed, gz_spoil, rf_prep                   2 blocks, 10.98 ms, center at  5.10 ms
     excitation events gz, rf                                        1 blocks,  1.28 ms, center at  0.60 ms
     readout    events adc, gx, gy, gz, gz_enc, gz_spoil, rf         3 blocks,  5.68 ms, center at  2.48 ms
 
@@ -406,7 +406,7 @@ What this lesson built, stated the way you would ask an agent for it:
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.143 seconds)
+   **Total running time of the script:** (0 minutes 0.230 seconds)
 
 
 .. _sphx_glr_download_generated_gallery_01-course_09_sequence_modules.py:

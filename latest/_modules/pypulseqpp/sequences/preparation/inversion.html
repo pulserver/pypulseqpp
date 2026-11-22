@@ -458,7 +458,7 @@
 <div class="viewcode-block" id="InversionPreparation">
 <a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.InversionPreparation.html#pypulseqpp.sequences.InversionPreparation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InversionPreparation</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Non-selective adiabatic inversion, followed by an optional crusher.</span>
+<span class="w">    </span><span class="sd">"""Adiabatic inversion, non-selective or of a slab, followed by an optional crusher.</span>
 
 <span class="sd">    The module contains no inversion-time delay; the caller adds it. A pulse</span>
 <span class="sd">    whose peak exceeds :data:`~pypulseqpp.MAX_B1_DERATE` of</span>
@@ -494,6 +494,14 @@
 <span class="sd">    labels : sequence of str, default=None</span>
 <span class="sd">        Labels the inversion block sets to 0, to be changed per shot by the</span>
 <span class="sd">        caller.</span>
+<span class="sd">    thickness_m : float, default=0.0</span>
+<span class="sd">        Thickness of the inverted slab (m), selected by a gradient under the</span>
+<span class="sd">        pulse; zero inverts the whole transmit volume.</span>
+<span class="sd">    selection_axis : {'z', 'x', 'y'}, default='z'</span>
+<span class="sd">        Logical axis the slab is selected along.</span>
+<span class="sd">    offset_m : float, default=0.0</span>
+<span class="sd">        Offset of the slab centre from the field-of-view centre along</span>
+<span class="sd">        ``selection_axis`` (m).</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -507,6 +515,8 @@
 <span class="sd">        under the system's peak B1.</span>
 <span class="sd">    gz_spoil : GradEvent</span>
 <span class="sd">        The crusher, when ``spoiling_cycles`` is nonzero.</span>
+<span class="sd">    g_select : GradEvent</span>
+<span class="sd">        The slab-selection gradient, when ``thickness_m`` is nonzero.</span>
 <span class="sd">    prep_labels : LabelSetEvent or list of LabelSetEvent</span>
 <span class="sd">        One per name in ``labels``, in order. Absent when ``labels`` is</span>
 <span class="sd">        empty, and a bare event rather than a list when there is one.</span>
@@ -514,9 +524,9 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``voxel_size_m`` is not positive, ``spoiling_cycles`` is negative,</span>
-<span class="sd">        ``axis`` is not a gradient channel, or the pulse cannot fit the</span>
-<span class="sd">        system's peak B1.</span>
+<span class="sd">        If ``voxel_size_m`` is not positive, ``spoiling_cycles`` or</span>
+<span class="sd">        ``thickness_m`` is negative, ``axis`` or ``selection_axis`` is not a</span>
+<span class="sd">        gradient channel, or the pulse cannot fit the system's peak B1.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -528,6 +538,14 @@
 
 <span class="sd">    &gt;&gt;&gt; len(design.InversionPreparation(pp.Opts(), spoiling_cycles=0).blocks)</span>
 <span class="sd">    1</span>
+
+<span class="sd">    A 10 cm slab along x, 5 cm off centre:</span>
+
+<span class="sd">    &gt;&gt;&gt; slab = design.InversionPreparation(</span>
+<span class="sd">    ...     pp.Opts(), thickness_m=0.1, selection_axis="x", offset_m=0.05</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; slab.g_select.channel</span>
+<span class="sd">    'x'</span>
 
 <span class="sd">    Under an 11.2 uT limit the 13.2 uT pulse is lengthened, at the same</span>
 <span class="sd">    adiabaticity, to peak below 0.9 of it:</span>
@@ -564,7 +582,16 @@
         <span class="n">bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">40e3</span><span class="p">,</span>
         <span class="n">adiabaticity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
         <span class="n">labels</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">thickness_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">selection_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"z"</span><span class="p">,</span>
+        <span class="n">offset_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">thickness_m</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"thickness_m must be &gt;= 0, got </span><span class="si">{</span><span class="n">thickness_m</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">selection_axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AXES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"selection_axis must be one of </span><span class="si">{</span><span class="n">_AXES</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">selection_axis</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_size_m must be positive"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">spoiling_cycles</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -580,12 +607,22 @@
                 <span class="n">adiabaticity</span><span class="o">=</span><span class="n">margin</span><span class="p">,</span>
                 <span class="n">use</span><span class="o">=</span><span class="s2">"inversion"</span><span class="p">,</span>
                 <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+                <span class="n">slice_thickness</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span>
+                <span class="n">return_gz</span><span class="o">=</span><span class="n">thickness_m</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">held_sweep</span><span class="p">(</span><span class="n">pulse_type</span><span class="p">,</span> <span class="n">duration</span> <span class="o">/</span> <span class="n">duration_s</span><span class="p">),</span>
             <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adiabaticity</span><span class="p">,</span> <span class="n">rf_prep</span> <span class="o">=</span> <span class="n">adiabatic_fitted</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adiabaticity</span><span class="p">,</span> <span class="n">designed</span> <span class="o">=</span> <span class="n">adiabatic_fitted</span><span class="p">(</span>
             <span class="n">system</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">,</span> <span class="n">adiabaticity</span><span class="p">,</span> <span class="n">make</span>
         <span class="p">)</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">thickness_m</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rf_prep</span><span class="p">,</span> <span class="n">g_select</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">designed</span>
+            <span class="n">g_select</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">selection_axis</span>
+            <span class="n">rf_prep</span><span class="o">.</span><span class="n">freq_offset</span> <span class="o">=</span> <span class="n">g_select</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">*</span> <span class="n">offset_m</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="p">[</span><span class="n">g_select</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rf_prep</span> <span class="o">=</span> <span class="n">designed</span>
         <span class="c1"># A slot per label, so the loop has somewhere to put one. An iteration</span>
         <span class="c1"># can leave it out or say something different with it, but it cannot</span>
         <span class="c1"># add a slot the module never built.</span>
@@ -594,7 +631,7 @@
         <span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">,</span> <span class="o">*</span><span class="n">prep_labels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">,</span> <span class="o">*</span><span class="n">selection</span><span class="p">,</span> <span class="o">*</span><span class="n">prep_labels</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">spoiling_cycles</span><span class="p">:</span>
             <span class="n">gz_spoil</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_crusher</span><span class="p">(</span>
                 <span class="n">spoiling_cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
