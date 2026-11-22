@@ -617,6 +617,25 @@ def test_ssfse_refocusing_amplitudes_follow_the_prescribed_angles(modulation):
     np.testing.assert_allclose(peaks / peaks.max(), flips / flips.max(), rtol=1e-6)
 
 
+#: A single-shot prescription long enough for a Busse train.
+BUSSE_SSFSE = {"n_y": 96, "n_slices": 1, "n_acs_y": 8, "partial_fourier_y": 0.75}
+
+
+@pytest.mark.parametrize("effective_te", [0.035, 0.045])
+def test_a_busse_ssfse_reaches_the_effective_echo_time_asked_for(effective_te):
+    seq = ssfse_built(**BUSSE_SSFSE, flip_modulation="busse", effective_te=effective_te)
+    assert definition(seq, "EffectiveEchoTime") == pytest.approx(
+        effective_te, abs=0.5e-3
+    )
+    flips = np.asarray(seq.definitions["RefocusingFlipAngles"], dtype=float)
+    assert flips[0] == pytest.approx(150.0) and flips[-1] == pytest.approx(150.0)
+
+
+def test_a_busse_ssfse_names_the_effective_echo_times_it_can_reach():
+    with pytest.raises(ValueError, match="reaches effective echo times of"):
+        ssfse_built(**BUSSE_SSFSE, flip_modulation="busse", effective_te=0.5)
+
+
 def test_ssfse_inversion_precedes_each_excitation_by_the_inversion_time():
     ti = 0.8
     seq = ssfse_built(ti=ti)
