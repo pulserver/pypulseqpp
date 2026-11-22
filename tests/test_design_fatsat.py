@@ -243,7 +243,7 @@ def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
         if (rf := seq.get_block(i).rf) is not None and rf.use == "saturation"
     )
 
-    ((delay, period, flip),) = asked
+    delay, period, flip = asked[0]
     assert 0 < delay < period
     assert 90.0 < flip < 180.0
     expected = design.FatSaturation(seq.system, flip_angle_deg=flip).rf_prep
@@ -272,3 +272,62 @@ def test_a_cycle_without_saturation_or_with_a_pulse_outside_it_is_refused(
 ):
     with pytest.raises(ValueError):
         design.fat_null_flip_deg_cycle(0.3, saturations, inversions_s=inversions)
+
+
+@pytest.mark.parametrize("calibration", ["fleet", "gre"])
+def test_every_epi_calibration_excitation_follows_a_fat_saturation_when_the_imaging_saturates_fat(
+    calibration,
+):
+    calibration_seq, *_ = design.epi2D_sequence(
+        n_x=32,
+        n_y=32,
+        ry=2,
+        n_dummy=0,
+        fat_saturation=True,
+        field_pair=False,
+        full_k_reference=False,
+        calibration=calibration,
+    )
+    uses = [
+        rf.use
+        for i in calibration_seq.block_events
+        if (rf := calibration_seq.get_block(i).rf) is not None
+    ]
+    excitations = [i for i, use in enumerate(uses) if use != "saturation"]
+    assert excitations
+    assert all(i > 0 and uses[i - 1] == "saturation" for i in excitations)
+
+
+def test_the_epi_calibration_saturation_nulls_fat_at_the_calibration_excitation(
+    monkeypatch,
+):
+    asked = []
+    null_flip = design.fat_null_flip_deg
+
+    def recorded(delay, period, **kwargs):
+        asked.append((delay, period))
+        return null_flip(delay, period, **kwargs)
+
+    monkeypatch.setattr(design, "fat_null_flip_deg", recorded)
+    calibration_seq, *_ = design.epi2D_sequence(
+        n_x=32,
+        n_y=32,
+        ry=2,
+        n_dummy=0,
+        fat_saturation=True,
+        field_pair=False,
+        calibration="gre",
+    )
+    imaging_period = asked[0][1]
+    calibration_periods = [period for _, period in asked[1:]]
+    first_two = [
+        i
+        for i in calibration_seq.block_events
+        if (rf := calibration_seq.get_block(i).rf) is not None
+        and rf.use == "saturation"
+    ][:2]
+    played_period = sum(
+        calibration_seq.block_durations[i] for i in range(first_two[0], first_two[1])
+    )
+    assert played_period in [pytest.approx(p) for p in calibration_periods]
+    assert played_period != pytest.approx(imaging_period)
