@@ -779,6 +779,21 @@ def test_an_undersampled_2d_scan_calibrates_each_slice_with_fleet_shots_in_both_
     assert set(ref) == {1}
 
 
+def test_a_fleet_calibration_without_its_reversed_polarity_reads_each_line_once_forward():
+    both = scan2d(n_slices=3, ry=2, n_acs_y=4).prescan("calibration")
+    forward = scan2d(n_slices=3, ry=2, n_acs_y=4, fleet_reversed=False).prescan(
+        "calibration"
+    )
+    lin, slc, polarity, nav = labels(forward, "LIN", "SLC", "SET", "NAV")
+    read = nav == 0
+
+    assert set(polarity[read]) == {0}
+    assert [(s, line) for s, line in zip(slc[read], lin[read], strict=True)] == [
+        (s, line) for s in (0, 2, 1) for g in (0, 1) for line in (6 + g, 8 + g)
+    ]
+    assert forward.duration()[0] < 0.7 * both.duration()[0]
+
+
 def test_an_undersampled_3d_scan_calibrates_over_the_central_rectangle():
     scan = scan3d(ry=2, n_acs_y=4, n_acs_z=2, calibration="gre")
     lin, par, ref = labels(scan.prescan("calibration"), "LIN", "PAR", "REF")

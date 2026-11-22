@@ -393,6 +393,7 @@ def epi2d(
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
     calibration: str = "fleet",
+    fleet_reversed: bool = True,
     volume_output: bool = False,
     phase_reference: bool = False,
     navigator_lines: int | None = None,
@@ -513,6 +514,11 @@ def epi2d(
         The calibration: FLEET,
         segmented EPI at the imaging train's echo spacing, or a gradient echo
         per line.
+    fleet_reversed : bool, default=True
+        Read the FLEET calibration with the phase encode reversed as well
+        (``SET = 1``), for the field the two polarities give. ``False``
+        reads the forward polarity alone, in about half the time, for a scan
+        whose distortion field comes from elsewhere.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
         excitation of every volume, dummy volumes included.
@@ -612,6 +618,7 @@ def epi2d(
         "readout_oversampling": readout_oversampling,
         "n_acs_y": n_acs_y,
         "calibration": calibration,
+        "fleet_reversed": fleet_reversed,
         "volume_output": volume_output,
         "phase_reference": phase_reference,
         "navigator_lines": navigator_lines,
@@ -674,6 +681,7 @@ def _designed(
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
     calibration: str = "fleet",
+    fleet_reversed: bool = True,
     volume_output: bool = False,
     phase_reference: bool = False,
     navigator_lines: int | None = None,
@@ -1145,7 +1153,7 @@ def _designed(
                     reference=reference,
                     prep=prep,
                 )
-            for polarity in (0, 1):
+            for polarity in (0, 1) if fleet_reversed else (0,):
                 for shot, origin in enumerate(starts):
                     flags = labels(
                         REF=1,
