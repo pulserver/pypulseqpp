@@ -277,6 +277,7 @@ def epi3d(
     phase_reference: bool = False,
     navigator_lines: int | None = None,
     field_pair: bool = True,
+    field_pair_tr: float | None = None,
     full_k_reference: bool = True,
 ) -> list[pp.Sequence]:
     """3D gradient-echo EPI: one train per ``(shot, shell)``, skipped-CAIPI sampled.
@@ -397,6 +398,9 @@ def epi3d(
         along the phase encode, as the scan is, and differ in nothing else,
         and the reconstruction estimates the displacement field of the scan
         from them.
+    field_pair_tr : float or None, default=None
+        Repetition time (s) of the field pair; ``None`` plays it at its
+        shortest. A longer TR lets its refocusing pulses fit a SAR limit.
     full_k_reference : bool, default=True
         Play one fully sampled volume at the echo time of a partial-Fourier
         scan, labelled ``SET = 4``, from whose phase the reconstruction
@@ -460,9 +464,9 @@ def epi3d(
         "phase_reference": phase_reference,
         "navigator_lines": navigator_lines,
     }
-    pair = _field_pair(system, protocol) if field_pair else []
     if not (full_k_reference and min(partial_fourier_y, partial_fourier_z) < 1.0):
         *prescans, seq = _designed(system, **protocol, encode_sets=(0, 1))
+        pair = _field_pair(system, protocol, field_pair_tr) if field_pair else []
         return [*prescans, *pair, seq]
     try:
         *_, reference = _designed(
@@ -486,11 +490,14 @@ def epi3d(
         **{**protocol, "te": reference.definitions["TE"][0]},
         encode_sets=(0, 1),
     )
+    pair = _field_pair(system, protocol, field_pair_tr) if field_pair else []
     return [*prescans, *pair, reference, seq]
 
 
-def _field_pair(system: pp.Opts | None, protocol: dict) -> list[pp.Sequence]:
-    """Design the spin-echo field pair of :func:`epi3d`: 2D spin-echo EPI over the slab's partitions, forward then reversed."""
+def _field_pair(
+    system: pp.Opts | None, protocol: dict, tr: float | None
+) -> list[pp.Sequence]:
+    """Design the spin-echo field pair of :func:`epi3d`: 2D spin-echo EPI over the slab's partitions at ``tr``, forward then reversed."""
     chain = sequences.epi2D_sequence(
         system,
         fov_x=protocol["fov_x"],
@@ -510,6 +517,7 @@ def _field_pair(system: pp.Opts | None, protocol: dict) -> list[pp.Sequence]:
         calibration="gre",
         spin_echo=True,
         field_pair=True,
+        field_pair_tr=tr,
     )
     pair = []
     for half in ("forward", "reversed"):

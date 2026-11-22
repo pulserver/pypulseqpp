@@ -404,6 +404,7 @@ def epi2d(
     b_value: float = 1.0e9,
     diffusion_b0: int = 1,
     field_pair: bool = True,
+    field_pair_tr: float | None = None,
     full_k_reference: bool = True,
 ) -> list[pp.Sequence]:
     """Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.
@@ -542,6 +543,10 @@ def epi2d(
         nothing else, as a gradient-echo pair does not at a long echo time,
         and the reconstruction estimates the displacement field of the scan
         from them. The pair is played single-band.
+    field_pair_tr : float or None, default=None
+        Repetition time (s) of the field pair; ``None`` plays it at its
+        shortest. A TR longer than the scan's lets its refocusing pulses fit
+        a SAR limit the scan meets.
     full_k_reference : bool, default=True
         Play one fully sampled volume at the echo time of a partial-Fourier
         gradient-echo scan, labelled ``SET = 4``, from whose phase the
@@ -609,6 +614,7 @@ def epi2d(
         "b_value": b_value,
         "diffusion_b0": diffusion_b0,
         "field_pair": field_pair,
+        "field_pair_tr": field_pair_tr,
     }
     if not (full_k_reference and partial_fourier_y < 1.0 and not spin_echo):
         return _designed(system, **protocol, encode_sets=(0, 1))
@@ -669,6 +675,7 @@ def _designed(
     b_value: float = 1.0e9,
     diffusion_b0: int = 1,
     field_pair: bool = False,
+    field_pair_tr: float | None = None,
     encode_sets: tuple[int, int],
 ) -> list[pp.Sequence]:
     """Design :func:`epi2d`, its forward phase encodes labelled ``SET = encode_sets[0]`` and its reversed ones ``SET = encode_sets[1]``."""
@@ -1482,7 +1489,7 @@ def _designed(
             spin_echo=True,
             calibration="gre",
             te=None,
-            tr=None,
+            tr=field_pair_tr,
             n_frames=1,
             diffusion_directions=0,
             volume_output=False,

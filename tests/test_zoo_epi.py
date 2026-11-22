@@ -1229,3 +1229,17 @@ def test_a_spin_echo_at_the_minimum_te_it_reports_is_designed(b_value):
         )
 
     assert longer.echo_time >= shortest.echo_time
+
+
+def test_a_2d_field_pair_at_a_given_tr_repeats_at_that_tr():
+    scan = scan2d(n_slices=2, field_pair=True, field_pair_tr=2.0)
+
+    for half in ("field_forward", "field_reversed"):
+        assert scan.prescan(half).definitions["TR"][0] == pytest.approx(2.0)
+
+
+def test_a_3d_field_pair_at_a_given_tr_repeats_at_that_tr():
+    scan = scan3d(field_pair=True, field_pair_tr=3.0)
+
+    for half in ("field_forward", "field_reversed"):
+        assert scan.prescan(half).definitions["TR"][0] == pytest.approx(3.0)
