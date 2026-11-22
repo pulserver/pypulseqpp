@@ -170,11 +170,12 @@
   "label:PAR": "2e9bcd5b1169017d"
  },
  "fse3D-shuffling": {
-  "label:ECO": "990d6fa9261195d5",
-  "label:IMA": "741f833ccc53e80a",
-  "label:LIN": "8775e1650ab7a667",
-  "label:ONCE": "3aee9865bc33686f",
-  "label:PAR": "c1dd848ec031ce42"
+  "label:ECO": "0da244177dec7e2f",
+  "label:IMA": "4095dcdb04bdd58e",
+  "label:LIN": "f040452d08ee9fc3",
+  "label:ONCE": "4095dcdb04bdd58e",
+  "label:PAR": "ff364d40386ca1aa",
+  "label:REF": "1ab498a243a0d19e"
  },
  "gre2D": {
   "label:IMA": "90b44c0fdcab6576",
@@ -261,11 +262,12 @@
   "label:PAR": "929b3315ea6736ce"
  },
  "mprage3D-shuffling": {
-  "label:ECO": "990d6fa9261195d5",
-  "label:IMA": "741f833ccc53e80a",
-  "label:LIN": "8775e1650ab7a667",
-  "label:ONCE": "3aee9865bc33686f",
-  "label:PAR": "c1dd848ec031ce42"
+  "label:ECO": "0da244177dec7e2f",
+  "label:IMA": "4095dcdb04bdd58e",
+  "label:LIN": "34c04015246a96c2",
+  "label:ONCE": "4095dcdb04bdd58e",
+  "label:PAR": "989bb1c45e558bb7",
+  "label:REF": "1ab498a243a0d19e"
  },
  "mprage_stack_of_spirals3D": {
   "label:IMA": "1e93268a1e1c81f3",
