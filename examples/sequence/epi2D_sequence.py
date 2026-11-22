@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import math
 import sys
 
@@ -339,6 +340,10 @@ ECHO_COUNTER = "USER0"
 #: Dephasing left on the readout axis at the end of each shot, in cycles
 #: across one voxel.
 SPOILING_CYCLES = 4.0
+
+#: Quadratic RF-spoiling increment of the fat saturation (degrees).
+RF_SPOIL_INCREMENT_DEG = 117.0
+
 #: Digital output marking every volume under ``volume_output``, and how
 #: long it lasts (s); it never outlasts the excitation block it rides.
 OUTPUT_CHANNEL = "ext1"
@@ -981,6 +986,20 @@ def _designed(
             labels=("LIN",),
         )
 
+    saturations = itertools.count()
+
+    def spoil_saturation(module) -> None:
+        """Advance the RF-spoiling phase of a fat saturation before it plays.
+
+        Identical saturations with identical spoilers every shot refocus their
+        own stimulated echoes, which carry fat into the image; the quadratic
+        phase keeps those pathways incoherent.
+        """
+        pulse = getattr(module, "rf_prep", None)
+        if pulse is not None:
+            n = next(saturations)
+            pulse.phase_offset = math.radians(RF_SPOIL_INCREMENT_DEG * n * (n + 1) / 2)
+
     def calibration_prep(probe) -> tuple[list, float]:
         """Return the fat saturation of a calibration shot and the wait (s) that closes the shot.
 
@@ -1045,6 +1064,7 @@ def _designed(
         gre.adc_labels.value = line
         ky = (line - n_y // 2) / (n_y / 2)
         for module in prep:
+            spoil_saturation(module)
             for block in module.blocks:
                 seq.add_block(*block)
         seq.add_block(gre.rf, gre.gz, *labels(REF=1, SLC=s))
@@ -1297,6 +1317,7 @@ def _designed(
 
         label_events = list(first_events)
         for module in prep:
+            spoil_saturation(module)
             for block in module.blocks:
                 seq.add_block(*block, *label_events)
                 label_events = []

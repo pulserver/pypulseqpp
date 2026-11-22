@@ -271,6 +271,23 @@ def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
     )
 
 
+def test_consecutive_2d_epi_fat_saturations_step_their_phase_quadratically():
+    """Equal saturations and spoilers every shot would refocus stimulated echoes of fat."""
+    *_, seq = design.epi2D_sequence(
+        n_x=32, n_y=16, n_dummy=0, n_slices=6, fat_saturation=True, field_pair=False
+    )
+    phases = [
+        float(rf.phase_offset)
+        for i in seq.block_events
+        if (rf := seq.get_block(i).rf) is not None and rf.use == "saturation"
+    ]
+    assert len(phases) > 3
+    steps = np.diff(np.unwrap(phases))
+    np.testing.assert_allclose(
+        np.mod(np.diff(steps), 2 * np.pi), np.deg2rad(117.0), atol=1e-6
+    )
+
+
 @pytest.mark.parametrize("calibration", ["fleet", "gre"])
 def test_every_epi_calibration_excitation_follows_a_fat_saturation_when_the_imaging_saturates_fat(
     calibration,
