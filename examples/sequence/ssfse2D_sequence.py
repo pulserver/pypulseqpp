@@ -173,6 +173,7 @@ def ssfse2d(
     inversion_slab: float = 2.0,
     tr: float | None = None,
     n_dummy: int = 0,
+    packed: bool = True,
 ) -> pp.Sequence:
     """Multi-slice 2D single-shot fast spin echo: one CPMG train reads one slice.
 
@@ -247,6 +248,10 @@ def ssfse2d(
         Passes over every slice played without acquiring before the acquired
         pass. A single shot reads each slice from equilibrium, so none are
         needed unless the shots repeat.
+    packed : bool, default=True
+        Play the read and phase-encode lobes of each echo partly under the
+        crushers of the next refocusing pulse, which shortens the echo
+        spacing and with it the T2 decay across the train.
 
     Returns
     -------
@@ -329,6 +334,7 @@ def ssfse2d(
             oversampling=readout_oversampling,
             readout_bandwidth_hz=readout_bandwidth_hz,
             voxel_size_m=slice_thickness,
+            packed=packed,
         )
 
     # The train's angles depend on its echo spacing, and the spacing on the
@@ -418,13 +424,21 @@ def ssfse2d(
         once = list(labels(ONCE=int(not acquire))) if n_dummy else []
         place(exc.rf, exc.selection_amplitude, position)
         place(ref.rf_ref, ref.selection_amplitude, position, ref_phase)
-        seq.add_block(exc.rf, exc.gz, *once)
-        seq.add_block(fse.gx_pre, exc.gz_reph)
-        for line, flip in zip(lines, flips, strict=True):
+        if packed:
+            fse.layout.excitation(seq, once)
+        else:
+            seq.add_block(exc.rf, exc.gz, *once)
+            seq.add_block(fse.gx_pre, exc.gz_reph)
+        previous = 0.0
+        for echo, (line, flip) in enumerate(zip(lines, flips, strict=True)):
             ky = (line - n_y // 2) / (n_y / 2)
             ref.rf_ref.amplitude = nominal * float(flip) / designed_deg
-            seq.add_block(ref.rf_ref, ref.gz)
-            seq.add_block(fse.gx_bridge_pre, pp.scale_grad(fse.gy_pre, ky))
+            if packed:
+                fse.layout.refocusing(seq, echo == 0, previous, 0.0)
+                fse.layout.encoding(seq, ky, 0.0)
+            else:
+                seq.add_block(ref.rf_ref, ref.gz)
+                seq.add_block(fse.gx_bridge_pre, pp.scale_grad(fse.gy_pre, ky))
             if acquire:
                 seq.add_block(
                     fse.gx,
@@ -433,7 +447,11 @@ def ssfse2d(
                 )
             else:
                 seq.add_block(fse.gx)
-            seq.add_block(fse.gx_bridge_post, pp.scale_grad(fse.gy_rew, ky))
+            if packed:
+                fse.layout.rewinding(seq, ky, 0.0, echo == etl - 1)
+            else:
+                seq.add_block(fse.gx_bridge_post, pp.scale_grad(fse.gy_rew, ky))
+            previous = ky
         ref.rf_ref.amplitude = nominal
         seq.add_block(pp.make_delay(closing))
 

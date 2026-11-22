@@ -33,8 +33,9 @@ class _FseReadout(SequenceModule):
     amplitude are templates that the caller may scale per echo; the sampling
     order sets the effective TE.
 
-    A 2D train spaces its echoes uniformly from the excitation onward. A 3D
-    train is packed: the read prephaser shares the excitation block, and the
+    A 2D train spaces its echoes uniformly from the excitation onward, unless
+    it is packed (``packed=True``). A 3D train is always packed: the read
+    prephaser shares the excitation block, and the
     tail of the prephaser and of each echo's rewinders plays in the next
     refocusing pulse's dead time, beyond its ringdown, so every refocusing
     block opens on the gradient of the block before it and the echo spacing
@@ -98,8 +99,8 @@ class _FseReadout(SequenceModule):
         Labels set to 0 on the acquisition block, to be changed per shot by the
         caller.
     trigger : TriggerEvent or DigitalOutputEvent, default=None
-        Event armed on the prephaser block. 2D only: a 3D train's prephaser
-        shares the excitation block.
+        Event armed on the prephaser block. Unpacked 2D only: a packed
+        train's prephaser shares the excitation block.
     wave : {'phase', 'partition', 'both'}, default=None
         Wave-CAIPI encoding under every readout plateau: a sine on y, a cosine
         on z, or both. 3D only, unless ``wave_cycles`` or ``wave_amplitude`` is
@@ -110,6 +111,12 @@ class _FseReadout(SequenceModule):
         Upper bound of the wave gradient amplitude (T/m, not Hz/m); the slew
         rate may lower it. The module's ``wave_amplitude`` attribute is the
         amplitude built.
+    packed : bool, default=None
+        Play the end of each echo's read and phase-encode rewinders in the
+        dead time of the next refocusing pulse, under its crushers, which
+        shortens the echo spacing by twice that dead time. A packed train
+        takes a slab excitation (``is_slab=True``) that carries its own
+        rephaser. ``None`` packs a 3D train only.
 
 
     Attributes
@@ -154,10 +161,11 @@ class _FseReadout(SequenceModule):
     esp : float
         Echo spacing (s).
     esp_first : float
-        Initial echo interval (s): ``esp`` in 2D, and in 3D wherever the
-        excitation and the read prephaser fit in half an echo spacing.
+        Initial echo interval (s): ``esp`` in an unpacked train, and in a
+        packed one wherever the excitation and the read prephaser fit in half
+        an echo spacing.
     layout : RfOverlapLayout
-        The packed train's events, 3D only, each echo's played through
+        The packed train's events, each echo's played through
         ``excitation``, ``refocusing``, ``encoding`` and ``rewinding``.
     echo_times : numpy.ndarray
         Echo time of each echo (s) from the RF centre.
@@ -213,20 +221,23 @@ class _FseReadout(SequenceModule):
         wave: str | None = None,
         wave_cycles: int = 8,
         wave_amplitude: float = 8e-3,
+        packed: bool | None = None,
     ) -> None:
         ndim = self._ndim
-        packed = ndim == 3
+        packed = ndim == 3 if packed is None else bool(packed)
+        if ndim == 3 and not packed:
+            raise ValueError("a 3D train is always packed")
         overlap = 0.0
         if packed:
-            if gz_reph is not None:
+            if ndim == 3 and gz_reph is not None:
                 raise ValueError(
-                    "a 3D train's read prephaser shares the excitation block, which "
-                    "leaves no room for a separate rephaser: excite a slab "
+                    "a 3D train's read prephaser shares the excitation block, "
+                    "which leaves no room for a separate rephaser: excite a slab "
                     "(is_slab=True), which carries its own"
                 )
             if trigger is not None:
                 raise ValueError(
-                    "a 3D train has no prephaser block for a trigger: its read "
+                    "a packed train has no prephaser block for a trigger: its read "
                     "prephaser shares the excitation block"
                 )
             # The refocusing pulse's dead time beyond its ringdown, on the
@@ -362,6 +373,41 @@ class _FseReadout(SequenceModule):
 
         gz_reph = left_align_rephaser(gz_reph, ("x",), type(self).__name__)
 
+        if packed and ndim == 2:
+            self._pack_2d(
+                system,
+                SimpleNamespace(
+                    rf=rf,
+                    gz=gz,
+                    gz_reph=gz_reph,
+                    rf_ref=rf_ref,
+                    gz_ref=gz_ref,
+                    gx_pre=gx_pre,
+                    gx_bridge_pre=gx_bridge_pre,
+                    gx_bridge_post=pp.make_extended_trapezoid(
+                        channel="x",
+                        times=post_times,
+                        amplitudes=post_amplitudes,
+                        system=system,
+                    ),
+                ),
+                gx=gx,
+                adc=adc,
+                labels=labels,
+                etl=etl,
+                tr=tr,
+                flat_span=flat_span,
+                echo_offset=echo_offset,
+                encode_resolution=fov[1] / n[1],
+            )
+            self.bandwidth_hz = 1.0 / dwell
+            self.n_samples = n_samples
+            self.center_sample = n_pre
+            self.delta_kx = delta_kx
+            self.readout_duration = readout_duration
+            self.wave_amplitude = wave_peak
+            return
+
         # Timing. Every interval between an RF centre and the echo it belongs
         # to is half a spacing, which is what CPMG means.
         exc_span = _span(system, rf, gz)
@@ -390,7 +436,7 @@ class _FseReadout(SequenceModule):
             # The overlap is carved from the prephaser, which it may take
             # whole, and from the rewinders, which keep a block of their own.
             overlap = max(0.0, min(overlap, lead_floor, post_floor - raster))
-        if packed and gz_ref is not None:
+        if packed and ndim == 3 and gz_ref is not None:
             # A selective pulse holds the partition axis through its block,
             # so the partition rewinder ends before it.
             post_floor = max(
@@ -521,6 +567,66 @@ class _FseReadout(SequenceModule):
         # The wave amplitude actually built, which is the requested one only
         # where the slew rate left room for it.
         self.wave_amplitude = wave_peak
+
+
+def _pack_2d(
+    self,
+    system,
+    templates,
+    *,
+    gx,
+    adc,
+    labels,
+    etl,
+    tr,
+    flat_span,
+    echo_offset,
+    encode_resolution,
+):
+    """Build the module's packed 2D train on :class:`CrusherSplitLayout`."""
+    from ._fse_layout import CrusherSplitLayout
+
+    if templates.gz_ref is None:
+        raise ValueError("a packed 2D train needs the crushers of a selective pulse")
+    layout = CrusherSplitLayout(
+        templates,
+        system,
+        flat_span=flat_span,
+        echo_offset=echo_offset,
+        encode_resolution=encode_resolution,
+    )
+    adc_labels = [
+        pp.make_label(type="SET", label=name, value=0) for name in labels or ()
+    ]
+    self.seq = pp.Sequence(system)
+    layout.excitation(self.seq, [])
+    for echo in range(etl):
+        layout.refocusing(self.seq, echo == 0, 1.0, 0.0)
+        layout.encoding(self.seq, 1.0, 0.0)
+        self.seq.add_block(gx, adc, *adc_labels)
+        layout.rewinding(self.seq, 1.0, 0.0, echo == etl - 1)
+    tr_delay = solve_delay(tr, self.seq.duration()[0], "TR", system)
+    if tr_delay:
+        wait_tr = pp.make_delay(tr_delay)
+        self.seq.add_block(wait_tr)
+        self.register(wait_tr=wait_tr)
+    self.layout = layout
+    self.register(
+        **vars(templates),
+        gx=gx,
+        adc=adc,
+        adc_labels=adc_labels,
+        gy_pre=layout.gy_encode,
+        gy_rew=layout.gy_rewind,
+    )
+    rf_center = float(templates.rf.delay) + float(templates.rf.center)
+    self.center = layout.first_echo
+    self.esp = self.esp_first = layout.esp
+    self.echo_times = layout.first_echo - rf_center + layout.esp * np.arange(etl)
+    self.etl = etl
+
+
+_FseReadout._pack_2d = _pack_2d
 
 
 def _span(system: pp.Opts, *events: Any) -> float:

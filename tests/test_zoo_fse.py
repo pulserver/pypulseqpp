@@ -621,7 +621,7 @@ def test_ssfse_refocusing_amplitudes_follow_the_prescribed_angles(modulation):
 BUSSE_SSFSE = {"n_y": 96, "n_slices": 1, "n_acs_y": 8, "partial_fourier_y": 0.75}
 
 
-@pytest.mark.parametrize("effective_te", [0.035, 0.045])
+@pytest.mark.parametrize("effective_te", [0.025, 0.033])
 def test_a_busse_ssfse_reaches_the_effective_echo_time_asked_for(effective_te):
     seq = ssfse_built(**BUSSE_SSFSE, flip_modulation="busse", effective_te=effective_te)
     assert definition(seq, "EffectiveEchoTime") == pytest.approx(

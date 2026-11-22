@@ -318,3 +318,63 @@ def test_the_shipped_3d_fse_is_designed_at_every_slew_rate():
             crusher_cycles=0.5,
         )
         assert seq.check_timing()[0], slew
+
+
+def train_2d(system, packed, etl=4):
+    excitation = sequences.SpatialSelectiveExcitation(
+        system, 90.0, 4e-3, duration_s=1e-3, time_bw_product=2.0
+    )
+    refocusing = sequences.SpatialSelectiveRefocusing(
+        system,
+        4e-3,
+        140.0,
+        duration_s=1e-3,
+        voxel_size_m=4e-3,
+        spoiling_cycles=2.0,
+        time_bw_product=2.0,
+    )
+    return sequences.FseReadout2D(
+        system,
+        excitation.rf,
+        excitation.gz,
+        excitation.gz_reph,
+        rf_ref=refocusing.rf_ref,
+        gz_ref=refocusing.gz,
+        fov=(0.24, 0.18),
+        matrix=(240, 180),
+        etl=etl,
+        packed=packed,
+    )
+
+
+def test_a_packed_2d_train_has_a_shorter_echo_spacing_than_an_unpacked_one(system):
+    assert train_2d(system, True).esp < train_2d(system, False).esp - 0.5e-3
+
+
+def test_a_packed_2d_train_keeps_every_echo_on_the_line_it_encodes_and_cpmg_timing(
+    system,
+):
+    fse = train_2d(system, True)
+    assert fse.check_timing()[0]
+    k, _, excitation, refocusing, time = fse.calculate_kspace()
+    n = int(fse.n_samples)
+    lines = np.asarray(k)[:2].reshape(2, fse.etl, n)
+    centre = [fse.center_sample - 1, fse.center_sample]
+    np.testing.assert_allclose(lines[0, :, centre].mean(0), 0.0, atol=0.01)
+    np.testing.assert_allclose(lines[1, :, centre].mean(0), 180 / (2 * 0.18), atol=0.01)
+    echoes = np.asarray(time).reshape(fse.etl, n)[:, centre].mean(1)
+    np.testing.assert_allclose(np.diff(echoes), fse.esp, atol=1e-9)
+    previous = np.r_[float(excitation[0]), echoes[:-1]]
+    np.testing.assert_allclose(
+        refocusing, (previous + echoes) / 2, atol=system.block_duration_raster
+    )
+    gradients = fse.seq.rf_gradients()
+    np.testing.assert_allclose(np.asarray(gradients.gradient)[1:, :2], 0.0, atol=0.01)
+
+
+def test_each_phase_encode_of_a_packed_2d_train_is_one_lobe_the_encode_scales(system):
+    fse = train_2d(system, True)
+    for block in fse.blocks:
+        for event in block:
+            if getattr(event, "channel", None) == "y":
+                assert event.type == "trap"
