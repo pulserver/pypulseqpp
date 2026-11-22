@@ -222,7 +222,9 @@ def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
         return asked[-1][2]
 
     monkeypatch.setattr(design, "fat_null_flip_deg", recorded)
-    *_, seq = design.epi2D_sequence(n_x=32, n_y=16, n_dummy=0, fat_saturation=True)
+    *_, seq = design.epi2D_sequence(
+        n_x=32, n_y=16, n_dummy=0, fat_saturation=True, field_pair=False
+    )
     saturation = next(
         rf
         for i in seq.block_events

@@ -360,6 +360,11 @@ CALIBRATIONS = ("fleet", "gre")
 #: first acquiring shot does not read relaxed magnetization.
 FLEET_DUMMY_SHOTS = 1
 
+#: ``SET`` of the forward and of the reversed volume of the spin-echo field
+#: pair, apart from those of the scan and its reversed reference.
+FIELD_PAIR_SETS = (2, 3)
+FULL_K_REFERENCE_SETS = (4, 5)
+
 
 def epi2d(
     system: pp.Opts | None = None,
@@ -394,6 +399,8 @@ def epi2d(
     diffusion_b0: int = 1,
     ti: float | None = None,
     inversion_slab: float = 2.0,
+    field_pair: bool = True,
+    full_k_reference: bool = True,
 ) -> list[pp.Sequence]:
     """Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.
 
@@ -532,12 +539,28 @@ def epi2d(
         have been inverted. ``None`` plays no inversion.
     inversion_slab : float, default=2.0
         Thickness of the inverted slab, in slice thicknesses.
+    field_pair : bool, default=True
+        Play a spin-echo pair before the scan, at the imaging train and the
+        shortest spin echo: one volume with the phase encode forward, labelled
+        ``SET = 2``, and one reversed, labelled ``SET = 3``. The two are displaced
+        in opposite directions by the susceptibility field and differ in
+        nothing else, as a gradient-echo pair does not at a long echo time,
+        and the reconstruction estimates the displacement field of the scan
+        from them. The pair is played single-band.
+    full_k_reference : bool, default=True
+        Play one fully sampled volume at the echo time of a partial-Fourier
+        gradient-echo scan, labelled ``SET = 4``, from whose phase the
+        reconstruction completes the unsampled side of k-space. Without a
+        prescribed ``te``, the scan takes the shortest echo time this volume
+        admits. A spin-echo scan, whose phase is smooth, plays none.
 
     Returns
     -------
     list of pypulseqpp.Sequence
         The designed sequences in play order: the ``calibration``, the
-        ``reference`` after a gradient-echo calibration, then the scan, which is the main sequence. ``sequences.write`` writes them as files linked
+        ``reference`` after a gradient-echo calibration, the forward and the
+        reversed volume of the ``field_pair``, the ``full_k_reference``, then
+        the scan, which is the main sequence. ``sequences.write`` writes them as files linked
         through ``NextSequence``.
 
     Raises
@@ -550,19 +573,117 @@ def epi2d(
         cannot hold one slice, or every slice when ``n_frames`` is above
         one; or if ``ti`` is given with ``multiband`` or ``n_shots`` above
         one, ``inversion_slab`` is not positive, or an inversion ``ti``
-        before an excitation would overlap a shot at the TR.
+        before an excitation would overlap a shot at the TR; or the TE is
+        shorter than the ``full_k_reference`` admits.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
     >>> *prescans, seq = sequences.epi2D_sequence(n_x=32, n_y=16, n_dummy=0)
     >>> [prescan.definitions["Name"] for prescan in prescans]
-    ['epi_2d_calibration']
+    ['epi_2d_calibration', 'epi_2d_field_forward', 'epi_2d_field_reversed']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["EPIFactor"], seq.definitions["Name"]
     ([16.0], 'epi_2d')
     """
+    protocol = {
+        "fov_x": fov_x,
+        "fov_y": fov_y,
+        "n_x": n_x,
+        "n_y": n_y,
+        "n_slices": n_slices,
+        "slice_thickness": slice_thickness,
+        "slice_spacing": slice_spacing,
+        "flip_angle_deg": flip_angle_deg,
+        "te": te,
+        "tr": tr,
+        "n_frames": n_frames,
+        "readout_bandwidth_hz": readout_bandwidth_hz,
+        "ry": ry,
+        "partial_fourier_y": partial_fourier_y,
+        "n_shots": n_shots,
+        "multiband": multiband,
+        "fat_saturation": fat_saturation,
+        "n_dummy": n_dummy,
+        "readout_oversampling": readout_oversampling,
+        "n_acs_y": n_acs_y,
+        "calibration": calibration,
+        "volume_output": volume_output,
+        "phase_reference": phase_reference,
+        "navigator_lines": navigator_lines,
+        "spin_echo": spin_echo,
+        "diffusion_directions": diffusion_directions,
+        "b_value": b_value,
+        "diffusion_b0": diffusion_b0,
+        "field_pair": field_pair,
+        "ti": ti,
+        "inversion_slab": inversion_slab,
+    }
+    if not (full_k_reference and partial_fourier_y < 1.0 and not spin_echo):
+        return _designed(system, **protocol, encode_sets=(0, 1))
+    try:
+        *_, reference = _designed(
+            system,
+            **{
+                **protocol,
+                "partial_fourier_y": 1.0,
+                "n_frames": 1,
+                "volume_output": False,
+                "field_pair": False,
+            },
+            encode_sets=FULL_K_REFERENCE_SETS,
+        )
+    except ValueError as error:
+        raise ValueError(
+            f"the full-k phase reference cannot be designed: {error}"
+        ) from error
+    reference.set_definition(key="Name", value=f"{NAME}_full_k_reference")
+    *prescans, seq = _designed(
+        system,
+        **{**protocol, "te": reference.definitions["TE"][0]},
+        encode_sets=(0, 1),
+    )
+    return [*prescans, reference, seq]
+
+
+def _designed(
+    system: pp.Opts | None = None,
+    *,
+    fov_x: float = 220e-3,
+    fov_y: float = 220e-3,
+    n_x: int = 128,
+    n_y: int = 128,
+    n_slices: int = 1,
+    slice_thickness: float = 5e-3,
+    slice_spacing: float = 0.0,
+    flip_angle_deg: float = 70.0,
+    te: float | None = None,
+    tr: float | None = None,
+    n_frames: int = 1,
+    readout_bandwidth_hz: float = 500e3,
+    ry: int = 1,
+    partial_fourier_y: float = 1.0,
+    n_shots: int = 1,
+    multiband: int = 1,
+    fat_saturation: bool = False,
+    n_dummy: int | None = None,
+    readout_oversampling: float = 1.0,
+    n_acs_y: int = 24,
+    calibration: str = "fleet",
+    volume_output: bool = False,
+    phase_reference: bool = False,
+    navigator_lines: int | None = None,
+    spin_echo: bool = False,
+    diffusion_directions: int = 0,
+    b_value: float = 1.0e9,
+    diffusion_b0: int = 1,
+    field_pair: bool = False,
+    ti: float | None = None,
+    inversion_slab: float = 2.0,
+    encode_sets: tuple[int, int],
+) -> list[pp.Sequence]:
+    """Design :func:`epi2d`, its forward phase encodes labelled ``SET = encode_sets[0]`` and its reversed ones ``SET = encode_sets[1]``."""
     system = pp.cap_system(
         pp.Opts() if system is None else system,
         max_grad=MAX_GRAD,
@@ -1022,14 +1143,14 @@ def epi2d(
             flags = {"ONCE": 1}
             if reference:
                 flags |= {"SLC": g, "SEG": shot, "PHASECORR": 1}
-                if reversed_encode:
-                    flags["SET"] = 1
+                if encode_sets[reversed_encode]:
+                    flags["SET"] = encode_sets[reversed_encode]
         else:
             flags = {"SLC": g, "REP": frame, "SEG": shot, "ONCE": 0}
             if multiband > 1:
                 flags["SMS"] = 1
-            if reversed_encode:
-                flags["SET"] = 1
+            if encode_sets[reversed_encode]:
+                flags["SET"] = encode_sets[reversed_encode]
             if phase_reference:
                 flags["PHASECORR"] = 0
             if not dummy_cycles:
@@ -1345,6 +1466,43 @@ def epi2d(
         key="NumGainCalibrationReadouts",
         value=sequences.gain_calibration_readouts(seq),
     )
+    if field_pair:
+        *_, reversed_volume, forward_volume = _designed(
+            system,
+            fov_x=fov_x,
+            fov_y=fov_y,
+            n_x=n_x,
+            n_y=n_y,
+            n_slices=n_slices,
+            slice_thickness=slice_thickness,
+            slice_spacing=slice_spacing,
+            flip_angle_deg=flip_angle_deg,
+            readout_bandwidth_hz=readout_bandwidth_hz,
+            ry=ry,
+            partial_fourier_y=partial_fourier_y,
+            n_shots=n_shots,
+            multiband=1,
+            fat_saturation=fat_saturation,
+            n_dummy=n_dummy,
+            readout_oversampling=readout_oversampling,
+            n_acs_y=n_acs_y,
+            phase_reference=phase_reference,
+            navigator_lines=navigator_lines,
+            b_value=b_value,
+            diffusion_b0=diffusion_b0,
+            spin_echo=True,
+            calibration="gre",
+            te=None,
+            tr=None,
+            n_frames=1,
+            diffusion_directions=0,
+            volume_output=False,
+            field_pair=False,
+            encode_sets=FIELD_PAIR_SETS,
+        )
+        forward_volume.set_definition(key="Name", value=f"{NAME}_field_forward")
+        reversed_volume.set_definition(key="Name", value=f"{NAME}_field_reversed")
+        prescans += [forward_volume, reversed_volume]
     return [*prescans, seq]
 
 

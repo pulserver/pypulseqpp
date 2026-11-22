@@ -176,6 +176,8 @@ def excitations(seq):
             lambda: scan2d(n_slices=2, ry=2, n_acs_y=4),
             [
                 ("scan.seq", "epi_2d_calibration"),
+                ("scan_epi_2d_field_forward.seq", "epi_2d_field_forward"),
+                ("scan_epi_2d_field_reversed.seq", "epi_2d_field_reversed"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -183,6 +185,8 @@ def excitations(seq):
             lambda: scan2d(n_dummy=1),
             [
                 ("scan.seq", "epi_2d_calibration"),
+                ("scan_epi_2d_field_forward.seq", "epi_2d_field_forward"),
+                ("scan_epi_2d_field_reversed.seq", "epi_2d_field_reversed"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -190,6 +194,8 @@ def excitations(seq):
             lambda: scan2d(n_slices=4, multiband=2, n_acs_y=4),
             [
                 ("scan.seq", "epi_2d_calibration"),
+                ("scan_epi_2d_field_forward.seq", "epi_2d_field_forward"),
+                ("scan_epi_2d_field_reversed.seq", "epi_2d_field_reversed"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -197,6 +203,8 @@ def excitations(seq):
             lambda: scan3d(ry=2, n_acs_y=4, n_acs_z=2),
             [
                 ("scan.seq", "epi_3d_calibration"),
+                ("scan_epi_3d_field_forward.seq", "epi_3d_field_forward"),
+                ("scan_epi_3d_field_reversed.seq", "epi_3d_field_reversed"),
                 ("scan_epi_3d.seq", "epi_3d"),
             ],
         ),
@@ -204,6 +212,8 @@ def excitations(seq):
             lambda: scan3d(n_dummy=1),
             [
                 ("scan.seq", "epi_3d_calibration"),
+                ("scan_epi_3d_field_forward.seq", "epi_3d_field_forward"),
+                ("scan_epi_3d_field_reversed.seq", "epi_3d_field_reversed"),
                 ("scan_epi_3d.seq", "epi_3d"),
             ],
         ),
@@ -212,6 +222,8 @@ def excitations(seq):
             [
                 ("scan.seq", "epi_2d_calibration"),
                 ("scan_epi_2d_reference.seq", "epi_2d_reference"),
+                ("scan_epi_2d_field_forward.seq", "epi_2d_field_forward"),
+                ("scan_epi_2d_field_reversed.seq", "epi_2d_field_reversed"),
                 ("scan_epi_2d.seq", "epi_2d"),
             ],
         ),
@@ -220,6 +232,8 @@ def excitations(seq):
             [
                 ("scan.seq", "epi_3d_calibration"),
                 ("scan_epi_3d_reference.seq", "epi_3d_reference"),
+                ("scan_epi_3d_field_forward.seq", "epi_3d_field_forward"),
+                ("scan_epi_3d_field_reversed.seq", "epi_3d_field_reversed"),
                 ("scan_epi_3d.seq", "epi_3d"),
             ],
         ),
@@ -266,7 +280,9 @@ def test_every_file_of_a_partial_fourier_chain_states_the_k_space_centre(make):
     scan = make()
     for seq in scan.chain:
         assert written(seq, "kSpaceCenterLine") == scan.matrix[1] // 2
-        if len(scan.matrix) == 3 and scan.matrix[2] > 1 and scan.module is epi3d:
+        # The field pair of a 3D scan is a stack of slices.
+        stack = "_field_" in seq.definitions["Name"]
+        if scan.module is epi3d and scan.matrix[2] > 1 and not stack:
             assert written(seq, "kSpaceCenterPartition") == scan.matrix[2] // 2
 
 
@@ -687,7 +703,13 @@ def test_one_shot_per_shell_is_blipped_caipi():
 
 def test_partial_fourier_drops_the_leading_lines_and_shells():
     full = scan3d(n_z=8, rz=2)
-    partial = scan3d(n_z=8, rz=2, partial_fourier_y=0.75, partial_fourier_z=0.5)
+    partial = scan3d(
+        n_z=8,
+        rz=2,
+        partial_fourier_y=0.75,
+        partial_fourier_z=0.5,
+        full_k_reference=False,
+    )
     par, nav = labels(partial.main, "PAR", "NAV")
     shells = [int(shot.min()) for shot in par[nav == 0].reshape(-1, partial.etl)]
 
@@ -982,7 +1004,7 @@ def test_each_multiband_line_is_received_at_the_phase_its_partition_encode_gives
 
 @pytest.mark.parametrize("make", [scan2d, scan3d], ids=["2D", "3D"])
 def test_a_fleet_calibration_takes_the_place_of_the_reversed_reference_volume(make):
-    names = [seq.definitions["Name"] for seq in make(ry=2).chain[:-1]]
+    names = [seq.definitions["Name"] for seq in make(ry=2, field_pair=False).chain[:-1]]
 
     assert names == [make().main.definitions["Name"] + "_calibration"]
 
@@ -1021,6 +1043,125 @@ def test_a_spin_echo_refocuses_the_centre_line_at_the_echo_time_written():
     assert np.asarray(t_refocusing)[0] - np.asarray(t_excitation)[0] == pytest.approx(
         scan.echo_time / 2, abs=scan.system.block_duration_raster
     )
+
+
+def test_a_field_pair_is_a_forward_and_a_reversed_spin_echo_volume_labelled_two_and_three():
+    scan = scan2d(n_slices=2, field_pair=True)
+    forward, reversed_ = scan.prescan("field_forward"), scan.prescan("field_reversed")
+    n = scan.samples
+
+    for seq, polarity in ((forward, 2), (reversed_, 3)):
+        (sets,) = labels(seq, "SET")
+        _, _, t_excitation, t_refocusing, _ = seq.calculate_kspace()
+        assert set(sets) == {polarity}
+        assert len(np.asarray(t_refocusing)) == len(np.asarray(t_excitation)) > 0
+    lin, nav = labels(forward, "LIN", "NAV")
+    lin_r, nav_r = labels(reversed_, "LIN", "NAV")
+    # The mirror of line 0, n_y, lies outside the matrix and is not sampled.
+    imaging = (nav == 0) & (lin != 0)
+    assert list(lin_r[nav_r == 0]) == list(scan.matrix[1] - lin[imaging])
+    assert echoes(reversed_, n)[nav_r == 0, 0] == pytest.approx(
+        -echoes(forward, n)[imaging, 0]
+    )
+
+
+def test_a_field_pair_is_played_after_the_calibration_and_before_the_scan():
+    names = [seq.definitions["Name"] for seq in scan2d(field_pair=True).chain]
+
+    assert names == [
+        "epi_2d_calibration",
+        "epi_2d_field_forward",
+        "epi_2d_field_reversed",
+        "epi_2d",
+    ]
+
+
+def test_a_field_pair_leaves_the_scan_unchanged(tmp_path):
+    plain, paired = scan2d(te=40e-3), scan2d(te=40e-3, field_pair=True)
+    plain.main.write(tmp_path / "plain.seq")
+    paired.main.write(tmp_path / "paired.seq")
+
+    assert (tmp_path / "paired.seq").read_text() == (tmp_path / "plain.seq").read_text()
+
+
+def test_a_partial_fourier_gradient_echo_scan_plays_a_full_k_reference_at_its_echo_time():
+    scan = scan2d(n_y=32, ry=2, partial_fourier_y=0.75)
+    reference = scan.prescan("full_k_reference")
+
+    assert [seq.definitions["Name"] for seq in scan.chain][-2:] == [
+        "epi_2d_full_k_reference",
+        "epi_2d",
+    ]
+    assert reference.definitions["TE"] == scan.main.definitions["TE"]
+    (sets,) = labels(reference, "SET")
+    assert set(sets) == {4}
+    lin, nav = labels(reference, "LIN", "NAV")
+    lin_scan, nav_scan = labels(scan.main, "LIN", "NAV")
+    assert min(lin[nav == 0]) == 0 < min(lin_scan[nav_scan == 0])
+    assert max(lin[nav == 0]) == max(lin_scan[nav_scan == 0])
+
+
+def test_a_prescribed_echo_time_below_that_of_the_full_k_reference_is_refused():
+    with pytest.raises(ValueError, match="full-k phase reference"):
+        epi2d(**{**SMALL_2D, "n_y": 64}, partial_fourier_y=0.6, te=8e-3)
+
+
+@pytest.mark.parametrize(
+    "prescription",
+    [{"partial_fourier_y": 1.0}, {"partial_fourier_y": 0.75, "spin_echo": True}],
+    ids=["fully sampled", "spin echo"],
+)
+def test_a_fully_sampled_or_spin_echo_scan_plays_no_full_k_reference(prescription):
+    names = [seq.definitions["Name"] for seq in scan2d(**prescription).chain]
+
+    assert "epi_2d_full_k_reference" not in names
+
+
+def test_a_3d_field_pair_is_a_spin_echo_stack_over_the_slab_at_the_scan_echo_spacing():
+    scan = scan3d(ry=2, rz=2, partial_fourier_y=0.75)
+    forward, reversed_ = scan.prescan("field_forward"), scan.prescan("field_reversed")
+    fov_z, n_z = scan.main.definitions["FOV"][2], scan.matrix[2]
+
+    for seq, polarity in ((forward, 2), (reversed_, 3)):
+        (sets,) = labels(seq, "SET")
+        _, _, t_excitation, t_refocusing, _ = seq.calculate_kspace()
+        assert set(sets) == {polarity}
+        assert len(np.asarray(t_refocusing)) == len(np.asarray(t_excitation)) > 0
+        assert seq.definitions["EchoSpacing"] == scan.main.definitions["EchoSpacing"]
+        assert seq.definitions["Matrix"][:2] == scan.main.definitions["Matrix"][:2]
+        positions = np.asarray(seq.definitions["SlicePositions"])
+        assert len(positions) == n_z
+        assert np.ptp(positions) == pytest.approx(fov_z * (n_z - 1) / n_z)
+
+
+def test_a_partial_fourier_3d_scan_plays_a_full_k_reference_at_its_echo_time():
+    scan = scan3d(ry=2, rz=2, partial_fourier_y=0.75, partial_fourier_z=0.75)
+    reference = scan.prescan("full_k_reference")
+
+    assert [seq.definitions["Name"] for seq in scan.chain][-2:] == [
+        "epi_3d_full_k_reference",
+        "epi_3d",
+    ]
+    assert reference.definitions["TE"] == scan.main.definitions["TE"]
+    (sets,) = labels(reference, "SET")
+    assert set(sets) == {4}
+    lin, par, nav = labels(reference, "LIN", "PAR", "NAV")
+    lin_scan, par_scan, nav_scan = labels(scan.main, "LIN", "PAR", "NAV")
+    assert min(lin[nav == 0]) < min(lin_scan[nav_scan == 0])
+    assert min(par[nav == 0]) < min(par_scan[nav_scan == 0])
+
+
+def test_a_multiband_scan_plays_its_field_pair_single_band_over_the_same_slices():
+    *_, forward, reversed_volume, scan = epi2d(
+        **SMALL_2D, n_slices=4, multiband=2, field_pair=True
+    )
+
+    for volume in (forward, reversed_volume):
+        assert "MultibandFactor" not in volume.definitions
+        np.testing.assert_allclose(
+            volume.definitions["SlicePositions"], scan.definitions["SlicePositions"]
+        )
+    assert scan.definitions["MultibandFactor"] == [2.0]
 
 
 def test_each_diffusion_volume_is_weighted_with_the_b_value_of_its_table_row():
