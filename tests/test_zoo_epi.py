@@ -1022,6 +1022,50 @@ def test_a_spin_echo_refocuses_the_centre_line_at_the_echo_time_written():
     )
 
 
+def test_a_field_pair_is_a_forward_and_a_reversed_spin_echo_volume_labelled_two_and_three():
+    scan = scan2d(n_slices=2, field_pair=True)
+    forward, reversed_ = scan.prescan("field_forward"), scan.prescan("field_reversed")
+    n = scan.samples
+
+    for seq, polarity in ((forward, 2), (reversed_, 3)):
+        (sets,) = labels(seq, "SET")
+        _, _, t_excitation, t_refocusing, _ = seq.calculate_kspace()
+        assert set(sets) == {polarity}
+        assert len(np.asarray(t_refocusing)) == len(np.asarray(t_excitation)) > 0
+    lin, nav = labels(forward, "LIN", "NAV")
+    lin_r, nav_r = labels(reversed_, "LIN", "NAV")
+    # The mirror of line 0, n_y, lies outside the matrix and is not sampled.
+    imaging = (nav == 0) & (lin != 0)
+    assert list(lin_r[nav_r == 0]) == list(scan.matrix[1] - lin[imaging])
+    assert echoes(reversed_, n)[nav_r == 0, 0] == pytest.approx(
+        -echoes(forward, n)[imaging, 0]
+    )
+
+
+def test_a_field_pair_is_played_after_the_calibration_and_before_the_scan():
+    names = [seq.definitions["Name"] for seq in scan2d(field_pair=True).chain]
+
+    assert names == [
+        "epi_2d_calibration",
+        "epi_2d_field_forward",
+        "epi_2d_field_reversed",
+        "epi_2d",
+    ]
+
+
+def test_a_field_pair_leaves_the_scan_unchanged(tmp_path):
+    plain, paired = scan2d(te=40e-3), scan2d(te=40e-3, field_pair=True)
+    plain.main.write(tmp_path / "plain.seq")
+    paired.main.write(tmp_path / "paired.seq")
+
+    assert (tmp_path / "paired.seq").read_text() == (tmp_path / "plain.seq").read_text()
+
+
+def test_a_multiband_field_pair_is_refused():
+    with pytest.raises(ValueError, match="single-band"):
+        epi2d(**SMALL_2D, n_slices=4, multiband=2, field_pair=True)
+
+
 def test_each_diffusion_volume_is_weighted_with_the_b_value_of_its_table_row():
     # The crushers and the read and phase-encode prewinders add cross terms
     # of a few percent to the lobes' b-value.
