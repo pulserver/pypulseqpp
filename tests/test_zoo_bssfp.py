@@ -767,7 +767,7 @@ def test_each_segment_ramps_its_flip_angle_up_to_the_nominal_one():
 
 def test_the_navigator_reads_the_central_partition_during_every_ramp():
     seq = segmented_3d(**CORONARY)
-    lin, par, seg, nav = labels(seq, "LIN", "PAR", "SEG", "NAV")
+    lin, par, nav = labels(seq, "LIN", "PAR", "NAV")
     navigators = np.flatnonzero(nav)
     n_segments = int(recorded(seq, "NumSegments"))
 
