@@ -22,6 +22,10 @@ CATALYST_RAMP = 10
 #: the central partition during the catalyst ramp.
 NAVIGATOR_LINE_STEP = 3
 
+#: Adiabaticity of the T2 preparation where the peak B1 is too low for its
+#: default: lowered as far as 0.75 of it, it stays above an inversion's.
+T2_PREP_LOW_B1_ADIABATICITY = 6.0
+
 NAME = "bssfp_3d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
@@ -30,6 +34,29 @@ PULSE_DURATION = 1.0e-3
 TIME_BW_PRODUCT = 2.0
 #: Duration of the nonselective hard pulse (s).
 HARD_PULSE_DURATION = 0.5e-3
+
+
+def t2_preparation(
+    system: pp.Opts, echo_time_s: float, voxel_size_m: float
+) -> sequences.T2Preparation:
+    """Return the T2 preparation at its default adiabaticity, or at ``T2_PREP_LOW_B1_ADIABATICITY`` where the peak B1 is too low for it.
+
+    Raises
+    ------
+    ValueError
+        If the pulses do not fit the peak B1 at the lower adiabaticity either.
+    """
+    try:
+        return sequences.T2Preparation(system, echo_time_s, voxel_size_m=voxel_size_m)
+    except ValueError as error:
+        if "adiabatic" not in str(error):
+            raise
+    return sequences.T2Preparation(
+        system,
+        echo_time_s,
+        adiabaticity=T2_PREP_LOW_B1_ADIABATICITY,
+        voxel_size_m=voxel_size_m,
+    )
 
 
 def segment_views(
@@ -497,9 +524,7 @@ def bssfp3d(
         after = [
             module
             for module in (
-                sequences.T2Preparation(system, t2_prep_te, voxel_size_m=voxel)
-                if t2_prep_te > 0
-                else None,
+                t2_preparation(system, t2_prep_te, voxel) if t2_prep_te > 0 else None,
                 sequences.FatSaturation(system, voxel_size_m=voxel)
                 if fat_saturation
                 else None,

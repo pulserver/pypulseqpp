@@ -811,3 +811,12 @@ def test_the_first_imaging_excitation_is_the_inversion_time_after_the_inversion(
 def test_a_segmented_scan_that_cannot_be_played_is_refused(change, message):
     with pytest.raises(ValueError, match=message):
         segmented_3d(**{**INFLOW, **change})
+
+
+def test_a_t2_preparation_too_strong_for_the_peak_b1_is_designed_less_adiabatic_but_above_an_inversion():
+    strong = bssfp3d.t2_preparation(pp.Opts(max_b1=20, b1_unit="uT"), 0.05, 1e-3)
+    weak = bssfp3d.t2_preparation(pp.Opts(max_b1=11.2, b1_unit="uT"), 0.05, 1e-3)
+
+    assert strong.half_passage_adiabaticity == 8
+    assert 4 < weak.half_passage_adiabaticity < 8
+    assert 4 < weak.refocusing_adiabaticity < 8
