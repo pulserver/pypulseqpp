@@ -101,6 +101,37 @@ def test_the_pulse_duration_follows_the_bandwidth_asked_for(system):
     )
 
 
+@pytest.mark.parametrize("field_t", [1.5, 3.0, 7.0])
+def test_the_default_passband_is_a_fixed_span_of_ppm_so_it_widens_with_the_field(
+    field_t,
+):
+    system = pp.Opts(B0=field_t)
+    fatsat = design.FatSaturation(system)
+    passband = 1e-6 * system.gamma * field_t * design.FAT_SAT_BANDWIDTH_PPM
+    assert pp.calc_duration(fatsat.rf_prep) == pytest.approx(
+        2.0 / passband, abs=2 * system.rf_raster_time
+    )
+
+
+@pytest.mark.parametrize("bandwidth_hz", [333.0, 600.0, 777.0])
+def test_any_passband_gives_a_pulse_of_an_even_number_of_raster_samples(
+    system, bandwidth_hz
+):
+    fatsat = design.FatSaturation(system, bandwidth_hz=bandwidth_hz)
+    samples = round(pp.calc_duration(fatsat.rf_prep) / system.rf_raster_time)
+    assert samples % 2 == 0
+
+
+def test_at_7t_fat_moved_100_hz_by_the_head_is_saturated_and_water_is_left_alone():
+    system = pp.Opts(B0=7.0)
+    answer = response(design.FatSaturation(system, flip_angle_deg=90.0))
+    centre = float(answer.frequency[np.argmin(answer.mz_z)])
+    for moved in (centre - 100.0, centre + 100.0):
+        assert abs(float(np.interp(moved, answer.frequency, answer.mz_z))) < 0.2
+    water = centre - 1e-6 * system.gamma * 7.0 * FAT_SHIFT_PPM
+    assert float(np.interp(water, answer.frequency, answer.mz_z)) > 0.95
+
+
 # ----------------------------------------------------------------------
 # Layout
 # ----------------------------------------------------------------------

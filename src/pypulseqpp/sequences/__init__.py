@@ -36,6 +36,7 @@ from .excitation import (
     make_excitation,
 )
 from .preparation import (
+    FAT_SAT_BANDWIDTH_PPM,
     FAT_T1_S,
     BlochSiegertPreparation,
     DiffusionPreparation,
@@ -98,6 +99,7 @@ EXCITATION = (
 PREPARATION = (
     "BlochSiegertPreparation",
     "DiffusionPreparation",
+    "FAT_SAT_BANDWIDTH_PPM",
     "FAT_T1_S",
     "FatSaturation",
     "diffusion_pair_b_value",

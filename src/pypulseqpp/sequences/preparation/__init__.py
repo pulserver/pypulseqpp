@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .diffusion import DiffusionPreparation, diffusion_pair_b_value
-from .fatsat import FAT_T1_S, FatSaturation, fat_null_flip_deg
+from .fatsat import FAT_SAT_BANDWIDTH_PPM, FAT_T1_S, FatSaturation, fat_null_flip_deg
 from .inversion import InversionPreparation
 from .saturation import (
     BlochSiegertPreparation,
@@ -15,6 +15,7 @@ from .spatialsat import SpatialSaturation, spatial_saturations
 from .t2prep import T1T2Preparation, T2Preparation
 
 __all__ = [
+    "FAT_SAT_BANDWIDTH_PPM",
     "FAT_T1_S",
     "BlochSiegertPreparation",
     "DiffusionPreparation",

@@ -88,3 +88,4 @@ on the signal the scan acquires.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.fat_null_flip_deg` | Delay to the excitation (s), period (s), fat T1 (s) | Flip angle (deg) | The fat-saturation flip that leaves fat at zero at the excitation, in the steady state. |
 | {obj}`~pypulseqpp.sequences.FAT_T1_S` | — | 0.37 s | T1 of fat at 3 T. |
+| {obj}`~pypulseqpp.sequences.FAT_SAT_BANDWIDTH_PPM` | — | 2 ppm | Default passband of the fat saturation, as a span of the field. |
