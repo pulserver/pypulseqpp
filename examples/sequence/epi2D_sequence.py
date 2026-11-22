@@ -357,6 +357,9 @@ CALIBRATIONS = ("fleet", "gre")
 #: Non-acquiring shots that open the FLEET calibration of each slice, so its
 #: first acquiring shot does not read relaxed magnetization.
 FLEET_DUMMY_SHOTS = 1
+#: Largest fat-nulling flip (degrees) of the calibration's fat saturation; a
+#: calibration shot too short for a null at this flip waits until it allows one.
+CALIBRATION_FAT_NULL_FLIP_DEG = 120.0
 
 #: ``SET`` of the forward and of the reversed volume of the spin-echo field
 #: pair, apart from those of the scan and its reversed reference.
@@ -978,6 +981,37 @@ def _designed(
             labels=("LIN",),
         )
 
+    def calibration_prep(probe) -> tuple[list, float]:
+        """Return the fat saturation of a calibration shot and the wait (s) that closes the shot.
+
+        The calibration saturates fat as the imaging does: coil maps fitted to
+        a calibration whose scalp fat is displaced along the phase encode do
+        not hold for water-only imaging data. ``probe`` adds one calibration
+        shot to a sequence. The saturation nulls fat at the calibration's
+        excitation; a shot too short for a null at
+        ``CALIBRATION_FAT_NULL_FLIP_DEG`` waits until it allows one.
+        """
+        if fatsat is None:
+            return [], 0.0
+        shot = pp.Sequence(system)
+        probe(shot)
+        delay = fatsat.duration - fatsat.center + float(weak.delay) + float(weak.center)
+        period = fatsat.duration + float(shot.duration()[0])
+        cosine = np.cos(np.deg2rad(CALIBRATION_FAT_NULL_FLIP_DEG))
+        shortest = delay - sequences.FAT_T1_S * np.log(
+            1.0 - (1.0 - np.exp(delay / sequences.FAT_T1_S)) / cosine
+        )
+        wait = pp.round_to_raster(max(shortest - period, 0.0), raster)
+        flip = sequences.fat_null_flip_deg(delay, period + wait)
+        prep = [
+            sequences.FatSaturation(
+                pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
+                flip_angle_deg=flip,
+                voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+            )
+        ]
+        return prep, wait
+
     def define(seq: pp.Sequence, **definitions) -> None:
         # Every file of the chain places its slices, so a reconstruction reads
         # a prescan's geometry from the prescan, and each acquiring file states
@@ -998,13 +1032,21 @@ def _designed(
         )
 
     def calibration_kernel(
-        seq: pp.Sequence, labels: sequences.Labels, s: int, line: int
+        seq: pp.Sequence,
+        labels: sequences.Labels,
+        s: int,
+        line: int,
+        prep: list = (),
+        wait: float = 0.0,
     ) -> None:
-        """Add one single-band gradient echo of slice ``s`` at ``line``."""
+        """Add one single-band gradient echo of slice ``s`` at ``line``, between ``prep`` and a ``wait`` (s)."""
         gre.rf.freq_offset = single.selection_amplitude * positions[s]
         gre.rf.phase_offset = -2 * np.pi * gre.rf.freq_offset * gre.rf.center
         gre.adc_labels.value = line
         ky = (line - n_y // 2) / (n_y / 2)
+        for module in prep:
+            for block in module.blocks:
+                seq.add_block(*block)
         seq.add_block(gre.rf, gre.gz, *labels(REF=1, SLC=s))
         wait_te = getattr(gre, "wait_te", None)
         if wait_te is not None:
@@ -1014,14 +1056,19 @@ def _designed(
             seq.add_block(gre.gx_pre, pp.scale_grad(gre.gy_pre, ky), gre.gz_reph)
         seq.add_block(gre.gx, gre.adc, gre.adc_labels)
         seq.add_block(gre.gx_spoil, pp.scale_grad(gre.gy_rew, ky))
+        if wait > 0:
+            seq.add_block(pp.make_delay(wait))
 
     def calibrate() -> pp.Sequence:
         """Design the gradient-echo calibration: every line of every slice."""
         seq, labels = pp.Sequence(system), sequences.Labels()
         order = [s for packet in packets_of(n_slices, n_slices) for s in packet]
+        prep, wait = calibration_prep(
+            lambda probe: calibration_kernel(probe, sequences.Labels(), 0, acs_lines[0])
+        )
         for s in order:
             for line in acs_lines:
-                calibration_kernel(seq, labels, s, line)
+                calibration_kernel(seq, labels, s, line, prep, wait)
         define(
             seq,
             Name=f"{NAME}_calibration",
@@ -1034,6 +1081,11 @@ def _designed(
         seq, labels = pp.Sequence(system), sequences.Labels()
         order = [s for packet in packets_of(n_slices, n_slices) for s in packet]
         starts = [acs_lines[0] + s for s in range(acs_shots)]
+        prep, wait = calibration_prep(
+            lambda probe: shot_blocks(
+                probe, sequences.Labels(), acs, starts[0], 0, 0.0, [], raster
+            )
+        )
         for s in order:
             offset = single.selection_amplitude * positions[s]
             for dummy in range(FLEET_DUMMY_SHOTS):
@@ -1046,8 +1098,9 @@ def _designed(
                     0,
                     offset,
                     labels(SLC=s, SEG=0, SET=0, PHASECORR=1) if reference else [],
-                    raster,
+                    raster + wait,
                     reference=reference,
+                    prep=prep,
                 )
             for polarity in (0, 1):
                 for shot, origin in enumerate(starts):
@@ -1066,9 +1119,10 @@ def _designed(
                         shot,
                         offset,
                         flags,
-                        raster,
+                        raster + wait,
                         acquire=True,
                         reversed_encode=bool(polarity),
+                        prep=prep,
                     )
         define(
             seq,
