@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from types import SimpleNamespace
 
 import numpy as np
@@ -249,3 +250,25 @@ def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
     np.testing.assert_allclose(
         np.abs(saturation.signal), np.abs(expected.signal), rtol=1e-6
     )
+
+
+def test_the_null_flip_through_an_inversion_leaves_fat_at_zero_at_the_excitation():
+    period, delay, ti, t1 = 0.3, 6e-3, 0.15, design.FAT_T1_S
+    flip = math.radians(
+        design.fat_null_flip_deg_cycle(period, [delay], inversions_s=[ti])
+    )
+    # From the 90 degree excitation, which leaves fat at zero, to the next.
+    mz = 1 - math.exp(-(period - ti) / t1)
+    mz = 1 - (1 + mz) * math.exp(-(ti - delay) / t1)
+    mz = 1 - (1 - mz * math.cos(flip)) * math.exp(-delay / t1)
+    assert abs(mz) < 1e-3
+
+
+@pytest.mark.parametrize(
+    "saturations, inversions", [([], []), ([0.5], []), ([5e-3], [0.0])]
+)
+def test_a_cycle_without_saturation_or_with_a_pulse_outside_it_is_refused(
+    saturations, inversions
+):
+    with pytest.raises(ValueError):
+        design.fat_null_flip_deg_cycle(0.3, saturations, inversions_s=inversions)
