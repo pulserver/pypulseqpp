@@ -9,8 +9,18 @@ import numpy as np
 
 import pypulseqpp as pp
 from pypulseqpp import cli, sequences
+from pypulseqpp.sequences.excitation._base import rf_reference
 
 EXCITATIONS = ("nonselective", "slab")
+GATINGS = ("none", "prospective")
+TRIGGER_CHANNELS = ("physio1", "physio2")
+AXES = ("x", "y", "z")
+#: Excitations over which a segment's flip angle ramps linearly up to its own:
+#: a catalyst that damps the oscillating transient of a train opened from rest.
+CATALYST_RAMP = 10
+#: Phase-encode lines between two lines of the image navigator, which reads
+#: the central partition during the catalyst ramp.
+NAVIGATOR_LINE_STEP = 3
 
 NAME = "bssfp_3d"
 MAX_GRAD = 80.0
@@ -20,6 +30,57 @@ PULSE_DURATION = 1.0e-3
 TIME_BW_PRODUCT = 2.0
 #: Duration of the nonselective hard pulse (s).
 HARD_PULSE_DURATION = 0.5e-3
+
+
+def segment_views(
+    views: list[tuple[int, int]], n_y: int, n_z: int, views_per_segment: int
+) -> list[list[tuple[int, int]]]:
+    """Deal ``(line, partition)`` views to segments of at most ``views_per_segment``, each a wedge read centre-out.
+
+    The views are sorted by their angle in the ky-kz plane, each axis scaled
+    to its own extent, and cut into as few contiguous runs as hold
+    ``views_per_segment`` each; a run is read in order of distance from the
+    k-space centre. Every segment so starts at the centre and steps between
+    neighbouring views.
+
+    Parameters
+    ----------
+    views : list of tuple of int
+        ``(line, partition)`` of every view.
+    n_y, n_z : int
+        Matrix size along the phase and the partition encode.
+    views_per_segment : int
+        Largest number of views in a segment.
+
+    Returns
+    -------
+    list of list of tuple of int
+        The views of each segment, in play order.
+
+    Examples
+    --------
+    >>> views = [(y, z) for y in range(4) for z in range(4)]
+    >>> segments = segment_views(views, 4, 4, 4)
+    >>> [len(segment) for segment in segments]
+    [4, 4, 4, 4]
+    >>> sorted(v for segment in segments for v in segment) == views
+    True
+
+    Each quadrant of a 4 x 4 plane is a segment, read from the view next to
+    the centre:
+
+    >>> [segment[0] for segment in segments]
+    [(1, 1), (2, 1), (2, 2), (1, 2)]
+    """
+    ky = np.array([(line - n_y // 2) / (n_y / 2) for line, _ in views])
+    kz = np.array([(partition - n_z // 2) / (n_z / 2) for _, partition in views])
+    radius = np.hypot(ky, kz)
+    order = np.lexsort((radius, np.arctan2(kz, ky)))
+    n_segments = math.ceil(len(views) / views_per_segment)
+    return [
+        [views[i] for i in run[np.argsort(radius[run], kind="stable")]]
+        for run in np.array_split(order, n_segments)
+    ]
 
 
 def bssfp3d(
@@ -46,6 +107,19 @@ def bssfp3d(
     elliptical_acs: bool = False,
     n_phase_cycles: int = 1,
     n_dummy: int | None = None,
+    gating: str = "none",
+    trigger_channel: str = "physio2",
+    trigger_delay: float = 0.0,
+    trigger_period: float = 1.0,
+    views_per_segment: int = 32,
+    n_ramp: int = CATALYST_RAMP,
+    navigator: bool = False,
+    t2_prep_te: float = 0.0,
+    fat_saturation: bool = False,
+    inversion_time: float = 0.0,
+    inversion_thickness: float = 0.0,
+    inversion_axis: str = "x",
+    inversion_offset: float = 0.0,
 ) -> list[pp.Sequence]:
     """Balanced SSFP, 3D Cartesian: one train per phase cycle, each opened by a half flip.
 
@@ -62,6 +136,23 @@ def bssfp3d(
     in that order, so the scanner plays them as one table. Acquisitions carry
     their line, partition and cycle as ``LIN``, ``PAR`` and ``SET``, and
     calibration views are marked ``IMA``.
+
+    Under ``prospective`` gating the views are acquired in segments of
+    ``views_per_segment``, one per trigger on ``trigger_channel``: an ECG
+    trigger for whole-heart coronary MRA, a respiratory one for inflow MRA.
+    Each segment waits for its trigger and ``trigger_delay``, then plays in
+    order a slab-selective or non-selective adiabatic inversion and
+    ``inversion_time`` of recovery, an adiabatic T2 preparation, a fat
+    saturation, and opens from rest with ``n_ramp`` excitations whose flip
+    angle ramps linearly to ``flip_angle_deg`` before its views. The views
+    are dealt to the segments by angle in the ky-kz plane, and each segment
+    reads its wedge from the k-space centre outwards (:func:`segment_views`),
+    so every segment samples the centre right after its preparations and
+    steps between neighbouring views. With ``navigator`` the ramp
+    excitations read lines of the central partition, ``NAV`` set: an image
+    navigator, the projection of the slab along the partition axis, from
+    which a reconstruction tracks each segment's motion. Segments carry
+    ``SEG``.
 
     Parameters
     ----------
@@ -117,7 +208,40 @@ def bssfp3d(
         Repetitions each catalyst plays without acquiring after the half
         flip. ``None`` is as many as bring the balanced steady state within
         1 % (:func:`~pypulseqpp.sequences.steady_state_dummies` at
-        :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`).
+        :data:`~pypulseqpp.sequences.STEADY_STATE_T2_S`). Unused under
+        ``prospective`` gating, whose segments open with their ramp.
+    gating : {'none', 'prospective'}, default='none'
+        Free-running acquisition, or segments each waiting for a trigger.
+    trigger_channel : {'physio1', 'physio2'}, default='physio2'
+        Physiological signal a segment waits for.
+    trigger_delay : float, default=0.0
+        Time from a trigger to the segment's first preparation (s); zero, or
+        at least 1 ms.
+    trigger_period : float, default=1.0
+        Nominal interval between triggers (s): the R-R interval, or the
+        respiratory period. A segment must fit in it.
+    views_per_segment : int, default=32
+        Views a segment acquires.
+    n_ramp : int, default=CATALYST_RAMP
+        Excitations of a segment's catalyst ramp, at least one.
+    navigator : bool, default=False
+        Read an image navigator during the catalyst ramp.
+    t2_prep_te : float, default=0.0
+        Echo time of an adiabatic T2 preparation ahead of each segment (s);
+        zero for none.
+    fat_saturation : bool, default=False
+        Saturate fat ahead of each segment.
+    inversion_time : float, default=0.0
+        Time from an adiabatic inversion to the segment's first imaging
+        excitation (s); zero for none.
+    inversion_thickness : float, default=0.0
+        Thickness of the inverted slab (m); zero inverts the whole transmit
+        volume.
+    inversion_axis : {'x', 'y', 'z'}, default='x'
+        Logical axis the inverted slab is selected along.
+    inversion_offset : float, default=0.0
+        Offset of the inverted slab from the field-of-view centre along
+        ``inversion_axis`` (m).
 
     Returns
     -------
@@ -131,7 +255,11 @@ def bssfp3d(
         If ``excitation`` is unknown, a partial Fourier fraction is outside
         ``[0.75, 1]``, a count is below one, ``caipi_shift`` is outside
         ``[0, rz)``, or the TR is shorter than the repetition, or too short
-        beside the pulse for the half flip.
+        beside the pulse for the half flip; if ``gating``,
+        ``trigger_channel`` or ``inversion_axis`` is unknown, a prospective
+        scan has more than one phase cycle, a trigger delay below 1 ms, an
+        inversion time shorter than what follows the inversion, or a segment
+        longer than ``trigger_period``.
 
     Examples
     --------
@@ -141,6 +269,17 @@ def bssfp3d(
     ['bssfp_3d_catalyst', 'bssfp_3d']
     >>> all(seq.check_timing()[0] for seq in chain)
     True
+
+    A whole-heart coronary MRA: ECG-triggered segments with a T2
+    preparation, fat saturation and an image navigator:
+
+    >>> [coronary] = sequences.bssfp3D_sequence(
+    ...     n_x=64, n_y=16, n_z=4, gating="prospective", trigger_delay=0.5,
+    ...     t2_prep_te=0.04, fat_saturation=True, navigator=True,
+    ...     views_per_segment=8,
+    ... )
+    >>> coronary.get_definition("NumSegments")
+    [6.0]
     """
     system = pp.cap_system(
         pp.Opts() if system is None else system,
@@ -162,6 +301,27 @@ def bssfp3d(
         raise ValueError(f"n_dummy must be at least 0, got {n_dummy}")
     if not 0 <= caipi_shift < rz:
         raise ValueError(f"caipi_shift must lie in [0, {rz}), got {caipi_shift}")
+    if gating not in GATINGS:
+        raise ValueError(f"gating must be one of {GATINGS}, got {gating!r}")
+    if trigger_channel not in TRIGGER_CHANNELS:
+        raise ValueError(
+            f"trigger_channel must be one of {TRIGGER_CHANNELS}, got {trigger_channel!r}"
+        )
+    if inversion_axis not in AXES:
+        raise ValueError(
+            f"inversion_axis must be one of {AXES}, got {inversion_axis!r}"
+        )
+    for name, count in (("views_per_segment", views_per_segment), ("n_ramp", n_ramp)):
+        if count < 1:
+            raise ValueError(f"{name} must be at least 1, got {count}")
+    if gating == "prospective" and n_phase_cycles != 1:
+        raise ValueError(
+            f"a prospective scan acquires one phase cycle, not {n_phase_cycles}"
+        )
+    if trigger_delay != 0.0 and trigger_delay < 1e-3:
+        raise ValueError(
+            f"trigger_delay must be zero or at least 1 ms, got {trigger_delay * 1e3:g} ms"
+        )
 
     fov = (fov_x, fov_y, fov_z)
     matrix = (n_x, n_y, n_z)
@@ -315,6 +475,161 @@ def bssfp3d(
 
     # Each cycle's file follows its catalyst's, and the last cycle is the main
     # sequence.
+    def segmented() -> pp.Sequence:
+        """Design every segment of a prospective scan: trigger, preparations, ramp and views."""
+        seq, labels = pp.Sequence(system), sequences.Labels()
+        segments = segment_views(views, n_y, n_z, views_per_segment)
+        voxel = min(f / n for f, n in zip(fov, matrix, strict=True))
+        trigger = pp.make_trigger(
+            trigger_channel, duration=trigger_delay, system=system
+        )
+        inversion = (
+            sequences.InversionPreparation(
+                system,
+                voxel_size_m=voxel,
+                thickness_m=inversion_thickness,
+                selection_axis=inversion_axis,
+                offset_m=inversion_offset,
+            )
+            if inversion_time > 0
+            else None
+        )
+        after = [
+            module
+            for module in (
+                sequences.T2Preparation(system, t2_prep_te, voxel_size_m=voxel)
+                if t2_prep_te > 0
+                else None,
+                sequences.FatSaturation(system, voxel_size_m=voxel)
+                if fat_saturation
+                else None,
+            )
+            if module is not None
+        ]
+        excite = rf_reference(ro.rf)
+        recovery = None
+        if inversion is not None:
+            raster = system.block_duration_raster
+            wait = (
+                inversion_time
+                - (inversion.duration - inversion.center)
+                - sum(module.duration for module in after)
+                - n_ramp * ro.tr
+                - excite
+            )
+            wait = raster * round(wait / raster)
+            if wait < 1e-3:
+                raise ValueError(
+                    f"inversion_time must leave at least 1 ms of recovery after "
+                    f"the inversion, the preparations and the ramp, got "
+                    f"{inversion_time * 1e3:.0f} ms"
+                )
+            # A block is held to the raster above its duration, and a
+            # multiple of the raster in floating point can sit just past it.
+            recovery = pp.make_delay(wait - 1e-9)
+        nav_lines = [
+            min(max(n_y // 2 + NAVIGATOR_LINE_STEP * (j - n_ramp // 2), 0), n_y - 1)
+            for j in range(n_ramp)
+        ]
+        nav_on = pp.make_label(type="SET", label="NAV", value=1)
+        nav_off = pp.make_label(type="SET", label="NAV", value=0)
+
+        def add_module(module, pending: list) -> list:
+            for block in module.blocks:
+                seq.add_block(*block, *pending)
+                pending = []
+            return pending
+
+        def excitation(n: int, amplitude: float, pending: list) -> None:
+            phase = np.pi * ((n + 1) % 2)
+            ro.rf.amplitude = amplitude
+            ro.rf.phase_offset = phase
+            ro.adc.phase_offset = phase
+            seq.add_block(ro.rf, *([] if ro_gz is None else [ro_gz]), *pending)
+            ro.rf.amplitude = nominal
+
+        def encode(view, acquire: list) -> tuple[float, float]:
+            line, partition = view
+            ky = (line - n_y // 2) / (n_y / 2)
+            kz = (partition - n_z // 2) / (n_z / 2)
+            seq.add_block(
+                ro.gx,
+                *acquire,
+                pp.scale_grad(ro.gy_pre, ky),
+                z_encode(ro.gz_partition, z_pre, kz),
+            )
+            seq.add_block(
+                ro.gx_rew,
+                pp.scale_grad(ro.gy_rew, ky),
+                z_encode(ro.gz_partition_rew, z_rew, kz),
+            )
+            return ky, kz
+
+        segment_duration = 0.0
+        for s, segment in enumerate(segments):
+            start = seq.duration()[0]
+            pending = [trigger]
+            if trigger_delay > 0:
+                seq.add_block(trigger)
+                pending = []
+            if inversion is not None:
+                pending = add_module(inversion, pending)
+                seq.add_block(recovery)
+            for module in after:
+                pending = add_module(module, pending)
+            for j in range(n_ramp):
+                excitation(j, nominal * (j + 1) / n_ramp, pending)
+                pending = []
+                if navigator:
+                    view = (nav_lines[j], n_z // 2)
+                    events = [
+                        ro.adc,
+                        *labels(LIN=view[0], PAR=view[1], SEG=s),
+                        nav_on,
+                    ]
+                else:
+                    view, events = (n_y // 2, n_z // 2), []
+                encode(view, events)
+            for v, view in enumerate(segment):
+                excitation(n_ramp + v, nominal, [])
+                label_events = labels(
+                    LIN=view[0], PAR=view[1], SEG=s, IMA=view in calibration
+                )
+                closing = [nav_off] if v == 0 and navigator else []
+                encode(view, [ro.adc, *label_events, *closing])
+            segment_duration = max(segment_duration, seq.duration()[0] - start)
+        if segment_duration > trigger_period + 1e-9:
+            raise ValueError(
+                f"a segment takes {segment_duration * 1e3:.0f} ms, longer than the "
+                f"{trigger_period * 1e3:.0f} ms trigger period"
+            )
+        define(
+            seq,
+            Name=NAME,
+            PhaseCycle=0,
+            PhaseIncrement=180.0,
+            Gating=gating,
+            TriggerChannel=trigger_channel,
+            TriggerDelay=trigger_delay,
+            TriggerPeriod=trigger_period,
+            ViewsPerSegment=views_per_segment,
+            NumSegments=len(segments),
+            SegmentDuration=segment_duration,
+            CatalystRamp=n_ramp,
+            Navigator=int(navigator),
+            InversionTime=inversion_time,
+            T2PrepTE=t2_prep_te,
+            FatSaturation=int(fat_saturation),
+        )
+        seq.set_definition(
+            key="NumGainCalibrationReadouts",
+            value=sequences.gain_calibration_readouts(seq),
+        )
+        return seq
+
+    if gating == "prospective":
+        return [segmented()]
+
     chain = []
     for k in range(len(increments)):
         chain += [catalyst(k), cycle(k)]

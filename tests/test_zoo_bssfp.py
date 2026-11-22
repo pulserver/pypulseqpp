@@ -670,3 +670,144 @@ def test_default_retrospective_dummies_last_at_most_one_heartbeat():
 
     assert full * tr > 1.0
     assert dummies_before_the_first_readout(seq) == round(1.0 / tr)
+
+
+# -- 3D segments ---------------------------------------------------------------
+
+#: A whole-heart coronary MRA of the small prescription: ECG segments with a T2
+#: preparation, fat saturation and an image navigator.
+CORONARY = {
+    "gating": "prospective",
+    "trigger_delay": 0.3,
+    "t2_prep_te": 0.04,
+    "fat_saturation": True,
+    "navigator": True,
+    "views_per_segment": 8,
+    "n_ramp": 4,
+}
+#: An inflow MRA: respiratory segments after a slab inversion.
+INFLOW = {
+    "gating": "prospective",
+    "trigger_channel": "physio1",
+    "trigger_period": 4.0,
+    "inversion_time": 1.2,
+    "inversion_thickness": 0.15,
+    "inversion_axis": "x",
+    "fat_saturation": True,
+    "views_per_segment": 8,
+    "n_ramp": 4,
+}
+
+
+def segmented_3d(**kwargs):
+    [seq] = chain_3d(**kwargs)
+    return seq
+
+
+def imaging_views(seq):
+    """``(line, partition, segment)`` of every readout that is not a navigator."""
+    lin, par, seg, nav = labels(seq, "LIN", "PAR", "SEG", "NAV")
+    nav = np.broadcast_to(nav, lin.shape)
+    return [
+        (int(a), int(b), int(c))
+        for a, b, c, n in zip(lin, par, seg, nav, strict=True)
+        if not n
+    ]
+
+
+@pytest.mark.parametrize("prescription", [CORONARY, INFLOW], ids=["coronary", "inflow"])
+def test_every_segment_waits_for_its_own_trigger(prescription):
+    seq = segmented_3d(**prescription)
+    triggers = [b.trig for b in blocks(seq) if getattr(b, "trig", None)]
+
+    assert len(triggers) == recorded(seq, "NumSegments")
+    assert {t[0].channel for t in triggers} == {
+        prescription.get("trigger_channel", "physio2")
+    }
+
+
+@pytest.mark.parametrize("prescription", [CORONARY, INFLOW], ids=["coronary", "inflow"])
+def test_the_segments_acquire_every_view_of_the_free_running_scan_once(prescription):
+    seq = segmented_3d(**prescription)
+    free = main_3d()
+    lin, par = labels(free, "LIN", "PAR")
+    views = imaging_views(seq)
+
+    assert sorted((y, z) for y, z, _ in views) == sorted(zip(lin, par, strict=True))
+    assert max(s for *_, s in views) + 1 == recorded(seq, "NumSegments")
+
+
+def test_each_segment_opens_next_to_the_k_space_centre_and_reads_outwards():
+    seq = segmented_3d(**CORONARY)
+    views = imaging_views(seq)
+    n_y, n_z = SMALL_3D["n_y"], SMALL_3D["n_z"]
+
+    def radius(y, z):
+        return np.hypot((y - n_y // 2) / (n_y / 2), (z - n_z // 2) / (n_z / 2))
+
+    for s in range(int(recorded(seq, "NumSegments"))):
+        radii = [radius(y, z) for y, z, segment in views if segment == s]
+        assert radii == sorted(radii)
+        assert radii[0] <= 0.5
+
+
+def test_each_segment_ramps_its_flip_angle_up_to_the_nominal_one():
+    seq = segmented_3d(
+        **{**CORONARY, "navigator": False, "t2_prep_te": 0.0, "fat_saturation": False}
+    )
+    peaks = np.array([peak for *_, peak in excitations(seq)])
+    per_segment = CORONARY["n_ramp"] + CORONARY["views_per_segment"]
+    first = peaks[: CORONARY["n_ramp"]]
+
+    np.testing.assert_allclose(
+        first / peaks[CORONARY["n_ramp"]], [0.25, 0.5, 0.75, 1.0]
+    )
+    np.testing.assert_allclose(peaks[per_segment : per_segment + 4], first)
+
+
+def test_the_navigator_reads_the_central_partition_during_every_ramp():
+    seq = segmented_3d(**CORONARY)
+    lin, par, seg, nav = labels(seq, "LIN", "PAR", "SEG", "NAV")
+    navigators = np.flatnonzero(nav)
+    n_segments = int(recorded(seq, "NumSegments"))
+
+    assert navigators.size == n_segments * CORONARY["n_ramp"]
+    assert set(par[navigators]) == {SMALL_3D["n_z"] // 2}
+    assert len(set(lin[navigators])) == CORONARY["n_ramp"]
+
+
+def test_the_first_imaging_excitation_is_the_inversion_time_after_the_inversion():
+    seq = segmented_3d(**INFLOW)
+    rows, t = [], 0.0
+    for block in blocks(seq):
+        if block.rf is not None:
+            rows.append((t + block.rf.delay + block.rf.center, block.rf.use))
+        t += block.block_duration
+    inversion = next(time for time, use in rows if use == "inversion")
+    after = [time for time, use in rows if time > inversion and use == "excitation"]
+
+    assert after[INFLOW["n_ramp"]] - inversion == pytest.approx(
+        INFLOW["inversion_time"], abs=1e-5
+    )
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"trigger_period": 0.05}, "trigger period"),
+        ({"inversion_time": 0.02}, "inversion_time"),
+        ({"n_phase_cycles": 2}, "phase cycle"),
+        ({"trigger_delay": 1e-4}, "trigger_delay"),
+        ({"gating": "retrospective"}, "gating"),
+    ],
+    ids=[
+        "segment-past-period",
+        "short-inversion",
+        "phase-cycles",
+        "short-delay",
+        "gating",
+    ],
+)
+def test_a_segmented_scan_that_cannot_be_played_is_refused(change, message):
+    with pytest.raises(ValueError, match=message):
+        segmented_3d(**{**INFLOW, **change})
