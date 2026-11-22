@@ -1364,6 +1364,22 @@ def _designed(
     if inversion is not None:
         slots = {size: inversion_slots(size) for size in packet_time}
         packet_time = {size: size * plan.slot for size, plan in slots.items()}
+        if fatsat is not None:
+            # Fat in a slice sees the saturation of every slot and its own
+            # inversion, which the flip of a saturation alone does not hold.
+            size = max(slots)
+            plan = slots[size]
+            fatsat = sequences.FatSaturation(
+                pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
+                flip_angle_deg=sequences.fat_null_flip_deg_cycle(
+                    size * plan.slot,
+                    [to_excitation + k * plan.slot for k in range(size)],
+                    inversions_s=[plan.ti % (size * plan.slot)],
+                    excitation_deg=90.0 if spin_echo else flip_angle_deg,
+                ),
+                voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+            )
+            prep = [fatsat]
         repetition_time = n_shots * max(packet_time.values())
         # Every acquired slice is inverted in the cycle before it, or earlier.
         dummy_cycles = max(

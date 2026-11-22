@@ -80,7 +80,8 @@ def test_the_offset_is_carried_in_ppm_so_it_follows_the_field(system):
 def test_it_overshoots_the_transverse_plane(system):
     """110 degrees, so a transmit shortfall still leaves fat near null."""
     answer = response(design.FatSaturation(system))
-    assert float(np.min(answer.mz_z)) == pytest.approx(
+    centre = FAT_SHIFT_PPM * 1e-6 * pp.Opts().B0 * pp.Opts().gamma
+    assert float(np.interp(centre, answer.frequency, answer.mz_z)) == pytest.approx(
         np.cos(np.deg2rad(110.0)), abs=0.02
     )
 
@@ -91,6 +92,16 @@ def test_it_leaves_water_alone(system):
     answer = response(fatsat)
     water = float(np.interp(0.0, answer.frequency, answer.mz_z))
     assert water > 0.95
+
+
+def test_fat_a_head_field_moves_off_its_peak_is_saturated_as_fully():
+    """The scalp's field moves its fat up to 0.7 ppm, 45 Hz at 1.5 T."""
+    system = pp.Opts(B0=1.5)
+    answer = response(design.FatSaturation(system, flip_angle_deg=90.0))
+    fat = FAT_SHIFT_PPM * 1e-6 * system.B0 * system.gamma
+    for offset in (-45.0, -25.0, 25.0, 45.0):
+        residual = float(np.interp(fat + offset, answer.frequency, answer.mz_z))
+        assert abs(residual) < 0.1
 
 
 def test_the_pulse_duration_follows_the_bandwidth_asked_for(system):
