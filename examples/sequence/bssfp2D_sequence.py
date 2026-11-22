@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import sys
 
 import numpy as np
@@ -42,6 +43,10 @@ TRIGGER_CHANNEL = "physio1"
 #: heartbeat has to hold them with its cardiac phases, so they are its
 #: catalyst ramp alone.
 PROSPECTIVE_DUMMIES = CATALYST_RAMP
+#: Nominal heartbeats each segment of a retrospective cine is cycled for:
+#: more than one, so that every line spans a whole beat up to a fifth longer
+#: than the nominal one, the longest an arrhythmia rejection keeps.
+RETROSPECTIVE_WINDOW = 1.2
 
 
 def prospective_starts(
@@ -206,10 +211,11 @@ def bssfp2d(
     row, the steady state carried from one frame into the next with no
     dummies between them, the frame counted in ``PHS``. With gating, the
     phase-encode lines are played ``views_per_segment`` at a time. Under
-    ``retrospective`` gating each segment is cycled as many times as a full
-    segment fits in a heartbeat, the same number for every segment, so each
-    cycle samples every line; the interpreter's ECG log bins them into cardiac
-    phases. Under ``prospective`` gating each slice's first excitation waits
+    ``retrospective`` gating each segment is cycled for
+    ``RETROSPECTIVE_WINDOW`` nominal heartbeats, the same number of cycles
+    for every segment, so each line spans a whole beat even when it runs
+    longer than the nominal one; the interpreter's ECG log bins the cycles
+    into cardiac phases. Under ``prospective`` gating each slice's first excitation waits
     for one trigger event on ``trigger_channel``, and the slice then runs free
     at the nominal heart rate: every heartbeat plays its segment once per
     cardiac phase, and repetitions that do not acquire fill the rest of it
@@ -442,6 +448,8 @@ def bssfp2d(
     )
     train = [(None, 0, 0)] * n_dummy
     cycles = max(1, round(rr / (views_per_segment * ro.tr)))
+    if gating == "retrospective":
+        cycles = math.ceil(RETROSPECTIVE_WINDOW * rr / (views_per_segment * ro.tr))
     sizes = [len(segment) for segment in segments]
     if retriggered:
         starts = triggered_starts(sizes, n_phases, n_dummy, ro.tr, trigger_delay)

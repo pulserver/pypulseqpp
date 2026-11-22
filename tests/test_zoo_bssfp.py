@@ -221,10 +221,11 @@ def test_ungated_frames_follow_one_another_one_repetition_apart():
     assert np.diff(times) == pytest.approx(tr, abs=1e-9)
 
 
-def test_a_retrospective_heartbeat_cycles_its_segment():
+def test_a_retrospective_segment_is_cycled_past_a_heartbeat_longer_than_the_nominal_one():
     seq = built_2d(gating="retrospective", **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
-    cycles = max(1, round(0.2 / (4 * np.atleast_1d(seq.definitions["TR"])[0])))
+    tr = np.atleast_1d(seq.definitions["TR"])[0]
+    cycles = int(np.ceil(bssfp2d.RETROSPECTIVE_WINDOW * 0.2 / (4 * tr)))
     expected = [
         (line, s, c)
         for s, start in enumerate(range(0, 16, 4))
@@ -232,7 +233,8 @@ def test_a_retrospective_heartbeat_cycles_its_segment():
         for line in range(start, start + 4)
     ]
 
-    assert cycles > 1
+    assert bssfp2d.RETROSPECTIVE_WINDOW > 1
+    assert cycles * 4 * tr >= bssfp2d.RETROSPECTIVE_WINDOW * 0.2
     assert list(zip(lin, seg, phs, strict=True)) == expected
     assert not any(getattr(block, "trig", None) for block in blocks(seq))
 
