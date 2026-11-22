@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from types import SimpleNamespace
 
 import numpy as np
@@ -80,7 +81,8 @@ def test_the_offset_is_carried_in_ppm_so_it_follows_the_field(system):
 def test_it_overshoots_the_transverse_plane(system):
     """110 degrees, so a transmit shortfall still leaves fat near null."""
     answer = response(design.FatSaturation(system))
-    assert float(np.min(answer.mz_z)) == pytest.approx(
+    centre = FAT_SHIFT_PPM * 1e-6 * pp.Opts().B0 * pp.Opts().gamma
+    assert float(np.interp(centre, answer.frequency, answer.mz_z)) == pytest.approx(
         np.cos(np.deg2rad(110.0)), abs=0.02
     )
 
@@ -91,6 +93,16 @@ def test_it_leaves_water_alone(system):
     answer = response(fatsat)
     water = float(np.interp(0.0, answer.frequency, answer.mz_z))
     assert water > 0.95
+
+
+def test_fat_a_head_field_moves_off_its_peak_is_saturated_as_fully():
+    """The scalp's field moves its fat up to 0.7 ppm, 45 Hz at 1.5 T."""
+    system = pp.Opts(B0=1.5)
+    answer = response(design.FatSaturation(system, flip_angle_deg=90.0))
+    fat = FAT_SHIFT_PPM * 1e-6 * system.B0 * system.gamma
+    for offset in (-45.0, -25.0, 25.0, 45.0):
+        residual = float(np.interp(fat + offset, answer.frequency, answer.mz_z))
+        assert abs(residual) < 0.1
 
 
 def test_the_pulse_duration_follows_the_bandwidth_asked_for(system):
@@ -240,6 +252,28 @@ def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
     )
 
 
+def test_the_null_flip_through_an_inversion_leaves_fat_at_zero_at_the_excitation():
+    period, delay, ti, t1 = 0.3, 6e-3, 0.15, design.FAT_T1_S
+    flip = math.radians(
+        design.fat_null_flip_deg_cycle(period, [delay], inversions_s=[ti])
+    )
+    # From the 90 degree excitation, which leaves fat at zero, to the next.
+    mz = 1 - math.exp(-(period - ti) / t1)
+    mz = 1 - (1 + mz) * math.exp(-(ti - delay) / t1)
+    mz = 1 - (1 - mz * math.cos(flip)) * math.exp(-delay / t1)
+    assert abs(mz) < 1e-3
+
+
+@pytest.mark.parametrize(
+    "saturations, inversions", [([], []), ([0.5], []), ([5e-3], [0.0])]
+)
+def test_a_cycle_without_saturation_or_with_a_pulse_outside_it_is_refused(
+    saturations, inversions
+):
+    with pytest.raises(ValueError):
+        design.fat_null_flip_deg_cycle(0.3, saturations, inversions_s=inversions)
+
+
 @pytest.mark.parametrize("calibration", ["fleet", "gre"])
 def test_every_epi_calibration_excitation_follows_a_fat_saturation_when_the_imaging_saturates_fat(
     calibration,
@@ -297,3 +331,12 @@ def test_the_epi_calibration_saturation_nulls_fat_at_the_calibration_excitation(
     )
     assert played_period in [pytest.approx(p) for p in calibration_periods]
     assert played_period != pytest.approx(imaging_period)
+
+
+@pytest.mark.parametrize("field", [1.5, 3.0, 7.0])
+def test_a_fat_saturation_is_designed_at_every_clinical_field(field):
+    from pypulseqpp.sequences import FatSaturation
+
+    module = FatSaturation(pp.Opts(B0=field))
+
+    assert module.seq.duration()[0] > 0

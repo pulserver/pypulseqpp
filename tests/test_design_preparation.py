@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pytest
 
@@ -379,6 +381,7 @@ def test_lobes_that_overlap_are_refused(system):
         lambda system: design.BlochSiegertPreparation(system),
         lambda system: design.DiffusionPreparation(system, 500.0),
         lambda system: design.InversionPreparation(system),
+        lambda system: design.InversionPreparation(system, slab_thickness_m=8e-3),
         lambda system: design.FatSaturation(system),
     ],
 )
@@ -425,3 +428,81 @@ def test_both_diffusion_preparation_gaps_are_published(system):
     prep = design.DiffusionPreparation(system, 500.0)
     played = [prep.wait_first, prep.wait_last]
     assert _delay_blocks(prep) == pytest.approx([pp.calc_duration(w) for w in played])
+
+
+def _slab_mz(module, positions_m, b1_scale):
+    """Mz after the slab inversion at each position, from a hard-pulse integration."""
+    rf, gz = module.rf_prep, module.gz_prep
+    times = rf.delay + np.asarray(rf.t, dtype=float)
+    dt = float(np.mean(np.diff(times)))
+    if getattr(gz, "type", "") == "trap":
+        gradient = np.full(times.shape, gz.amplitude)
+    else:
+        gradient = np.interp(times, gz.delay + np.asarray(gz.tt), gz.waveform)
+    bz = np.outer(positions_m, gradient)
+    return pp.sim_bloch(b1_scale * np.asarray(rf.signal), bz, dt)[:, 2]
+
+
+@pytest.mark.parametrize(
+    ("pulse_type", "bandwidth_hz"), [("hypsec", 40e3), ("goia_wurst", 4e3)]
+)
+@pytest.mark.parametrize("b1_scale", [1.0, 1.3])
+def test_slab_inversion_inverts_the_slab_and_leaves_its_surroundings(
+    system, pulse_type, bandwidth_hz, b1_scale
+):
+    slab = 8e-3
+    module = design.InversionPreparation(
+        system, slab_thickness_m=slab, pulse_type=pulse_type, bandwidth_hz=bandwidth_hz
+    )
+    inside = _slab_mz(module, np.linspace(-0.3, 0.3, 7) * slab, b1_scale)
+    outside = _slab_mz(module, np.array([-1.5, -1.0, 1.0, 1.5]) * slab, b1_scale)
+    assert inside.max() < -0.9
+    assert outside.min() > 0.9
+
+
+def test_slab_inversion_plays_its_gradient_on_the_crusher_axis(system):
+    module = design.InversionPreparation(system, slab_thickness_m=8e-3, axis="x")
+    assert module.gz_prep.channel == "x"
+
+
+def test_slab_inversion_refuses_a_slab_that_is_not_positive(system):
+    with pytest.raises(ValueError, match="slab_thickness_m"):
+        design.InversionPreparation(system, slab_thickness_m=0.0)
+
+
+@pytest.fixture(scope="module")
+def slab_inversion():
+    return design.InversionPreparation(pp.Opts(), slab_thickness_m=8e-3)
+
+
+@pytest.mark.parametrize("ti", [0.3, 0.52, 0.8, 1.6])
+def test_interleaved_inversion_sits_between_shots_and_holds_the_inversion_time(
+    slab_inversion, ti
+):
+    raster, shot, excitation = 1e-5, 0.05, 0.01
+    slot = design.shortest_inversion_slot(
+        ti, 0.07, shot, excitation, slab_inversion, raster
+    )
+    plan = design.inversion_slots(ti, slot, shot, excitation, slab_inversion, raster)
+    assert slot >= 0.07
+    assert plan.closing >= raster - 1e-12 and plan.tail >= 0
+    total = shot + plan.closing + slab_inversion.duration + plan.tail
+    assert total == pytest.approx(slot, abs=1e-9)
+    assert plan.ti == pytest.approx(ti, abs=raster)
+
+
+def test_the_inversion_times_an_overlap_names_are_ones_that_fit(slab_inversion):
+    raster, slot, shot, excitation = 1e-5, 0.1, 0.05, 0.01
+    with pytest.raises(ValueError, match="nearest inversion times") as refused:
+        design.inversion_slots(0.58, slot, shot, excitation, slab_inversion, raster)
+    named = [float(t) / 1e3 for t in re.findall(r"([\d.]+) ms", str(refused.value))[2:]]
+    assert named
+    for ti in named:
+        design.inversion_slots(ti, slot, shot, excitation, slab_inversion, raster)
+
+
+def test_an_inversion_time_shorter_than_the_inversion_and_shot_start_is_refused(
+    slab_inversion,
+):
+    with pytest.raises(ValueError, match="shorter than"):
+        design.shortest_inversion_slot(1e-3, 0.07, 0.05, 0.01, slab_inversion, 1e-5)

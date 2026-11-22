@@ -43,7 +43,7 @@ def _slr_sample_count(duration: float, dwell: float) -> int:
         raise ValueError("duration must be > 0")
     if dwell <= 0:
         raise ValueError("dwell must be > 0")
-    count = round(duration / dwell)
+    count = 2 * round(duration / dwell / 2)
     if count < 4:
         raise ValueError("duration must span at least four RF samples")
     return count

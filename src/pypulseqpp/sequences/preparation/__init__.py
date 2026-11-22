@@ -3,8 +3,18 @@
 from __future__ import annotations
 
 from .diffusion import DiffusionPreparation, diffusion_pair_b_value
-from .fatsat import FAT_T1_S, FatSaturation, fat_null_flip_deg
-from .inversion import InversionPreparation
+from .fatsat import (
+    FAT_T1_S,
+    FatSaturation,
+    fat_null_flip_deg,
+    fat_null_flip_deg_cycle,
+)
+from .inversion import (
+    InversionPreparation,
+    InversionSlots,
+    inversion_slots,
+    shortest_inversion_slot,
+)
 from .saturation import (
     BlochSiegertPreparation,
     IhMtPreparation,
@@ -21,6 +31,7 @@ __all__ = [
     "FatSaturation",
     "IhMtPreparation",
     "InversionPreparation",
+    "InversionSlots",
     "MtPreparation",
     "OffResonanceSaturation",
     "SpatialSaturation",
@@ -28,5 +39,8 @@ __all__ = [
     "T2Preparation",
     "diffusion_pair_b_value",
     "fat_null_flip_deg",
+    "fat_null_flip_deg_cycle",
+    "inversion_slots",
+    "shortest_inversion_slot",
     "spatial_saturations",
 ]

@@ -1,5 +1,6 @@
 """The 2D and 3D EPI example sequences: linked prescans, sampling, timing and labels."""
 
+import re
 from itertools import groupby
 from pathlib import Path
 
@@ -1229,3 +1230,80 @@ def test_a_spin_echo_at_the_minimum_te_it_reports_is_designed(b_value):
         )
 
     assert longer.echo_time >= shortest.echo_time
+
+
+# -- inversion recovery ------------------------------------------------------
+
+#: An interleaved inversion-recovery prescription: five slices in one TR.
+INVERTED = {"n_x": 32, "n_y": 32, "n_slices": 5, "tr": 0.6, "n_dummy": 0}
+
+
+def pulse_centres(seq, use):
+    """The centre time and frequency offset of every pulse of ``use`` in ``seq``."""
+    t, found = 0.0, []
+    for i in range(1, len(seq.block_events) + 1):
+        block = seq.get_block(i)
+        rf = block.rf
+        if rf is not None and rf.use == use:
+            found.append((t + rf.delay + rf.center, rf.freq_offset))
+        t += block.block_duration
+    return found
+
+
+def refusal(ti):
+    """The message refusing ``ti`` for :data:`INVERTED`; ``None`` where it is played."""
+    try:
+        epi2d(**INVERTED, ti=ti)
+    except ValueError as error:
+        return str(error)
+    return None
+
+
+def test_every_acquired_slice_is_inverted_the_written_inversion_time_before_its_excitation():
+    ti = next(t for t in np.arange(0.2, 0.5, 0.01) if refusal(t) is None)
+    *_, seq = epi2d(**INVERTED, ti=ti)
+    inversions = pulse_centres(seq, "inversion")
+    excitations = pulse_centres(seq, "excitation")
+    # Offsets rank the slices alike on both pulses, whose selection
+    # gradients differ.
+    rank_of = {
+        use: {f: r for r, f in enumerate(sorted({f for _, f in found}))}
+        for use, found in (("inversion", inversions), ("excitation", excitations))
+    }
+    written = float(np.atleast_1d(seq.definitions["TI"])[0])
+    assert written == pytest.approx(ti, abs=1e-5)
+    for time, offset in excitations[-INVERTED["n_slices"] :]:
+        rank = rank_of["excitation"][offset]
+        inverted = max(
+            t for t, f in inversions if t < time and rank_of["inversion"][f] == rank
+        )
+        assert time - inverted == pytest.approx(written, abs=1e-6)
+
+
+def test_an_inversion_time_that_overlaps_a_shot_is_refused_naming_ones_that_fit():
+    refused = next(
+        (t, message)
+        for t in np.arange(0.2, 0.5, 0.01)
+        if (message := refusal(t)) is not None
+    )
+    ti, message = refused
+    suggested = [
+        float(v) * 1e-3 for v in re.findall(r"(\d+\.\d) ms", message.split("fit")[1])
+    ]
+    assert suggested
+    for t in suggested:
+        assert refusal(t) is None, (ti, t)
+
+
+@pytest.mark.parametrize(
+    "prescription",
+    [
+        {"ti": 0.3, "n_shots": 2, "n_y": 32},
+        {"ti": 0.3, "n_slices": 4, "multiband": 2},
+        {"ti": 0.3, "inversion_slab": 0.0},
+    ],
+    ids=str,
+)
+def test_an_inversion_is_refused_where_it_is_not_designed(prescription):
+    with pytest.raises(ValueError):
+        scan2d(**prescription)

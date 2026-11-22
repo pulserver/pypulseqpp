@@ -54,6 +54,13 @@ SMALL = {
         "n_dummy": 0,
     },
     "se2D_sequence": {"n_x": 32, "n_y": 16, "n_slices": 1, "n_acs_y": 0, "tr": None},
+    "ssfse2D_sequence": {
+        "n_x": 32,
+        "n_y": 16,
+        "n_slices": 1,
+        "n_acs_y": 4,
+        "n_dummy": 0,
+    },
     "se3D_sequence": {
         "n_x": 32,
         "n_y": 8,

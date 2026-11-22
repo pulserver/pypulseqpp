@@ -327,6 +327,8 @@ TIME_BW_PRODUCT = 4.0
 #: Dephasing of each crusher around the refocusing pulse of a spin echo, in
 #: cycles across the slice.
 CRUSHER_CYCLES = 4.0
+#: Duration of the adiabatic inversion pulse (s) while it fits the peak B1.
+INVERSION_DURATION = 10e-3
 #: Step (s) by which the diffusion lobes are lengthened until they reach the
 #: b-value.
 DIFFUSION_LOBE_STEP = 0.2e-3
@@ -398,6 +400,8 @@ def epi2d(
     diffusion_directions: int = 0,
     b_value: float = 1.0e9,
     diffusion_b0: int = 1,
+    ti: float | None = None,
+    inversion_slab: float = 2.0,
     field_pair: bool = True,
     full_k_reference: bool = True,
 ) -> list[pp.Sequence]:
@@ -529,6 +533,15 @@ def epi2d(
         b-value (s/m^2) of each diffusion-encoding direction.
     diffusion_b0 : int, default=1
         Count of b = 0 volumes played before the directions.
+    ti : float | None, default=None
+        Inversion time (s), from the centre of a slice's inversion to the
+        centre of its excitation. Each shot is followed by the adiabatic
+        inversion of the slice excited the inversion time later, so the
+        inversions of later slices sit between the shots of earlier ones,
+        and enough dummy cycles open the scan for every acquired slice to
+        have been inverted. ``None`` plays no inversion.
+    inversion_slab : float, default=2.0
+        Thickness of the inverted slab, in slice thicknesses.
     field_pair : bool, default=True
         Play a spin-echo pair before the scan, at the imaging train and the
         shortest spin echo: one volume with the phase encode forward, labelled
@@ -561,7 +574,10 @@ def epi2d(
         ``n_slices``, the shots cannot
         share the lines, the TE is shorter than the train admits, or the TR
         cannot hold one slice, or every slice when ``n_frames`` is above
-        one, or the TE is shorter than the ``full_k_reference`` admits.
+        one; or if ``ti`` is given with ``multiband`` or ``n_shots`` above
+        one, ``inversion_slab`` is not positive, or an inversion ``ti``
+        before an excitation would overlap a shot at the TR; or the TE is
+        shorter than the ``full_k_reference`` admits.
 
     Examples
     --------
@@ -604,6 +620,8 @@ def epi2d(
         "b_value": b_value,
         "diffusion_b0": diffusion_b0,
         "field_pair": field_pair,
+        "ti": ti,
+        "inversion_slab": inversion_slab,
     }
     if not (full_k_reference and partial_fourier_y < 1.0 and not spin_echo):
         return _designed(system, **protocol, encode_sets=(0, 1))
@@ -664,6 +682,8 @@ def _designed(
     b_value: float = 1.0e9,
     diffusion_b0: int = 1,
     field_pair: bool = False,
+    ti: float | None = None,
+    inversion_slab: float = 2.0,
     encode_sets: tuple[int, int],
 ) -> list[pp.Sequence]:
     """Design :func:`epi2d`, its forward phase encodes labelled ``SET = encode_sets[0]`` and its reversed ones ``SET = encode_sets[1]``."""
@@ -704,6 +724,13 @@ def _designed(
         raise ValueError("diffusion weighting needs spin_echo")
     if spin_echo and multiband > 1:
         raise ValueError("a spin echo is designed single-band; set multiband to 1")
+    if ti is not None and (multiband > 1 or n_shots > 1):
+        raise ValueError(
+            "an inversion is designed for single-band single-shot EPI; set "
+            "multiband and n_shots to 1"
+        )
+    if inversion_slab <= 0:
+        raise ValueError("inversion_slab must be positive")
     b_table = g_table = None
     if diffusion_directions:
         g_table = np.concatenate(
@@ -870,19 +897,32 @@ def _designed(
     prep = [fatsat] if fatsat is not None else []
     prep_duration = sum(module.duration for module in prep)
     shot_duration = prep_duration + echo_extra + epi.duration + raster
+    inversion = (
+        None
+        if ti is None
+        else sequences.InversionPreparation(
+            system,
+            INVERSION_DURATION,
+            slab_thickness_m=inversion_slab * slice_thickness,
+            voxel_size_m=slice_thickness,
+        )
+    )
+    # With an inversion, each slot holds a shot and the inversion of a later
+    # slice.
+    slot_duration = shot_duration + (0.0 if inversion is None else inversion.duration)
     cycle = None if tr is None else tr / n_shots
     per_packet = (
-        n_groups if cycle is None else max(1, int(cycle / shot_duration + 1e-9))
+        n_groups if cycle is None else max(1, int(cycle / slot_duration + 1e-9))
     )
     packets = packets_of(n_groups, per_packet)
     if volumes > 1 and len(packets) > 1:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms cannot hold the "
-            f"{n_groups} excitations of a volume, {shot_duration * 1e3:.3f} ms each "
+            f"{n_groups} excitations of a volume, {slot_duration * 1e3:.3f} ms each "
             f"per shot"
         )
     if cycle is None:
-        cycle = max(map(len, packets)) * shot_duration
+        cycle = max(map(len, packets)) * slot_duration
     if fatsat is not None:
         # The flip that leaves fat at zero when the train's excitation comes,
         # in the steady state of one saturation every shot. The pulse's
@@ -895,20 +935,23 @@ def _designed(
         )
         fatsat = sequences.FatSaturation(
             pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
-            flip_angle_deg=sequences.fat_null_flip_deg(to_excitation, shot_duration),
+            flip_angle_deg=sequences.fat_null_flip_deg(
+                to_excitation,
+                shot_duration if inversion is None else cycle / max(map(len, packets)),
+            ),
             voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
         )
         prep = [fatsat]
     pads = {
-        size: pp.round_to_raster(cycle - size * shot_duration, raster) + raster
+        size: pp.round_to_raster(cycle - size * slot_duration, raster) + raster
         for size in {len(packet) for packet in packets}
     }
     if min(pads.values()) < raster:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
-            f"{n_shots * shot_duration * 1e3:.3f} ms the shots of one slice take"
+            f"{n_shots * slot_duration * 1e3:.3f} ms the shots of one slice take"
         )
-    packet_time = {n: n * shot_duration - raster + pad for n, pad in pads.items()}
+    packet_time = {n: n * slot_duration - raster + pad for n, pad in pads.items()}
     repetition_time = n_shots * max(packet_time.values())
     if n_dummy is None:
         # A slice is excited once a cycle; a volume holds n_shots cycles.
@@ -1343,6 +1386,61 @@ def _designed(
                 seq.add_block(*lobe)
         seq.add_block(pp.make_delay(closing))
 
+    def excitation_offset() -> float:
+        """Return the time from the start of a shot to the centre of its excitation, and its length without its closing delay."""
+        probe = pp.Sequence(system)
+        kernel(probe, sequences.Labels(), 0, 0, 0, raster)
+        t, centre = 0.0, None
+        for i in range(1, probe.num_blocks + 1):
+            block = probe.get_block(i)
+            rf = getattr(block, "rf", None)
+            if centre is None and rf is not None and rf.use == "excitation":
+                centre = t + float(rf.delay) + float(rf.center)
+            t += float(block.block_duration)
+        return centre, t - raster
+
+    def inversion_slots(size: int) -> sequences.InversionSlots:
+        centre, shot = excitation_offset()
+        slot = math.floor(packet_time[size] / size / raster + 1e-9) * raster
+        return sequences.inversion_slots(ti, slot, shot, centre, inversion, raster)
+
+    def invert(seq: pp.Sequence, g: int, tail: float) -> None:
+        """Add the slab inversion of slice ``g``, then ``tail`` of delay."""
+        rf = inversion.rf_prep
+        rf.freq_offset = float(inversion.gz_prep.amplitude) * centers[g]
+        rf.phase_offset = -2 * np.pi * rf.freq_offset * rf.center
+        for block in inversion.blocks:
+            seq.add_block(*block)
+        if tail > 0:
+            seq.add_block(pp.make_delay(tail))
+
+    slots = {}
+    if inversion is not None:
+        slots = {size: inversion_slots(size) for size in packet_time}
+        packet_time = {size: size * plan.slot for size, plan in slots.items()}
+        if fatsat is not None:
+            # Fat in a slice sees the saturation of every slot and its own
+            # inversion, which the flip of a saturation alone does not hold.
+            size = max(slots)
+            plan = slots[size]
+            fatsat = sequences.FatSaturation(
+                pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
+                flip_angle_deg=sequences.fat_null_flip_deg_cycle(
+                    size * plan.slot,
+                    [to_excitation + k * plan.slot for k in range(size)],
+                    inversions_s=[plan.ti % (size * plan.slot)],
+                    excitation_deg=90.0 if spin_echo else flip_angle_deg,
+                ),
+                voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+            )
+            prep = [fatsat]
+        repetition_time = n_shots * max(packet_time.values())
+        # Every acquired slice is inverted in the cycle before it, or earlier.
+        dummy_cycles = max(
+            dummy_cycles,
+            *(-(-plan.lag // size) for size, plan in slots.items()),
+        )
+
     def play(frames, reversed_encode: bool = False):
         """Design the dummies and then ``frames``, packet by packet.
 
@@ -1361,13 +1459,14 @@ def _designed(
                 for i, g in enumerate(packet):
                     last = i == len(packet) - 1
                     before = seq.num_blocks
+                    plan = slots.get(len(packet))
                     kernel(
                         seq,
                         labels,
                         g,
                         shot,
                         frame,
-                        pad if last else raster,
+                        plan.closing if plan else pad if last else raster,
                         output=volume_output
                         and not reversed_encode
                         and i == 0
@@ -1375,6 +1474,8 @@ def _designed(
                         reversed_encode=reversed_encode,
                         reference=reference,
                     )
+                    if plan:
+                        invert(seq, packet[(i + plan.lag) % len(packet)], plan.tail)
                     if frame is not None and first_image_shot is None:
                         first_image_shot = (before + 1, seq.num_blocks - before)
         return seq, first_image_shot
@@ -1422,10 +1523,13 @@ def _designed(
     if len(packets) == 1:
         # Excitation time of each slice from the start of its volume.
         (packet,) = packets
-        when = {g: i * shot_duration for i, g in enumerate(packet)}
+        spacing = slots[len(packet)].slot if slots else shot_duration
+        when = {g: i * spacing for i, g in enumerate(packet)}
         definitions["SliceTiming"] = [when[s % n_groups] for s in range(n_slices)]
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
+    if slots:
+        seq.set_definition(key="TI", value=slots[len(packets[0])].ti)
     if b_table is not None:
         pp.io.record_diffusion_table(seq, b_table, g_table)
     seq.set_definition(
