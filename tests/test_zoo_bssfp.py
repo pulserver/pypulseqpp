@@ -247,6 +247,20 @@ def test_a_retrospective_cycle_reads_every_line_when_the_last_segment_is_short()
         assert sorted(lin[phs == cycle]) == list(range(16))
 
 
+def test_interleaved_frames_read_every_ry_th_central_line_and_together_read_each_once():
+    seq = built_2d(ordering="interleaved", ry=3, n_phases=6, phase_resolution=0.5)
+    lin, phs = labels(seq, "LIN", "PHS")
+
+    for frame in range(6):
+        assert lin[phs == frame].tolist() == list(range(4 + frame % 3, 12, 3))
+    assert sorted(lin[phs < 3].tolist()) == list(range(4, 12))
+
+
+def test_a_phase_resolution_outside_the_unit_interval_is_refused():
+    with pytest.raises(ValueError, match="phase_resolution"):
+        built_2d(ordering="interleaved", phase_resolution=0.0)
+
+
 def test_a_prospective_slice_waits_for_one_trigger_then_reads_every_phase():
     seq = built_2d(gating="prospective", n_phases=3, trigger_delay=5e-3, **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")

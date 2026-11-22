@@ -13,7 +13,7 @@ from pypulseqpp import cli, sequences
 #: The cardiac gating modes ``gating`` selects from.
 GATINGS = ("none", "retrospective", "prospective")
 #: The phase-encode orders of a free-running series ``ordering`` selects from.
-ORDERINGS = ("sequential", "golden")
+ORDERINGS = ("sequential", "golden", "interleaved")
 #: The golden ratio, whose fractional multiples order the lines of a
 #: ``golden`` free-running series.
 GOLDEN_RATIO = (1.0 + 5.0**0.5) / 2.0
@@ -195,6 +195,7 @@ def bssfp2d(
     trigger_window: float = 0.0,
     trigger_channel: str = TRIGGER_CHANNEL,
     ordering: str = "sequential",
+    phase_resolution: float = 1.0,
 ) -> pp.Sequence | list[pp.Sequence]:
     """Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.
 
@@ -233,7 +234,11 @@ def bssfp2d(
     a frame in the order of :func:`golden_order`, so any window of
     consecutive readouts is an undersampled frame with no calibration lines,
     for a real-time reconstruction or a binning by a recorded physiological
-    signal. A gated slice's blocks join on the slice axis
+    signal. Under ``interleaved`` ordering, the real-time cine of the
+    scanner, a free-running series acquires the central ``phase_resolution``
+    of the lines, frame ``f`` every ``ry``-th of them from the ``f mod ry``-th,
+    so ``ry`` consecutive frames sample each line once and a reconstruction
+    unfolds each frame by the coil sensitivities those frames calibrate. A gated slice's blocks join on the slice axis
     (``bridge``), so the gated train has no rest in it and its timing against
     the heartbeat is the designed one. Without gating, every repetition
     opens from rest and closes to it, so a scanner that prepares a segment
@@ -319,7 +324,13 @@ def bssfp2d(
         Phase-encode order of a free-running series: the lines in k-space
         order, calibration first, once a frame; or every line of the grid in
         the order of :func:`golden_order`, ``ry`` and ``n_acs_y`` then
-        unused. Unused with gating.
+        unused; or the central ``phase_resolution`` of the lines, every
+        ``ry``-th of them a frame, interleaved across ``ry`` frames,
+        ``n_acs_y`` then unused. Unused with gating.
+    phase_resolution : float, default=1.0
+        Fraction of the phase-encode lines, about the centre, an
+        ``interleaved`` series acquires; the rest of k-space is left
+        empty. Unused with other orderings.
 
     Returns
     -------
@@ -360,6 +371,9 @@ def bssfp2d(
             f"{trigger_window * 1e3:.0f} ms"
         )
     golden = gating == "none" and ordering == "golden"
+    interleaved = gating == "none" and ordering == "interleaved"
+    if not 0.0 < phase_resolution <= 1.0:
+        raise ValueError(f"phase_resolution must lie in (0, 1], got {phase_resolution}")
     retriggered = gating == "prospective" and trigger_window > 0.0
     if not 0.75 <= partial_fourier_y <= 1.0:
         raise ValueError(
@@ -425,8 +439,8 @@ def bssfp2d(
 
     calibrating, imaging = pp.make_cartesian_axis_sampling(
         n_y,
-        1 if golden else ry,
-        0 if golden else n_acs_y,
+        1 if golden or interleaved else ry,
+        0 if golden or interleaved else n_acs_y,
         partial_fourier=partial_fourier_y,
     )
     # The calibration block leads, so a reconstruction can estimate
@@ -436,6 +450,10 @@ def bssfp2d(
     if golden:
         lines = sorted(lines)
         lines = [lines[rank] for rank in golden_order(len(lines))]
+    if interleaved:
+        kept = max(ry, round(n_y * phase_resolution))
+        first = n_y // 2 - kept // 2
+        lines = [line for line in sorted(lines) if first <= line < first + kept]
     # A train is a list of (line, segment, phase) repetitions, line None for
     # one that does not acquire.
     segments = (
@@ -464,7 +482,11 @@ def bssfp2d(
     if retriggered:
         openings = {start - lead for start in starts[1:]}
     for s, segment in enumerate(segments):
-        if gating == "none":
+        if interleaved:
+            train += [
+                (line, 0, f) for f in range(n_phases) for line in segment[f % ry :: ry]
+            ]
+        elif gating == "none":
             # A free-running series: the frames follow one another with the
             # steady state kept, so no dummies between them.
             train += [(line, 0, f) for f in range(n_phases) for line in segment]
@@ -556,7 +578,7 @@ def bssfp2d(
             SLC=s,
             SEG=segment,
             PHS=phase,
-            IMA=line in calibration and not golden,
+            IMA=line in calibration and not (golden or interleaved),
         )
         target.add_block(
             ro.gx,
