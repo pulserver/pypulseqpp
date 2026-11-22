@@ -307,9 +307,8 @@ def bssfp2d(
         Time at the end of each nominal heartbeat left free for the next
         trigger under ``prospective`` gating (s). Zero triggers each slice
         once; more triggers every heartbeat.
-    trigger_channel : str, default=TRIGGER_CHANNEL
-        Physiological signal a prospective trigger waits for, ``'physio1'``
-        or ``'physio2'``.
+    trigger_channel : {'physio1', 'physio2'}, default='physio1'
+        Physiological signal a prospective trigger waits for.
     ordering : {'sequential', 'golden'}, default='sequential'
         Phase-encode order of a free-running series: the lines in k-space
         order, calibration first, once a frame; or every line of the grid in
