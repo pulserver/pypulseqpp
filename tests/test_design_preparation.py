@@ -499,3 +499,10 @@ def test_the_inversion_times_an_overlap_names_are_ones_that_fit(slab_inversion):
     assert named
     for ti in named:
         design.inversion_slots(ti, slot, shot, excitation, slab_inversion, raster)
+
+
+def test_an_inversion_time_shorter_than_the_inversion_and_shot_start_is_refused(
+    slab_inversion,
+):
+    with pytest.raises(ValueError, match="shorter than"):
+        design.shortest_inversion_slot(1e-3, 0.07, 0.05, 0.01, slab_inversion, 1e-5)
