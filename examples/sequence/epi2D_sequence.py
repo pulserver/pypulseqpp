@@ -550,7 +550,11 @@ def epi2d(
     full_k_reference : bool, default=True
         Play one fully sampled volume at the echo time of a partial-Fourier
         gradient-echo scan, labelled ``SET = 4``, from whose phase the
-        reconstruction completes the unsampled side of k-space. Without a
+        reconstruction completes the unsampled side of k-space. Its
+        ``n_shots * ry`` interleaved, echo-time-shifted shots read every
+        line with the echo train of an imaging shot, so the volume is
+        distorted as the imaging is and holds, pixel by pixel, the coil
+        sensitivities of the imaging signal at its echo time. Without a
         prescribed ``te``, the scan takes the shortest echo time this volume
         admits. A spin-echo scan, whose phase is smooth, plays none.
 
@@ -624,6 +628,8 @@ def epi2d(
             **{
                 **protocol,
                 "partial_fourier_y": 1.0,
+                "ry": 1,
+                "n_shots": n_shots * ry,
                 "n_frames": 1,
                 "volume_output": False,
                 "field_pair": False,

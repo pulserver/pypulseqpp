@@ -1097,7 +1097,17 @@ def test_a_partial_fourier_gradient_echo_scan_plays_a_full_k_reference_at_its_ec
     lin, nav = labels(reference, "LIN", "NAV")
     lin_scan, nav_scan = labels(scan.main, "LIN", "NAV")
     assert min(lin[nav == 0]) == 0 < min(lin_scan[nav_scan == 0])
-    assert max(lin[nav == 0]) == max(lin_scan[nav_scan == 0])
+
+
+def test_the_2d_full_k_reference_reads_every_line_of_a_slice_stepping_through_them_as_the_imaging_does():
+    scan = scan2d(n_y=32, ry=2, partial_fourier_y=0.75)
+    reference = scan.prescan("full_k_reference")
+    lin, nav = labels(reference, "LIN", "NAV")
+    (referenced,) = _echo_slope(reference, (4,))
+    (imaging,) = _echo_slope(scan.main, (0,))
+
+    assert sorted(lin[nav == 0]) == list(range(32))
+    assert referenced == pytest.approx(imaging, rel=0.02)
 
 
 def test_a_prescribed_echo_time_below_that_of_the_full_k_reference_is_refused():
