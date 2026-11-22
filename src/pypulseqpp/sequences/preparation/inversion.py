@@ -12,7 +12,7 @@ _AXES = ("x", "y", "z")
 
 
 class InversionPreparation(RfModule):
-    """Non-selective adiabatic inversion, followed by an optional crusher.
+    """Adiabatic inversion, non-selective or of a slab, followed by an optional crusher.
 
     The module contains no inversion-time delay; the caller adds it. A pulse
     whose peak exceeds :data:`~pypulseqpp.MAX_B1_DERATE` of
@@ -48,6 +48,14 @@ class InversionPreparation(RfModule):
     labels : sequence of str, default=None
         Labels the inversion block sets to 0, to be changed per shot by the
         caller.
+    thickness_m : float, default=0.0
+        Thickness of the inverted slab (m), selected by a gradient under the
+        pulse; zero inverts the whole transmit volume.
+    selection_axis : {'z', 'x', 'y'}, default='z'
+        Logical axis the slab is selected along.
+    offset_m : float, default=0.0
+        Offset of the slab centre from the field-of-view centre along
+        ``selection_axis`` (m).
 
     Attributes
     ----------
@@ -61,6 +69,8 @@ class InversionPreparation(RfModule):
         under the system's peak B1.
     gz_spoil : GradEvent
         The crusher, when ``spoiling_cycles`` is nonzero.
+    g_select : GradEvent
+        The slab-selection gradient, when ``thickness_m`` is nonzero.
     prep_labels : LabelSetEvent or list of LabelSetEvent
         One per name in ``labels``, in order. Absent when ``labels`` is
         empty, and a bare event rather than a list when there is one.
@@ -68,9 +78,9 @@ class InversionPreparation(RfModule):
     Raises
     ------
     ValueError
-        If ``voxel_size_m`` is not positive, ``spoiling_cycles`` is negative,
-        ``axis`` is not a gradient channel, or the pulse cannot fit the
-        system's peak B1.
+        If ``voxel_size_m`` is not positive, ``spoiling_cycles`` or
+        ``thickness_m`` is negative, ``axis`` or ``selection_axis`` is not a
+        gradient channel, or the pulse cannot fit the system's peak B1.
 
     Examples
     --------
@@ -82,6 +92,14 @@ class InversionPreparation(RfModule):
 
     >>> len(design.InversionPreparation(pp.Opts(), spoiling_cycles=0).blocks)
     1
+
+    A 10 cm slab along x, 5 cm off centre:
+
+    >>> slab = design.InversionPreparation(
+    ...     pp.Opts(), thickness_m=0.1, selection_axis="x", offset_m=0.05
+    ... )
+    >>> slab.g_select.channel
+    'x'
 
     Under an 11.2 uT limit the 13.2 uT pulse is lengthened, at the same
     adiabaticity, to peak below 0.9 of it:
@@ -116,7 +134,16 @@ class InversionPreparation(RfModule):
         bandwidth_hz: float = 40e3,
         adiabaticity: float = 4,
         labels: tuple[str, ...] | None = None,
+        thickness_m: float = 0.0,
+        selection_axis: str = "z",
+        offset_m: float = 0.0,
     ) -> None:
+        if thickness_m < 0:
+            raise ValueError(f"thickness_m must be >= 0, got {thickness_m}")
+        if selection_axis not in _AXES:
+            raise ValueError(
+                f"selection_axis must be one of {_AXES}, got {selection_axis!r}"
+            )
         if voxel_size_m <= 0:
             raise ValueError("voxel_size_m must be positive")
         if spoiling_cycles < 0:
@@ -132,12 +159,22 @@ class InversionPreparation(RfModule):
                 adiabaticity=margin,
                 use="inversion",
                 system=system,
+                slice_thickness=thickness_m,
+                return_gz=thickness_m > 0,
                 **held_sweep(pulse_type, duration / duration_s),
             )
 
-        self.pulse_duration, self.adiabaticity, rf_prep = adiabatic_fitted(
+        self.pulse_duration, self.adiabaticity, designed = adiabatic_fitted(
             system, duration_s, adiabaticity, make
         )
+        selection = []
+        if thickness_m > 0:
+            rf_prep, g_select, _ = designed
+            g_select.channel = selection_axis
+            rf_prep.freq_offset = g_select.amplitude * offset_m
+            selection = [g_select]
+        else:
+            rf_prep = designed
         # A slot per label, so the loop has somewhere to put one. An iteration
         # can leave it out or say something different with it, but it cannot
         # add a slot the module never built.
@@ -146,7 +183,7 @@ class InversionPreparation(RfModule):
         ]
 
         self.seq = pp.Sequence(system)
-        self.seq.add_block(rf_prep, *prep_labels)
+        self.seq.add_block(rf_prep, *selection, *prep_labels)
         if spoiling_cycles:
             gz_spoil, _, _ = pp.make_crusher(
                 spoiling_cycles, voxel_size_m, axis, system=system
