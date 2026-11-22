@@ -221,10 +221,11 @@ def test_ungated_frames_follow_one_another_one_repetition_apart():
     assert np.diff(times) == pytest.approx(tr, abs=1e-9)
 
 
-def test_a_retrospective_heartbeat_cycles_its_segment():
+def test_a_retrospective_segment_is_cycled_past_a_heartbeat_longer_than_the_nominal_one():
     seq = built_2d(gating="retrospective", **CINE)
     lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
-    cycles = max(1, round(0.2 / (4 * np.atleast_1d(seq.definitions["TR"])[0])))
+    tr = np.atleast_1d(seq.definitions["TR"])[0]
+    cycles = int(np.ceil(bssfp2d.RETROSPECTIVE_WINDOW * 0.2 / (4 * tr)))
     expected = [
         (line, s, c)
         for s, start in enumerate(range(0, 16, 4))
@@ -232,7 +233,8 @@ def test_a_retrospective_heartbeat_cycles_its_segment():
         for line in range(start, start + 4)
     ]
 
-    assert cycles > 1
+    assert bssfp2d.RETROSPECTIVE_WINDOW > 1
+    assert cycles * 4 * tr >= bssfp2d.RETROSPECTIVE_WINDOW * 0.2
     assert list(zip(lin, seg, phs, strict=True)) == expected
     assert not any(getattr(block, "trig", None) for block in blocks(seq))
 
@@ -243,6 +245,20 @@ def test_a_retrospective_cycle_reads_every_line_when_the_last_segment_is_short()
 
     for cycle in set(phs):
         assert sorted(lin[phs == cycle]) == list(range(16))
+
+
+def test_interleaved_frames_read_every_ry_th_central_line_and_together_read_each_once():
+    seq = built_2d(ordering="interleaved", ry=3, n_phases=6, phase_resolution=0.5)
+    lin, phs = labels(seq, "LIN", "PHS")
+
+    for frame in range(6):
+        assert lin[phs == frame].tolist() == list(range(4 + frame % 3, 12, 3))
+    assert sorted(lin[phs < 3].tolist()) == list(range(4, 12))
+
+
+def test_a_phase_resolution_outside_the_unit_interval_is_refused():
+    with pytest.raises(ValueError, match="phase_resolution"):
+        built_2d(ordering="interleaved", phase_resolution=0.0)
 
 
 def test_a_prospective_slice_waits_for_one_trigger_then_reads_every_phase():
@@ -339,14 +355,98 @@ def test_every_trigger_opens_a_slice_from_rest():
     assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
 
 
+def test_a_trigger_window_has_every_heartbeat_wait_for_its_own_trigger():
+    seq = built_2d(
+        gating="prospective",
+        n_phases=3,
+        n_dummy=2,
+        trigger_window=0.02,
+        trigger_channel="physio2",
+        **CINE,
+    )
+    listed = blocks(seq)
+    triggered = [i for i, block in enumerate(listed) if getattr(block, "trig", None)]
+    lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
+
+    assert len(triggered) == 4
+    assert {listed[i].trig[0].channel for i in triggered} == {"physio2"}
+    for index in triggered:
+        assert listed[index].rf is not None
+        if index:
+            assert at_rest(listed[index - 1], listed[index])
+    assert list(zip(lin, seg, phs, strict=True)) == [
+        (line, s, f)
+        for s, start in enumerate(range(0, 16, 4))
+        for f in range(3)
+        for line in range(start, start + 4)
+    ]
+    assert seq.definitions["TriggerWindow"] == pytest.approx([0.02])
+
+
+def test_each_retriggered_heartbeat_ramps_its_catalyst_again():
+    seq = built_2d(
+        gating="prospective", n_phases=3, n_dummy=2, trigger_window=0.02, **CINE
+    )
+    peaks = np.array([peak for _, _, peak in excitations(seq)])
+    per_heartbeat = 2 + 3 * 4
+
+    for start in range(0, len(peaks), per_heartbeat):
+        assert peaks[start] == pytest.approx(peaks[start + 1] / 2, rel=1e-3)
+        assert peaks[start + 2 : start + per_heartbeat] == pytest.approx(
+            peaks[1], rel=1e-3
+        )
+
+
+def test_the_triggered_starts_follow_each_heartbeat_lead():
+    assert bssfp2d.triggered_starts([12, 12, 4], 10, 10, 5e-3) == [10, 140, 270]
+    assert bssfp2d.triggered_starts([12, 12], 10, 10, 5e-3, 0.1) == [30, 180]
+
+
+def test_a_golden_frame_reads_every_line_once():
+    for n in (7, 16, 33, 192):
+        assert sorted(bssfp2d.golden_order(n)) == list(range(n))
+
+
+def test_any_golden_window_covers_the_phase_encodes_close_to_uniformly():
+    """The widest gap a window of a quarter of the lines leaves is a small multiple of four lines."""
+    order = np.array(bssfp2d.golden_order(128) * 2)
+    for start in range(0, 128, 7):
+        window = np.sort(order[start : start + 32])
+        assert np.diff(window).max() <= 3 * 4
+
+
+def test_a_golden_free_running_series_reads_every_line_once_per_frame():
+    seq = built_2d(ordering="golden", ry=2, n_phases=3)
+    lin, phs, ima = labels(seq, "LIN", "PHS", "IMA")
+    order = bssfp2d.golden_order(16)
+
+    assert lin.tolist() == order * 3
+    assert phs.tolist() == [f for f in range(3) for _ in range(16)]
+    assert not ima.any()
+    assert seq.definitions["Ordering"] == "golden"
+
+
 @pytest.mark.parametrize(
     ("prescription", "match"),
     [
         ({"gating": "gated"}, "gating"),
         ({"gating": "prospective", "n_phases": 60, **CINE}, "heartbeat"),
         ({"tr": 1e-3}, "TR"),
+        ({"ordering": "random"}, "ordering"),
+        ({"gating": "prospective", "trigger_window": 0.3, **CINE}, "trigger_window"),
+        (
+            {"gating": "prospective", "n_phases": 12, "trigger_window": 0.15, **CINE},
+            "trigger window",
+        ),
     ],
-    ids=["gating", "too many phases", "short TR"],
+    ids=[
+        "gating",
+        "too many phases",
+        "short TR",
+        "ordering",
+        "window past the heartbeat",
+        "phases past the window",
+    ],
 )
 def test_a_2d_train_that_cannot_be_played_is_refused(prescription, match):
     with pytest.raises(ValueError, match=match):
@@ -586,3 +686,153 @@ def test_default_retrospective_dummies_last_at_most_one_heartbeat():
 
     assert full * tr > 1.0
     assert dummies_before_the_first_readout(seq) == round(1.0 / tr)
+
+
+# -- 3D segments ---------------------------------------------------------------
+
+#: A whole-heart coronary MRA of the small prescription: ECG segments with a T2
+#: preparation, fat saturation and an image navigator.
+CORONARY = {
+    "gating": "prospective",
+    "trigger_delay": 0.3,
+    "t2_prep_te": 0.04,
+    "fat_saturation": True,
+    "navigator": True,
+    "views_per_segment": 8,
+    "n_ramp": 4,
+}
+#: An inflow MRA: respiratory segments after a slab inversion.
+INFLOW = {
+    "gating": "prospective",
+    "trigger_channel": "physio1",
+    "trigger_period": 4.0,
+    "inversion_time": 1.2,
+    "inversion_thickness": 0.15,
+    "inversion_axis": "x",
+    "fat_saturation": True,
+    "views_per_segment": 8,
+    "n_ramp": 4,
+}
+
+
+def segmented_3d(**kwargs):
+    [seq] = chain_3d(**kwargs)
+    return seq
+
+
+def imaging_views(seq):
+    """``(line, partition, segment)`` of every readout that is not a navigator."""
+    lin, par, seg, nav = labels(seq, "LIN", "PAR", "SEG", "NAV")
+    nav = np.broadcast_to(nav, lin.shape)
+    return [
+        (int(a), int(b), int(c))
+        for a, b, c, n in zip(lin, par, seg, nav, strict=True)
+        if not n
+    ]
+
+
+@pytest.mark.parametrize("prescription", [CORONARY, INFLOW], ids=["coronary", "inflow"])
+def test_every_segment_waits_for_its_own_trigger(prescription):
+    seq = segmented_3d(**prescription)
+    triggers = [b.trig for b in blocks(seq) if getattr(b, "trig", None)]
+
+    assert len(triggers) == recorded(seq, "NumSegments")
+    assert {t[0].channel for t in triggers} == {
+        prescription.get("trigger_channel", "physio2")
+    }
+
+
+@pytest.mark.parametrize("prescription", [CORONARY, INFLOW], ids=["coronary", "inflow"])
+def test_the_segments_acquire_every_view_of_the_free_running_scan_once(prescription):
+    seq = segmented_3d(**prescription)
+    free = main_3d()
+    lin, par = labels(free, "LIN", "PAR")
+    views = imaging_views(seq)
+
+    assert sorted((y, z) for y, z, _ in views) == sorted(zip(lin, par, strict=True))
+    assert max(s for *_, s in views) + 1 == recorded(seq, "NumSegments")
+
+
+def test_each_segment_opens_next_to_the_k_space_centre_and_reads_outwards():
+    seq = segmented_3d(**CORONARY)
+    views = imaging_views(seq)
+    n_y, n_z = SMALL_3D["n_y"], SMALL_3D["n_z"]
+
+    def radius(y, z):
+        return np.hypot((y - n_y // 2) / (n_y / 2), (z - n_z // 2) / (n_z / 2))
+
+    for s in range(int(recorded(seq, "NumSegments"))):
+        radii = [radius(y, z) for y, z, segment in views if segment == s]
+        assert radii == sorted(radii)
+        assert radii[0] <= 0.5
+
+
+def test_each_segment_ramps_its_flip_angle_up_to_the_nominal_one():
+    seq = segmented_3d(
+        **{**CORONARY, "navigator": False, "t2_prep_te": 0.0, "fat_saturation": False}
+    )
+    peaks = np.array([peak for *_, peak in excitations(seq)])
+    per_segment = CORONARY["n_ramp"] + CORONARY["views_per_segment"]
+    first = peaks[: CORONARY["n_ramp"]]
+
+    np.testing.assert_allclose(
+        first / peaks[CORONARY["n_ramp"]], [0.25, 0.5, 0.75, 1.0]
+    )
+    np.testing.assert_allclose(peaks[per_segment : per_segment + 4], first)
+
+
+def test_the_navigator_reads_the_central_partition_during_every_ramp():
+    seq = segmented_3d(**CORONARY)
+    lin, par, nav = labels(seq, "LIN", "PAR", "NAV")
+    navigators = np.flatnonzero(nav)
+    n_segments = int(recorded(seq, "NumSegments"))
+
+    assert navigators.size == n_segments * CORONARY["n_ramp"]
+    assert set(par[navigators]) == {SMALL_3D["n_z"] // 2}
+    assert len(set(lin[navigators])) == CORONARY["n_ramp"]
+
+
+def test_the_first_imaging_excitation_is_the_inversion_time_after_the_inversion():
+    seq = segmented_3d(**INFLOW)
+    rows, t = [], 0.0
+    for block in blocks(seq):
+        if block.rf is not None:
+            rows.append((t + block.rf.delay + block.rf.center, block.rf.use))
+        t += block.block_duration
+    inversion = next(time for time, use in rows if use == "inversion")
+    after = [time for time, use in rows if time > inversion and use == "excitation"]
+
+    assert after[INFLOW["n_ramp"]] - inversion == pytest.approx(
+        INFLOW["inversion_time"], abs=1e-5
+    )
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"trigger_period": 0.05}, "trigger period"),
+        ({"inversion_time": 0.02}, "inversion_time"),
+        ({"n_phase_cycles": 2}, "phase cycle"),
+        ({"trigger_delay": 1e-4}, "trigger_delay"),
+        ({"gating": "retrospective"}, "gating"),
+    ],
+    ids=[
+        "segment-past-period",
+        "short-inversion",
+        "phase-cycles",
+        "short-delay",
+        "gating",
+    ],
+)
+def test_a_segmented_scan_that_cannot_be_played_is_refused(change, message):
+    with pytest.raises(ValueError, match=message):
+        segmented_3d(**{**INFLOW, **change})
+
+
+def test_a_t2_preparation_too_strong_for_the_peak_b1_is_designed_less_adiabatic_but_above_an_inversion():
+    strong = bssfp3d.t2_preparation(pp.Opts(max_b1=20, b1_unit="uT"), 0.05, 1e-3)
+    weak = bssfp3d.t2_preparation(pp.Opts(max_b1=11.2, b1_unit="uT"), 0.05, 1e-3)
+
+    assert strong.half_passage_adiabaticity == 8
+    assert 4 < weak.half_passage_adiabaticity < 8
+    assert 4 < weak.refocusing_adiabaticity < 8

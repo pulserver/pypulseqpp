@@ -425,3 +425,26 @@ def test_both_diffusion_preparation_gaps_are_published(system):
     prep = design.DiffusionPreparation(system, 500.0)
     played = [prep.wait_first, prep.wait_last]
     assert _delay_blocks(prep) == pytest.approx([pp.calc_duration(w) for w in played])
+
+
+def test_a_slab_inversion_inverts_inside_its_slab_and_leaves_the_rest(system):
+    """Spins at a position precess at the selection gradient times it, less the pulse's offset."""
+    thickness, offset = 0.1, 0.05
+    prep = design.InversionPreparation(
+        system, thickness_m=thickness, selection_axis="x", offset_m=offset
+    )
+    rf, gradient = prep.rf_prep, prep.g_select
+    positions = np.array([offset, offset - thickness, offset + thickness])
+    offsets = gradient.amplitude * positions - rf.freq_offset
+    dwell = float(rf.t[1] - rf.t[0])
+    mz = pp.sim_bloch(np.asarray(rf.signal), offsets[:, None], dwell)[:, 2]
+
+    assert gradient.channel == "x"
+    assert mz[0] < -0.95
+    assert np.all(mz[1:] > 0.95)
+    assert any(getattr(e, "channel", None) == "x" for e in prep.blocks[0])
+
+
+def test_a_negative_slab_thickness_is_refused(system):
+    with pytest.raises(ValueError, match="thickness_m"):
+        design.InversionPreparation(system, thickness_m=-0.1)
