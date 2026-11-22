@@ -11,6 +11,11 @@ from pypulseqpp import cli, sequences
 
 #: The cardiac gating modes ``gating`` selects from.
 GATINGS = ("none", "retrospective", "prospective")
+#: The phase-encode orders of a free-running series ``ordering`` selects from.
+ORDERINGS = ("sequential", "golden")
+#: The golden ratio, whose fractional multiples order the lines of a
+#: ``golden`` free-running series.
+GOLDEN_RATIO = (1.0 + 5.0**0.5) / 2.0
 
 NAME = "bssfp_2d"
 MAX_GRAD = 80.0
@@ -30,7 +35,8 @@ TIME_BW_PRODUCT = 2.0
 CATALYST_RAMP = 20
 #: Distance from the balanced steady state the default dummies leave.
 STEADY_STATE_TOLERANCE = 0.05
-#: Physiological signal a prospective heartbeat waits for.
+#: Physiological signal a prospective heartbeat waits for unless
+#: ``trigger_channel`` names another.
 TRIGGER_CHANNEL = "physio1"
 #: Dummies a prospective slice opens with when ``n_dummy`` is None: its first
 #: heartbeat has to hold them with its cardiac phases, so they are its
@@ -85,6 +91,77 @@ def prospective_starts(
     return starts
 
 
+def golden_order(n_lines: int) -> list[int]:
+    """Return the order in which a ``golden`` free-running frame visits its ``n_lines`` lines.
+
+    Readout ``k`` of a frame acquires the line whose rank among the
+    fractional parts of ``k / GOLDEN_RATIO``, ``k = 0 .. n_lines - 1``, is
+    the fractional part of its own. Every line is acquired once a frame, and
+    any run of consecutive readouts, across frames as well, covers the
+    phase-encode extent close to uniformly, so a real-time reconstruction may
+    take a window of any length from anywhere in the series.
+
+    Parameters
+    ----------
+    n_lines : int
+        Lines of a frame.
+
+    Returns
+    -------
+    list of int
+        For each readout of a frame, the index of its line among the
+        frame's lines in k-space order.
+
+    Examples
+    --------
+    >>> golden_order(8)
+    [0, 5, 2, 7, 4, 1, 6, 3]
+    """
+    positions = (np.arange(n_lines) / GOLDEN_RATIO) % 1.0
+    return np.argsort(np.argsort(positions, kind="stable"), kind="stable").tolist()
+
+
+def triggered_starts(
+    segments: list[int],
+    n_phases: int,
+    n_dummy: int,
+    tr: float,
+    trigger_delay: float = 0.0,
+) -> list[int]:
+    """Return the repetition at which each heartbeat's cardiac phases start when every heartbeat waits for its own trigger.
+
+    Repetitions are counted from the slice's first excitation. Each heartbeat
+    opens on its trigger with ``n_dummy`` repetitions and ``trigger_delay``,
+    to the nearest repetition, that do not acquire, then plays its segment
+    once per cardiac phase.
+
+    Parameters
+    ----------
+    segments : list of int
+        Phase-encode lines of each heartbeat's segment.
+    n_phases : int
+        Cardiac phases each heartbeat acquires.
+    n_dummy : int
+        Repetitions played without acquiring after each trigger.
+    tr : float
+        Repetition time (s).
+    trigger_delay : float, default=0.0
+        Time from each trigger to its heartbeat's first excitation's place,
+        played as repetitions that do not acquire (s).
+
+    Examples
+    --------
+    >>> triggered_starts([12, 12, 4], n_phases=10, n_dummy=10, tr=5e-3)
+    [10, 140, 270]
+    """
+    lead = n_dummy + round(trigger_delay / tr)
+    starts, taken = [], 0
+    for views in segments:
+        starts.append(taken + lead)
+        taken += lead + n_phases * views
+    return starts
+
+
 def bssfp2d(
     system: pp.Opts | None = None,
     *,
@@ -110,6 +187,9 @@ def bssfp2d(
     heart_rate_bpm: float = 60.0,
     views_per_segment: int = 12,
     trigger_delay: float = 0.0,
+    trigger_window: float = 0.0,
+    trigger_channel: str = TRIGGER_CHANNEL,
+    ordering: str = "sequential",
 ) -> pp.Sequence | list[pp.Sequence]:
     """Balanced SSFP 2D Cartesian: one complete train per slice, optionally cardiac-gated.
 
@@ -130,13 +210,24 @@ def bssfp2d(
     segment fits in a heartbeat, the same number for every segment, so each
     cycle samples every line; the interpreter's ECG log bins them into cardiac
     phases. Under ``prospective`` gating each slice's first excitation waits
-    for one trigger event on ``TRIGGER_CHANNEL``, and the slice then runs free
+    for one trigger event on ``trigger_channel``, and the slice then runs free
     at the nominal heart rate: every heartbeat plays its segment once per
     cardiac phase, and repetitions that do not acquire fill the rest of it
     and the trigger delay (:func:`prospective_starts`), so the steady state
     is kept from one heartbeat into the next and a heart rate away from the
-    nominal one drifts against the phases. A slice held in one heartbeat is
-    a triggered single shot. A gated slice's blocks join on the slice axis
+    nominal one drifts against the phases. With a ``trigger_window``, every
+    heartbeat instead waits for a trigger of its own and opens with the
+    catalyst ramp and dummies again (:func:`triggered_starts`), the
+    acquisition held within the heartbeat less the window, so a heartbeat
+    shorter than the nominal one by up to the window still finds its next
+    trigger and the phases stay locked to the trigger at any heart rate; a
+    respiratory trigger is used this way, one segment per breath. A slice
+    held in one heartbeat is a triggered single shot. Under ``golden``
+    ordering, a free-running series visits every line of the full grid once
+    a frame in the order of :func:`golden_order`, so any window of
+    consecutive readouts is an undersampled frame with no calibration lines,
+    for a real-time reconstruction or a binning by a recorded physiological
+    signal. A gated slice's blocks join on the slice axis
     (``bridge``), so the gated train has no rest in it and its timing against
     the heartbeat is the designed one. Without gating, every repetition
     opens from rest and closes to it, so a scanner that prepares a segment
@@ -212,6 +303,18 @@ def bssfp2d(
         Time from a slice's prospective trigger to its first excitation's
         place in its first heartbeat, played as repetitions that do not
         acquire, to the nearest repetition (s).
+    trigger_window : float, default=0.0
+        Time at the end of each nominal heartbeat left free for the next
+        trigger under ``prospective`` gating (s). Zero triggers each slice
+        once; more triggers every heartbeat.
+    trigger_channel : str, default=TRIGGER_CHANNEL
+        Physiological signal a prospective trigger waits for, ``'physio1'``
+        or ``'physio2'``.
+    ordering : {'sequential', 'golden'}, default='sequential'
+        Phase-encode order of a free-running series: the lines in k-space
+        order, calibration first, once a frame; or every line of the grid in
+        the order of :func:`golden_order`, ``ry`` and ``n_acs_y`` then
+        unused. Unused with gating.
 
     Returns
     -------
@@ -222,7 +325,8 @@ def bssfp2d(
     Raises
     ------
     ValueError
-        If ``gating`` is unknown, ``partial_fourier_y`` is outside
+        If ``gating`` or ``ordering`` is unknown, ``trigger_window`` is
+        negative or not shorter than the heartbeat, ``partial_fourier_y`` is outside
         ``[0.75, 1]``, a count is below one, a prospective heartbeat cannot
         hold its phases, or the TR is shorter than the balanced repetition.
 
@@ -242,6 +346,16 @@ def bssfp2d(
     )
     if gating not in GATINGS:
         raise ValueError(f"gating must be one of {GATINGS}, got {gating!r}")
+    if ordering not in ORDERINGS:
+        raise ValueError(f"ordering must be one of {ORDERINGS}, got {ordering!r}")
+    rr = 60.0 / heart_rate_bpm
+    if not 0.0 <= trigger_window < rr:
+        raise ValueError(
+            f"trigger_window must lie in [0, {rr * 1e3:.0f} ms), got "
+            f"{trigger_window * 1e3:.0f} ms"
+        )
+    golden = gating == "none" and ordering == "golden"
+    retriggered = gating == "prospective" and trigger_window > 0.0
     if not 0.75 <= partial_fourier_y <= 1.0:
         raise ValueError(
             f"partial_fourier_y must lie in [0.75, 1], got {partial_fourier_y}"
@@ -287,7 +401,6 @@ def bssfp2d(
     # holding a frame or more would lengthen only the repetition at its end and
     # set off a transient in the steady state there.
     nominal = ro.rf.amplitude
-    rr = 60.0 / heart_rate_bpm
     if n_dummy is None:
         n_dummy = (
             PROSPECTIVE_DUMMIES
@@ -303,15 +416,21 @@ def bssfp2d(
             # One heartbeat: the residual approach spreads over every
             # segment and cardiac phase, as in product cine.
             n_dummy = min(n_dummy, max(1, round(rr / ro.tr)))
-    trigger_event = pp.make_trigger(TRIGGER_CHANNEL, system=system)
+    trigger_event = pp.make_trigger(trigger_channel, system=system)
 
     calibrating, imaging = pp.make_cartesian_axis_sampling(
-        n_y, ry, n_acs_y, partial_fourier=partial_fourier_y
+        n_y,
+        1 if golden else ry,
+        0 if golden else n_acs_y,
+        partial_fourier=partial_fourier_y,
     )
     # The calibration block leads, so a reconstruction can estimate
     # coil sensitivities while the rest is still arriving.
     lines = [*calibrating, *imaging]
     calibration = set(calibrating)
+    if golden:
+        lines = sorted(lines)
+        lines = [lines[rank] for rank in golden_order(len(lines))]
     # A train is a list of (line, segment, phase) repetitions, line None for
     # one that does not acquire.
     segments = (
@@ -324,18 +443,19 @@ def bssfp2d(
     )
     train = [(None, 0, 0)] * n_dummy
     cycles = max(1, round(rr / (views_per_segment * ro.tr)))
-    starts = (
-        prospective_starts(
-            [len(segment) for segment in segments],
-            n_phases,
-            n_dummy,
-            rr,
-            ro.tr,
-            trigger_delay,
-        )
-        if gating == "prospective"
-        else []
-    )
+    sizes = [len(segment) for segment in segments]
+    if retriggered:
+        starts = triggered_starts(sizes, n_phases, n_dummy, ro.tr, trigger_delay)
+    elif gating == "prospective":
+        starts = prospective_starts(sizes, n_phases, n_dummy, rr, ro.tr, trigger_delay)
+    else:
+        starts = []
+    # The repetitions that open from rest on a trigger of their own, after
+    # the slice's first, and each one's place in its catalyst ramp.
+    openings = set()
+    lead = n_dummy + round(trigger_delay / ro.tr)
+    if retriggered:
+        openings = {start - lead for start in starts[1:]}
     for s, segment in enumerate(segments):
         if gating == "none":
             # A free-running series: the frames follow one another with the
@@ -345,18 +465,24 @@ def bssfp2d(
             train += [(line, s, c) for c in range(cycles) for line in segment]
         else:
             acquired = n_phases * len(segment) * ro.tr + trigger_delay
-            if s == 0:
+            if s == 0 or retriggered:
                 acquired += n_dummy * ro.tr
-            if acquired > rr + 1e-9:
+            if acquired > rr - trigger_window + 1e-9:
+                window = (
+                    f" less its {trigger_window * 1e3:.0f} ms trigger window"
+                    if retriggered
+                    else ""
+                )
                 raise ValueError(
                     f"{n_phases} cardiac phases of {len(segment)} lines take "
                     f"{acquired * 1e3:.0f} ms, longer than the "
-                    f"{rr * 1e3:.0f} ms heartbeat"
+                    f"{rr * 1e3:.0f} ms heartbeat{window}"
                 )
             # The heartbeat is filled to its nominal length, and the first
             # one to the trigger delay, with repetitions that do not acquire:
             # the slice has one trigger, at its first excitation.
-            train += [(None, 0, 0)] * (starts[s] - len(train))
+            fill = starts[s] - len(train)
+            train += [(None, s if retriggered else 0, 0)] * fill
             train += [(line, s, f) for f in range(n_phases) for line in segment]
     n_segments = len(segments)
     # A free-running series with dummies is a chain of two files per slice:
@@ -390,22 +516,26 @@ def bssfp2d(
         segment: int,
         phase: int,
         opens: bool,
+        ramp: int,
     ) -> None:
         """Excite slice ``s`` and read ``line``, opening from rest with ``opens``; ``line=None`` plays a dummy.
 
-        The slice's first repetition carries ``ONCE`` and, under prospective
-        gating, the trigger, and the catalyst's repetitions ramp the flip angle.
+        The slice's first repetition carries ``ONCE``. It and, with a trigger
+        window, the first of every heartbeat carry the trigger under
+        prospective gating; the ``ramp``-th repetition of a catalyst ramps
+        the flip angle.
         """
         rf = ro.rf
         rf.freq_offset = exc.selection_amplitude * positions[s]
         alternation = np.pi * ((shot + 1) % 2)
         rf.phase_offset = alternation - 2 * np.pi * rf.freq_offset * rf.center
         ro.adc.phase_offset = alternation
-        rf.amplitude = nominal * (shot + 1) / n_ramp if shot < n_ramp else nominal
+        rf.amplitude = nominal * (ramp + 1) / n_ramp if ramp < n_ramp else nominal
         first = shot == 0
+        triggered = gating == "prospective" and (first or shot in openings)
         opening = [
             *(ro.prep_labels if first else []),
-            *([trigger_event] if first and gating == "prospective" else []),
+            *([trigger_event] if triggered else []),
         ]
         target.add_block(rf, ro.gz_open if opens and ro.bridged else ro.gz, *opening)
         rf.amplitude = nominal
@@ -415,7 +545,11 @@ def bssfp2d(
             target.add_block(ro.gx, pp.scale_grad(ro.gy_pre, ky), ro.gz_pre, *once)
             return
         label_events = labels(
-            LIN=line, SLC=s, SEG=segment, PHS=phase, IMA=line in calibration
+            LIN=line,
+            SLC=s,
+            SEG=segment,
+            PHS=phase,
+            IMA=line in calibration and not golden,
         )
         target.add_block(
             ro.gx,
@@ -435,19 +569,26 @@ def bssfp2d(
         # The slice's labels restart, as a ONCE through labels() would.
         labels.restart()
         previous = None
+        opened = 0
         for shot, (line, segment, phase) in enumerate(train):
-            # The slice opens from rest, and chained it rests ahead of every
-            # frame as well.
-            opens = shot == 0 or (
-                chained and shot >= n_dummy and (shot - n_dummy) % len(lines) == 0
+            # The slice opens from rest, chained it rests ahead of every
+            # frame as well, and retriggered ahead of every heartbeat.
+            opens = (
+                shot == 0
+                or shot in openings
+                or (chained and shot >= n_dummy and (shot - n_dummy) % len(lines) == 0)
             )
+            if shot in openings:
+                opened = shot
             if previous is not None:
                 rewind(target, previous, closes=opens, ends=False)
             if chained and shot == n_dummy:
                 chain.append(target)
                 target = pp.Sequence(system)
                 labels.restart()
-            repetition(target, s, shot, line, segment, phase, opens=opens)
+            repetition(
+                target, s, shot, line, segment, phase, opens=opens, ramp=shot - opened
+            )
             previous = ky_of(line)
         rewind(target, previous, closes=True, ends=not chained)
         if chained:
@@ -464,6 +605,7 @@ def bssfp2d(
         "TE": ro.te,
         "TR": ro.tr,
         "Gating": gating,
+        "Ordering": ordering if gating == "none" else "sequential",
         "PlotTRsize": plot_tr_size,
         "PlotTRstart": plot_tr_start,
         "kSpaceCenterLine": n_y // 2,
@@ -479,7 +621,12 @@ def bssfp2d(
             NumSegments=n_segments,
         )
     if gating == "prospective":
-        definitions.update(CardiacPhases=n_phases, TriggerDelay=trigger_delay)
+        definitions.update(
+            CardiacPhases=n_phases,
+            TriggerDelay=trigger_delay,
+            TriggerWindow=trigger_window,
+            TriggerChannel=trigger_channel,
+        )
     if chained:
         # Each file repeats one repetition, so a scanner that segments a
         # repetition plays every repetition as the same segment; a frame is

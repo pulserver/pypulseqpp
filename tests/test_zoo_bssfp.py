@@ -339,14 +339,98 @@ def test_every_trigger_opens_a_slice_from_rest():
     assert final_moments(seq)[:2] == pytest.approx(0.0, abs=1e-6)
 
 
+def test_a_trigger_window_has_every_heartbeat_wait_for_its_own_trigger():
+    seq = built_2d(
+        gating="prospective",
+        n_phases=3,
+        n_dummy=2,
+        trigger_window=0.02,
+        trigger_channel="physio2",
+        **CINE,
+    )
+    listed = blocks(seq)
+    triggered = [i for i, block in enumerate(listed) if getattr(block, "trig", None)]
+    lin, seg, phs = labels(seq, "LIN", "SEG", "PHS")
+
+    assert len(triggered) == 4
+    assert {listed[i].trig[0].channel for i in triggered} == {"physio2"}
+    for index in triggered:
+        assert listed[index].rf is not None
+        if index:
+            assert at_rest(listed[index - 1], listed[index])
+    assert list(zip(lin, seg, phs, strict=True)) == [
+        (line, s, f)
+        for s, start in enumerate(range(0, 16, 4))
+        for f in range(3)
+        for line in range(start, start + 4)
+    ]
+    assert seq.definitions["TriggerWindow"] == pytest.approx([0.02])
+
+
+def test_each_retriggered_heartbeat_ramps_its_catalyst_again():
+    seq = built_2d(
+        gating="prospective", n_phases=3, n_dummy=2, trigger_window=0.02, **CINE
+    )
+    peaks = np.array([peak for _, _, peak in excitations(seq)])
+    per_heartbeat = 2 + 3 * 4
+
+    for start in range(0, len(peaks), per_heartbeat):
+        assert peaks[start] == pytest.approx(peaks[start + 1] / 2, rel=1e-3)
+        assert peaks[start + 2 : start + per_heartbeat] == pytest.approx(
+            peaks[1], rel=1e-3
+        )
+
+
+def test_the_triggered_starts_follow_each_heartbeat_lead():
+    assert bssfp2d.triggered_starts([12, 12, 4], 10, 10, 5e-3) == [10, 140, 270]
+    assert bssfp2d.triggered_starts([12, 12], 10, 10, 5e-3, 0.1) == [30, 180]
+
+
+def test_a_golden_frame_reads_every_line_once():
+    for n in (7, 16, 33, 192):
+        assert sorted(bssfp2d.golden_order(n)) == list(range(n))
+
+
+def test_any_golden_window_covers_the_phase_encodes_close_to_uniformly():
+    """The widest gap a window of a quarter of the lines leaves is a small multiple of four lines."""
+    order = np.array(bssfp2d.golden_order(128) * 2)
+    for start in range(0, 128, 7):
+        window = np.sort(order[start : start + 32])
+        assert np.diff(window).max() <= 3 * 4
+
+
+def test_a_golden_free_running_series_reads_every_line_once_per_frame():
+    seq = built_2d(ordering="golden", ry=2, n_phases=3)
+    lin, phs, ima = labels(seq, "LIN", "PHS", "IMA")
+    order = bssfp2d.golden_order(16)
+
+    assert lin.tolist() == order * 3
+    assert phs.tolist() == [f for f in range(3) for _ in range(16)]
+    assert not ima.any()
+    assert seq.definitions["Ordering"] == "golden"
+
+
 @pytest.mark.parametrize(
     ("prescription", "match"),
     [
         ({"gating": "gated"}, "gating"),
         ({"gating": "prospective", "n_phases": 60, **CINE}, "heartbeat"),
         ({"tr": 1e-3}, "TR"),
+        ({"ordering": "random"}, "ordering"),
+        ({"gating": "prospective", "trigger_window": 0.3, **CINE}, "trigger_window"),
+        (
+            {"gating": "prospective", "n_phases": 12, "trigger_window": 0.15, **CINE},
+            "trigger window",
+        ),
     ],
-    ids=["gating", "too many phases", "short TR"],
+    ids=[
+        "gating",
+        "too many phases",
+        "short TR",
+        "ordering",
+        "window past the heartbeat",
+        "phases past the window",
+    ],
 )
 def test_a_2d_train_that_cannot_be_played_is_refused(prescription, match):
     with pytest.raises(ValueError, match=match):
