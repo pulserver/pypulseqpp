@@ -18,9 +18,6 @@ AXES = ("x", "y", "z")
 #: Excitations over which a segment's flip angle ramps linearly up to its own:
 #: a catalyst that damps the oscillating transient of a train opened from rest.
 CATALYST_RAMP = 10
-#: Phase-encode lines between two lines of the image navigator, which reads
-#: the central partition during the catalyst ramp.
-NAVIGATOR_LINE_STEP = 3
 
 #: Adiabaticity of the T2 preparation where the peak B1 is too low for its
 #: default: lowered as far as 0.75 of it, it stays above an inversion's.
@@ -552,9 +549,10 @@ def bssfp3d(
             # A block is held to the raster above its duration, and a
             # multiple of the raster in floating point can sit just past it.
             recovery = pp.make_delay(wait - 1e-9)
+        # Neighbouring central lines: the navigator images the scan's field of
+        # view at low resolution, with nothing folded into it.
         nav_lines = [
-            min(max(n_y // 2 + NAVIGATOR_LINE_STEP * (j - n_ramp // 2), 0), n_y - 1)
-            for j in range(n_ramp)
+            min(max(n_y // 2 + j - n_ramp // 2, 0), n_y - 1) for j in range(n_ramp)
         ]
         nav_on = pp.make_label(type="SET", label="NAV", value=1)
         nav_off = pp.make_label(type="SET", label="NAV", value=0)
