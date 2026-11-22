@@ -331,3 +331,12 @@ def test_the_epi_calibration_saturation_nulls_fat_at_the_calibration_excitation(
     )
     assert played_period in [pytest.approx(p) for p in calibration_periods]
     assert played_period != pytest.approx(imaging_period)
+
+
+@pytest.mark.parametrize("field", [1.5, 3.0, 7.0])
+def test_a_fat_saturation_is_designed_at_every_clinical_field(field):
+    from pypulseqpp.sequences import FatSaturation
+
+    module = FatSaturation(pp.Opts(B0=field))
+
+    assert module.seq.duration()[0] > 0

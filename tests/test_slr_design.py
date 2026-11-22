@@ -288,3 +288,13 @@ def test_the_rephaser_refocuses_from_the_centre_the_pulse_records():
     )
     after_centre = gz.amplitude * (gz.flat_time - rf.center + 0.5 * gz.fall_time)
     assert gz_reph.area == pytest.approx(-after_centre, rel=1e-9)
+
+
+def test_an_slr_pulse_spanning_an_odd_number_of_dwells_is_designed_on_an_even_count():
+    import pypulseqpp as pp
+
+    system = pp.Opts(rf_raster_time=1e-6)
+    rf = pp.make_slr_pulse(np.deg2rad(90), duration=5639e-6, system=system)
+
+    assert rf.signal.size % 2 == 0
+    assert rf.signal.size in (5638, 5640)
