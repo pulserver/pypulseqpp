@@ -1143,21 +1143,40 @@ def test_a_fully_sampled_or_spin_echo_scan_plays_no_full_k_reference(prescriptio
     assert "epi_2d_full_k_reference" not in names
 
 
-def test_a_3d_field_pair_is_a_spin_echo_stack_over_the_slab_at_the_scan_echo_spacing():
+def test_a_3d_field_pair_is_the_scans_own_volume_forward_then_reversed_at_its_echo_time():
     scan = scan3d(ry=2, rz=2, partial_fourier_y=0.75)
-    forward, reversed_ = scan.prescan("field_forward"), scan.prescan("field_reversed")
-    fov_z, n_z = scan.main.definitions["FOV"][2], scan.matrix[2]
+    n_y = scan.matrix[1]
+    lin_scan, par_scan, nav_scan = labels(scan.main, "LIN", "PAR", "NAV")
+    read = (nav_scan == 0) & (lin_scan != 0)
+    # The reversed volume reads the mirror of each line; that of line 0, n_y,
+    # lies outside the matrix.
+    mirrored = {
+        "field_forward": lambda lin: lin,
+        "field_reversed": lambda lin: n_y - lin,
+    }
 
-    for seq, polarity in ((forward, 2), (reversed_, 3)):
+    for half, polarity in (("field_forward", 2), ("field_reversed", 3)):
+        seq = scan.prescan(half)
         (sets,) = labels(seq, "SET")
         _, _, t_excitation, t_refocusing, _ = seq.calculate_kspace()
+        lin, par, nav = labels(seq, "LIN", "PAR", "NAV")
         assert set(sets) == {polarity}
-        assert len(np.asarray(t_refocusing)) == len(np.asarray(t_excitation)) > 0
-        assert seq.definitions["EchoSpacing"] == scan.main.definitions["EchoSpacing"]
-        assert seq.definitions["Matrix"][:2] == scan.main.definitions["Matrix"][:2]
-        positions = np.asarray(seq.definitions["SlicePositions"])
-        assert len(positions) == n_z
-        assert np.ptp(positions) == pytest.approx(fov_z * (n_z - 1) / n_z)
+        assert len(np.asarray(t_refocusing)) == 0 < len(np.asarray(t_excitation))
+        for key in ("TE", "EchoSpacing", "Matrix", "FOV"):
+            assert seq.definitions[key] == scan.main.definitions[key]
+        own = (nav == 0) & (mirrored[half](lin) != 0)
+        assert sorted(zip(mirrored[half](lin[own]), par[own], strict=True)) == sorted(
+            zip(lin_scan[read], par_scan[read], strict=True)
+        )
+
+
+def test_the_reversed_3d_field_volume_steps_the_phase_encode_the_other_way():
+    scan = scan3d(ry=2, rz=2)
+    forward, reversed_ = scan.prescan("field_forward"), scan.prescan("field_reversed")
+    (forward_slope,) = _echo_slope(forward, (2,))
+    (reversed_slope,) = _echo_slope(reversed_, (3,))
+
+    assert reversed_slope == pytest.approx(-forward_slope, rel=0.02)
 
 
 def test_a_partial_fourier_3d_scan_plays_a_full_k_reference_at_its_echo_time():
