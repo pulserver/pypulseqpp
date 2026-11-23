@@ -520,11 +520,14 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.io.get_diffusion_table">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.io.</span></span><span class="sig-name descname"><span class="pre">get_diffusion_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/_diffusion.html#get_diffusion_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.io.get_diffusion_table" title="Link to this definition">#</a></dt>
-<dd><p>Read the diffusion table a sequence’s definitions name.</p>
+<dd><p>Read the diffusion table a sequence’s definitions record.</p>
+<p>A table recorded value by value with <a class="reference internal" href="pypulseqpp.io.record_diffusion_table.html#pypulseqpp.io.record_diffusion_table" title="pypulseqpp.io.record_diffusion_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">record_diffusion_table()</span></code></a> is
+read from the definitions; one recorded by path with
+<a class="reference internal" href="pypulseqpp.io.set_diffusion_table.html#pypulseqpp.io.set_diffusion_table" title="pypulseqpp.io.set_diffusion_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_diffusion_table()</span></code></a> is read from its file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>As <a class="reference internal" href="pypulseqpp.io.read_diffusion_table.html#pypulseqpp.io.read_diffusion_table" title="pypulseqpp.io.read_diffusion_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_diffusion_table()</span></code></a> returns them; None when the sequence
-names no table.</p>
+records no table.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>(b, g) or None</p>

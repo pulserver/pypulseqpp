@@ -446,7 +446,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FAT_T1_S"</span><span class="p">,</span> <span class="s2">"FatSaturation"</span><span class="p">,</span> <span class="s2">"fat_null_flip_deg"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FAT_SAT_BANDWIDTH_PPM"</span><span class="p">,</span> <span class="s2">"FAT_T1_S"</span><span class="p">,</span> <span class="s2">"FatSaturation"</span><span class="p">,</span> <span class="s2">"fat_null_flip_deg"</span><span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
@@ -460,6 +460,11 @@
 <span class="c1">#: Main fat resonance relative to water (ppm); negative, because fat precesses</span>
 <span class="c1">#: more slowly than water.</span>
 <span class="n">FAT_SHIFT_PPM</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.45</span>
+
+<span class="c1">#: Spectral passband of the saturation (ppm of the field): wide enough to hold</span>
+<span class="c1">#: fat that the head's own field moves by a few hundred hertz at 7 T, and</span>
+<span class="c1">#: still clear of water.</span>
+<span class="n">FAT_SAT_BANDWIDTH_PPM</span> <span class="o">=</span> <span class="mf">2.0</span>
 
 <span class="c1">#: T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J</span>
 <span class="c1">#: Roentgenol 183:343, 2004).</span>
@@ -530,9 +535,10 @@
 <span class="sd">        which an interpreter resolves against the field of the scan.</span>
 <span class="sd">    flip_angle_deg : float, default=110.0</span>
 <span class="sd">        Saturation flip angle (degrees).</span>
-<span class="sd">    bandwidth_hz : float, default=250.0</span>
-<span class="sd">        Spectral passband (Hz); the pulse duration is</span>
-<span class="sd">        ``time_bw_product / bandwidth_hz``.</span>
+<span class="sd">    bandwidth_hz : float or None, default=None</span>
+<span class="sd">        Spectral passband (Hz); ``FAT_SAT_BANDWIDTH_PPM`` of ``system.B0``</span>
+<span class="sd">        when not given. The pulse lasts ``time_bw_product / bandwidth_hz``,</span>
+<span class="sd">        rounded up to an even number of RF raster samples.</span>
 <span class="sd">    time_bw_product : float, default=2.0</span>
 <span class="sd">        Time-bandwidth product.</span>
 <span class="sd">    spoiling_cycles : float, default=4.0</span>
@@ -595,11 +601,13 @@
         <span class="o">*</span><span class="p">,</span>
         <span class="n">freq_offset_ppm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FAT_SHIFT_PPM</span><span class="p">,</span>
         <span class="n">flip_angle_deg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">110.0</span><span class="p">,</span>
-        <span class="n">bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">250.0</span><span class="p">,</span>
+        <span class="n">bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">time_bw_product</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
         <span class="n">spoiling_cycles</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>
         <span class="n">voxel_size_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">bandwidth_hz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span> <span class="o">*</span> <span class="n">FAT_SAT_BANDWIDTH_PPM</span>
         <span class="k">if</span> <span class="n">bandwidth_hz</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">time_bw_product</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"bandwidth_hz and time_bw_product must be positive"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -610,9 +618,12 @@
                 <span class="s2">"tipped over stays in the transverse plane and is read with the water"</span>
             <span class="p">)</span>
 
+        <span class="n">samples</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
+            <span class="n">time_bw_product</span> <span class="o">/</span> <span class="n">bandwidth_hz</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="p">)</span>
         <span class="n">rf_prep</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_slr_pulse</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">),</span>
-            <span class="n">duration</span><span class="o">=</span><span class="n">time_bw_product</span> <span class="o">/</span> <span class="n">bandwidth_hz</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">samples</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span><span class="p">,</span>
             <span class="n">slice_thickness</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
             <span class="n">time_bw_product</span><span class="o">=</span><span class="n">time_bw_product</span><span class="p">,</span>
             <span class="n">pulse_type</span><span class="o">=</span><span class="s2">"sat"</span><span class="p">,</span>

@@ -566,18 +566,20 @@ carries <code class="docutils literal notranslate"><span class="pre">REV</span><
 spacing so the echo time grows smoothly across the lines; <code class="docutils literal notranslate"><span class="pre">te</span></code> is the
 echo time of the centre line. Acquisitions carry <code class="docutils literal notranslate"><span class="pre">LIN</span></code>, <code class="docutils literal notranslate"><span class="pre">PAR</span></code>,
 <code class="docutils literal notranslate"><span class="pre">SEG</span></code> (the shot) and <code class="docutils literal notranslate"><span class="pre">REP</span></code>.</p>
-<p>Two prescans are linked ahead of the imaging: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, when
-undersampled, of the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle (<code class="docutils literal notranslate"><span class="pre">REF</span></code>) at
-<code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>; and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume with the
-phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion correction. The FLEET
+<p>The <code class="docutils literal notranslate"><span class="pre">calibration</span></code> of the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span> <span class="pre">x</span> <span class="pre">n_acs_z</span></code> rectangle
+(<code class="docutils literal notranslate"><span class="pre">REF</span></code>) at <code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code> is linked ahead of the imaging; the
+coil sensitivities of the volume are estimated from it once. The FLEET
 calibration (Polimeni et al., Magn Reson Med 2016, doi:10.1002/mrm.25628)
 reads the lines of each partition in <code class="docutils literal notranslate"><span class="pre">n_shots</span> <span class="pre">*</span> <span class="pre">ry</span></code> interleaved EPI
 shots, which step as far per echo spacing as an imaging shot, with its
-read lobe, navigator, blip and echo time, so the calibration is distorted
-as the imaging is. A partition’s shots follow one another, forward
+read lobe, navigator and blip, so the calibration is distorted as the
+imaging is, at the shortest echo time they admit. A partition’s shots follow one another, forward
 (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">0</span></code>) and then reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), after
-<code class="docutils literal notranslate"><span class="pre">FLEET_DUMMY_SHOTS</span></code> unsampled ones that open the calibration. The
-gradient-echo calibration reads one view per excitation, undistorted.</p>
+<code class="docutils literal notranslate"><span class="pre">FLEET_DUMMY_SHOTS</span></code> unsampled ones that open the calibration, and the
+two polarities give the field that corrects the distortion. The
+gradient-echo calibration reads one view per excitation, undistorted;
+after it, a <code class="docutils literal notranslate"><span class="pre">reference</span></code> volume with the phase encode reversed
+(<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>) is linked for distortion correction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -614,10 +616,10 @@ non-acquiring shots.
 water-selective spectral-spatial pulse.</p></li>
 <li><p><strong>readout_oversampling</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1.0</em>) – Minimum EPI readout oversampling factor, at least one. Additional
 samples preserve the requested dwell under the gradient limits.</p></li>
-<li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Extent of the calibration rectangle along the phase encode; FLEET
+<li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=32</em>) – Extent of the calibration rectangle along the phase encode; FLEET
 rounds it up to a whole number of lines per shot.</p></li>
-<li><p><strong>n_acs_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=16</em>) – Extent of the calibration rectangle along the partition encode.</p></li>
-<li><p><strong>calibration</strong> (<em>{'fleet'</em><em>, </em><em>'gre'}</em><em>, </em><em>default='fleet'</em>) – The calibration played when undersampled: FLEET, segmented EPI at
+<li><p><strong>n_acs_z</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=32</em>) – Extent of the calibration rectangle along the partition encode.</p></li>
+<li><p><strong>calibration</strong> (<em>{'fleet'</em><em>, </em><em>'gre'}</em><em>, </em><em>default='fleet'</em>) – The calibration: FLEET, segmented EPI at
 the imaging train’s echo spacing, or a gradient echo per view.</p></li>
 <li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
 excitation of every volume, dummy volumes included.</p></li>
@@ -626,13 +628,28 @@ phase correction.</p></li>
 <li><p><strong>navigator_lines</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Centre lines read without blips at the start of every shot, for
 odd/even phase correction. <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> without
 <code class="docutils literal notranslate"><span class="pre">phase_reference</span></code> and none with it.</p></li>
+<li><p><strong>field_pair</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Play a multi-slice spin-echo EPI pair before the scan, its slices the
+slab’s partitions, at the scan’s in-plane matrix, phase-encode
+sampling and echo spacing: one volume with the phase encode forward,
+labelled <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">2</span></code>, and one reversed, labelled <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">3</span></code>. The two
+are displaced in opposite directions by the susceptibility field
+along the phase encode, as the scan is, and differ in nothing else,
+and the reconstruction estimates the displacement field of the scan
+from them.</p></li>
+<li><p><strong>field_pair_tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Repetition time (s) of the field pair; <code class="docutils literal notranslate"><span class="pre">None</span></code> plays it at its
+shortest. A longer TR lets its refocusing pulses fit a SAR limit.</p></li>
+<li><p><strong>full_k_reference</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Play one fully sampled volume at the echo time of a partial-Fourier
+scan, labelled <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">4</span></code>, from whose phase the reconstruction
+completes the unsampled side of k-space. Without a prescribed
+<code class="docutils literal notranslate"><span class="pre">te</span></code>, the scan takes the shortest echo time this volume admits.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The designed sequences in play order: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code> when
-undersampled, the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, then the scan, which is the main
-sequence. <code class="docutils literal notranslate"><span class="pre">sequences.write</span></code> writes them as files linked through
-<code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>.</p>
+<dd class="field-even"><p>The designed sequences in play order: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">reference</span></code> after a gradient-echo calibration, the forward and the
+reversed volume of the <code class="docutils literal notranslate"><span class="pre">field_pair</span></code>, the <code class="docutils literal notranslate"><span class="pre">full_k_reference</span></code>, then
+the scan, which is the main sequence. <code class="docutils literal notranslate"><span class="pre">sequences.write</span></code> writes them
+as files linked through <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a> of <a class="reference internal" href="../pypulseqpp.Sequence.html#pypulseqpp.Sequence" title="pypulseqpp.Sequence">pypulseqpp.Sequence</a></p>
@@ -641,15 +658,16 @@ sequence. <code class="docutils literal notranslate"><span class="pre">sequences
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">excitation</span></code> or <code class="docutils literal notranslate"><span class="pre">calibration</span></code> is unknown, a partial Fourier
     fraction is outside
     <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">1]</span></code>, a count is below one, the shots cannot share the lines
-    or the partitions hold no shell, or the TE or TR is shorter than
-    the shots take.</p>
+    or the partitions hold no shell, the TE or TR is shorter than
+    the shots take, or the TE is shorter than the <code class="docutils literal notranslate"><span class="pre">full_k_reference</span></code>
+    admits.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="o">*</span><span class="n">prescans</span><span class="p">,</span> <span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi3D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_z</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">prescan</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prescan</span> <span class="ow">in</span> <span class="n">prescans</span><span class="p">]</span>
-<span class="go">['epi_3d_reference']</span>
+<span class="go">['epi_3d_calibration', 'epi_3d_field_forward', 'epi_3d_field_reversed']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Matrix"</span><span class="p">],</span> <span class="n">seq</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span>

@@ -446,7 +446,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"DiffusionPreparation"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"DiffusionPreparation"</span><span class="p">,</span> <span class="s2">"diffusion_pair_b_value"</span><span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
@@ -628,7 +628,7 @@
         <span class="n">first_gap</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">remaining</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
         <span class="n">second_gap</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="n">remaining</span> <span class="o">-</span> <span class="n">first_gap</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
 
-        <span class="n">max_b_value</span> <span class="o">=</span> <span class="n">_pair_b_value</span><span class="p">(</span>
+        <span class="n">max_b_value</span> <span class="o">=</span> <span class="n">diffusion_pair_b_value</span><span class="p">(</span>
             <span class="n">g_full</span><span class="p">,</span>
             <span class="n">first_gap</span> <span class="o">+</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">rf_ref</span><span class="p">)</span> <span class="o">+</span> <span class="n">second_gap</span><span class="p">,</span>
             <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span><span class="p">,</span>
@@ -701,10 +701,28 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_pair_b_value</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">middle_duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Return b (s/mm^2) of two identical lobes around a refocusing pulse.</span>
+<div class="viewcode-block" id="diffusion_pair_b_value">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.diffusion_pair_b_value.html#pypulseqpp.sequences.diffusion_pair_b_value">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">diffusion_pair_b_value</span><span class="p">(</span><span class="n">lobe</span><span class="p">,</span> <span class="n">middle_duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the b-value of two identical trapezoidal lobes around a refocusing pulse.</span>
 
-<span class="sd">    The second lobe is negated in the effective gradient.</span>
+<span class="sd">    The refocusing pulse negates the second lobe in the effective gradient,</span>
+<span class="sd">    which is sampled on ``raster``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lobe : TrapEvent</span>
+<span class="sd">        The diffusion lobe, played identically on both sides of the pulse.</span>
+<span class="sd">    middle_duration : float</span>
+<span class="sd">        Time from the end of the first lobe to the start of the second (s).</span>
+<span class="sd">    raster : float</span>
+<span class="sd">        Sampling interval of the effective gradient (s), such as</span>
+<span class="sd">        ``system.grad_raster_time``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        b-value (s/mm^2).</span>
 <span class="sd">    """</span>
     <span class="n">count</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">lobe</span><span class="p">)</span> <span class="o">/</span> <span class="n">raster</span><span class="p">)</span>
     <span class="n">times</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span>
@@ -716,7 +734,8 @@
     <span class="c1"># Amplitudes are Hz/m, so 2 pi turns the integral into rad/m; the result is</span>
     <span class="c1"># s/m^2 and s/mm^2 is a million times smaller.</span>
     <span class="n">q_rad_per_m</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">gradient</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">q_rad_per_m</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">q_rad_per_m</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">raster</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span></div>
+
 </pre></div>
 
                 </article>

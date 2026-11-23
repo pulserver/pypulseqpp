@@ -510,6 +510,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dummy-repetitions">Dummy repetitions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#receive-gain-prescan">Receive-gain prescan</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diffusion-weighting">Diffusion weighting</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fat-saturation-timing">Fat saturation timing</a></li>
 </ul>
             </nav>
@@ -684,6 +685,26 @@ on the signal the scan acquires.</p>
 </table>
 </div>
 </section>
+<section id="diffusion-weighting">
+<h2>Diffusion weighting<a class="headerlink" href="#diffusion-weighting" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Object</p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.diffusion_pair_b_value.html#pypulseqpp.sequences.diffusion_pair_b_value" title="pypulseqpp.sequences.diffusion_pair_b_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diffusion_pair_b_value</span></code></a></p></td>
+<td><p>Diffusion lobe, gap between the lobes (s), raster (s)</p></td>
+<td><p>b-value (s/mm²)</p></td>
+<td><p>The b-value of a Stejskal–Tanner pair of lobes around a refocusing pulse.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="fat-saturation-timing">
 <h2>Fat saturation timing<a class="headerlink" href="#fat-saturation-timing" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -704,6 +725,11 @@ on the signal the scan acquires.</p>
 <td><p>—</p></td>
 <td><p>0.37 s</p></td>
 <td><p>T1 of fat at 3 T.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FAT_SAT_BANDWIDTH_PPM.html#pypulseqpp.sequences.FAT_SAT_BANDWIDTH_PPM" title="pypulseqpp.sequences.FAT_SAT_BANDWIDTH_PPM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FAT_SAT_BANDWIDTH_PPM</span></code></a></p></td>
+<td><p>—</p></td>
+<td><p>2 ppm</p></td>
+<td><p>Default passband of the fat saturation, as a span of the field.</p></td>
 </tr>
 </tbody>
 </table>
@@ -763,6 +789,7 @@ on the signal the scan acquires.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spatial-saturation-bands">Spatial saturation bands</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dummy-repetitions">Dummy repetitions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#receive-gain-prescan">Receive-gain prescan</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diffusion-weighting">Diffusion weighting</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fat-saturation-timing">Fat saturation timing</a></li>
 </ul>
   </nav></div>

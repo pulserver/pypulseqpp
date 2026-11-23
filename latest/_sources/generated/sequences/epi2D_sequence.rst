@@ -7,7 +7,7 @@
 :Sampling: Cartesian
 :Readout: One blipped echo train per excitation
 
-Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.
+Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.
 
 Prescription
 ------------

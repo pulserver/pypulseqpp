@@ -536,13 +536,23 @@
 <dd class="field-even"><p>One blipped echo train per excitation</p>
 </dd>
 </dl>
-<p>Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.</p>
+<p>Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.</p>
 <section id="prescription">
 <h2>Prescription<a class="headerlink" href="#prescription" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pypulseqpp.sequences.epi2D_sequence">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">epi2D_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pypulseqpp.sequences.epi2D_sequence" title="Link to this definition">#</a></dt>
-<dd><p>Multi-slice 2D gradient-echo EPI: single-shot or segmented, optionally multiband.</p>
+<dd><p>Multi-slice 2D gradient-echo or spin-echo EPI, optionally segmented, multiband or diffusion-weighted.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">spin_echo</span></code>, a 90 degree excitation and a slice-selective
+refocusing pulse between crushers form a spin echo at <code class="docutils literal notranslate"><span class="pre">te</span></code>, which the
+centre line reads. With <code class="docutils literal notranslate"><span class="pre">diffusion_directions</span></code>, a pair of identical
+trapezoidal diffusion lobes surrounds the refocusing pulse (Stejskal and
+Tanner, J Chem Phys 1965, doi:10.1063/1.1695690), lengthened at
+<code class="docutils literal notranslate"><span class="pre">system.max_grad</span></code> until they reach <code class="docutils literal notranslate"><span class="pre">b_value</span></code>. The scan plays
+<code class="docutils literal notranslate"><span class="pre">diffusion_b0</span></code> volumes at b = 0, then one volume per direction of
+<a class="reference internal" href="../pypulseqpp.io.uniform_directions.html#pypulseqpp.io.uniform_directions" title="pypulseqpp.io.uniform_directions"><code class="xref py py-func docutils literal notranslate"><span class="pre">uniform_directions()</span></code></a>, in the logical frame, and
+records that table in the file. The table repeats <code class="docutils literal notranslate"><span class="pre">n_frames</span></code> times. The FLEET or gradient-echo calibration stays a
+gradient echo.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">phase_reference</span></code>, the last dummy shot of each slice (of each
 FLEET slice, its dummy shot) is a reference train for odd/even phase
 correction: the shot’s own train with every phase-encode prewinder, blip
@@ -562,18 +572,20 @@ packets, even ones first. With one frame, slices one TR cannot hold are
 dealt round-robin into packets; a time series must fit every slice in
 one. A multiband shot excites <code class="docutils literal notranslate"><span class="pre">multiband</span></code> slices at once and a
 blipped-CAIPI train encodes the band in <code class="docutils literal notranslate"><span class="pre">PAR</span></code>.</p>
-<p>Two prescans are linked ahead of the imaging: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code> of the
-central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines (<code class="docutils literal notranslate"><span class="pre">REF</span></code>) at <code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>, single
-band, when undersampled or multiband; and the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, one volume
-with the phase encode reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), for distortion correction.
+<p>The <code class="docutils literal notranslate"><span class="pre">calibration</span></code> of the central <code class="docutils literal notranslate"><span class="pre">n_acs_y</span></code> lines (<code class="docutils literal notranslate"><span class="pre">REF</span></code>) at
+<code class="docutils literal notranslate"><span class="pre">CALIBRATION_FLIP_DEG</span></code>, single band, is linked ahead of the imaging;
+the coil sensitivities of the whole volume are estimated from it once.
 The FLEET calibration (Polimeni et al., Magn Reson Med 2016,
 doi:10.1002/mrm.25628) reads those lines in <code class="docutils literal notranslate"><span class="pre">n_shots</span> <span class="pre">*</span> <span class="pre">ry</span></code> interleaved
 EPI shots, which step as far per echo spacing as an imaging shot, with
-its read lobe, navigator, blip and echo time, so the calibration is
-distorted as the imaging is. The shots of a slice follow one another
+its read lobe, navigator and blip, so the calibration is distorted as the
+imaging is, at the shortest echo time they admit. The shots of a slice follow one another
 after <code class="docutils literal notranslate"><span class="pre">FLEET_DUMMY_SHOTS</span></code> unsampled ones, forward (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">0</span></code>) and then
-reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), so each phase-encode polarity has its own. The
-gradient-echo calibration reads one line per excitation, undistorted.</p>
+reversed (<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>), so each phase-encode polarity has its own, and
+the two polarities give the field that corrects the distortion. The
+gradient-echo calibration reads one line per excitation, undistorted;
+after it, a <code class="docutils literal notranslate"><span class="pre">reference</span></code> volume with the phase encode reversed
+(<code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">1</span></code>) is linked for distortion correction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -611,7 +623,7 @@ non-acquiring shots per slice before each packet.
 samples preserve the requested dwell under the gradient limits.</p></li>
 <li><p><strong>n_acs_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=24</em>) – Phase-encode lines of the calibration; FLEET rounds them up to a
 whole number of lines per shot.</p></li>
-<li><p><strong>calibration</strong> (<em>{'fleet'</em><em>, </em><em>'gre'}</em><em>, </em><em>default='fleet'</em>) – The calibration played when undersampled or multiband: FLEET,
+<li><p><strong>calibration</strong> (<em>{'fleet'</em><em>, </em><em>'gre'}</em><em>, </em><em>default='fleet'</em>) – The calibration: FLEET,
 segmented EPI at the imaging train’s echo spacing, or a gradient echo
 per line.</p></li>
 <li><p><strong>volume_output</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Play a digital output on <code class="docutils literal notranslate"><span class="pre">OUTPUT_CHANNEL</span></code> at the first
@@ -621,12 +633,41 @@ odd/even phase correction.</p></li>
 <li><p><strong>navigator_lines</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Centre lines read without blips at the start of every shot, for
 odd/even phase correction. <code class="docutils literal notranslate"><span class="pre">None</span></code> is <code class="docutils literal notranslate"><span class="pre">NAVIGATOR_LINES</span></code> without
 <code class="docutils literal notranslate"><span class="pre">phase_reference</span></code> and none with it.</p></li>
+<li><p><strong>spin_echo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Refocus the echo with a slice-selective 180 degree pulse; the
+excitation is then 90 degrees, whatever <code class="docutils literal notranslate"><span class="pre">flip_angle_deg</span></code>.</p></li>
+<li><p><strong>diffusion_directions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=0</em>) – Count of diffusion-encoding directions; 0 plays no diffusion
+weighting. It needs <code class="docutils literal notranslate"><span class="pre">spin_echo</span></code>.</p></li>
+<li><p><strong>b_value</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=1000000000.0</em>) – b-value (s/m^2) of each diffusion-encoding direction.</p></li>
+<li><p><strong>diffusion_b0</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=1</em>) – Count of b = 0 volumes played before the directions.</p></li>
+<li><p><strong>field_pair</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Play a pair of volumes before the scan, at the imaging train: one with
+the phase encode forward, labelled <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">2</span></code>, and one reversed,
+labelled <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">3</span></code>. The two are displaced in opposite directions by
+the susceptibility field, and the reconstruction estimates the
+displacement field of the scan from them. The pair is an echo of the
+scan’s kind. A gradient-echo scan plays a gradient-echo pair at its
+echo time and flip angle, so the pair loses signal and piles it up
+where the scan does and the field is fitted to the intensity the scan
+has; a spin-echo scan plays a spin-echo pair at the shortest spin
+echo. The pair is played single-band.</p></li>
+<li><p><strong>field_pair_tr</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Repetition time (s) of the field pair; <code class="docutils literal notranslate"><span class="pre">None</span></code> plays it at its
+shortest. A TR longer than the scan’s lets its refocusing pulses fit
+a SAR limit the scan meets.</p></li>
+<li><p><strong>full_k_reference</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=True</em>) – Play one fully sampled volume at the echo time of a partial-Fourier
+gradient-echo scan, labelled <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">=</span> <span class="pre">4</span></code>, from whose phase the
+reconstruction completes the unsampled side of k-space. Its
+<code class="docutils literal notranslate"><span class="pre">n_shots</span> <span class="pre">*</span> <span class="pre">ry</span></code> interleaved, echo-time-shifted shots read every
+line with the echo train of an imaging shot, so the volume is
+distorted as the imaging is and holds, pixel by pixel, the coil
+sensitivities of the imaging signal at its echo time. Without a
+prescribed <code class="docutils literal notranslate"><span class="pre">te</span></code>, the scan takes the shortest echo time this volume
+admits. A spin-echo scan, whose phase is smooth, plays none.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The designed sequences in play order: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code> when
-undersampled or multiband, the <code class="docutils literal notranslate"><span class="pre">reference</span></code>, then the scan, which is
-the main sequence. <code class="docutils literal notranslate"><span class="pre">sequences.write</span></code> writes them as files linked
+<dd class="field-even"><p>The designed sequences in play order: the <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">reference</span></code> after a gradient-echo calibration, the forward and the
+reversed volume of the <code class="docutils literal notranslate"><span class="pre">field_pair</span></code>, the <code class="docutils literal notranslate"><span class="pre">full_k_reference</span></code>, then
+the scan, which is the main sequence. <code class="docutils literal notranslate"><span class="pre">sequences.write</span></code> writes them as files linked
 through <code class="docutils literal notranslate"><span class="pre">NextSequence</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -638,14 +679,14 @@ through <code class="docutils literal notranslate"><span class="pre">NextSequenc
     <code class="docutils literal notranslate"><span class="pre">n_slices</span></code>, the shots cannot
     share the lines, the TE is shorter than the train admits, or the TR
     cannot hold one slice, or every slice when <code class="docutils literal notranslate"><span class="pre">n_frames</span></code> is above
-    one.</p>
+    one, or the TE is shorter than the <code class="docutils literal notranslate"><span class="pre">full_k_reference</span></code> admits.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="o">*</span><span class="n">prescans</span><span class="p">,</span> <span class="n">seq</span> <span class="o">=</span> <span class="n">sequences</span><span class="o">.</span><span class="n">epi2D_sequence</span><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">n_y</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">n_dummy</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">prescan</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">prescan</span> <span class="ow">in</span> <span class="n">prescans</span><span class="p">]</span>
-<span class="go">['epi_2d_reference']</span>
+<span class="go">['epi_2d_calibration', 'epi_2d_field_forward', 'epi_2d_field_reversed']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">check_timing</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"EPIFactor"</span><span class="p">],</span> <span class="n">seq</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="s2">"Name"</span><span class="p">]</span>

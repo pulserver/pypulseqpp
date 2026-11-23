@@ -469,6 +469,8 @@
 
 <span class="c1">#: Fraction of ``max_grad`` the readout plateau may reach.</span>
 <span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="c1">#: Window widenings tried before a read lobe is declared unsampleable.</span>
+<span class="n">_NYQUIST_ATTEMPTS</span> <span class="o">=</span> <span class="mi">500</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_EpiReadout</span><span class="p">(</span><span class="n">SequenceModule</span><span class="p">):</span>
@@ -780,15 +782,36 @@
         <span class="n">n_full</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">oversampling</span> <span class="o">*</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">k_width</span> <span class="o">=</span> <span class="n">n_full</span> <span class="o">*</span> <span class="n">delta_k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">lobe_blip</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">flyback</span> <span class="k">else</span> <span class="n">blip_span</span>
-        <span class="n">n_samples</span><span class="p">,</span> <span class="n">dwell</span><span class="p">,</span> <span class="n">sample_span</span> <span class="o">=</span> <span class="n">_adc_timing</span><span class="p">(</span>
+        <span class="n">target_dwell</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">,</span>
+            <span class="n">pp</span><span class="o">.</span><span class="n">round_to_raster</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">readout_bandwidth_hz</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">adc_raster_time</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="c1"># The window widens until the read gradient's peak, where samples</span>
+        <span class="c1"># one dwell apart are furthest apart in k, stays within one step of</span>
+        <span class="c1"># the field of view: a wider spacing aliases the read axis.</span>
+        <span class="n">sampling_step</span> <span class="o">=</span> <span class="n">delta_k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">oversampling</span>
+        <span class="n">span</span> <span class="o">=</span> <span class="n">_min_sample_span</span><span class="p">(</span>
             <span class="n">system</span><span class="p">,</span>
-            <span class="n">n_full</span><span class="p">,</span>
-            <span class="mf">1.0</span> <span class="o">/</span> <span class="n">readout_bandwidth_hz</span><span class="p">,</span>
-            <span class="n">_min_sample_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">lobe_blip</span><span class="p">,</span> <span class="n">ramp_sampling</span><span class="p">),</span>
+            <span class="n">k_width</span><span class="p">,</span>
+            <span class="n">lobe_blip</span><span class="p">,</span>
+            <span class="n">ramp_sampling</span><span class="p">,</span>
+            <span class="n">nyquist</span><span class="o">=</span><span class="n">sampling_step</span> <span class="o">/</span> <span class="n">target_dwell</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">lobe</span><span class="p">,</span> <span class="n">echo_offset</span> <span class="o">=</span> <span class="n">_read_lobe</span><span class="p">(</span>
-            <span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">sample_span</span><span class="p">,</span> <span class="n">lobe_blip</span><span class="p">,</span> <span class="n">ramp_sampling</span>
-        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_NYQUIST_ATTEMPTS</span><span class="p">):</span>
+            <span class="n">n_samples</span><span class="p">,</span> <span class="n">dwell</span><span class="p">,</span> <span class="n">sample_span</span> <span class="o">=</span> <span class="n">_adc_timing</span><span class="p">(</span>
+                <span class="n">system</span><span class="p">,</span> <span class="n">n_full</span><span class="p">,</span> <span class="n">target_dwell</span><span class="p">,</span> <span class="n">span</span>
+            <span class="p">)</span>
+            <span class="n">lobe</span><span class="p">,</span> <span class="n">echo_offset</span> <span class="o">=</span> <span class="n">_read_lobe</span><span class="p">(</span>
+                <span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">sample_span</span><span class="p">,</span> <span class="n">lobe_blip</span><span class="p">,</span> <span class="n">ramp_sampling</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">_peak</span><span class="p">(</span><span class="n">lobe</span><span class="p">))</span> <span class="o">*</span> <span class="n">dwell</span> <span class="o">&lt;=</span> <span class="n">sampling_step</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">span</span> <span class="o">=</span> <span class="n">sample_span</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">grad_raster_time</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"could not sample the read lobe at the Nyquist rate of its "</span>
+                <span class="s2">"field of view; lower readout_bandwidth_hz's dwell or the matrix"</span>
+            <span class="p">)</span>
         <span class="n">adc</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adc</span><span class="p">(</span>
             <span class="n">num_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
             <span class="n">dwell</span><span class="o">=</span><span class="n">dwell</span><span class="p">,</span>
@@ -1141,21 +1164,32 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_min_sample_span</span><span class="p">(</span>
-    <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span> <span class="n">k_width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ramp_sampling</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span>
+    <span class="n">k_width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">blip_span</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">ramp_sampling</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">nyquist</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Shortest acquisition window (s) a read lobe sweeping ``k_width`` fits.</span>
 
-<span class="sd">    A plateau reaches at most ``_READOUT_GRAD_MARGIN`` of ``max_grad``. A</span>
-<span class="sd">    ramp-sampled lobe also has to hold its first area within the window and</span>
-<span class="sd">    its pads, which the slew rate decides when the window is short. That</span>
-<span class="sd">    bound is a whole number of rasters and is lowered by 1 ns, so that a</span>
-<span class="sd">    window equal to it is not lost to rounding.</span>
+<span class="sd">    A plateau reaches at most ``_READOUT_GRAD_MARGIN`` of ``max_grad``, and at</span>
+<span class="sd">    most ``nyquist`` (Hz/m), the amplitude at which consecutive samples one</span>
+<span class="sd">    dwell apart are one k-space step of the field of view apart: above it the</span>
+<span class="sd">    plateau samples alias along the read axis. A ramp-sampled lobe also has</span>
+<span class="sd">    to hold its first area within the window and its pads, which the slew</span>
+<span class="sd">    rate decides when the window is short. That bound is a whole number of</span>
+<span class="sd">    rasters and is lowered by 1 ns, so that a window equal to it is not lost</span>
+<span class="sd">    to rounding.</span>
 <span class="sd">    """</span>
-    <span class="n">span</span> <span class="o">=</span> <span class="n">k_width</span> <span class="o">/</span> <span class="p">(</span><span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">)</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">_READOUT_GRAD_MARGIN</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">max_grad</span><span class="p">,</span> <span class="n">nyquist</span><span class="p">)</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">k_width</span> <span class="o">/</span> <span class="n">amplitude</span>
     <span class="k">if</span> <span class="n">ramp_sampling</span><span class="p">:</span>
         <span class="n">pad</span> <span class="o">=</span> <span class="n">_lobe_pad</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">blip_span</span><span class="p">)</span>
         <span class="n">shortest</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_trapezoid</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">_ramp_sampled_area</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">pad</span><span class="p">),</span> <span class="n">system</span><span class="o">=</span><span class="n">system</span>
+            <span class="n">channel</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+            <span class="n">area</span><span class="o">=</span><span class="n">_ramp_sampled_area</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">k_width</span><span class="p">,</span> <span class="n">pad</span><span class="p">),</span>
+            <span class="n">max_grad</span><span class="o">=</span><span class="n">amplitude</span><span class="p">,</span>
+            <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="n">shortest</span><span class="p">)</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pad</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">span</span>
@@ -1260,6 +1294,13 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">events</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.0</span>
     <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">ceil_to_raster</span><span class="p">(</span><span class="n">pp</span><span class="o">.</span><span class="n">calc_duration</span><span class="p">(</span><span class="o">*</span><span class="n">events</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">block_duration_raster</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_peak</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return a read lobe's largest amplitude (Hz/m)."""</span>
+    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"trap"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">amplitude</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">waveform</span><span class="p">))))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_area</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>

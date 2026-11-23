@@ -78,6 +78,8 @@ from.
    Shape
    read_diffusion_table
    set_diffusion_table
+   uniform_directions
+   record_diffusion_table
    get_diffusion_table
 
 .. currentmodule:: pypulseqpp.sequences
@@ -259,8 +261,10 @@ from.
    steady_state_dummies
    STEADY_STATE_T1_S
    gain_calibration_readouts
+   diffusion_pair_b_value
    fat_null_flip_deg
    FAT_T1_S
+   FAT_SAT_BANDWIDTH_PPM
 
 .. currentmodule:: pypulseqpp
 
