@@ -43,4 +43,6 @@ channels, which turn with the prescription.
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.io.read_diffusion_table` | Path; `b_value` and `directions` for a block direction table | b-values (s/mm²) and unit directions, one per volume | Read an `x y z b` table, an FSL pair or a block direction table. |
 | {obj}`~pypulseqpp.io.set_diffusion_table` | `Sequence`, then as `read_diffusion_table` | The table | Read a table and record its path and arguments in `[DEFINITIONS]`. |
-| {obj}`~pypulseqpp.io.get_diffusion_table` | `Sequence` | The table, or `None` | Read the table a sequence's definitions name. |
+| {obj}`~pypulseqpp.io.uniform_directions` | Count | Unit directions | Spread diffusion-encoding directions uniformly over the sphere by electrostatic repulsion. |
+| {obj}`~pypulseqpp.io.record_diffusion_table` | `Sequence`, b-values, directions | — | Record a table value by value in `[DEFINITIONS]`, so the file carries it. |
+| {obj}`~pypulseqpp.io.get_diffusion_table` | `Sequence` | The table, or `None` | Read the table a sequence's definitions record. |

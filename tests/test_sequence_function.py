@@ -317,7 +317,16 @@ def test_the_units_the_shipped_sequences_state_are_the_package_units():
         for parameter in parameters(name).values()
     }
 
-    assert stated <= {"", "m", "s", "Hz", "degrees", "T/m", "beats per minute"}
+    assert stated <= {
+        "",
+        "m",
+        "s",
+        "Hz",
+        "degrees",
+        "T/m",
+        "s/m^2",
+        "beats per minute",
+    }
 
 
 @pytest.mark.parametrize("name", ["gre2D_sequence", "epi2D_sequence"])

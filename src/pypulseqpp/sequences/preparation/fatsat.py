@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["FAT_T1_S", "FatSaturation", "fat_null_flip_deg"]
+__all__ = ["FAT_SAT_BANDWIDTH_PPM", "FAT_T1_S", "FatSaturation", "fat_null_flip_deg"]
 
 import math
 
@@ -16,6 +16,11 @@ from ._common import spoiler_gradients
 #: Main fat resonance relative to water (ppm); negative, because fat precesses
 #: more slowly than water.
 FAT_SHIFT_PPM = -3.45
+
+#: Spectral passband of the saturation (ppm of the field): wide enough to hold
+#: fat that the head's own field moves by a few hundred hertz at 7 T, and
+#: still clear of water.
+FAT_SAT_BANDWIDTH_PPM = 2.0
 
 #: T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J
 #: Roentgenol 183:343, 2004).
@@ -81,9 +86,10 @@ class FatSaturation(RfModule):
         which an interpreter resolves against the field of the scan.
     flip_angle_deg : float, default=110.0
         Saturation flip angle (degrees).
-    bandwidth_hz : float, default=250.0
-        Spectral passband (Hz); the pulse duration is
-        ``time_bw_product / bandwidth_hz``.
+    bandwidth_hz : float or None, default=None
+        Spectral passband (Hz); ``FAT_SAT_BANDWIDTH_PPM`` of ``system.B0``
+        when not given. The pulse lasts ``time_bw_product / bandwidth_hz``,
+        rounded up to an even number of RF raster samples.
     time_bw_product : float, default=2.0
         Time-bandwidth product.
     spoiling_cycles : float, default=4.0
@@ -144,11 +150,13 @@ class FatSaturation(RfModule):
         *,
         freq_offset_ppm: float = FAT_SHIFT_PPM,
         flip_angle_deg: float = 110.0,
-        bandwidth_hz: float = 250.0,
+        bandwidth_hz: float | None = None,
         time_bw_product: float = 2.0,
         spoiling_cycles: float = 4.0,
         voxel_size_m: float = 1e-3,
     ) -> None:
+        if bandwidth_hz is None:
+            bandwidth_hz = 1e-6 * system.gamma * system.B0 * FAT_SAT_BANDWIDTH_PPM
         if bandwidth_hz <= 0 or time_bw_product <= 0:
             raise ValueError("bandwidth_hz and time_bw_product must be positive")
         if voxel_size_m <= 0:
@@ -159,9 +167,12 @@ class FatSaturation(RfModule):
                 "tipped over stays in the transverse plane and is read with the water"
             )
 
+        samples = 2 * math.ceil(
+            time_bw_product / bandwidth_hz / system.rf_raster_time / 2
+        )
         rf_prep = pp.make_slr_pulse(
             np.deg2rad(flip_angle_deg),
-            duration=time_bw_product / bandwidth_hz,
+            duration=samples * system.rf_raster_time,
             slice_thickness=0.0,
             time_bw_product=time_bw_product,
             pulse_type="sat",

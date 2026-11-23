@@ -9,7 +9,9 @@ __all__ = [
     "read",
     "read_chain",
     "read_diffusion_table",
+    "record_diffusion_table",
     "set_diffusion_table",
+    "uniform_directions",
     "write",
 ]
 
@@ -23,7 +25,9 @@ from pypulseqpp import safety as _safety
 from pypulseqpp._diffusion import (
     get_diffusion_table,
     read_diffusion_table,
+    record_diffusion_table,
     set_diffusion_table,
+    uniform_directions,
 )
 from pypulseqpp._libraries import SequenceLibraries, Shape
 

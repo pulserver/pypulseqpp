@@ -167,11 +167,14 @@ OUTPUT_DURATION = 1e-3
 #: calibration measures coil sensitivities, which do not depend on the
 #: contrast.
 CALIBRATION_FLIP_DEG = 10.0
-#: Calibrations of an undersampled scan.
+#: Calibrations the scan opens with.
 CALIBRATIONS = ("fleet", "gre")
 #: Non-acquiring shots that open the FLEET calibration, so its first
 #: acquiring shot does not read relaxed magnetization.
 FLEET_DUMMY_SHOTS = 1
+
+#: ``SET`` labels of the full-k phase reference volume: forward, reversed.
+FULL_K_REFERENCE_SETS = (4, 5)
 
 
 def fleet_lines(n: int, extent: int, shots: int) -> range:
@@ -209,14 +212,17 @@ def fleet_train(
     shots: int,
     **arguments,
 ):
-    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe, blip window and echo time.
+    """Return a FLEET calibration train over ``lines``: ``epi``'s read lobe and blip window, at its shortest echo time.
 
     Shot ``s`` reads ``lines[s::shots]``, a step of ``shots`` lines, and is
     delayed by ``esp / shots``, so the echo time grows across the lines as it
-    does across the lines of the imaging. It is timed to ``epi``'s echo time
-    where its shorter run of lines before the centre admits it, and else as
-    early as it can be. ``arguments`` are those of the imaging train: matrix,
-    field of view, navigator, sampling and spoiling.
+    does across the lines of the imaging and the calibration is distorted as
+    the imaging is. The echo time is the shortest the train admits: the
+    phase an off-resonance accrues by the imaging echo time at 7T wraps
+    within one calibration voxel near air-tissue interfaces, and coil maps
+    fitted to that calibration take on its structure. ``arguments`` are those
+    of the imaging train: matrix, field of view, navigator, sampling and
+    spoiling.
 
     Raises
     ------
@@ -234,8 +240,6 @@ def fleet_train(
         blip_span=epi.blip_span,
     )
     train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=None))
-    if train.echo_time < epi.echo_time - 1e-9:
-        train = sequences.EpiReadout3D(system, rf, gz, **dict(common, te=epi.echo_time))
     if abs(train.esp - epi.esp) > 1e-9:
         raise ValueError(
             f"the FLEET calibration's echo spacing {train.esp * 1e3:.3f} ms is not "
@@ -266,12 +270,15 @@ def epi3d(
     n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 1.0,
-    n_acs_y: int = 24,
-    n_acs_z: int = 16,
+    n_acs_y: int = 32,
+    n_acs_z: int = 32,
     calibration: str = "fleet",
     volume_output: bool = False,
     phase_reference: bool = False,
     navigator_lines: int | None = None,
+    field_pair: bool = True,
+    field_pair_tr: float | None = None,
+    full_k_reference: bool = True,
 ) -> list[pp.Sequence]:
     """3D gradient-echo EPI: one train per ``(shot, shell)``, skipped-CAIPI sampled.
 
@@ -300,18 +307,20 @@ def epi3d(
     echo time of the centre line. Acquisitions carry ``LIN``, ``PAR``,
     ``SEG`` (the shot) and ``REP``.
 
-    Two prescans are linked ahead of the imaging: the ``calibration``, when
-    undersampled, of the central ``n_acs_y x n_acs_z`` rectangle (``REF``) at
-    ``CALIBRATION_FLIP_DEG``; and the ``reference``, one volume with the
-    phase encode reversed (``SET = 1``), for distortion correction. The FLEET
+    The ``calibration`` of the central ``n_acs_y x n_acs_z`` rectangle
+    (``REF``) at ``CALIBRATION_FLIP_DEG`` is linked ahead of the imaging; the
+    coil sensitivities of the volume are estimated from it once. The FLEET
     calibration (Polimeni et al., Magn Reson Med 2016, doi:10.1002/mrm.25628)
     reads the lines of each partition in ``n_shots * ry`` interleaved EPI
     shots, which step as far per echo spacing as an imaging shot, with its
-    read lobe, navigator, blip and echo time, so the calibration is distorted
-    as the imaging is. A partition's shots follow one another, forward
+    read lobe, navigator and blip, so the calibration is distorted as the
+    imaging is, at the shortest echo time they admit. A partition's shots follow one another, forward
     (``SET = 0``) and then reversed (``SET = 1``), after
-    ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration. The
-    gradient-echo calibration reads one view per excitation, undistorted.
+    ``FLEET_DUMMY_SHOTS`` unsampled ones that open the calibration, and the
+    two polarities give the field that corrects the distortion. The
+    gradient-echo calibration reads one view per excitation, undistorted;
+    after it, a ``reference`` volume with the phase encode reversed
+    (``SET = 1``) is linked for distortion correction.
 
     Parameters
     ----------
@@ -362,13 +371,13 @@ def epi3d(
     readout_oversampling : float, default=1.0
         Minimum EPI readout oversampling factor, at least one. Additional
         samples preserve the requested dwell under the gradient limits.
-    n_acs_y : int, default=24
+    n_acs_y : int, default=32
         Extent of the calibration rectangle along the phase encode; FLEET
         rounds it up to a whole number of lines per shot.
-    n_acs_z : int, default=16
+    n_acs_z : int, default=32
         Extent of the calibration rectangle along the partition encode.
     calibration : {'fleet', 'gre'}, default='fleet'
-        The calibration played when undersampled: FLEET, segmented EPI at
+        The calibration: FLEET, segmented EPI at
         the imaging train's echo spacing, or a gradient echo per view.
     volume_output : bool, default=False
         Play a digital output on ``OUTPUT_CHANNEL`` at the first
@@ -380,14 +389,32 @@ def epi3d(
         Centre lines read without blips at the start of every shot, for
         odd/even phase correction. ``None`` is ``NAVIGATOR_LINES`` without
         ``phase_reference`` and none with it.
+    field_pair : bool, default=True
+        Play a multi-slice spin-echo EPI pair before the scan, its slices the
+        slab's partitions, at the scan's in-plane matrix, phase-encode
+        sampling and echo spacing: one volume with the phase encode forward,
+        labelled ``SET = 2``, and one reversed, labelled ``SET = 3``. The two
+        are displaced in opposite directions by the susceptibility field
+        along the phase encode, as the scan is, and differ in nothing else,
+        and the reconstruction estimates the displacement field of the scan
+        from them.
+    field_pair_tr : float or None, default=None
+        Repetition time (s) of the field pair; ``None`` plays it at its
+        shortest. A longer TR lets its refocusing pulses fit a SAR limit.
+    full_k_reference : bool, default=True
+        Play one fully sampled volume at the echo time of a partial-Fourier
+        scan, labelled ``SET = 4``, from whose phase the reconstruction
+        completes the unsampled side of k-space. Without a prescribed
+        ``te``, the scan takes the shortest echo time this volume admits.
 
     Returns
     -------
     list of pypulseqpp.Sequence
-        The designed sequences in play order: the ``calibration`` when
-        undersampled, the ``reference``, then the scan, which is the main
-        sequence. ``sequences.write`` writes them as files linked through
-        ``NextSequence``.
+        The designed sequences in play order: the ``calibration``, the
+        ``reference`` after a gradient-echo calibration, the forward and the
+        reversed volume of the ``field_pair``, the ``full_k_reference``, then
+        the scan, which is the main sequence. ``sequences.write`` writes them
+        as files linked through ``NextSequence``.
 
     Raises
     ------
@@ -395,20 +422,144 @@ def epi3d(
         If ``excitation`` or ``calibration`` is unknown, a partial Fourier
         fraction is outside
         ``[0.5, 1]``, a count is below one, the shots cannot share the lines
-        or the partitions hold no shell, or the TE or TR is shorter than
-        the shots take.
+        or the partitions hold no shell, the TE or TR is shorter than
+        the shots take, or the TE is shorter than the ``full_k_reference``
+        admits.
 
     Examples
     --------
     >>> from pypulseqpp import sequences
     >>> *prescans, seq = sequences.epi3D_sequence(n_x=32, n_y=16, n_z=4, n_dummy=0)
     >>> [prescan.definitions["Name"] for prescan in prescans]
-    ['epi_3d_reference']
+    ['epi_3d_calibration', 'epi_3d_field_forward', 'epi_3d_field_reversed']
     >>> seq.check_timing()[0]
     True
     >>> seq.definitions["Matrix"], seq.definitions["Name"]
     ([32.0, 16.0, 4.0], 'epi_3d')
     """
+    protocol = {
+        "fov_x": fov_x,
+        "fov_y": fov_y,
+        "fov_z": fov_z,
+        "n_x": n_x,
+        "n_y": n_y,
+        "n_z": n_z,
+        "flip_angle_deg": flip_angle_deg,
+        "te": te,
+        "tr": tr,
+        "n_frames": n_frames,
+        "readout_bandwidth_hz": readout_bandwidth_hz,
+        "ry": ry,
+        "rz": rz,
+        "partial_fourier_y": partial_fourier_y,
+        "partial_fourier_z": partial_fourier_z,
+        "n_shots": n_shots,
+        "n_dummy": n_dummy,
+        "excitation": excitation,
+        "readout_oversampling": readout_oversampling,
+        "n_acs_y": n_acs_y,
+        "n_acs_z": n_acs_z,
+        "calibration": calibration,
+        "volume_output": volume_output,
+        "phase_reference": phase_reference,
+        "navigator_lines": navigator_lines,
+    }
+    if not (full_k_reference and min(partial_fourier_y, partial_fourier_z) < 1.0):
+        *prescans, seq = _designed(system, **protocol, encode_sets=(0, 1))
+        pair = _field_pair(system, protocol, field_pair_tr) if field_pair else []
+        return [*prescans, *pair, seq]
+    try:
+        *_, reference = _designed(
+            system,
+            **{
+                **protocol,
+                "partial_fourier_y": 1.0,
+                "partial_fourier_z": 1.0,
+                "n_frames": 1,
+                "volume_output": False,
+            },
+            encode_sets=FULL_K_REFERENCE_SETS,
+        )
+    except ValueError as error:
+        raise ValueError(
+            f"the full-k phase reference cannot be designed: {error}"
+        ) from error
+    reference.set_definition(key="Name", value=f"{NAME}_full_k_reference")
+    *prescans, seq = _designed(
+        system,
+        **{**protocol, "te": reference.definitions["TE"][0]},
+        encode_sets=(0, 1),
+    )
+    pair = _field_pair(system, protocol, field_pair_tr) if field_pair else []
+    return [*prescans, *pair, reference, seq]
+
+
+def _field_pair(
+    system: pp.Opts | None, protocol: dict, tr: float | None
+) -> list[pp.Sequence]:
+    """Design the spin-echo field pair of :func:`epi3d`: 2D spin-echo EPI over the slab's partitions at ``tr``, forward then reversed."""
+    chain = sequences.epi2D_sequence(
+        system,
+        fov_x=protocol["fov_x"],
+        fov_y=protocol["fov_y"],
+        n_x=protocol["n_x"],
+        n_y=protocol["n_y"],
+        n_slices=protocol["n_z"],
+        slice_thickness=protocol["fov_z"] / protocol["n_z"],
+        readout_bandwidth_hz=protocol["readout_bandwidth_hz"],
+        ry=protocol["ry"],
+        partial_fourier_y=protocol["partial_fourier_y"],
+        n_shots=protocol["n_shots"],
+        n_dummy=protocol["n_dummy"],
+        readout_oversampling=protocol["readout_oversampling"],
+        phase_reference=protocol["phase_reference"],
+        navigator_lines=protocol["navigator_lines"],
+        calibration="gre",
+        spin_echo=True,
+        field_pair=True,
+        field_pair_tr=tr,
+    )
+    pair = []
+    for half in ("forward", "reversed"):
+        (volume,) = (
+            seq for seq in chain if seq.definitions["Name"] == f"epi_2d_field_{half}"
+        )
+        volume.set_definition(key="Name", value=f"{NAME}_field_{half}")
+        pair.append(volume)
+    return pair
+
+
+def _designed(
+    system: pp.Opts | None,
+    *,
+    fov_x,
+    fov_y,
+    fov_z,
+    n_x,
+    n_y,
+    n_z,
+    flip_angle_deg,
+    te,
+    tr,
+    n_frames,
+    readout_bandwidth_hz,
+    ry,
+    rz,
+    partial_fourier_y,
+    partial_fourier_z,
+    n_shots,
+    n_dummy,
+    excitation,
+    readout_oversampling,
+    n_acs_y,
+    n_acs_z,
+    calibration,
+    volume_output,
+    phase_reference,
+    navigator_lines,
+    encode_sets: tuple[int, int],
+) -> list[pp.Sequence]:
+    """Design :func:`epi3d`, its forward phase encodes labelled ``SET = encode_sets[0]`` and its reversed ones ``SET = encode_sets[1]``."""
     system = pp.cap_system(
         pp.Opts() if system is None else system,
         max_grad=MAX_GRAD,
@@ -524,9 +675,8 @@ def epi3d(
         system=system,
     )
 
-    # The calibration of an undersampled scan: a gradient echo per view, or
-    # FLEET's interleaved shots per partition.
-    undersampled = ry > 1 or rz > 1 or partial_fourier_y < 1 or partial_fourier_z < 1
+    # The calibration: a gradient echo per view, or FLEET's interleaved shots
+    # per partition.
     acs_shots = n_shots * ry
     low_z = n_z // 2 - n_acs_z // 2
     partitions = list(range(max(low_z, 0), min(low_z + n_acs_z, n_z)))
@@ -537,7 +687,7 @@ def epi3d(
             max(n_y // 2 - n_acs_y // 2, 0), min(n_y // 2 - n_acs_y // 2 + n_acs_y, n_y)
         )
     )
-    views = [(y, z) for y in lines_y for z in partitions] if undersampled else []
+    views = [(y, z) for y in lines_y for z in partitions]
     gre = acs = None
     if views:
         # The imaging pulse at the calibration's flip angle and at its
@@ -692,12 +842,12 @@ def epi3d(
             flags = {"ONCE": 1}
             if reference:
                 flags |= {"SEG": shot, "PHASECORR": 1}
-                if reversed_encode:
-                    flags["SET"] = 1
+                if encode_sets[reversed_encode]:
+                    flags["SET"] = encode_sets[reversed_encode]
         else:
             flags = {"REP": frame, "SEG": shot, "ONCE": 0}
-            if reversed_encode:
-                flags["SET"] = 1
+            if encode_sets[reversed_encode]:
+                flags["SET"] = encode_sets[reversed_encode]
             if phase_reference:
                 flags["PHASECORR"] = 0
             if not n_dummy_shots:
@@ -850,7 +1000,8 @@ def epi3d(
     prescans = [calibrate()] if gre is not None else []
     if acs is not None:
         prescans.append(fleet())
-    prescans.append(reference())
+    else:
+        prescans.append(reference())
     seq = play(frames=range(n_frames))
 
     # The volume's offset is applied to the finished sequence with

@@ -101,6 +101,37 @@ def test_the_pulse_duration_follows_the_bandwidth_asked_for(system):
     )
 
 
+@pytest.mark.parametrize("field_t", [1.5, 3.0, 7.0])
+def test_the_default_passband_is_a_fixed_span_of_ppm_so_it_widens_with_the_field(
+    field_t,
+):
+    system = pp.Opts(B0=field_t)
+    fatsat = design.FatSaturation(system)
+    passband = 1e-6 * system.gamma * field_t * design.FAT_SAT_BANDWIDTH_PPM
+    assert pp.calc_duration(fatsat.rf_prep) == pytest.approx(
+        2.0 / passband, abs=2 * system.rf_raster_time
+    )
+
+
+@pytest.mark.parametrize("bandwidth_hz", [333.0, 600.0, 777.0])
+def test_any_passband_gives_a_pulse_of_an_even_number_of_raster_samples(
+    system, bandwidth_hz
+):
+    fatsat = design.FatSaturation(system, bandwidth_hz=bandwidth_hz)
+    samples = round(pp.calc_duration(fatsat.rf_prep) / system.rf_raster_time)
+    assert samples % 2 == 0
+
+
+def test_at_7t_fat_moved_100_hz_by_the_head_is_saturated_and_water_is_left_alone():
+    system = pp.Opts(B0=7.0)
+    answer = response(design.FatSaturation(system, flip_angle_deg=90.0))
+    centre = float(answer.frequency[np.argmin(answer.mz_z)])
+    for moved in (centre - 100.0, centre + 100.0):
+        assert abs(float(np.interp(moved, answer.frequency, answer.mz_z))) < 0.2
+    water = centre - 1e-6 * system.gamma * 7.0 * FAT_SHIFT_PPM
+    assert float(np.interp(water, answer.frequency, answer.mz_z)) > 0.95
+
+
 # ----------------------------------------------------------------------
 # Layout
 # ----------------------------------------------------------------------
@@ -222,17 +253,95 @@ def test_the_2d_epi_saturates_fat_at_the_flip_that_nulls_it_at_its_excitation(
         return asked[-1][2]
 
     monkeypatch.setattr(design, "fat_null_flip_deg", recorded)
-    *_, seq = design.epi2D_sequence(n_x=32, n_y=16, n_dummy=0, fat_saturation=True)
+    *_, seq = design.epi2D_sequence(
+        n_x=32, n_y=16, n_dummy=0, fat_saturation=True, field_pair=False
+    )
     saturation = next(
         rf
         for i in seq.block_events
         if (rf := seq.get_block(i).rf) is not None and rf.use == "saturation"
     )
 
-    ((delay, period, flip),) = asked
+    delay, period, flip = asked[0]
     assert 0 < delay < period
     assert 90.0 < flip < 180.0
     expected = design.FatSaturation(seq.system, flip_angle_deg=flip).rf_prep
     np.testing.assert_allclose(
         np.abs(saturation.signal), np.abs(expected.signal), rtol=1e-6
     )
+
+
+def test_consecutive_2d_epi_fat_saturations_step_their_phase_quadratically():
+    """Equal saturations and spoilers every shot would refocus stimulated echoes of fat."""
+    *_, seq = design.epi2D_sequence(
+        n_x=32, n_y=16, n_dummy=0, n_slices=6, fat_saturation=True, field_pair=False
+    )
+    phases = [
+        float(rf.phase_offset)
+        for i in seq.block_events
+        if (rf := seq.get_block(i).rf) is not None and rf.use == "saturation"
+    ]
+    assert len(phases) > 3
+    steps = np.diff(np.unwrap(phases))
+    np.testing.assert_allclose(
+        np.mod(np.diff(steps), 2 * np.pi), np.deg2rad(117.0), atol=1e-6
+    )
+
+
+@pytest.mark.parametrize("calibration", ["fleet", "gre"])
+def test_every_epi_calibration_excitation_follows_a_fat_saturation_when_the_imaging_saturates_fat(
+    calibration,
+):
+    calibration_seq, *_ = design.epi2D_sequence(
+        n_x=32,
+        n_y=32,
+        ry=2,
+        n_dummy=0,
+        fat_saturation=True,
+        field_pair=False,
+        full_k_reference=False,
+        calibration=calibration,
+    )
+    uses = [
+        rf.use
+        for i in calibration_seq.block_events
+        if (rf := calibration_seq.get_block(i).rf) is not None
+    ]
+    excitations = [i for i, use in enumerate(uses) if use != "saturation"]
+    assert excitations
+    assert all(i > 0 and uses[i - 1] == "saturation" for i in excitations)
+
+
+def test_the_epi_calibration_saturation_nulls_fat_at_the_calibration_excitation(
+    monkeypatch,
+):
+    asked = []
+    null_flip = design.fat_null_flip_deg
+
+    def recorded(delay, period, **kwargs):
+        asked.append((delay, period))
+        return null_flip(delay, period, **kwargs)
+
+    monkeypatch.setattr(design, "fat_null_flip_deg", recorded)
+    calibration_seq, *_ = design.epi2D_sequence(
+        n_x=32,
+        n_y=32,
+        ry=2,
+        n_dummy=0,
+        fat_saturation=True,
+        field_pair=False,
+        calibration="gre",
+    )
+    imaging_period = asked[0][1]
+    calibration_periods = [period for _, period in asked[1:]]
+    first_two = [
+        i
+        for i in calibration_seq.block_events
+        if (rf := calibration_seq.get_block(i).rf) is not None
+        and rf.use == "saturation"
+    ][:2]
+    played_period = sum(
+        calibration_seq.block_durations[i] for i in range(first_two[0], first_two[1])
+    )
+    assert played_period in [pytest.approx(p) for p in calibration_periods]
+    assert played_period != pytest.approx(imaging_period)
