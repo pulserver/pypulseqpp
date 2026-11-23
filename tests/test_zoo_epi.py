@@ -1289,3 +1289,64 @@ def test_a_3d_field_pair_at_a_given_tr_repeats_at_that_tr():
 
     for half in ("field_forward", "field_reversed"):
         assert scan.prescan(half).definitions["TR"][0] == pytest.approx(3.0)
+
+
+@pytest.mark.parametrize("calibration", ["fleet", "gre"])
+def test_every_3d_excitation_is_rf_spoiled_and_read_at_its_own_phase(calibration):
+    """Consecutive excitations of each 3D file step their phase by a growing 117 degrees, and each readout follows its excitation."""
+    scan = scan3d(ry=2, rz=2, n_shots=2, calibration=calibration)
+
+    for seq in scan.chain:
+        phases, mismatched = [], 0
+        for index in range(1, len(seq.block_events) + 1):
+            block = seq.get_block(index)
+            if block.rf is not None:
+                phases.append(block.rf.phase_offset)
+            if block.adc is not None:
+                mismatched += not np.isclose(
+                    np.angle(np.exp(1j * (block.adc.phase_offset - phases[-1]))), 0.0
+                )
+        steps = np.diff(np.diff(phases))
+        wrapped = np.angle(np.exp(1j * (steps - np.deg2rad(117.0))))
+
+        assert len(phases) > 2, seq.definitions["Name"]
+        assert wrapped == pytest.approx(0.0, abs=1e-9), seq.definitions["Name"]
+        assert mismatched == 0, seq.definitions["Name"]
+
+
+@pytest.mark.parametrize(
+    "prescription",
+    [
+        {"n_slices": 3, "calibration": "fleet"},
+        {"n_slices": 3, "calibration": "gre"},
+        {"n_slices": 4, "multiband": 2, "n_shots": 2},
+    ],
+    ids=["fleet", "gre", "multiband"],
+)
+def test_every_2d_gradient_echo_slice_is_rf_spoiled_by_its_own_excitation_count(
+    prescription,
+):
+    """Consecutive excitations of each slice step their phase by a growing 117 degrees, and each readout follows its excitation."""
+    scan = scan2d(**prescription)
+
+    for seq in scan.chain:
+        phases, mismatched, current = {}, 0, None
+        for index in range(1, len(seq.block_events) + 1):
+            block = seq.get_block(index)
+            rf = block.rf
+            if rf is not None and rf.use == "excitation":
+                # The slice offset's phase ramp is not part of the spoiling.
+                current = rf.phase_offset + 2 * np.pi * rf.freq_offset * rf.center
+                phases.setdefault(round(rf.freq_offset, 3), []).append(current)
+            if block.adc is not None:
+                lag = np.angle(np.exp(1j * (block.adc.phase_offset - current)))
+                mismatched += prescription.get("multiband", 1) == 1 and not np.isclose(
+                    lag, 0.0
+                )
+
+        assert phases, seq.definitions["Name"]
+        for slice_phases in phases.values():
+            steps = np.diff(np.diff(slice_phases))
+            wrapped = np.angle(np.exp(1j * (steps - np.deg2rad(117.0))))
+            assert wrapped == pytest.approx(0.0, abs=1e-9), seq.definitions["Name"]
+        assert mismatched == 0, seq.definitions["Name"]

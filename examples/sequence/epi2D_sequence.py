@@ -29,6 +29,24 @@ def _received_at(adc, phase: float, system: pp.Opts):
     )
 
 
+def _spoiling_phase(count: int) -> float:
+    """Return the quadratic RF-spoiling phase (rad) of the excitation that follows ``count`` others of its slice."""
+    return math.radians(RF_SPOIL_INCREMENT_DEG * count * (count + 1) / 2 % 360.0)
+
+
+def _add_received(seq, events, phase: float) -> None:
+    """Add a block of ``events`` to ``seq``, its ADCs advanced by ``phase`` (rad)."""
+    adcs = [event for event in events if getattr(event, "type", None) == "adc"]
+    offsets = [adc.phase_offset for adc in adcs]
+    for adc in adcs:
+        adc.phase_offset += phase
+    try:
+        seq.add_block(*events)
+    finally:
+        for adc, offset in zip(adcs, offsets, strict=True):
+            adc.phase_offset = offset
+
+
 def caipi_shift(ry: int, rz: int) -> int:
     """Return the CAIPI shift whose lattice keeps its aliases furthest apart.
 
@@ -341,7 +359,10 @@ ECHO_COUNTER = "USER0"
 #: across one voxel.
 SPOILING_CYCLES = 4.0
 
-#: Quadratic RF-spoiling increment of the fat saturation (degrees).
+#: Quadratic RF-spoiling increment of the fat saturation and of every
+#: gradient-echo excitation (degrees). The readout dephasing alone leaves a
+#: slice repeated at a TR near CSF's T2 in a gradient-echo steady state whose
+#: coherent pathways brighten CSF over a spoiled gradient echo.
 RF_SPOIL_INCREMENT_DEG = 117.0
 
 #: Digital output marking every volume under ``volume_output``, and how
@@ -1075,10 +1096,12 @@ def _designed(
         line: int,
         prep: list = (),
         wait: float = 0.0,
+        phase: float = 0.0,
     ) -> None:
-        """Add one single-band gradient echo of slice ``s`` at ``line``, between ``prep`` and a ``wait`` (s)."""
+        """Add one single-band gradient echo of slice ``s`` at ``line``, between ``prep`` and a ``wait`` (s), excited and read at RF phase ``phase``."""
         gre.rf.freq_offset = single.selection_amplitude * positions[s]
-        gre.rf.phase_offset = -2 * np.pi * gre.rf.freq_offset * gre.rf.center
+        gre.rf.phase_offset = phase - 2 * np.pi * gre.rf.freq_offset * gre.rf.center
+        gre.adc.phase_offset = phase
         gre.adc_labels.value = line
         ky = (line - n_y // 2) / (n_y / 2)
         for module in prep:
@@ -1105,8 +1128,10 @@ def _designed(
             lambda probe: calibration_kernel(probe, sequences.Labels(), 0, acs_lines[0])
         )
         for s in order:
-            for line in acs_lines:
-                calibration_kernel(seq, labels, s, line, prep, wait)
+            for count, line in enumerate(acs_lines):
+                calibration_kernel(
+                    seq, labels, s, line, prep, wait, _spoiling_phase(count)
+                )
         define(
             seq,
             Name=f"{NAME}_calibration",
@@ -1126,6 +1151,7 @@ def _designed(
         )
         for s in order:
             offset = single.selection_amplitude * positions[s]
+            phases = map(_spoiling_phase, itertools.count())
             for dummy in range(FLEET_DUMMY_SHOTS):
                 reference = phase_reference and dummy == FLEET_DUMMY_SHOTS - 1
                 shot_blocks(
@@ -1139,6 +1165,7 @@ def _designed(
                     raster + wait,
                     reference=reference,
                     prep=prep,
+                    phase=next(phases),
                 )
             for polarity in (0, 1):
                 for shot, origin in enumerate(starts):
@@ -1161,6 +1188,7 @@ def _designed(
                         acquire=True,
                         reversed_encode=bool(polarity),
                         prep=prep,
+                        phase=next(phases),
                     )
         define(
             seq,
@@ -1181,8 +1209,11 @@ def _designed(
         output: bool = False,
         reversed_encode: bool = False,
         reference: bool = False,
+        phase: float = 0.0,
     ) -> None:
         """Add one shot of slice (multiband group) ``g``; ``frame=None`` is a dummy.
+
+        A gradient-echo shot is excited and read at RF phase ``phase``.
 
         ``pad`` is the closing delay the shot would have without echo shift,
         in s. A ``reference`` dummy acquires the blip-free reference train.
@@ -1230,6 +1261,7 @@ def _designed(
             reference=reference,
             half=half,
             lobe=lobe,
+            phase=0.0 if spin_echo else phase,
         )
 
     made_lobes: dict = {}
@@ -1264,8 +1296,11 @@ def _designed(
         reference: bool = False,
         half: list = (),
         lobe: tuple | None = None,
+        phase: float = 0.0,
     ) -> None:
         """Add one shot of ``train`` from line ``origin``, its pulse ``offset`` Hz off resonance.
+
+        The pulse and every readout of the shot play at RF phase ``phase``.
 
         A spin echo's ``half`` (its excitation, rephaser, first diffusion lobe
         and wait) plays before the train, whose pulse refocuses, and ``lobe``,
@@ -1283,7 +1318,9 @@ def _designed(
         train lines, its navigator unsampled: the blip-free reference train.
         """
         train.rf.freq_offset = offset
-        train.rf.phase_offset = -2 * np.pi * train.rf.freq_offset * train.rf.center
+        train.rf.phase_offset = (
+            phase - 2 * np.pi * train.rf.freq_offset * train.rf.center
+        )
         if half:
             train.rf.phase_offset += np.pi / 2
         sign = -1.0 if reversed_encode else 1.0
@@ -1377,7 +1414,7 @@ def _designed(
                         flags[ECHO_COUNTER] = echo
                     events += labels(**flags)
                 polarity ^= 1
-            seq.add_block(*events)
+            _add_received(seq, events, phase)
             if index == 0 and lobe is not None:
                 seq.add_block(*lobe)
         seq.add_block(pp.make_delay(closing))
@@ -1390,6 +1427,7 @@ def _designed(
         """
         seq, labels = pp.Sequence(system), sequences.Labels()
         first_image_shot = None
+        excitations = dict.fromkeys(range(n_groups), 0)
         for packet in packets:
             cycles = [(None, c % n_shots) for c in range(dummy_cycles)]
             cycles += [(frame, shot) for frame in frames for shot in range(n_shots)]
@@ -1400,6 +1438,8 @@ def _designed(
                 for i, g in enumerate(packet):
                     last = i == len(packet) - 1
                     before = seq.num_blocks
+                    phase = _spoiling_phase(excitations[g])
+                    excitations[g] += 1
                     kernel(
                         seq,
                         labels,
@@ -1413,6 +1453,7 @@ def _designed(
                         and shot == 0,
                         reversed_encode=reversed_encode,
                         reference=reference,
+                        phase=phase,
                     )
                     if frame is not None and first_image_shot is None:
                         first_image_shot = (before + 1, seq.num_blocks - before)

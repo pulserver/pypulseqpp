@@ -154,6 +154,10 @@ ECHO_COUNTER = "USER0"
 #: Dephasing left on the readout axis at the end of each shot, in cycles
 #: across one voxel.
 SPOILING_CYCLES = 4.0
+#: Quadratic RF-spoiling increment of every excitation (degrees). The
+#: readout dephasing alone leaves the slab in a gradient-echo steady state
+#: whose coherent pathways brighten CSF over a spoiled gradient echo.
+RF_SPOILING_INCREMENT_DEG = 117.0
 #: Digital output marking every volume under ``volume_output``, and how
 #: long it lasts (s); it never outlasts the excitation block it rides.
 OUTPUT_CHANNEL = "ext1"
@@ -504,6 +508,21 @@ def epi3d(
     return [*prescans, *pair, reference, seq]
 
 
+def _add_phased(seq, events, phase):
+    """Add a block of ``events`` to ``seq``, its RF pulses and ADCs advanced by ``phase`` (rad)."""
+    phased = [
+        event for event in events if getattr(event, "type", None) in ("rf", "adc")
+    ]
+    offsets = [event.phase_offset for event in phased]
+    for event in phased:
+        event.phase_offset += phase
+    try:
+        seq.add_block(*events)
+    finally:
+        for event, offset in zip(phased, offsets, strict=True):
+            event.phase_offset = offset
+
+
 def _field_pair(
     system: pp.Opts | None, protocol: dict, te: float | None, tr: float | None
 ) -> list[pp.Sequence]:
@@ -729,6 +748,14 @@ def _designed(
                 labels=("LIN", "PAR"),
             )
 
+    def spoiling(count: int) -> list[float]:
+        """Return the RF-spoiling phase of each of ``count`` excitations (rad)."""
+        return list(
+            pp.make_rf_spoiling_schedule(
+                count, increment=np.deg2rad(RF_SPOILING_INCREMENT_DEG)
+            )
+        )
+
     def define(seq: pp.Sequence, **definitions) -> None:
         for key, value in {
             "FOV": list(fov),
@@ -742,10 +769,14 @@ def _designed(
         )
 
     def calibration_kernel(
-        seq: pp.Sequence, labels: sequences.Labels, view: tuple[int, int]
+        seq: pp.Sequence,
+        labels: sequences.Labels,
+        view: tuple[int, int],
+        phase: float,
     ) -> None:
-        """Add one gradient echo at ``(line, partition)``."""
+        """Add one gradient echo at ``(line, partition)``, excited and read at RF phase ``phase``."""
         line, partition = view
+        gre.rf.phase_offset = gre.adc.phase_offset = phase
         gre.adc_labels[0].value, gre.adc_labels[1].value = line, partition
         ky = (line - n_y // 2) / (n_y / 2)
         kz = (partition - n_z // 2) / (n_z / 2)
@@ -764,8 +795,8 @@ def _designed(
     def calibrate() -> pp.Sequence:
         """Design the gradient-echo calibration over the central rectangle."""
         seq, labels = pp.Sequence(system), sequences.Labels()
-        for view in views:
-            calibration_kernel(seq, labels, view)
+        for view, phase in zip(views, spoiling(len(views)), strict=True):
+            calibration_kernel(seq, labels, view, phase)
         define(
             seq,
             Name=f"{NAME}_calibration",
@@ -778,6 +809,7 @@ def _designed(
         """Design the FLEET calibration: every shot of a partition, then the next."""
         seq, labels = pp.Sequence(system), sequences.Labels()
         starts = list(lines_y[:acs_shots])
+        phases = iter(spoiling(FLEET_DUMMY_SHOTS + 2 * len(partitions) * len(starts)))
         for dummy in range(FLEET_DUMMY_SHOTS):
             reference = phase_reference and dummy == FLEET_DUMMY_SHOTS - 1
             shot_blocks(
@@ -790,6 +822,7 @@ def _designed(
                 labels(SEG=0, SET=0, PHASECORR=1) if reference else [],
                 raster,
                 reference=reference,
+                phase=next(phases),
             )
         for partition in partitions:
             for polarity in (0, 1):
@@ -810,6 +843,7 @@ def _designed(
                         raster,
                         acquire=True,
                         reversed_encode=bool(polarity),
+                        phase=next(phases),
                     )
         define(
             seq,
@@ -830,8 +864,9 @@ def _designed(
         output: bool = False,
         reversed_encode: bool = False,
         reference: bool = False,
+        phase: float = 0.0,
     ) -> None:
-        """Add one shot of the shell starting at partition ``base``; ``frame=None`` is a dummy, a ``reference`` one the blip-free reference train."""
+        """Add one shot of the shell starting at partition ``base``, at RF phase ``phase``; ``frame=None`` is a dummy, a ``reference`` one the blip-free reference train."""
         train = shot_trains[shot]
         acquire = frame is not None
         if not acquire:
@@ -860,6 +895,7 @@ def _designed(
             acquire=acquire,
             reversed_encode=reversed_encode and not reference,
             reference=reference,
+            phase=phase,
         )
 
     def shot_blocks(
@@ -874,9 +910,12 @@ def _designed(
         acquire: bool = False,
         reversed_encode: bool = False,
         reference: bool = False,
+        phase: float = 0.0,
     ) -> None:
         """Add one shot of ``train`` from ``(line, partition)``, ``first_events`` on its first block.
 
+        The excitation and every readout of the shot play at RF phase
+        ``phase``.
         ``shot`` sets the echo shift. ``reversed_encode`` negates every line
         encode, so each line L of the forward shot is read at its mirror,
         ``LIN = n_y - L``; the mirror of line 0 lies outside the matrix and is
@@ -955,7 +994,7 @@ def _designed(
                         flags[ECHO_COUNTER] = echo
                     events += labels(**flags)
                 polarity ^= 1
-            seq.add_block(*events)
+            _add_phased(seq, events, phase)
         seq.add_block(pp.make_delay(closing))
 
     def play(frames, reversed_encode: bool = False) -> pp.Sequence:
@@ -963,7 +1002,10 @@ def _designed(
         seq, labels = pp.Sequence(system), sequences.Labels()
         shots = [(None, view) for view in dummies]
         shots += [(frame, view) for frame in frames for view in volume]
-        for index, (frame, (shot, base)) in enumerate(shots):
+        phases = spoiling(len(shots))
+        for index, ((frame, (shot, base)), phase) in enumerate(
+            zip(shots, phases, strict=True)
+        ):
             output = volume_output and not reversed_encode and (shot, base) == volume[0]
             # The last dummy shot plays the reference.
             reference = phase_reference and index == len(dummies) - 1
@@ -976,6 +1018,7 @@ def _designed(
                 output,
                 reversed_encode,
                 reference=reference,
+                phase=phase,
             )
         return seq
 
