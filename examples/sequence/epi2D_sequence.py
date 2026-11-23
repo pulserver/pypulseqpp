@@ -366,8 +366,8 @@ FLEET_DUMMY_SHOTS = 1
 #: calibration shot too short for a null at this flip waits until it allows one.
 CALIBRATION_FAT_NULL_FLIP_DEG = 120.0
 
-#: ``SET`` of the forward and of the reversed volume of the spin-echo field
-#: pair, apart from those of the scan and its reversed reference.
+#: ``SET`` of the forward and of the reversed volume of the field pair, apart
+#: from those of the scan and its reversed reference.
 FIELD_PAIR_SETS = (2, 3)
 FULL_K_REFERENCE_SETS = (4, 5)
 
@@ -536,13 +536,16 @@ def epi2d(
     diffusion_b0 : int, default=1
         Count of b = 0 volumes played before the directions.
     field_pair : bool, default=True
-        Play a spin-echo pair before the scan, at the imaging train and the
-        shortest spin echo: one volume with the phase encode forward, labelled
-        ``SET = 2``, and one reversed, labelled ``SET = 3``. The two are displaced
-        in opposite directions by the susceptibility field and differ in
-        nothing else, as a gradient-echo pair does not at a long echo time,
-        and the reconstruction estimates the displacement field of the scan
-        from them. The pair is played single-band.
+        Play a pair of volumes before the scan, at the imaging train: one with
+        the phase encode forward, labelled ``SET = 2``, and one reversed,
+        labelled ``SET = 3``. The two are displaced in opposite directions by
+        the susceptibility field, and the reconstruction estimates the
+        displacement field of the scan from them. The pair is an echo of the
+        scan's kind. A gradient-echo scan plays a gradient-echo pair at its
+        echo time and flip angle, so the pair loses signal and piles it up
+        where the scan does and the field is fitted to the intensity the scan
+        has; a spin-echo scan plays a spin-echo pair at the shortest spin
+        echo. The pair is played single-band.
     field_pair_tr : float or None, default=None
         Repetition time (s) of the field pair; ``None`` plays it at its
         shortest. A TR longer than the scan's lets its refocusing pulses fit
@@ -1492,9 +1495,9 @@ def _designed(
             navigator_lines=navigator_lines,
             b_value=b_value,
             diffusion_b0=diffusion_b0,
-            spin_echo=True,
+            spin_echo=spin_echo,
             calibration="gre",
-            te=None,
+            te=None if spin_echo else echo_time,
             tr=field_pair_tr,
             n_frames=1,
             diffusion_directions=0,

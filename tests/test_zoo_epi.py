@@ -1044,16 +1044,14 @@ def test_a_spin_echo_refocuses_the_centre_line_at_the_echo_time_written():
     )
 
 
-def test_a_field_pair_is_a_forward_and_a_reversed_spin_echo_volume_labelled_two_and_three():
+def test_a_field_pair_is_a_forward_and_a_reversed_volume_labelled_two_and_three():
     scan = scan2d(n_slices=2, field_pair=True)
     forward, reversed_ = scan.prescan("field_forward"), scan.prescan("field_reversed")
     n = scan.samples
 
     for seq, polarity in ((forward, 2), (reversed_, 3)):
         (sets,) = labels(seq, "SET")
-        _, _, t_excitation, t_refocusing, _ = seq.calculate_kspace()
         assert set(sets) == {polarity}
-        assert len(np.asarray(t_refocusing)) == len(np.asarray(t_excitation)) > 0
     lin, nav = labels(forward, "LIN", "NAV")
     lin_r, nav_r = labels(reversed_, "LIN", "NAV")
     # The mirror of line 0, n_y, lies outside the matrix and is not sampled.
@@ -1062,6 +1060,25 @@ def test_a_field_pair_is_a_forward_and_a_reversed_spin_echo_volume_labelled_two_
     assert echoes(reversed_, n)[nav_r == 0, 0] == pytest.approx(
         -echoes(forward, n)[imaging, 0]
     )
+
+
+def test_a_gradient_echo_scan_plays_a_gradient_echo_field_pair_at_its_echo_time():
+    scan = scan2d(n_slices=2, te=30e-3, flip_angle_deg=40.0, field_pair=True)
+
+    for half in ("field_forward", "field_reversed"):
+        seq = scan.prescan(half)
+        _, _, t_excitation, t_refocusing, _ = seq.calculate_kspace()
+        assert len(np.asarray(t_refocusing)) == 0 < len(np.asarray(t_excitation))
+        assert seq.definitions["TE"][0] == pytest.approx(scan.main.definitions["TE"][0])
+        assert seq.definitions["EchoSpacing"] == scan.main.definitions["EchoSpacing"]
+
+
+def test_a_spin_echo_scan_plays_a_spin_echo_field_pair():
+    scan = scan2d(n_slices=2, spin_echo=True, field_pair=True)
+
+    for half in ("field_forward", "field_reversed"):
+        _, _, t_excitation, t_refocusing, _ = scan.prescan(half).calculate_kspace()
+        assert len(np.asarray(t_refocusing)) == len(np.asarray(t_excitation)) > 0
 
 
 def test_a_field_pair_is_played_after_the_calibration_and_before_the_scan():
