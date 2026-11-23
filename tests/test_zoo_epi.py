@@ -1289,3 +1289,26 @@ def test_a_3d_field_pair_at_a_given_tr_repeats_at_that_tr():
 
     for half in ("field_forward", "field_reversed"):
         assert scan.prescan(half).definitions["TR"][0] == pytest.approx(3.0)
+
+
+@pytest.mark.parametrize("calibration", ["fleet", "gre"])
+def test_every_3d_excitation_is_rf_spoiled_and_read_at_its_own_phase(calibration):
+    """Consecutive excitations of each 3D file step their phase by a growing 117 degrees, and each readout follows its excitation."""
+    scan = scan3d(ry=2, rz=2, n_shots=2, calibration=calibration)
+
+    for seq in scan.chain:
+        phases, mismatched = [], 0
+        for index in range(1, len(seq.block_events) + 1):
+            block = seq.get_block(index)
+            if block.rf is not None:
+                phases.append(block.rf.phase_offset)
+            if block.adc is not None:
+                mismatched += not np.isclose(
+                    np.angle(np.exp(1j * (block.adc.phase_offset - phases[-1]))), 0.0
+                )
+        steps = np.diff(np.diff(phases))
+        wrapped = np.angle(np.exp(1j * (steps - np.deg2rad(117.0))))
+
+        assert len(phases) > 2, seq.definitions["Name"]
+        assert wrapped == pytest.approx(0.0, abs=1e-9), seq.definitions["Name"]
+        assert mismatched == 0, seq.definitions["Name"]
