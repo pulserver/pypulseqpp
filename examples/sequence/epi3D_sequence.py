@@ -176,6 +176,9 @@ FLEET_DUMMY_SHOTS = 1
 #: ``SET`` labels of the full-k phase reference volume: forward, reversed.
 FULL_K_REFERENCE_SETS = (4, 5)
 
+#: ``SET`` labels of the field pair: forward, reversed.
+FIELD_PAIR_SETS = (2, 3)
+
 
 def fleet_lines(n: int, extent: int, shots: int) -> range:
     """Return the lines of a FLEET calibration: ``extent`` about the centre, rounded up to whole shots.
@@ -390,17 +393,16 @@ def epi3d(
         odd/even phase correction. ``None`` is ``NAVIGATOR_LINES`` without
         ``phase_reference`` and none with it.
     field_pair : bool, default=True
-        Play a multi-slice spin-echo EPI pair before the scan, its slices the
-        slab's partitions, at the scan's in-plane matrix, phase-encode
-        sampling and echo spacing: one volume with the phase encode forward,
-        labelled ``SET = 2``, and one reversed, labelled ``SET = 3``. The two
-        are displaced in opposite directions by the susceptibility field
-        along the phase encode, as the scan is, and differ in nothing else,
-        and the reconstruction estimates the displacement field of the scan
-        from them.
+        Play two volumes of the scan before it, at its echo time, flip angle
+        and echo train: one with the phase encode forward, labelled
+        ``SET = 2``, and one reversed, labelled ``SET = 3``. The two are
+        displaced in opposite directions by the susceptibility field along
+        the phase encode, and lose and pile up signal where the scan does, so
+        the reconstruction estimates the displacement field of the scan from
+        the intensity the scan has.
     field_pair_tr : float or None, default=None
-        Repetition time (s) of the field pair; ``None`` plays it at its
-        shortest. A longer TR lets its refocusing pulses fit a SAR limit.
+        Volume repetition time (s) of the field pair; ``None`` plays it at
+        the scan's ``tr``.
     full_k_reference : bool, default=True
         Play one fully sampled volume at the echo time of a partial-Fourier
         scan, labelled ``SET = 4``, from whose phase the reconstruction
@@ -466,7 +468,11 @@ def epi3d(
     }
     if not (full_k_reference and min(partial_fourier_y, partial_fourier_z) < 1.0):
         *prescans, seq = _designed(system, **protocol, encode_sets=(0, 1))
-        pair = _field_pair(system, protocol, field_pair_tr) if field_pair else []
+        pair = (
+            _field_pair(system, protocol, protocol["te"], field_pair_tr)
+            if field_pair
+            else []
+        )
         return [*prescans, *pair, seq]
     try:
         *_, reference = _designed(
@@ -490,43 +496,33 @@ def epi3d(
         **{**protocol, "te": reference.definitions["TE"][0]},
         encode_sets=(0, 1),
     )
-    pair = _field_pair(system, protocol, field_pair_tr) if field_pair else []
+    pair = (
+        _field_pair(system, protocol, reference.definitions["TE"][0], field_pair_tr)
+        if field_pair
+        else []
+    )
     return [*prescans, *pair, reference, seq]
 
 
 def _field_pair(
-    system: pp.Opts | None, protocol: dict, tr: float | None
+    system: pp.Opts | None, protocol: dict, te: float | None, tr: float | None
 ) -> list[pp.Sequence]:
-    """Design the spin-echo field pair of :func:`epi3d`: 2D spin-echo EPI over the slab's partitions at ``tr``, forward then reversed."""
-    chain = sequences.epi2D_sequence(
+    """Design the field pair of :func:`epi3d`: one volume of the scan at echo time ``te``, forward then reversed, at ``tr``."""
+    *_, reversed_volume, forward_volume = _designed(
         system,
-        fov_x=protocol["fov_x"],
-        fov_y=protocol["fov_y"],
-        n_x=protocol["n_x"],
-        n_y=protocol["n_y"],
-        n_slices=protocol["n_z"],
-        slice_thickness=protocol["fov_z"] / protocol["n_z"],
-        readout_bandwidth_hz=protocol["readout_bandwidth_hz"],
-        ry=protocol["ry"],
-        partial_fourier_y=protocol["partial_fourier_y"],
-        n_shots=protocol["n_shots"],
-        n_dummy=protocol["n_dummy"],
-        readout_oversampling=protocol["readout_oversampling"],
-        phase_reference=protocol["phase_reference"],
-        navigator_lines=protocol["navigator_lines"],
-        calibration="gre",
-        spin_echo=True,
-        field_pair=True,
-        field_pair_tr=tr,
+        **{
+            **protocol,
+            "te": te,
+            "tr": protocol["tr"] if tr is None else tr,
+            "n_frames": 1,
+            "calibration": "gre",
+            "volume_output": False,
+        },
+        encode_sets=FIELD_PAIR_SETS,
     )
-    pair = []
-    for half in ("forward", "reversed"):
-        (volume,) = (
-            seq for seq in chain if seq.definitions["Name"] == f"epi_2d_field_{half}"
-        )
-        volume.set_definition(key="Name", value=f"{NAME}_field_{half}")
-        pair.append(volume)
-    return pair
+    forward_volume.set_definition(key="Name", value=f"{NAME}_field_forward")
+    reversed_volume.set_definition(key="Name", value=f"{NAME}_field_reversed")
+    return [forward_volume, reversed_volume]
 
 
 def _designed(
