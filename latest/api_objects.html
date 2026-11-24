@@ -1113,7 +1113,13 @@ from.</p>
 <td><p>Return the dummy repetitions that bring a spoiled or balanced steady state within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.STEADY_STATE_T1_S.html#pypulseqpp.sequences.STEADY_STATE_T1_S" title="pypulseqpp.sequences.STEADY_STATE_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code></a></p></td>
-<td><p>T1 the dummies are counted for (s): grey matter at 3 T, among the longest of brain tissue but CSF's.</p></td>
+<td><p>T1 a spoiled steady state's dummies are counted for (s): CSF at 7 T (Rooney et al., Magn Reson Med 57:308, 2007), the longest of the head's tissues at the highest field the sequences target.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.STEADY_STATE_B1.html#pypulseqpp.sequences.STEADY_STATE_B1" title="pypulseqpp.sequences.STEADY_STATE_B1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_B1</span></code></a></p></td>
+<td><p>Fraction of the nominal flip a spoiled steady state's dummies are counted at: the transmit field of a CP-mode head coil at 7 T in the temporal lobes and cerebellum, where a lower flip approaches the steady state more slowly.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S.html#pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S" title="pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_BALANCED_T1_S</span></code></a></p></td>
+<td><p>T1 a balanced steady state's dummies are counted for (s): grey matter at 3 T.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/pypulseqpp.sequences.gain_calibration_readouts.html#pypulseqpp.sequences.gain_calibration_readouts" title="pypulseqpp.sequences.gain_calibration_readouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gain_calibration_readouts</span></code></a></p></td>
 <td><p>Return the readouts from the first block to the end of the prescan's last imaging repetition.</p></td>

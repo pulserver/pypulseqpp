@@ -521,36 +521,47 @@
 <dt class="sig sig-object py" id="pypulseqpp.sequences.steady_state_dummies">
 <span class="sig-prename descclassname"><span class="pre">pypulseqpp.sequences.</span></span><span class="sig-name descname"><span class="pre">steady_state_dummies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pypulseqpp/sequences/_steady.html#steady_state_dummies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pypulseqpp.sequences.steady_state_dummies" title="Link to this definition">#</a></dt>
 <dd><p>Return the dummy repetitions that bring a spoiled or balanced steady state within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>.</p>
-<p>The count is of repetitions played before acquiring, so that the
-magnetisation is within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of its steady state. From
-equilibrium, the distance to a spoiled steady state shrinks by
-<code class="docutils literal notranslate"><span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t1_s)</span> <span class="pre">*</span> <span class="pre">cos(flip)</span></code> each repetition. A flip of 90
-degrees or more reaches it after one. Given <code class="docutils literal notranslate"><span class="pre">t2_s</span></code>, the count is for a
-balanced (bSSFP) steady state reached from an alpha/2 catalyst, whose
-distance shrinks by <code class="docutils literal notranslate"><span class="pre">E1</span> <span class="pre">cos^2(flip</span> <span class="pre">/</span> <span class="pre">2)</span> <span class="pre">+</span> <span class="pre">E2</span> <span class="pre">sin^2(flip</span> <span class="pre">/</span> <span class="pre">2)</span></code>, with
-<code class="docutils literal notranslate"><span class="pre">E1,</span> <span class="pre">E2</span> <span class="pre">=</span> <span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t1_s),</span> <span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t2_s)</span></code>
-(Scheffler, Magn Reson Med 2003). At least one is always played.</p>
+<p>The count is of repetitions played before acquiring. From equilibrium,
+the distance of the longitudinal magnetisation to a spoiled steady state
+shrinks by <code class="docutils literal notranslate"><span class="pre">E1</span> <span class="pre">cos(b1</span> <span class="pre">flip)</span></code> each repetition, <code class="docutils literal notranslate"><span class="pre">E1</span> <span class="pre">=</span> <span class="pre">exp(-repetition_s</span> <span class="pre">/</span>
+<span class="pre">t1_s)</span></code>; the count leaves at most <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of the steady-state
+magnetisation <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">-</span> <span class="pre">E1)</span> <span class="pre">/</span> <span class="pre">(1</span> <span class="pre">-</span> <span class="pre">E1</span> <span class="pre">cos(b1</span> <span class="pre">flip))</span></code>, so of the signal, and
+a flip of 90 degrees or more reaches it after one. <code class="docutils literal notranslate"><span class="pre">b1</span></code> scales the flip
+to where the transmit field is weakest. The transverse
+coherences RF spoiling leaves in a tissue of long T2 are not counted.
+Given <code class="docutils literal notranslate"><span class="pre">t2_s</span></code>, the count is for a balanced (bSSFP) steady state reached
+from an alpha/2 catalyst, whose distance shrinks by <code class="docutils literal notranslate"><span class="pre">E1</span> <span class="pre">cos^2(flip</span> <span class="pre">/</span> <span class="pre">2)</span>
+<span class="pre">+</span> <span class="pre">E2</span> <span class="pre">sin^2(flip</span> <span class="pre">/</span> <span class="pre">2)</span></code>, <code class="docutils literal notranslate"><span class="pre">E2</span> <span class="pre">=</span> <span class="pre">exp(-repetition_s</span> <span class="pre">/</span> <span class="pre">t2_s)</span></code> (Scheffler,
+Magn Reson Med 2003), to <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> of the distance from the
+catalyst. At least one is always played.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>repetition_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Time between two excitations of the same magnetisation (s).</p></li>
 <li><p><strong>flip_angle_deg</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Excitation flip angle (degrees).</p></li>
-<li><p><strong>t1_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=STEADY_STATE_T1_S</em>) – T1 the steady state is reached for (s).</p></li>
+<li><p><strong>t1_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – T1 the steady state is reached for (s); <a class="reference internal" href="pypulseqpp.sequences.STEADY_STATE_T1_S.html#pypulseqpp.sequences.STEADY_STATE_T1_S" title="pypulseqpp.sequences.STEADY_STATE_T1_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code></a>
+for a spoiled one and <a class="reference internal" href="pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S.html#pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S" title="pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S"><code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_BALANCED_T1_S</span></code></a> for a
+balanced one without one.</p></li>
 <li><p><strong>t2_s</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – T2 a balanced steady state is reached for (s), as
 <code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> counts for a spoiled one.</p></li>
-<li><p><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Fraction of the distance from equilibrium to the steady state left.</p></li>
+<li><p><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=0.01</em>) – Distance to the steady state left: a fraction of the steady-state
+magnetisation for a spoiled one, of the distance from the catalyst
+for a balanced one.</p></li>
+<li><p><strong>b1</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Transmit field, as a fraction of the nominal flip, a spoiled steady
+state is counted at; <a class="reference internal" href="pypulseqpp.sequences.STEADY_STATE_B1.html#pypulseqpp.sequences.STEADY_STATE_B1" title="pypulseqpp.sequences.STEADY_STATE_B1"><code class="xref py py-data docutils literal notranslate"><span class="pre">STEADY_STATE_B1</span></code></a> without one. Not used
+for a balanced one.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a time or the tolerance is not positive, or the tolerance is not
-    below one.</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a time, <code class="docutils literal notranslate"><span class="pre">b1</span></code> or the tolerance is not positive, or the tolerance
+    is not below one.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequences</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sequences</span><span class="o">.</span><span class="n">steady_state_dummies</span><span class="p">(</span><span class="mf">5e-3</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">)</span>
-<span class="go">182</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sequences</span><span class="o">.</span><span class="n">steady_state_dummies</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)</span>
+<span class="go">932</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sequences</span><span class="o">.</span><span class="n">steady_state_dummies</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="n">b1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 <span class="go">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sequences</span><span class="o">.</span><span class="n">steady_state_dummies</span><span class="p">(</span><span class="mf">3.5e-3</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="n">t2_s</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="go">443</span>

@@ -635,8 +635,10 @@ excitation.</p>
 <section id="dummy-repetitions">
 <h2>Dummy repetitions<a class="headerlink" href="#dummy-repetitions" title="Link to this heading">#</a></h2>
 <p>A sequence function whose <code class="docutils literal notranslate"><span class="pre">n_dummy</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many dummy repetitions
-as bring its spoiled steady state within 1 % for a T1 of
-<code class="docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code>, from its repetition time and flip angle.</p>
+as bring its spoiled steady-state signal within 1 % for a T1 of
+<code class="docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code> at <code class="docutils literal notranslate"><span class="pre">STEADY_STATE_B1</span></code> of its flip angle, from its
+repetition time; a balanced
+one counts for <code class="docutils literal notranslate"><span class="pre">STEADY_STATE_BALANCED_T1_S</span></code> and <code class="docutils literal notranslate"><span class="pre">STEADY_STATE_T2_S</span></code>.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Object</p></th>
@@ -653,8 +655,18 @@ as bring its spoiled steady state within 1 % for a T1 of
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.STEADY_STATE_T1_S.html#pypulseqpp.sequences.STEADY_STATE_T1_S" title="pypulseqpp.sequences.STEADY_STATE_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_T1_S</span></code></a></p></td>
 <td><p>—</p></td>
+<td><p>4.4 s</p></td>
+<td><p>T1 a spoiled steady state’s dummies are counted for: CSF at 7 T.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.STEADY_STATE_B1.html#pypulseqpp.sequences.STEADY_STATE_B1" title="pypulseqpp.sequences.STEADY_STATE_B1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_B1</span></code></a></p></td>
+<td><p>—</p></td>
+<td><p>0.5</p></td>
+<td><p>Fraction of the flip a spoiled steady state is counted at: the 7 T transmit field in the temporal lobes and cerebellum.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S.html#pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S" title="pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STEADY_STATE_BALANCED_T1_S</span></code></a></p></td>
+<td><p>—</p></td>
 <td><p>1.5 s</p></td>
-<td><p>T1 the dummies are counted for: grey matter at 3 T.</p></td>
+<td><p>T1 a balanced steady state’s dummies are counted for: grey matter at 3 T.</p></td>
 </tr>
 </tbody>
 </table>

@@ -260,6 +260,8 @@ from.
    spatial_saturations
    steady_state_dummies
    STEADY_STATE_T1_S
+   STEADY_STATE_B1
+   STEADY_STATE_BALANCED_T1_S
    gain_calibration_readouts
    diffusion_pair_b_value
    fat_null_flip_deg

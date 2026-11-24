@@ -446,13 +446,29 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"STEADY_STATE_T1_S"</span><span class="p">,</span> <span class="s2">"STEADY_STATE_T2_S"</span><span class="p">,</span> <span class="s2">"steady_state_dummies"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"STEADY_STATE_B1"</span><span class="p">,</span>
+    <span class="s2">"STEADY_STATE_BALANCED_T1_S"</span><span class="p">,</span>
+    <span class="s2">"STEADY_STATE_T1_S"</span><span class="p">,</span>
+    <span class="s2">"STEADY_STATE_T2_S"</span><span class="p">,</span>
+    <span class="s2">"steady_state_dummies"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
-<span class="c1">#: T1 the dummies are counted for (s): grey matter at 3 T, among the longest</span>
-<span class="c1">#: of brain tissue but CSF's.</span>
-<span class="n">STEADY_STATE_T1_S</span> <span class="o">=</span> <span class="mf">1.5</span>
+<span class="c1">#: T1 a spoiled steady state's dummies are counted for (s): CSF at 7 T</span>
+<span class="c1">#: (Rooney et al., Magn Reson Med 57:308, 2007), the longest of the head's</span>
+<span class="c1">#: tissues at the highest field the sequences target.</span>
+<span class="n">STEADY_STATE_T1_S</span> <span class="o">=</span> <span class="mf">4.4</span>
+
+<span class="c1">#: Fraction of the nominal flip a spoiled steady state's dummies are counted</span>
+<span class="c1">#: at: the transmit field of a CP-mode head coil at 7 T in the temporal lobes</span>
+<span class="c1">#: and cerebellum, where a lower flip approaches the steady state more slowly.</span>
+<span class="n">STEADY_STATE_B1</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1">#: T1 a balanced steady state's dummies are counted for (s): grey matter at</span>
+<span class="c1">#: 3 T.</span>
+<span class="n">STEADY_STATE_BALANCED_T1_S</span> <span class="o">=</span> <span class="mf">1.5</span>
 
 <span class="c1">#: T2 a balanced steady state's dummies are counted for (s): grey matter at</span>
 <span class="c1">#: 3 T. The approach is slower the longer the T2.</span>
@@ -465,21 +481,26 @@
     <span class="n">repetition_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">flip_angle_deg</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">t1_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">STEADY_STATE_T1_S</span><span class="p">,</span>
+    <span class="n">t1_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">t2_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">b1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return the dummy repetitions that bring a spoiled or balanced steady state within ``tolerance``.</span>
 
-<span class="sd">    The count is of repetitions played before acquiring, so that the</span>
-<span class="sd">    magnetisation is within ``tolerance`` of its steady state. From</span>
-<span class="sd">    equilibrium, the distance to a spoiled steady state shrinks by</span>
-<span class="sd">    ``exp(-repetition_s / t1_s) * cos(flip)`` each repetition. A flip of 90</span>
-<span class="sd">    degrees or more reaches it after one. Given ``t2_s``, the count is for a</span>
-<span class="sd">    balanced (bSSFP) steady state reached from an alpha/2 catalyst, whose</span>
-<span class="sd">    distance shrinks by ``E1 cos^2(flip / 2) + E2 sin^2(flip / 2)``, with</span>
-<span class="sd">    ``E1, E2 = exp(-repetition_s / t1_s), exp(-repetition_s / t2_s)``</span>
-<span class="sd">    (Scheffler, Magn Reson Med 2003). At least one is always played.</span>
+<span class="sd">    The count is of repetitions played before acquiring. From equilibrium,</span>
+<span class="sd">    the distance of the longitudinal magnetisation to a spoiled steady state</span>
+<span class="sd">    shrinks by ``E1 cos(b1 flip)`` each repetition, ``E1 = exp(-repetition_s /</span>
+<span class="sd">    t1_s)``; the count leaves at most ``tolerance`` of the steady-state</span>
+<span class="sd">    magnetisation ``(1 - E1) / (1 - E1 cos(b1 flip))``, so of the signal, and</span>
+<span class="sd">    a flip of 90 degrees or more reaches it after one. ``b1`` scales the flip</span>
+<span class="sd">    to where the transmit field is weakest. The transverse</span>
+<span class="sd">    coherences RF spoiling leaves in a tissue of long T2 are not counted.</span>
+<span class="sd">    Given ``t2_s``, the count is for a balanced (bSSFP) steady state reached</span>
+<span class="sd">    from an alpha/2 catalyst, whose distance shrinks by ``E1 cos^2(flip / 2)</span>
+<span class="sd">    + E2 sin^2(flip / 2)``, ``E2 = exp(-repetition_s / t2_s)`` (Scheffler,</span>
+<span class="sd">    Magn Reson Med 2003), to ``tolerance`` of the distance from the</span>
+<span class="sd">    catalyst. At least one is always played.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -487,49 +508,65 @@
 <span class="sd">        Time between two excitations of the same magnetisation (s).</span>
 <span class="sd">    flip_angle_deg : float</span>
 <span class="sd">        Excitation flip angle (degrees).</span>
-<span class="sd">    t1_s : float, default=STEADY_STATE_T1_S</span>
-<span class="sd">        T1 the steady state is reached for (s).</span>
+<span class="sd">    t1_s : float | None, default=None</span>
+<span class="sd">        T1 the steady state is reached for (s); :data:`STEADY_STATE_T1_S`</span>
+<span class="sd">        for a spoiled one and :data:`STEADY_STATE_BALANCED_T1_S` for a</span>
+<span class="sd">        balanced one without one.</span>
 <span class="sd">    t2_s : float | None, default=None</span>
 <span class="sd">        T2 a balanced steady state is reached for (s), as</span>
 <span class="sd">        :data:`STEADY_STATE_T2_S`; ``None`` counts for a spoiled one.</span>
 <span class="sd">    tolerance : float, default=0.01</span>
-<span class="sd">        Fraction of the distance from equilibrium to the steady state left.</span>
+<span class="sd">        Distance to the steady state left: a fraction of the steady-state</span>
+<span class="sd">        magnetisation for a spoiled one, of the distance from the catalyst</span>
+<span class="sd">        for a balanced one.</span>
+<span class="sd">    b1 : float | None, default=None</span>
+<span class="sd">        Transmit field, as a fraction of the nominal flip, a spoiled steady</span>
+<span class="sd">        state is counted at; :data:`STEADY_STATE_B1` without one. Not used</span>
+<span class="sd">        for a balanced one.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If a time or the tolerance is not positive, or the tolerance is not</span>
-<span class="sd">        below one.</span>
+<span class="sd">        If a time, ``b1`` or the tolerance is not positive, or the tolerance</span>
+<span class="sd">        is not below one.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; from pypulseqpp import sequences</span>
 <span class="sd">    &gt;&gt;&gt; sequences.steady_state_dummies(5e-3, 12.0)</span>
-<span class="sd">    182</span>
-<span class="sd">    &gt;&gt;&gt; sequences.steady_state_dummies(0.5, 90.0)</span>
+<span class="sd">    932</span>
+<span class="sd">    &gt;&gt;&gt; sequences.steady_state_dummies(0.5, 90.0, b1=1.0)</span>
 <span class="sd">    1</span>
 <span class="sd">    &gt;&gt;&gt; sequences.steady_state_dummies(3.5e-3, 60.0, t2_s=0.1)</span>
 <span class="sd">    443</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">t1_s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">t1_s</span> <span class="o">=</span> <span class="n">STEADY_STATE_T1_S</span> <span class="k">if</span> <span class="n">t2_s</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">STEADY_STATE_BALANCED_T1_S</span>
+    <span class="k">if</span> <span class="n">b1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">b1</span> <span class="o">=</span> <span class="n">STEADY_STATE_B1</span>
     <span class="k">if</span> <span class="p">(</span>
-        <span class="n">repetition_s</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+        <span class="n">b1</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+        <span class="ow">or</span> <span class="n">repetition_s</span> <span class="o">&lt;=</span> <span class="mi">0</span>
         <span class="ow">or</span> <span class="n">t1_s</span> <span class="o">&lt;=</span> <span class="mi">0</span>
         <span class="ow">or</span> <span class="p">(</span><span class="n">t2_s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t2_s</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
         <span class="ow">or</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">tolerance</span> <span class="o">&lt;</span> <span class="mi">1</span>
     <span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">"repetition_s, t1_s and t2_s must be positive and tolerance in (0, 1)"</span>
+            <span class="s2">"repetition_s, t1_s, t2_s and b1 must be positive and tolerance in (0, 1)"</span>
         <span class="p">)</span>
     <span class="n">e1</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">repetition_s</span> <span class="o">/</span> <span class="n">t1_s</span><span class="p">)</span>
     <span class="n">half</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">flip_angle_deg</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="k">if</span> <span class="n">t2_s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">factor</span> <span class="o">=</span> <span class="n">e1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">half</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">e1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">b1</span> <span class="o">*</span> <span class="n">half</span><span class="p">)</span>
+        <span class="n">steady</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">e1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">factor</span><span class="p">)</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="n">tolerance</span> <span class="o">*</span> <span class="n">steady</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">steady</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">e2</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">repetition_s</span> <span class="o">/</span> <span class="n">t2_s</span><span class="p">)</span>
         <span class="n">factor</span> <span class="o">=</span> <span class="n">e1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">half</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">e2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">half</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="k">if</span> <span class="n">factor</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="p">:</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="n">tolerance</span>
+    <span class="k">if</span> <span class="n">factor</span> <span class="o">&lt;=</span> <span class="n">left</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">factor</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">factor</span><span class="p">)))</span></div>
 
 </pre></div>
 
