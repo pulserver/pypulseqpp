@@ -180,7 +180,7 @@ namespace pulseq
         {
         }
 
-        double num_samples = 0.0;
+        int32_t num_samples = 0;
         double dwell = 0.0;
         double delay = 0.0;
         double freq_offset = 0.0;

@@ -271,8 +271,16 @@ def test_a_hexagon_is_never_longer_than_the_trapezoid_it_stands_in_for(
     first = start * system.max_grad
     last = end * system.max_grad
 
+    # The hexagon designs within 99 % of the gradient limits, as MATLAB
+    # Pulseq's does; the trapezoid is held to the same limits.
     trapezoid, _, _ = pp.make_extended_trapezoid_area(
-        area, channel, first, last, system=system
+        area,
+        channel,
+        first,
+        last,
+        system=system,
+        max_grad=0.99 * system.max_grad,
+        max_slew=0.99 * system.max_slew,
     )
     hexagon, _, _ = pp.make_hexagon_gradient_area(
         channel, first, last, area, system=system

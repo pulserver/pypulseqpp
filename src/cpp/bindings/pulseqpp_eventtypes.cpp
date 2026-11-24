@@ -540,7 +540,7 @@ namespace pulseqpp_types
         }
 
         PyMemberDef adc_members[] = {
-            {"num_samples", Py_T_DOUBLE, PULSEQPP_FIELD(AdcEvent, num_samples), 0, nullptr},
+            {"num_samples", Py_T_INT, PULSEQPP_FIELD(AdcEvent, num_samples), 0, nullptr},
             {"dwell", Py_T_DOUBLE, PULSEQPP_FIELD(AdcEvent, dwell), 0, nullptr},
             {"delay", Py_T_DOUBLE, PULSEQPP_FIELD(AdcEvent, delay), 0, nullptr},
             {"freq_offset", Py_T_DOUBLE, PULSEQPP_FIELD(AdcEvent, freq_offset), 0, nullptr},
@@ -1286,7 +1286,7 @@ namespace pulseqpp_types
             {
                 py::object made = fresh<AdcEvent>(AdcType);
                 AdcEvent& e = unwrap<AdcEvent>(made.ptr());
-                e.num_samples = source.attr("num_samples").cast<double>();
+                e.num_samples = static_cast<int32_t>(std::lround(source.attr("num_samples").cast<double>()));
                 e.dwell = source.attr("dwell").cast<double>();
                 e.delay = source.attr("delay").cast<double>();
                 e.freq_offset = source.attr("freq_offset").cast<double>();

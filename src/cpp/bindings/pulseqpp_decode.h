@@ -203,7 +203,7 @@ namespace pulseqpp_decode
 
         py::object made = pulseqpp_types::new_adc();
         pulseq::AdcEvent& adc = inside<pulseq::AdcEvent>(made);
-        adc.num_samples = row[0];
+        adc.num_samples = static_cast<int32_t>(std::lround(row[0]));
         adc.dwell = row[1];
         adc.delay = row[2];
         adc.freq_ppm = row[3];

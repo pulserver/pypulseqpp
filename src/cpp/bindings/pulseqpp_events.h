@@ -591,7 +591,7 @@ namespace pulseqpp_events
     {
         warm_adc(seq, e);
         const double row[pulseq::ADC_WIDTH] = {
-            e.num_samples,
+            static_cast<double>(e.num_samples),
             e.dwell,
             // The later of the two, not their sum: Pulseq lets the dead time
             // and the delay overlap.
