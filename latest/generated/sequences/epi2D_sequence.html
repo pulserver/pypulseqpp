@@ -616,6 +616,14 @@ TE.</p></li>
 <li><p><strong>fat_saturation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Saturate fat before every shot, at the flip
 <a class="reference internal" href="../pypulseqpp.sequences.fat_null_flip_deg.html#pypulseqpp.sequences.fat_null_flip_deg" title="pypulseqpp.sequences.fat_null_flip_deg"><code class="xref py py-func docutils literal notranslate"><span class="pre">fat_null_flip_deg()</span></code></a> gives, which leaves it
 at zero when the shot’s excitation comes.</p></li>
+<li><p><strong>fat_inversion</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a><em>, </em><em>default=False</em>) – Invert fat before every shot with a spectrally selective adiabatic
+pulse, SPAIR, and wait until fat crosses zero: the suppression holds
+where B1+ falls to about half its nominal value, at the cost of the
+wait and of the pulse’s RF energy. Not with <code class="docutils literal notranslate"><span class="pre">fat_saturation</span></code>.</p></li>
+<li><p><strong>fat_inversion_shots</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><em>default=2</em>) – Consecutive shots of a packet that share one fat inversion, their
+excitations centred on the time fat crosses zero. One inversion a
+shot nulls fat at every excitation; two halve the inversions and the
+wait, and leave fat a few percent from zero.</p></li>
 <li><p><strong>n_dummy</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em><em>, </em><em>default=None</em>) – Non-acquiring volumes before a time series; with one frame,
 non-acquiring shots per slice before each packet.
 <code class="docutils literal notranslate"><span class="pre">None</span></code> plays as many as bring the steady state within 1 % (<a class="reference internal" href="../pypulseqpp.sequences.steady_state_dummies.html#pypulseqpp.sequences.steady_state_dummies" title="pypulseqpp.sequences.steady_state_dummies"><code class="xref py py-func docutils literal notranslate"><span class="pre">steady_state_dummies()</span></code></a>).</p></li>

@@ -446,7 +446,15 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FAT_SAT_BANDWIDTH_PPM"</span><span class="p">,</span> <span class="s2">"FAT_T1_S"</span><span class="p">,</span> <span class="s2">"FatSaturation"</span><span class="p">,</span> <span class="s2">"fat_null_flip_deg"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"FAT_INVERSION_BANDWIDTH_PPM"</span><span class="p">,</span>
+    <span class="s2">"FAT_SAT_BANDWIDTH_PPM"</span><span class="p">,</span>
+    <span class="s2">"FAT_T1_S"</span><span class="p">,</span>
+    <span class="s2">"FatInversion"</span><span class="p">,</span>
+    <span class="s2">"FatSaturation"</span><span class="p">,</span>
+    <span class="s2">"fat_null_flip_deg"</span><span class="p">,</span>
+    <span class="s2">"fat_null_inversion_time"</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
@@ -454,7 +462,8 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pypulseqpp</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..excitation._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">rf_reference</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._adiabatic</span><span class="w"> </span><span class="kn">import</span> <span class="n">HYPSEC_MU</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..excitation._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">RfModule</span><span class="p">,</span> <span class="n">adiabatic_fitted</span><span class="p">,</span> <span class="n">rf_reference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">spoiler_gradients</span>
 
 <span class="c1">#: Main fat resonance relative to water (ppm); negative, because fat precesses</span>
@@ -465,6 +474,19 @@
 <span class="c1">#: fat that the head's own field moves by a few hundred hertz at 7 T, and</span>
 <span class="c1">#: still clear of water.</span>
 <span class="n">FAT_SAT_BANDWIDTH_PPM</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="c1">#: Inverted band of the fat inversion (ppm of the field): the methylene peaks</span>
+<span class="c1">#: from -3.8 to -2.6 ppm with the head's field spread on either side.</span>
+<span class="n">FAT_INVERSION_BANDWIDTH_PPM</span> <span class="o">=</span> <span class="mf">2.2</span>
+
+<span class="c1">#: Centre of the fat inversion's band (ppm from water), between the main</span>
+<span class="c1">#: methylene peak and the methyl peak at -3.8 ppm.</span>
+<span class="n">FAT_INVERSION_CENTRE_PPM</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.5</span>
+
+<span class="c1">#: Product of the fat inversion's duration and its band (Hz s): the</span>
+<span class="c1">#: hyperbolic secant's transition narrows as the pulse lengthens, and at 13 it</span>
+<span class="c1">#: leaves water untouched 2.3 ppm from the band's edge.</span>
+<span class="n">FAT_INVERSION_DURATION_BANDWIDTH</span> <span class="o">=</span> <span class="mf">13.0</span>
 
 <span class="c1">#: T1 of fat (s): subcutaneous fat at 3 T, 371 ms (Gold et al., AJR Am J</span>
 <span class="c1">#: Roentgenol 183:343, 2004).</span>
@@ -515,6 +537,39 @@
             <span class="sa">f</span><span class="s2">"for any flip to leave it at zero </span><span class="si">{</span><span class="n">delay_s</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms after one"</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span><span class="n">cosine</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="fat_null_inversion_time">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.fat_null_inversion_time.html#pypulseqpp.sequences.fat_null_inversion_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fat_null_inversion_time</span><span class="p">(</span><span class="n">period_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">t1_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FAT_T1_S</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the time (s) from a fat inversion's centre at which fat crosses zero.</span>
+
+<span class="sd">    In the steady state of one complete inversion every ``period_s``, fat</span>
+<span class="sd">    recovers from ``-(1 - E) / (1 + E)``, ``E = exp(-period / T1)``, and</span>
+<span class="sd">    crosses zero at ``T1 ln(2 / (1 + E))``, a little under half the period.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    period_s : float</span>
+<span class="sd">        Time between two inversions (s).</span>
+<span class="sd">    t1_s : float, default=FAT_T1_S</span>
+<span class="sd">        T1 of fat (s).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a time is not positive.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pypulseqpp.sequences import fat_null_inversion_time</span>
+<span class="sd">    &gt;&gt;&gt; round(fat_null_inversion_time(80e-3) * 1e3, 1)</span>
+<span class="sd">    37.8</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">period_s</span><span class="p">,</span> <span class="n">t1_s</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"times must be positive"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t1_s</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">period_s</span> <span class="o">/</span> <span class="n">t1_s</span><span class="p">)))</span></div>
 
 
 
@@ -643,6 +698,134 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">rf_reference</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq_offset_ppm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">freq_offset_ppm</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq_offset_hz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span> <span class="o">*</span> <span class="n">freq_offset_ppm</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FatInversion">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.FatInversion.html#pypulseqpp.sequences.FatInversion">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FatInversion</span><span class="p">(</span><span class="n">RfModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Spectrally selective adiabatic inversion of fat (SPAIR), with a three-axis spoiler.</span>
+
+<span class="sd">    A hyperbolic secant without gradient sweeps a band of</span>
+<span class="sd">    ``bandwidth_ppm`` centred ``freq_offset_ppm`` from water, so it inverts</span>
+<span class="sd">    fat over the whole transmit volume, every fat peak in the band alike, and</span>
+<span class="sd">    the inversion holds while B1 stays above the adiabatic threshold. The</span>
+<span class="sd">    caller places the excitation :func:`fat_null_inversion_time` after the</span>
+<span class="sd">    pulse's centre. A pulse whose peak exceeds the derated ``system.max_b1``</span>
+<span class="sd">    is lengthened as :class:`InversionPreparation` lengthens one.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : pypulseqpp.Opts</span>
+<span class="sd">        System limits.</span>
+<span class="sd">    freq_offset_ppm : float, default=FAT_INVERSION_CENTRE_PPM</span>
+<span class="sd">        Centre of the band from water (ppm), carried on the pulse as a ppm</span>
+<span class="sd">        offset.</span>
+<span class="sd">    bandwidth_ppm : float, default=FAT_INVERSION_BANDWIDTH_PPM</span>
+<span class="sd">        Inverted band (ppm of ``system.B0``).</span>
+<span class="sd">    duration_s : float or None, default=None</span>
+<span class="sd">        Pulse duration (s); ``FAT_INVERSION_DURATION_BANDWIDTH`` over the band</span>
+<span class="sd">        in Hz when not given, rounded up to an even number of RF raster</span>
+<span class="sd">        samples.</span>
+<span class="sd">    adiabaticity : float, default=4.0</span>
+<span class="sd">        Margin over the adiabatic condition at nominal B1. The inversion</span>
+<span class="sd">        holds down to about ``1 / sqrt(adiabaticity)`` of nominal B1; RF</span>
+<span class="sd">        energy grows in proportion.</span>
+<span class="sd">    spoiling_cycles : float, default=4.0</span>
+<span class="sd">        Cycles of dephasing of each spoiler across ``voxel_size_m``.</span>
+<span class="sd">    voxel_size_m : float, default=0.001</span>
+<span class="sd">        Length the dephasing is counted over (m).</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rf_prep : RfEvent</span>
+<span class="sd">        The inversion pulse.</span>
+<span class="sd">    gx_spoil, gy_spoil, gz_spoil : GradEvent</span>
+<span class="sd">        Spoiler gradient of each axis.</span>
+<span class="sd">    pulse_duration : float</span>
+<span class="sd">        Duration the pulse was designed at (s).</span>
+<span class="sd">    adiabaticity : float</span>
+<span class="sd">        Adiabaticity the pulse was designed at.</span>
+<span class="sd">    freq_offset_ppm : float</span>
+<span class="sd">        Centre of the band (ppm).</span>
+<span class="sd">    bandwidth_hz : float</span>
+<span class="sd">        The band at ``system.B0`` (Hz).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the band, duration, adiabaticity, spoiling or voxel size is not</span>
+<span class="sd">        positive.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp.sequences as design</span>
+<span class="sd">    &gt;&gt;&gt; import pypulseqpp as pp</span>
+<span class="sd">    &gt;&gt;&gt; spair = design.FatInversion(pp.Opts(B0=7.0))</span>
+<span class="sd">    &gt;&gt;&gt; len(spair.blocks), round(spair.pulse_duration * 1e3, 1)</span>
+<span class="sd">    (2, 19.8)</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="FatInversion.init_module">
+<a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.FatInversion.init_module.html#pypulseqpp.sequences.FatInversion.init_module">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_module</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">system</span><span class="p">:</span> <span class="n">pp</span><span class="o">.</span><span class="n">Opts</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">freq_offset_ppm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FAT_INVERSION_CENTRE_PPM</span><span class="p">,</span>
+        <span class="n">bandwidth_ppm</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">FAT_INVERSION_BANDWIDTH_PPM</span><span class="p">,</span>
+        <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">adiabaticity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>
+        <span class="n">spoiling_cycles</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>
+        <span class="n">voxel_size_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span> <span class="o">*</span> <span class="n">bandwidth_ppm</span>
+        <span class="k">if</span> <span class="n">bandwidth_hz</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">adiabaticity</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"bandwidth_ppm and adiabaticity must be positive"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">voxel_size_m</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_size_m must be positive"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spoiling_cycles</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"a fat inversion has to be spoiled: an imperfect inversion leaves "</span>
+                <span class="s2">"fat in the transverse plane, read with the water"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">duration_s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">duration_s</span> <span class="o">=</span> <span class="n">FAT_INVERSION_DURATION_BANDWIDTH</span> <span class="o">/</span> <span class="n">bandwidth_hz</span>
+        <span class="k">if</span> <span class="n">duration_s</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"duration_s must be positive"</span><span class="p">)</span>
+        <span class="n">raster</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">rf_raster_time</span>
+        <span class="n">duration_s</span> <span class="o">=</span> <span class="n">raster</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration_s</span> <span class="o">/</span> <span class="n">raster</span> <span class="o">-</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="c1"># The sweep spans mu * beta rad/s, pi times the band in Hz.</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">bandwidth_hz</span> <span class="o">/</span> <span class="n">HYPSEC_MU</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">make</span><span class="p">(</span><span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">margin</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">stretch</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">/</span> <span class="n">duration_s</span>
+            <span class="k">return</span> <span class="n">pp</span><span class="o">.</span><span class="n">make_adiabatic_pulse</span><span class="p">(</span>
+                <span class="s2">"hypsec"</span><span class="p">,</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+                <span class="n">beta</span><span class="o">=</span><span class="n">beta</span> <span class="o">/</span> <span class="n">stretch</span><span class="p">,</span>
+                <span class="n">mu</span><span class="o">=</span><span class="n">HYPSEC_MU</span> <span class="o">*</span> <span class="n">stretch</span><span class="p">,</span>
+                <span class="n">adiabaticity</span><span class="o">=</span><span class="n">margin</span><span class="p">,</span>
+                <span class="n">freq_ppm</span><span class="o">=</span><span class="n">freq_offset_ppm</span><span class="p">,</span>
+                <span class="n">use</span><span class="o">=</span><span class="s2">"inversion"</span><span class="p">,</span>
+                <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adiabaticity</span><span class="p">,</span> <span class="n">rf_prep</span> <span class="o">=</span> <span class="n">adiabatic_fitted</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">,</span> <span class="n">adiabaticity</span><span class="p">,</span> <span class="n">make</span><span class="p">,</span> <span class="n">raster</span><span class="o">=</span><span class="n">raster</span>
+        <span class="p">)</span>
+        <span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span> <span class="o">=</span> <span class="n">spoiler_gradients</span><span class="p">(</span>
+            <span class="n">system</span><span class="p">,</span> <span class="n">spoiling_cycles</span><span class="p">,</span> <span class="n">voxel_size_m</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">Sequence</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">gx_spoil</span><span class="p">,</span> <span class="n">gy_spoil</span><span class="p">,</span> <span class="n">gz_spoil</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">rf_reference</span><span class="p">(</span><span class="n">rf_prep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq_offset_ppm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">freq_offset_ppm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bandwidth_hz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">bandwidth_hz</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

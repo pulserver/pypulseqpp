@@ -40,6 +40,7 @@ blocks, as {doc}`../explanations/sequence-modules` describes.
 | {obj}`~pypulseqpp.sequences.BlochSiegertPreparation` | Frequency offset, duration, peak B1 (Hz) | `rf_prep`, spoilers, `kbs` (rad/Hz²) | Off-resonance Fermi pulse for Bloch-Siegert B1 mapping. |
 | {obj}`~pypulseqpp.sequences.DiffusionPreparation` | b-value (s/mm²), gradient duration and separation | `rf_prep`, `rf_ref`, `rf_store`, `g_diff`, spoilers | Non-selective diffusion preparation. |
 | {obj}`~pypulseqpp.sequences.FatSaturation` | Offset (ppm), flip angle, bandwidth | `rf_prep`, spoilers | SLR fat saturation of the whole transmit volume. |
+| {obj}`~pypulseqpp.sequences.FatInversion` | Band centre (ppm), band (ppm), adiabaticity | `rf_prep`, spoilers | Spectrally selective adiabatic inversion of fat (SPAIR) of the whole transmit volume. |
 | {obj}`~pypulseqpp.sequences.IhMtPreparation` | Flip angle, frequency offset, duration, pulse count | `rf_prep`, spoilers, `band_offsets_hz` | Dual-offset saturation for ihMT. |
 | {obj}`~pypulseqpp.sequences.MtPreparation` | Flip angle, frequency offset, duration, pulse count | `rf_prep`, spoilers | Off-resonance SLR saturation for MT. |
 | {obj}`~pypulseqpp.sequences.OffResonanceSaturation` | RF event, pulse count, spoiler cycles | `rf_prep`, spoilers | Repeated off-resonance saturation pulse. |

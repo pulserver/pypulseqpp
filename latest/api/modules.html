@@ -646,32 +646,37 @@ blocks, as <a class="reference internal" href="../explanations/sequence-modules.
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
 <td><p>SLR fat saturation of the whole transmit volume.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.IhMtPreparation.html#pypulseqpp.sequences.IhMtPreparation" title="pypulseqpp.sequences.IhMtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.FatInversion.html#pypulseqpp.sequences.FatInversion" title="pypulseqpp.sequences.FatInversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FatInversion</span></code></a></p></td>
+<td><p>Band centre (ppm), band (ppm), adiabaticity</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
+<td><p>Spectrally selective adiabatic inversion of fat (SPAIR) of the whole transmit volume.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.IhMtPreparation.html#pypulseqpp.sequences.IhMtPreparation" title="pypulseqpp.sequences.IhMtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IhMtPreparation</span></code></a></p></td>
 <td><p>Flip angle, frequency offset, duration, pulse count</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers, <code class="docutils literal notranslate"><span class="pre">band_offsets_hz</span></code></p></td>
 <td><p>Dual-offset saturation for ihMT.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.MtPreparation.html#pypulseqpp.sequences.MtPreparation" title="pypulseqpp.sequences.MtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MtPreparation</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.MtPreparation.html#pypulseqpp.sequences.MtPreparation" title="pypulseqpp.sequences.MtPreparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MtPreparation</span></code></a></p></td>
 <td><p>Flip angle, frequency offset, duration, pulse count</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
 <td><p>Off-resonance SLR saturation for MT.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.OffResonanceSaturation.html#pypulseqpp.sequences.OffResonanceSaturation" title="pypulseqpp.sequences.OffResonanceSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffResonanceSaturation</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.OffResonanceSaturation.html#pypulseqpp.sequences.OffResonanceSaturation" title="pypulseqpp.sequences.OffResonanceSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OffResonanceSaturation</span></code></a></p></td>
 <td><p>RF event, pulse count, spoiler cycles</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, spoilers</p></td>
 <td><p>Repeated off-resonance saturation pulse.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.SpatialSaturation.html#pypulseqpp.sequences.SpatialSaturation" title="pypulseqpp.sequences.SpatialSaturation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialSaturation</span></code></a></p></td>
 <td><p>Normal, position and thickness (m) in the physical frame, flip angle, duration</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">gx_sel</span></code>, <code class="docutils literal notranslate"><span class="pre">gy_sel</span></code>, <code class="docutils literal notranslate"><span class="pre">gz_sel</span></code>, spoilers</p></td>
 <td><p>Slab-selective saturation along any normal; exempt from the prescription (<code class="docutils literal notranslate"><span class="pre">NOPOS</span></code>, <code class="docutils literal notranslate"><span class="pre">NOROT</span></code>); its pulse block lasts <code class="docutils literal notranslate"><span class="pre">RF_TAIL_S</span></code> past the pulse.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T1T2Preparation.html#pypulseqpp.sequences.T1T2Preparation" title="pypulseqpp.sequences.T1T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1T2Preparation</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T1T2Preparation.html#pypulseqpp.sequences.T1T2Preparation" title="pypulseqpp.sequences.T1T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1T2Preparation</span></code></a></p></td>
 <td><p>Preparation echo time, refocusing count</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>, spoilers</p></td>
 <td><p>T2 preparation stored on −z.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T2Preparation.html#pypulseqpp.sequences.T2Preparation" title="pypulseqpp.sequences.T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T2Preparation</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../generated/pypulseqpp.sequences.T2Preparation.html#pypulseqpp.sequences.T2Preparation" title="pypulseqpp.sequences.T2Preparation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T2Preparation</span></code></a></p></td>
 <td><p>Preparation echo time, final tip, refocusing count</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">rf_prep</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_ref</span></code>, <code class="docutils literal notranslate"><span class="pre">rf_store</span></code>, spoilers</p></td>
 <td><p>Adiabatic T2 preparation.</p></td>

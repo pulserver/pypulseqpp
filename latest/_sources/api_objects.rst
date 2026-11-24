@@ -103,6 +103,7 @@ from.
    BlochSiegertPreparation
    DiffusionPreparation
    FatSaturation
+   FatInversion
    IhMtPreparation
    MtPreparation
    OffResonanceSaturation
@@ -265,8 +266,10 @@ from.
    gain_calibration_readouts
    diffusion_pair_b_value
    fat_null_flip_deg
+   fat_null_inversion_time
    FAT_T1_S
    FAT_SAT_BANDWIDTH_PPM
+   FAT_INVERSION_BANDWIDTH_PPM
 
 .. currentmodule:: pypulseqpp
 
