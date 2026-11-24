@@ -1144,7 +1144,7 @@ def test_a_fully_sampled_or_spin_echo_scan_plays_no_full_k_reference(prescriptio
 
 
 def test_a_3d_field_pair_is_the_scans_own_volume_forward_then_reversed_at_its_echo_time():
-    scan = scan3d(ry=2, rz=2, partial_fourier_y=0.75)
+    scan = scan3d(ry=2, rz=2)
     n_y = scan.matrix[1]
     lin_scan, par_scan, nav_scan = labels(scan.main, "LIN", "PAR", "NAV")
     read = (nav_scan == 0) & (lin_scan != 0)
@@ -1312,6 +1312,20 @@ def test_every_3d_excitation_is_rf_spoiled_and_read_at_its_own_phase(calibration
         assert len(phases) > 2, seq.definitions["Name"]
         assert wrapped == pytest.approx(0.0, abs=1e-9), seq.definitions["Name"]
         assert mismatched == 0, seq.definitions["Name"]
+
+
+def test_the_3d_field_pair_of_a_partial_fourier_scan_reads_every_line_of_its_full_k_reference():
+    """A partial-Fourier scan's field pair is read over the phase-encode lines of its full-k reference, so neither volume is left to complete from a phase."""
+    chain = scan3d(ry=2, rz=2, partial_fourier_y=0.75).chain
+    named = {seq.definitions["Name"]: seq for seq in chain}
+    name = epi3d.NAME
+
+    (reference,) = labels(named[f"{name}_full_k_reference"], "LIN")
+    (scan,) = labels(chain[-1], "LIN")
+    for part in ("forward", "reversed"):
+        (pair,) = labels(named[f"{name}_field_{part}"], "LIN")
+        assert set(pair) == set(reference), part
+    assert set(scan) < set(reference)
 
 
 def test_the_3d_navigator_echo_time_stated_for_the_recon_is_when_its_forward_lines_are_read():

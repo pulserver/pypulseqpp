@@ -398,8 +398,9 @@ def epi3d(
         ``phase_reference`` and none with it.
     field_pair : bool, default=True
         Play two volumes of the scan before it, at its echo time, flip angle
-        and echo train: one with the phase encode forward, labelled
-        ``SET = 2``, and one reversed, labelled ``SET = 3``. The two are
+        and echo spacing, every line of a partial-Fourier scan read: one with
+        the phase encode forward, labelled ``SET = 2``, and one reversed,
+        labelled ``SET = 3``. The two are
         displaced in opposite directions by the susceptibility field along
         the phase encode, and lose and pile up signal where the scan does, so
         the reconstruction estimates the displacement field of the scan from
@@ -500,8 +501,9 @@ def epi3d(
         **{**protocol, "te": reference.definitions["TE"][0]},
         encode_sets=(0, 1),
     )
+    full_k = {**protocol, "partial_fourier_y": 1.0, "partial_fourier_z": 1.0}
     pair = (
-        _field_pair(system, protocol, reference.definitions["TE"][0], field_pair_tr)
+        _field_pair(system, full_k, reference.definitions["TE"][0], field_pair_tr)
         if field_pair
         else []
     )
