@@ -42,10 +42,12 @@ from .excitation import (
     make_excitation,
 )
 from .preparation import (
+    FAT_INVERSION_BANDWIDTH_PPM,
     FAT_SAT_BANDWIDTH_PPM,
     FAT_T1_S,
     BlochSiegertPreparation,
     DiffusionPreparation,
+    FatInversion,
     FatSaturation,
     IhMtPreparation,
     InversionPreparation,
@@ -56,6 +58,7 @@ from .preparation import (
     T2Preparation,
     diffusion_pair_b_value,
     fat_null_flip_deg,
+    fat_null_inversion_time,
     spatial_saturations,
 )
 from .readout import (
@@ -105,11 +108,14 @@ EXCITATION = (
 PREPARATION = (
     "BlochSiegertPreparation",
     "DiffusionPreparation",
+    "FAT_INVERSION_BANDWIDTH_PPM",
     "FAT_SAT_BANDWIDTH_PPM",
     "FAT_T1_S",
+    "FatInversion",
     "FatSaturation",
     "diffusion_pair_b_value",
     "fat_null_flip_deg",
+    "fat_null_inversion_time",
     "IhMtPreparation",
     "InversionPreparation",
     "MtPreparation",

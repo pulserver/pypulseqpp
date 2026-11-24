@@ -387,6 +387,19 @@ FLEET_DUMMY_SHOTS = 1
 #: calibration shot too short for a null at this flip waits until it allows one.
 CALIBRATION_FAT_NULL_FLIP_DEG = 120.0
 
+#: Passes of the search for the wait after a fat inversion, whose null time
+#: depends on the shot duration the wait lengthens.
+INVERSION_WAIT_ITERATIONS = 20
+
+
+class _Wait:
+    """A delay played as a preparation module: one block, nothing to spoil."""
+
+    def __init__(self, duration: float) -> None:
+        self.duration = duration
+        self.blocks = [(pp.make_delay(duration),)]
+
+
 #: ``SET`` of the forward and of the reversed volume of the field pair, apart
 #: from those of the scan and its reversed reference.
 FIELD_PAIR_SETS = (2, 3)
@@ -413,6 +426,7 @@ def epi2d(
     n_shots: int = 1,
     multiband: int = 1,
     fat_saturation: bool = False,
+    fat_inversion: bool = False,
     n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
@@ -522,6 +536,11 @@ def epi2d(
         Saturate fat before every shot, at the flip
         :func:`~pypulseqpp.sequences.fat_null_flip_deg` gives, which leaves it
         at zero when the shot's excitation comes.
+    fat_inversion : bool, default=False
+        Invert fat before every shot with a spectrally selective adiabatic
+        pulse (SPAIR), and wait until fat crosses zero: the suppression holds
+        where B1+ falls to about half its nominal value, at the cost of the
+        wait and of the pulse's RF energy. Not with ``fat_saturation``.
     n_dummy : int | None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots per slice before each packet.
@@ -630,6 +649,7 @@ def epi2d(
         "n_shots": n_shots,
         "multiband": multiband,
         "fat_saturation": fat_saturation,
+        "fat_inversion": fat_inversion,
         "n_dummy": n_dummy,
         "readout_oversampling": readout_oversampling,
         "n_acs_y": n_acs_y,
@@ -693,6 +713,7 @@ def _designed(
     n_shots: int = 1,
     multiband: int = 1,
     fat_saturation: bool = False,
+    fat_inversion: bool = False,
     n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
@@ -905,18 +926,58 @@ def _designed(
         else None
     )
 
-    # A shot is the fat saturation, the train, and a closing delay of at
+    if fat_saturation and fat_inversion:
+        raise ValueError("fat is either saturated or inverted, not both")
+    spair = (
+        sequences.FatInversion(
+            pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
+            voxel_size_m=min(fov_x / n_x, fov_y / n_y, slice_thickness),
+        )
+        if fat_inversion
+        else None
+    )
+
+    # A shot is the fat preparation, the train, and a closing delay of at
     # least one raster; the last shot of a packet waits out the cycle. A
     # cycle is one shot of every slice of a packet, and a volume is
     # n_shots cycles.
-    prep = [fatsat] if fatsat is not None else []
-    prep_duration = sum(module.duration for module in prep)
-    shot_duration = prep_duration + echo_extra + epi.duration + raster
+    prep = [fatsat] if fatsat is not None else [spair] if spair is not None else []
     cycle = None if tr is None else tr / n_shots
-    per_packet = (
-        n_groups if cycle is None else max(1, int(cycle / shot_duration + 1e-9))
-    )
-    packets = packets_of(n_groups, per_packet)
+
+    def layout(wait: float) -> tuple[float, list[list[int]]]:
+        """Return the shot duration and the packets when fat waits ``wait`` (s) after its preparation."""
+        duration = (
+            sum(module.duration for module in prep)
+            + wait
+            + echo_extra
+            + epi.duration
+            + raster
+        )
+        per_packet = n_groups if cycle is None else max(1, int(cycle / duration + 1e-9))
+        return duration, packets_of(n_groups, per_packet)
+
+    inversion_wait = 0.0
+    shot_duration, packets = layout(inversion_wait)
+    if spair is not None:
+        to_excitation = (
+            spair.duration - spair.center + float(excited.delay) + float(excited.center)
+        )
+        for _ in range(INVERSION_WAIT_ITERATIONS):
+            # The excitation waits for fat to cross zero, in the steady state
+            # of one inversion every shot of the fullest packet, spread over
+            # the cycle.
+            largest = max(map(len, packets))
+            period = max(shot_duration, (cycle or 0.0) / largest)
+            wait = pp.round_to_raster(
+                max(sequences.fat_null_inversion_time(period) - to_excitation, 0.0),
+                raster,
+            )
+            if wait == inversion_wait:
+                break
+            inversion_wait = wait
+            shot_duration, packets = layout(inversion_wait)
+    if spair is not None and inversion_wait > 0:
+        prep = [spair, _Wait(inversion_wait)]
     if volumes > 1 and len(packets) > 1:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms cannot hold the "
@@ -1041,15 +1102,33 @@ def _designed(
             )
 
     def calibration_prep(probe) -> tuple[list, float]:
-        """Return the fat saturation of a calibration shot and the wait (s) that closes the shot.
+        """Return the fat preparation of a calibration shot and the wait (s) that closes the shot.
 
-        The calibration saturates fat as the imaging does: coil maps fitted to
+        The calibration suppresses fat as the imaging does: coil maps fitted to
         a calibration whose scalp fat is displaced along the phase encode do
         not hold for water-only imaging data. ``probe`` adds one calibration
         shot to a sequence. The saturation nulls fat at the calibration's
         excitation; a shot too short for a null at
-        ``CALIBRATION_FAT_NULL_FLIP_DEG`` waits until it allows one.
+        ``CALIBRATION_FAT_NULL_FLIP_DEG`` waits until it allows one. A fat
+        inversion waits after the pulse until fat crosses zero instead.
         """
+        if spair is not None:
+            shot = pp.Sequence(system)
+            probe(shot)
+            to_excitation = (
+                spair.duration - spair.center + float(weak.delay) + float(weak.center)
+            )
+            wait = 0.0
+            for _ in range(INVERSION_WAIT_ITERATIONS):
+                period = spair.duration + wait + float(shot.duration()[0])
+                settled = pp.round_to_raster(
+                    max(sequences.fat_null_inversion_time(period) - to_excitation, 0.0),
+                    raster,
+                )
+                if settled == wait:
+                    break
+                wait = settled
+            return ([spair, _Wait(wait)] if wait > 0 else [spair]), 0.0
         if fatsat is None:
             return [], 0.0
         shot = pp.Sequence(system)
@@ -1530,6 +1609,7 @@ def _designed(
             n_shots=n_shots,
             multiband=1,
             fat_saturation=fat_saturation,
+            fat_inversion=fat_inversion,
             n_dummy=pair_dummies,
             readout_oversampling=readout_oversampling,
             n_acs_y=n_acs_y,
