@@ -538,7 +538,7 @@ def epi2d(
         at zero when the shot's excitation comes.
     fat_inversion : bool, default=False
         Invert fat before every shot with a spectrally selective adiabatic
-        pulse (SPAIR), and wait until fat crosses zero: the suppression holds
+        pulse, SPAIR, and wait until fat crosses zero: the suppression holds
         where B1+ falls to about half its nominal value, at the cost of the
         wait and of the pulse's RF energy. Not with ``fat_saturation``.
     n_dummy : int | None, default=None
