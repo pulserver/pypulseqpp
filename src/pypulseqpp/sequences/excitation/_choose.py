@@ -16,6 +16,16 @@ from .spectral import SpspExcitation
 EXCITATIONS = ("nonselective", "slab", "spsp")
 
 
+#: Subpulse counts and spectral time-bandwidth products the water-selective
+#: slab pulse is tried with, shortest subpulses first: fewer subpulses, then a
+#: longer spectral envelope, give each subpulse longer to select a thin slab.
+#: The spectral bandwidth is the fat offset, so the passband's first alias
+#: lies at the subpulse rate, ``n_subpulses / time-bandwidth`` fat offsets
+#: from water; every design keeps it at two or more, fat midway or nearer
+#: water than the alias.
+SPSP_DESIGNS = ((10, 3.0), (8, 3.0), (8, 4.0))
+
+
 def make_excitation(
     system,
     kind: str,
@@ -55,6 +65,8 @@ def make_excitation(
     fat_shift_ppm : float, default=-3.4
         Methylene shift from water (ppm), converted with ``system.gamma`` and
         ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.
+        The ``'spsp'`` pulse is the first design of ``SPSP_DESIGNS`` whose
+        slab-selection ramps the slew allows.
 
     Returns
     -------
@@ -65,7 +77,8 @@ def make_excitation(
     Raises
     ------
     ValueError
-        If ``kind`` is not one of :data:`EXCITATIONS`.
+        If ``kind`` is not one of :data:`EXCITATIONS`, or no design of
+        ``SPSP_DESIGNS`` selects the slab.
 
     Examples
     --------
@@ -93,10 +106,17 @@ def make_excitation(
             is_slab=True,
         )
     fat_offset_hz = fat_shift_ppm * 1e-6 * system.gamma * system.B0
-    return SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness_m,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
+    for n_subpulses, spectral_time_bw_product in SPSP_DESIGNS:
+        try:
+            return SpspExcitation(
+                system,
+                flip_angle_deg,
+                thickness_m=thickness_m,
+                spectral_bandwidth_hz=abs(fat_offset_hz),
+                n_subpulses=n_subpulses,
+                spectral_time_bw_product=spectral_time_bw_product,
+                is_slab=True,
+            )
+        except ValueError as error:
+            refusal = error
+    raise refusal

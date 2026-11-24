@@ -321,3 +321,41 @@ def test_a_pulse_starts_after_the_transmit_dead_time_without_a_warning(build):
     blocks = (module.seq.get_block(i) for i in range(1, len(module.blocks) + 1))
     rf = next(block.rf for block in blocks if block.rf is not None)
     assert float(rf.delay) >= system.rf_dead_time
+
+
+@pytest.mark.parametrize("thickness", [0.032, 0.128])
+@pytest.mark.parametrize("slew", [150, 200])
+def test_a_water_selective_slab_at_7t_is_designed_down_to_a_32_mm_slab(thickness, slew):
+    system = pp.Opts(
+        max_grad=40, grad_unit="mT/m", max_slew=slew, slew_unit="T/m/s", B0=7.0
+    )
+
+    module = design.make_excitation(system, "spsp", 10.0, thickness)
+
+    assert isinstance(module, design.SpspExcitation)
+    assert module.gz is not None
+
+
+@pytest.mark.parametrize("design_", design.excitation._choose.SPSP_DESIGNS)
+def test_every_water_selective_design_excites_fat_at_7t_below_a_twentieth_of_water(
+    design_,
+):
+    system = pp.Opts(
+        max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s", B0=7.0
+    )
+    fat_hz = -3.4e-6 * system.gamma * 7.0
+    n_subpulses, spectral_tbw = design_
+    module = design.SpspExcitation(
+        system,
+        10.0,
+        thickness_m=0.128,
+        spectral_bandwidth_hz=abs(fat_hz),
+        n_subpulses=n_subpulses,
+        spectral_time_bw_product=spectral_tbw,
+        is_slab=True,
+    )
+    _, mz_xy, frequency, *_ = module.sim_rf()
+    transverse = np.abs(mz_xy)
+    water = np.interp(0.0, frequency, transverse)
+    for offset in (-100.0, 0.0, 100.0):
+        assert np.interp(fat_hz + offset, frequency, transverse) < water / 20
