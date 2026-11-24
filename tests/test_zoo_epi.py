@@ -1144,7 +1144,7 @@ def test_a_fully_sampled_or_spin_echo_scan_plays_no_full_k_reference(prescriptio
 
 
 def test_a_3d_field_pair_is_the_scans_own_volume_forward_then_reversed_at_its_echo_time():
-    scan = scan3d(ry=2, rz=2, partial_fourier_y=0.75)
+    scan = scan3d(ry=2, rz=2)
     n_y = scan.matrix[1]
     lin_scan, par_scan, nav_scan = labels(scan.main, "LIN", "PAR", "NAV")
     read = (nav_scan == 0) & (lin_scan != 0)
@@ -1312,6 +1312,46 @@ def test_every_3d_excitation_is_rf_spoiled_and_read_at_its_own_phase(calibration
         assert len(phases) > 2, seq.definitions["Name"]
         assert wrapped == pytest.approx(0.0, abs=1e-9), seq.definitions["Name"]
         assert mismatched == 0, seq.definitions["Name"]
+
+
+def test_the_3d_field_pair_of_a_partial_fourier_scan_reads_every_line_of_its_full_k_reference():
+    """A partial-Fourier scan's field pair is read over the phase-encode lines of its full-k reference, so neither volume is left to complete from a phase."""
+    chain = scan3d(ry=2, rz=2, partial_fourier_y=0.75).chain
+    named = {seq.definitions["Name"]: seq for seq in chain}
+    name = epi3d.NAME
+
+    (reference,) = labels(named[f"{name}_full_k_reference"], "LIN")
+    (scan,) = labels(chain[-1], "LIN")
+    for part in ("forward", "reversed"):
+        (pair,) = labels(named[f"{name}_field_{part}"], "LIN")
+        assert set(pair) == set(reference), part
+    assert set(scan) < set(reference)
+
+
+def test_the_3d_navigator_echo_time_stated_for_the_recon_is_when_its_forward_lines_are_read():
+    """``NavigatorEchoTime`` is the mean time, from each excitation's RF centre, at which the first and third navigator readouts reach their centre, and both are listed in ``ReconParameters``."""
+    seq = scan3d(ry=2, rz=2, n_shots=2).chain[-1]
+
+    start, excitation, read, measured = 0.0, None, [], []
+    for index in range(1, len(seq.block_events) + 1):
+        block = seq.get_block(index)
+        if block.rf is not None:
+            excitation, read = start + block.rf.delay + block.rf.center, []
+        if block.adc is not None and excitation is not None and len(read) < 3:
+            adc = block.adc
+            read.append(start + adc.delay + 0.5 * adc.num_samples * adc.dwell)
+            if len(read) == 3:
+                measured.append(0.5 * (read[0] + read[2]) - excitation)
+        start += seq.block_durations[index]
+
+    stated = seq.definitions["NavigatorEchoTime"][0]
+    assert measured
+    assert np.asarray(measured) == pytest.approx(stated, abs=10e-6)
+    assert seq.definitions["TrainEchoTime"][0] == seq.definitions["TE"][0]
+    assert set(str(seq.definitions["ReconParameters"]).split()) >= {
+        "NavigatorEchoTime",
+        "TrainEchoTime",
+    }
 
 
 @pytest.mark.parametrize(

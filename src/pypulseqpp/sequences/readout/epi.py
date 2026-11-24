@@ -201,6 +201,10 @@ class _EpiReadout(SequenceModule):
         Echo spacing (s).
     echo_times : numpy.ndarray
         Echo time of each line (s) from the RF centre, without echo shift.
+    navigator_times : numpy.ndarray
+        Echo time of each navigator line (s) from the RF centre; empty without
+        ``navigator_lines``. The echo shift plays after the navigator, so every
+        shot reads its navigator at these times.
     echo_time : float
         Echo time (s) of line ``te_line``, the time ``te`` specifies.
     echo_shift_step : float
@@ -577,6 +581,12 @@ class _EpiReadout(SequenceModule):
         self.center = exc_span + wait + pre_span + echo_offset + lead
         self.echo_time = echo_time
         self.echo_times = echo_time + esp * (np.arange(etl) - te_line)
+        first_line = echo_time - te_line * esp - shift_span - encode_span
+        self.navigator_times = (
+            first_line
+            - navigator_span
+            + _span(system, lobe) * (1 + np.arange(navigator_lines))
+        )
         self.echo_shift_step = echo_shift_step
         self.etl = etl
         self.esp = esp
