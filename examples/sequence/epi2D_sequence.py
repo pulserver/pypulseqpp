@@ -427,6 +427,7 @@ def epi2d(
     multiband: int = 1,
     fat_saturation: bool = False,
     fat_inversion: bool = False,
+    fat_inversion_shots: int = 2,
     n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
@@ -541,6 +542,11 @@ def epi2d(
         pulse, SPAIR, and wait until fat crosses zero: the suppression holds
         where B1+ falls to about half its nominal value, at the cost of the
         wait and of the pulse's RF energy. Not with ``fat_saturation``.
+    fat_inversion_shots : int, default=2
+        Consecutive shots of a packet that share one fat inversion, their
+        excitations centred on the time fat crosses zero. One inversion a
+        shot nulls fat at every excitation; two halve the inversions and the
+        wait, and leave fat a few percent from zero.
     n_dummy : int | None, default=None
         Non-acquiring volumes before a time series; with one frame,
         non-acquiring shots per slice before each packet.
@@ -650,6 +656,7 @@ def epi2d(
         "multiband": multiband,
         "fat_saturation": fat_saturation,
         "fat_inversion": fat_inversion,
+        "fat_inversion_shots": fat_inversion_shots,
         "n_dummy": n_dummy,
         "readout_oversampling": readout_oversampling,
         "n_acs_y": n_acs_y,
@@ -714,6 +721,7 @@ def _designed(
     multiband: int = 1,
     fat_saturation: bool = False,
     fat_inversion: bool = False,
+    fat_inversion_shots: int = 2,
     n_dummy: int | None = None,
     readout_oversampling: float = 1.0,
     n_acs_y: int = 24,
@@ -928,6 +936,8 @@ def _designed(
 
     if fat_saturation and fat_inversion:
         raise ValueError("fat is either saturated or inverted, not both")
+    if fat_inversion_shots < 1:
+        raise ValueError("fat_inversion_shots must be at least one")
     spair = (
         sequences.FatInversion(
             pp.cap_system(system, max_slew=PREPARATION_MAX_SLEW),
@@ -936,48 +946,64 @@ def _designed(
         if fat_inversion
         else None
     )
+    share = fat_inversion_shots if spair is not None else 1
 
-    # A shot is the fat preparation, the train, and a closing delay of at
-    # least one raster; the last shot of a packet waits out the cycle. A
-    # cycle is one shot of every slice of a packet, and a volume is
-    # n_shots cycles.
+    # A shot is the train and a closing delay of at least one raster, the
+    # first of every ``share`` shots of a packet preceded by the fat
+    # preparation; the last shot of a packet waits out the cycle. A cycle is
+    # one shot of every slice of a packet, and a volume is n_shots cycles.
     prep = [fatsat] if fatsat is not None else [spair] if spair is not None else []
+    body = echo_extra + epi.duration + raster
     cycle = None if tr is None else tr / n_shots
 
+    def span(n: int, prepared: float) -> float:
+        """Return the time (s) ``n`` shots of a packet take, each preparation ``prepared`` (s) long."""
+        return -(-n // share) * prepared + n * body
+
     def layout(wait: float) -> tuple[float, list[list[int]]]:
-        """Return the shot duration and the packets when fat waits ``wait`` (s) after its preparation."""
-        duration = (
-            sum(module.duration for module in prep)
-            + wait
-            + echo_extra
-            + epi.duration
-            + raster
-        )
-        per_packet = n_groups if cycle is None else max(1, int(cycle / duration + 1e-9))
-        return duration, packets_of(n_groups, per_packet)
+        """Return the preparation's duration and the packets when fat waits ``wait`` (s) after it."""
+        prepared = sum(module.duration for module in prep) + wait
+        per_packet = n_groups
+        if cycle is not None:
+            per_packet = 1
+            while (
+                per_packet < n_groups and span(per_packet + 1, prepared) <= cycle + 1e-9
+            ):
+                per_packet += 1
+        return prepared, packets_of(n_groups, per_packet)
 
     inversion_wait = 0.0
-    shot_duration, packets = layout(inversion_wait)
+    prep_duration, packets = layout(inversion_wait)
     if spair is not None:
         to_excitation = (
             spair.duration - spair.center + float(excited.delay) + float(excited.center)
         )
         for _ in range(INVERSION_WAIT_ITERATIONS):
-            # The excitation waits for fat to cross zero, in the steady state
-            # of one inversion every shot of the fullest packet, spread over
-            # the cycle.
+            # The excitations sharing an inversion are centred on the time fat
+            # crosses zero, in the steady state of one inversion every
+            # ``share`` shots of the fullest packet, spread over the cycle.
             largest = max(map(len, packets))
-            period = max(shot_duration, (cycle or 0.0) / largest)
+            sharing = min(share, largest)
+            period = max(
+                prep_duration + sharing * body,
+                (cycle or 0.0) / -(-largest // share),
+            )
             wait = pp.round_to_raster(
-                max(sequences.fat_null_inversion_time(period) - to_excitation, 0.0),
+                max(
+                    sequences.fat_null_inversion_time(period)
+                    - to_excitation
+                    - (sharing - 1) / 2 * body,
+                    0.0,
+                ),
                 raster,
             )
             if wait == inversion_wait:
                 break
             inversion_wait = wait
-            shot_duration, packets = layout(inversion_wait)
+            prep_duration, packets = layout(inversion_wait)
     if spair is not None and inversion_wait > 0:
         prep = [spair, _Wait(inversion_wait)]
+    shot_duration = prep_duration + body
     if volumes > 1 and len(packets) > 1:
         raise ValueError(
             f"the requested TR of {tr * 1e3:.3f} ms cannot hold the "
@@ -985,7 +1011,7 @@ def _designed(
             f"per shot"
         )
     if cycle is None:
-        cycle = max(map(len, packets)) * shot_duration
+        cycle = span(max(map(len, packets)), prep_duration)
     if fatsat is not None:
         # The flip that leaves fat at zero when the train's excitation comes,
         # in the steady state of one saturation every shot. The pulse's
@@ -1003,7 +1029,7 @@ def _designed(
         )
         prep = [fatsat]
     pads = {
-        size: pp.round_to_raster(cycle - size * shot_duration, raster) + raster
+        size: pp.round_to_raster(cycle - span(size, prep_duration), raster) + raster
         for size in {len(packet) for packet in packets}
     }
     if min(pads.values()) < raster:
@@ -1011,7 +1037,7 @@ def _designed(
             f"the requested TR of {tr * 1e3:.3f} ms is shorter than the "
             f"{n_shots * shot_duration * 1e3:.3f} ms the shots of one slice take"
         )
-    packet_time = {n: n * shot_duration - raster + pad for n, pad in pads.items()}
+    packet_time = {n: span(n, prep_duration) - raster + pad for n, pad in pads.items()}
     repetition_time = n_shots * max(packet_time.values())
     pair_dummies = n_dummy
     if n_dummy is None:
@@ -1290,10 +1316,12 @@ def _designed(
         reversed_encode: bool = False,
         reference: bool = False,
         phase: float = 0.0,
+        prepared: bool = True,
     ) -> None:
         """Add one shot of slice (multiband group) ``g``; ``frame=None`` is a dummy.
 
-        A gradient-echo shot is excited and read at RF phase ``phase``.
+        A gradient-echo shot is excited and read at RF phase ``phase``, and
+        opens with the fat preparation when ``prepared``.
 
         ``pad`` is the closing delay the shot would have without echo shift,
         in s. A ``reference`` dummy acquires the blip-free reference train.
@@ -1337,7 +1365,7 @@ def _designed(
             group_centre=group_centres[g],
             acquire=acquire,
             reversed_encode=reversed_encode and not reference,
-            prep=prep,
+            prep=prep if prepared else (),
             reference=reference,
             half=half,
             lobe=lobe,
@@ -1534,6 +1562,7 @@ def _designed(
                         reversed_encode=reversed_encode,
                         reference=reference,
                         phase=phase,
+                        prepared=i % share == 0,
                     )
                     if frame is not None and first_image_shot is None:
                         first_image_shot = (before + 1, seq.num_blocks - before)
@@ -1582,7 +1611,10 @@ def _designed(
     if len(packets) == 1:
         # Excitation time of each slice from the start of its volume.
         (packet,) = packets
-        when = {g: i * shot_duration for i, g in enumerate(packet)}
+        when = {
+            g: (i // share + 1) * prep_duration + i * body - prep_duration
+            for i, g in enumerate(packet)
+        }
         definitions["SliceTiming"] = [when[s % n_groups] for s in range(n_slices)]
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
@@ -1610,6 +1642,7 @@ def _designed(
             multiband=1,
             fat_saturation=fat_saturation,
             fat_inversion=fat_inversion,
+            fat_inversion_shots=fat_inversion_shots,
             n_dummy=pair_dummies,
             readout_oversampling=readout_oversampling,
             n_acs_y=n_acs_y,

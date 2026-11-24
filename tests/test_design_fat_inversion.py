@@ -149,6 +149,7 @@ def test_every_2d_epi_excitation_comes_when_fat_crosses_zero_after_its_inversion
         tr=tr,
         n_dummy=2,
         fat_inversion=True,
+        fat_inversion_shots=1,
         field_pair=False,
     )
     played = rf_centres(chain[file])
@@ -182,3 +183,46 @@ def test_a_2d_epi_that_both_saturates_and_inverts_fat_is_refused():
 def test_a_band_adiabaticity_voxel_or_duration_that_is_not_positive_is_refused(bad):
     with pytest.raises(ValueError, match="positive"):
         design.FatInversion(pp.Opts(B0=7.0), **bad)
+
+
+@pytest.mark.parametrize("shots", [2, 3])
+def test_2d_epi_shots_sharing_a_fat_inversion_are_centred_on_the_time_fat_crosses_zero(
+    shots,
+):
+    *_, seq = design.epi2D_sequence(
+        pp.Opts(B0=7.0),
+        n_x=32,
+        n_y=32,
+        n_slices=2 * shots,
+        n_dummy=2,
+        fat_inversion=True,
+        fat_inversion_shots=shots,
+        field_pair=False,
+    )
+    played = rf_centres(seq)
+    inversions = [t for t, use in played if use == "inversion"]
+    excitations = np.array([t for t, use in played if use == "excitation"])
+    assert len(excitations) == shots * len(inversions)
+    periods = np.diff(inversions)
+    assert np.ptp(periods) < 1e-4
+    null = design.fat_null_inversion_time(float(periods[0]))
+    centres = excitations.reshape(-1, shots).mean(axis=1)
+    np.testing.assert_allclose(
+        centres - inversions, null, atol=2 * pp.Opts().grad_raster_time
+    )
+
+
+def test_shots_sharing_a_fat_inversion_take_less_time_than_one_inversion_a_shot():
+    def tr(shots):
+        *_, seq = design.epi2D_sequence(
+            n_x=32,
+            n_y=32,
+            n_slices=4,
+            n_dummy=0,
+            fat_inversion=True,
+            fat_inversion_shots=shots,
+            field_pair=False,
+        )
+        return seq.definitions["TR"][0]
+
+    assert tr(2) < tr(1)
