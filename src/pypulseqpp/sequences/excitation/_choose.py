@@ -17,13 +17,20 @@ EXCITATIONS = ("nonselective", "slab", "spsp")
 
 
 #: Subpulse counts and spectral time-bandwidth products the water-selective
-#: slab pulse is tried with, shortest subpulses first: fewer subpulses, then a
-#: longer spectral envelope, give each subpulse longer to select a thin slab.
-#: The spectral bandwidth is the fat offset, so the passband's first alias
-#: lies at the subpulse rate, ``n_subpulses / time-bandwidth`` fat offsets
-#: from water; every design keeps it at two or more, fat midway or nearer
-#: water than the alias.
-SPSP_DESIGNS = ((10, 3.0), (8, 3.0), (8, 4.0))
+#: slab pulse is tried with. The spectral bandwidth is the fat offset, so the
+#: passband's first alias lies at the subpulse rate, ``n_subpulses /
+#: time-bandwidth`` fat offsets from water; every design keeps it at two or
+#: more, fat midway or nearer water than the alias. A spectral time-bandwidth
+#: product of 4 narrows the transition band on the fat side, which keeps the
+#: methylene peaks in the stopband for water up to about 300 Hz above
+#: resonance; fewer subpulses, then a longer spectral envelope, give each
+#: subpulse longer to select a thin slab.
+SPSP_DESIGNS = ((10, 4.0), (10, 3.0), (8, 3.0), (8, 4.0))
+
+#: Longest spectral envelope (s) a design is preferred with: at the fat offset
+#: of 7 T, the sharpest design fits it; at lower fields, where none does, the
+#: designs are tried shortest envelope first.
+SPSP_MAX_ENVELOPE_S = 5e-3
 
 
 def make_excitation(
@@ -66,7 +73,9 @@ def make_excitation(
         Methylene shift from water (ppm), converted with ``system.gamma`` and
         ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.
         The ``'spsp'`` pulse is the first design of ``SPSP_DESIGNS`` whose
-        slab-selection ramps the slew allows.
+        spectral envelope fits ``SPSP_MAX_ENVELOPE_S`` and whose
+        slab-selection ramps the slew allows; where no envelope fits, the
+        designs are tried shortest envelope first.
 
     Returns
     -------
@@ -106,7 +115,7 @@ def make_excitation(
             is_slab=True,
         )
     fat_offset_hz = fat_shift_ppm * 1e-6 * system.gamma * system.B0
-    for n_subpulses, spectral_time_bw_product in SPSP_DESIGNS:
+    for n_subpulses, spectral_time_bw_product in spsp_designs(abs(fat_offset_hz)):
         try:
             return SpspExcitation(
                 system,
@@ -120,3 +129,17 @@ def make_excitation(
         except ValueError as error:
             refusal = error
     raise refusal
+
+
+def spsp_designs(spectral_bandwidth_hz: float) -> list[tuple[int, float]]:
+    """Return ``SPSP_DESIGNS`` in the order :func:`make_excitation` tries them.
+
+    Designs whose spectral envelope, ``time-bandwidth / spectral_bandwidth_hz``
+    (s), fits ``SPSP_MAX_ENVELOPE_S`` come first in their listed order, then
+    the others, shortest envelope first.
+    """
+    fits = [
+        d for d in SPSP_DESIGNS if d[1] / spectral_bandwidth_hz <= SPSP_MAX_ENVELOPE_S
+    ]
+    longer = sorted((d for d in SPSP_DESIGNS if d not in fits), key=lambda d: d[1])
+    return fits + longer
