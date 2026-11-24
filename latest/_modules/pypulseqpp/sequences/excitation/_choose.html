@@ -460,6 +460,16 @@
 <span class="n">EXCITATIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"nonselective"</span><span class="p">,</span> <span class="s2">"slab"</span><span class="p">,</span> <span class="s2">"spsp"</span><span class="p">)</span>
 
 
+<span class="c1">#: Subpulse counts and spectral time-bandwidth products the water-selective</span>
+<span class="c1">#: slab pulse is tried with, shortest subpulses first: fewer subpulses, then a</span>
+<span class="c1">#: longer spectral envelope, give each subpulse longer to select a thin slab.</span>
+<span class="c1">#: The spectral bandwidth is the fat offset, so the passband's first alias</span>
+<span class="c1">#: lies at the subpulse rate, ``n_subpulses / time-bandwidth`` fat offsets</span>
+<span class="c1">#: from water; every design keeps it at two or more, fat midway or nearer</span>
+<span class="c1">#: water than the alias.</span>
+<span class="n">SPSP_DESIGNS</span> <span class="o">=</span> <span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
+
+
 <div class="viewcode-block" id="make_excitation">
 <a class="viewcode-back" href="../../../../generated/pypulseqpp.sequences.make_excitation.html#pypulseqpp.sequences.make_excitation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_excitation</span><span class="p">(</span>
@@ -501,6 +511,8 @@
 <span class="sd">    fat_shift_ppm : float, default=-3.4</span>
 <span class="sd">        Methylene shift from water (ppm), converted with ``system.gamma`` and</span>
 <span class="sd">        ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.</span>
+<span class="sd">        The ``'spsp'`` pulse is the first design of ``SPSP_DESIGNS`` whose</span>
+<span class="sd">        slab-selection ramps the slew allows.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -511,7 +523,8 @@
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If ``kind`` is not one of :data:`EXCITATIONS`.</span>
+<span class="sd">        If ``kind`` is not one of :data:`EXCITATIONS`, or no design of</span>
+<span class="sd">        ``SPSP_DESIGNS`` selects the slab.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -539,13 +552,20 @@
             <span class="n">is_slab</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="n">fat_offset_hz</span> <span class="o">=</span> <span class="n">fat_shift_ppm</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span>
-    <span class="k">return</span> <span class="n">SpspExcitation</span><span class="p">(</span>
-        <span class="n">system</span><span class="p">,</span>
-        <span class="n">flip_angle_deg</span><span class="p">,</span>
-        <span class="n">thickness_m</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span>
-        <span class="n">spectral_bandwidth_hz</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">fat_offset_hz</span><span class="p">),</span>
-        <span class="n">is_slab</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span></div>
+    <span class="k">for</span> <span class="n">n_subpulses</span><span class="p">,</span> <span class="n">spectral_time_bw_product</span> <span class="ow">in</span> <span class="n">SPSP_DESIGNS</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SpspExcitation</span><span class="p">(</span>
+                <span class="n">system</span><span class="p">,</span>
+                <span class="n">flip_angle_deg</span><span class="p">,</span>
+                <span class="n">thickness_m</span><span class="o">=</span><span class="n">thickness_m</span><span class="p">,</span>
+                <span class="n">spectral_bandwidth_hz</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">fat_offset_hz</span><span class="p">),</span>
+                <span class="n">n_subpulses</span><span class="o">=</span><span class="n">n_subpulses</span><span class="p">,</span>
+                <span class="n">spectral_time_bw_product</span><span class="o">=</span><span class="n">spectral_time_bw_product</span><span class="p">,</span>
+                <span class="n">is_slab</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">refusal</span> <span class="o">=</span> <span class="n">error</span>
+    <span class="k">raise</span> <span class="n">refusal</span></div>
 
 </pre></div>
 
