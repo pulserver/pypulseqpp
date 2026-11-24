@@ -1059,6 +1059,13 @@ def _designed(
         "kSpaceCenterPartition": n_z // 2,
         "SliceThickness": fov[2],
     }
+    if navigator_lines:
+        # The reconstruction scales each excitation's navigator phase by
+        # TrainEchoTime / NavigatorEchoTime, the phase a field offset gains by
+        # the echo time; the forward navigator lines are the even ones.
+        definitions["NavigatorEchoTime"] = float(np.mean(epi.navigator_times[::2]))
+        definitions["TrainEchoTime"] = echo_time
+        definitions["ReconParameters"] = "NavigatorEchoTime TrainEchoTime"
     for key, value in definitions.items():
         seq.set_definition(key=key, value=value)
     seq.set_definition(

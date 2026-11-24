@@ -1314,6 +1314,32 @@ def test_every_3d_excitation_is_rf_spoiled_and_read_at_its_own_phase(calibration
         assert mismatched == 0, seq.definitions["Name"]
 
 
+def test_the_3d_navigator_echo_time_stated_for_the_recon_is_when_its_forward_lines_are_read():
+    """``NavigatorEchoTime`` is the mean time, from each excitation's RF centre, at which the first and third navigator readouts reach their centre, and both are listed in ``ReconParameters``."""
+    seq = scan3d(ry=2, rz=2, n_shots=2).chain[-1]
+
+    start, excitation, read, measured = 0.0, None, [], []
+    for index in range(1, len(seq.block_events) + 1):
+        block = seq.get_block(index)
+        if block.rf is not None:
+            excitation, read = start + block.rf.delay + block.rf.center, []
+        if block.adc is not None and excitation is not None and len(read) < 3:
+            adc = block.adc
+            read.append(start + adc.delay + 0.5 * adc.num_samples * adc.dwell)
+            if len(read) == 3:
+                measured.append(0.5 * (read[0] + read[2]) - excitation)
+        start += seq.block_durations[index]
+
+    stated = seq.definitions["NavigatorEchoTime"][0]
+    assert measured
+    assert np.asarray(measured) == pytest.approx(stated, abs=10e-6)
+    assert seq.definitions["TrainEchoTime"][0] == seq.definitions["TE"][0]
+    assert set(str(seq.definitions["ReconParameters"]).split()) >= {
+        "NavigatorEchoTime",
+        "TrainEchoTime",
+    }
+
+
 @pytest.mark.parametrize(
     "prescription",
     [
