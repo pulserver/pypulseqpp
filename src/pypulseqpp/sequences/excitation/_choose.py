@@ -16,6 +16,10 @@ from .spectral import SpspExcitation
 EXCITATIONS = ("nonselective", "slab", "spsp")
 
 
+#: Subpulse counts the water-selective slab pulse is tried with, most first.
+SPSP_SUBPULSES = (10, 8)
+
+
 def make_excitation(
     system,
     kind: str,
@@ -55,6 +59,9 @@ def make_excitation(
     fat_shift_ppm : float, default=-3.4
         Methylene shift from water (ppm), converted with ``system.gamma`` and
         ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.
+        The ``'spsp'`` pulse has the most subpulses of ``SPSP_SUBPULSES``
+        whose slab-selection ramps the slew allows, fewer subpulses giving
+        each one longer to select a thin slab.
 
     Returns
     -------
@@ -65,7 +72,8 @@ def make_excitation(
     Raises
     ------
     ValueError
-        If ``kind`` is not one of :data:`EXCITATIONS`.
+        If ``kind`` is not one of :data:`EXCITATIONS`, or no subpulse count of
+        ``SPSP_SUBPULSES`` selects the slab.
 
     Examples
     --------
@@ -93,10 +101,16 @@ def make_excitation(
             is_slab=True,
         )
     fat_offset_hz = fat_shift_ppm * 1e-6 * system.gamma * system.B0
-    return SpspExcitation(
-        system,
-        flip_angle_deg,
-        thickness_m=thickness_m,
-        spectral_bandwidth_hz=abs(fat_offset_hz),
-        is_slab=True,
-    )
+    for n_subpulses in SPSP_SUBPULSES:
+        try:
+            return SpspExcitation(
+                system,
+                flip_angle_deg,
+                thickness_m=thickness_m,
+                spectral_bandwidth_hz=abs(fat_offset_hz),
+                n_subpulses=n_subpulses,
+                is_slab=True,
+            )
+        except ValueError as error:
+            refusal = error
+    raise refusal

@@ -321,3 +321,15 @@ def test_a_pulse_starts_after_the_transmit_dead_time_without_a_warning(build):
     blocks = (module.seq.get_block(i) for i in range(1, len(module.blocks) + 1))
     rf = next(block.rf for block in blocks if block.rf is not None)
     assert float(rf.delay) >= system.rf_dead_time
+
+
+@pytest.mark.parametrize("thickness", [0.032, 0.128])
+def test_a_water_selective_slab_at_7t_is_designed_down_to_a_32_mm_slab(thickness):
+    system = pp.Opts(
+        max_grad=80, grad_unit="mT/m", max_slew=200, slew_unit="T/m/s", B0=7.0
+    )
+
+    module = design.make_excitation(system, "spsp", 10.0, thickness)
+
+    assert isinstance(module, design.SpspExcitation)
+    assert module.gz is not None
