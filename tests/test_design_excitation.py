@@ -359,3 +359,31 @@ def test_every_water_selective_design_excites_fat_at_7t_below_a_twentieth_of_wat
     water = np.interp(0.0, frequency, transverse)
     for offset in (-100.0, 0.0, 100.0):
         assert np.interp(fat_hz + offset, frequency, transverse) < water / 20
+
+
+def test_water_selective_slab_at_7t_keeps_methylene_in_the_stopband_300_hz_above_resonance():
+    system = pp.Opts(
+        max_grad=40, grad_unit="mT/m", max_slew=150, slew_unit="T/m/s", B0=7.0
+    )
+    fat_hz = -3.4e-6 * system.gamma * 7.0
+    module = design.make_excitation(system, "spsp", 10.0, 0.128)
+    _, mz_xy, frequency, *_ = module.sim_rf()
+    transverse = np.abs(mz_xy)
+    on_resonance = np.interp(0.0, frequency, transverse)
+    water = np.interp(300.0, frequency, transverse)
+    assert water > 0.9 * on_resonance
+    assert np.interp(fat_hz + 300.0, frequency, transverse) < water / 20
+
+
+def test_water_selective_designs_below_7t_are_tried_shortest_envelope_first():
+    from pypulseqpp.sequences.excitation._choose import (
+        SPSP_MAX_ENVELOPE_S,
+        spsp_designs,
+    )
+
+    fat_3t = 3.4e-6 * pp.Opts().gamma * 3.0
+    order = spsp_designs(fat_3t)
+    envelopes = [tbw / fat_3t for _, tbw in order]
+    assert min(envelopes) > SPSP_MAX_ENVELOPE_S
+    assert envelopes == sorted(envelopes)
+    assert order[0] == (10, 3.0)
