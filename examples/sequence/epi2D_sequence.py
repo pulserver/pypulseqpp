@@ -952,6 +952,7 @@ def _designed(
         )
     packet_time = {n: n * shot_duration - raster + pad for n, pad in pads.items()}
     repetition_time = n_shots * max(packet_time.values())
+    pair_dummies = n_dummy
     if n_dummy is None:
         # A slice is excited once a cycle; a volume holds n_shots cycles.
         excitations = sequences.steady_state_dummies(
@@ -1529,7 +1530,7 @@ def _designed(
             n_shots=n_shots,
             multiband=1,
             fat_saturation=fat_saturation,
-            n_dummy=n_dummy,
+            n_dummy=pair_dummies,
             readout_oversampling=readout_oversampling,
             n_acs_y=n_acs_y,
             phase_reference=phase_reference,
