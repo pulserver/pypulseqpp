@@ -645,6 +645,10 @@
 <span class="sd">        Echo spacing (s).</span>
 <span class="sd">    echo_times : numpy.ndarray</span>
 <span class="sd">        Echo time of each line (s) from the RF centre, without echo shift.</span>
+<span class="sd">    navigator_times : numpy.ndarray</span>
+<span class="sd">        Echo time of each navigator line (s) from the RF centre; empty without</span>
+<span class="sd">        ``navigator_lines``. The echo shift plays after the navigator, so every</span>
+<span class="sd">        shot reads its navigator at these times.</span>
 <span class="sd">    echo_time : float</span>
 <span class="sd">        Echo time (s) of line ``te_line``, the time ``te`` specifies.</span>
 <span class="sd">    echo_shift_step : float</span>
@@ -1021,6 +1025,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">exc_span</span> <span class="o">+</span> <span class="n">wait</span> <span class="o">+</span> <span class="n">pre_span</span> <span class="o">+</span> <span class="n">echo_offset</span> <span class="o">+</span> <span class="n">lead</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">echo_time</span> <span class="o">=</span> <span class="n">echo_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">echo_times</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">+</span> <span class="n">esp</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">etl</span><span class="p">)</span> <span class="o">-</span> <span class="n">te_line</span><span class="p">)</span>
+        <span class="n">first_line</span> <span class="o">=</span> <span class="n">echo_time</span> <span class="o">-</span> <span class="n">te_line</span> <span class="o">*</span> <span class="n">esp</span> <span class="o">-</span> <span class="n">shift_span</span> <span class="o">-</span> <span class="n">encode_span</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">navigator_times</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">first_line</span>
+            <span class="o">-</span> <span class="n">navigator_span</span>
+            <span class="o">+</span> <span class="n">_span</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">lobe</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">navigator_lines</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">echo_shift_step</span> <span class="o">=</span> <span class="n">echo_shift_step</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">etl</span> <span class="o">=</span> <span class="n">etl</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esp</span> <span class="o">=</span> <span class="n">esp</span>

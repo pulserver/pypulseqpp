@@ -649,6 +649,9 @@ above 1, in which case it holds the longest shift.</p></li>
 <li><p><strong>etl</strong> (<em>int</em>) – Lines per repetition.</p></li>
 <li><p><strong>esp</strong> (<em>float</em>) – Echo spacing (s).</p></li>
 <li><p><strong>echo_times</strong> (<em>numpy.ndarray</em>) – Echo time of each line (s) from the RF centre, without echo shift.</p></li>
+<li><p><strong>navigator_times</strong> (<em>numpy.ndarray</em>) – Echo time of each navigator line (s) from the RF centre; empty without
+<code class="docutils literal notranslate"><span class="pre">navigator_lines</span></code>. The echo shift plays after the navigator, so every
+shot reads its navigator at these times.</p></li>
 <li><p><strong>echo_time</strong> (<em>float</em>) – Echo time (s) of line <code class="docutils literal notranslate"><span class="pre">te_line</span></code>, the time <code class="docutils literal notranslate"><span class="pre">te</span></code> specifies.</p></li>
 <li><p><strong>echo_shift_step</strong> (<em>float</em>) – Echo shift between successive shots (s), <code class="docutils literal notranslate"><span class="pre">esp</span> <span class="pre">/</span> <span class="pre">echo_shifts</span></code> on the
 block raster; zero with one shift.</p></li>
