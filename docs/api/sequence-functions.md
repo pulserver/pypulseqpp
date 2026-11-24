@@ -57,13 +57,15 @@ excitation.
 
 A sequence function whose `n_dummy` is `None` plays as many dummy repetitions
 as bring its spoiled steady-state signal within 1 % for a T1 of
-`STEADY_STATE_T1_S`, from its repetition time and flip angle; a balanced
+`STEADY_STATE_T1_S` at `STEADY_STATE_B1` of its flip angle, from its
+repetition time; a balanced
 one counts for `STEADY_STATE_BALANCED_T1_S` and `STEADY_STATE_T2_S`.
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), T2 (s) for a balanced steady state, tolerance | Repetitions | The repetitions to play before acquiring. |
 | {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 4.4 s | T1 a spoiled steady state's dummies are counted for: CSF at 7 T. |
+| {obj}`~pypulseqpp.sequences.STEADY_STATE_B1` | — | 0.5 | Fraction of the flip a spoiled steady state is counted at: the 7 T transmit field in the temporal lobes and cerebellum. |
 | {obj}`~pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S` | — | 1.5 s | T1 a balanced steady state's dummies are counted for: grey matter at 3 T. |
 
 ## Receive-gain prescan

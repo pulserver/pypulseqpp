@@ -54,11 +54,12 @@ def test_spoiled_dummies_bring_the_signal_within_the_tolerance_of_its_steady_sta
     tr, flip_deg
 ):
     n = sequences.steady_state_dummies(tr, flip_deg)
-    mz = spoiled_transient(flip_deg, tr, sequences.STEADY_STATE_T1_S, 20 * n + 20)
+    flip = sequences.STEADY_STATE_B1 * flip_deg
+    mz = spoiled_transient(flip, tr, sequences.STEADY_STATE_T1_S, 20 * n + 20)
     distance = np.abs(mz - mz[-1]) / mz[-1]
 
-    assert distance[n] <= 0.0101
-    assert n == 1 or distance[n - 1] > 0.0101
+    assert distance[n] <= 0.01 + 1e-9
+    assert n == 1 or distance[n - 1] > 0.01
 
 
 def test_the_default_spoiled_count_is_for_csf_at_7t_and_the_balanced_one_unchanged():
@@ -70,8 +71,15 @@ def test_the_default_spoiled_count_is_for_csf_at_7t_and_the_balanced_one_unchang
     )
 
 
+def test_a_lower_transmit_field_takes_more_dummies_to_the_spoiled_steady_state():
+    nominal = sequences.steady_state_dummies(0.0373, 40.0, b1=1.0)
+    weak = sequences.steady_state_dummies(0.0373, 40.0, b1=0.5)
+
+    assert weak > 2 * nominal
+
+
 def test_a_balanced_steady_state_takes_more_dummies_than_a_spoiled_one():
-    spoiled = sequences.steady_state_dummies(3.5e-3, 60.0)
+    spoiled = sequences.steady_state_dummies(3.5e-3, 60.0, b1=1.0)
     balanced = sequences.steady_state_dummies(3.5e-3, 60.0, t2_s=0.1)
 
     assert balanced > 10 * spoiled

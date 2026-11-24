@@ -20,6 +20,7 @@ from ._module import SequenceModule
 from ._parameters import ProtocolParameter, parameters
 from ._prescan import GAIN_CALIBRATION_DURATION, gain_calibration_readouts
 from ._steady import (
+    STEADY_STATE_B1,
     STEADY_STATE_BALANCED_T1_S,
     STEADY_STATE_T1_S,
     STEADY_STATE_T2_S,
@@ -113,6 +114,7 @@ PREPARATION = (
     "InversionPreparation",
     "MtPreparation",
     "OffResonanceSaturation",
+    "STEADY_STATE_B1",
     "STEADY_STATE_BALANCED_T1_S",
     "STEADY_STATE_T1_S",
     "STEADY_STATE_T2_S",
