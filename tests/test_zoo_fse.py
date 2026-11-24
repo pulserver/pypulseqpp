@@ -512,8 +512,11 @@ def test_the_centre_of_k_space_is_read_after_the_magnetisation_has_settled():
             acquired.append(False)
         acquired[-1] |= block.adc is not None
 
-    assert not acquired[1]
-    assert all(acquired[2:])
+    settling = sequences.steady_state_dummies(definition(seq, "TR"), 90.0)
+
+    assert settling > 0
+    assert not any(acquired[1 : settling + 1])
+    assert all(acquired[settling + 1 :])
 
 
 def test_a_flag_is_named_and_described_by_the_function_it_runs(capsys):
