@@ -168,3 +168,17 @@ def test_a_2d_epi_that_both_saturates_and_inverts_fat_is_refused():
         design.epi2D_sequence(
             n_x=32, n_y=16, fat_saturation=True, fat_inversion=True, field_pair=False
         )
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"bandwidth_ppm": 0.0},
+        {"adiabaticity": 0.0},
+        {"voxel_size_m": 0.0},
+        {"duration_s": -1e-3},
+    ],
+)
+def test_a_band_adiabaticity_voxel_or_duration_that_is_not_positive_is_refused(bad):
+    with pytest.raises(ValueError, match="positive"):
+        design.FatInversion(pp.Opts(B0=7.0), **bad)
