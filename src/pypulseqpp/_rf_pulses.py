@@ -443,18 +443,20 @@ def make_spsp_pulse(
             "spectral bandwidth is too large for the requested subpulse count"
         )
 
-    # Each ramp takes a tenth of the lobe, or as much more as the slew needs:
-    # a ramp r under a flat top of lobe - 2 r reaches the amplitude
-    # tbw / ((lobe - 2 r) th) at the slew limit S when r (lobe - 2 r) is
-    # tbw / (th S), and the shorter root keeps the flat top longest.
+    # The subpulse is VERSEd over the whole lobe, ramps included, so the slab
+    # it selects is tbw over the lobe's area, amplitude times (lobe - r) for
+    # ramps r. Each ramp takes a tenth of the lobe, or as much more as the
+    # slew needs: the amplitude tbw / ((lobe - r) th) is reached at the slew
+    # limit S when r (lobe - r) is tbw / (th S), and the shorter root keeps the
+    # flat top longest.
     selectivity = spatial_time_bandwidth_product / (slice_thickness * system.max_slew)
-    discriminant = lobe_duration**2 - 8.0 * selectivity
+    discriminant = lobe_duration**2 - 4.0 * selectivity
     if discriminant < 0.0:
         raise ValueError(
             "SPSP slice-selection ramps exceed system.max_slew: the slab is too "
             "thin for subpulses this short at this slew rate"
         )
-    shortest = (lobe_duration - math.sqrt(discriminant)) / 4.0
+    shortest = (lobe_duration - math.sqrt(discriminant)) / 2.0
     ramp_time = grad_raster * max(
         1,
         round(0.1 * lobe_duration / grad_raster),
@@ -463,7 +465,9 @@ def make_spsp_pulse(
     flat_time = lobe_duration - 2.0 * ramp_time
     if flat_time < 8 * rf_raster:
         raise ValueError("SPSP sublobes leave fewer than 8 RF samples")
-    amplitude_hz_per_m = spatial_time_bandwidth_product / (flat_time * slice_thickness)
+    amplitude_hz_per_m = spatial_time_bandwidth_product / (
+        (flat_time + ramp_time) * slice_thickness
+    )
     if amplitude_hz_per_m > system.max_grad:
         raise ValueError("SPSP slice-selection amplitude exceeds system.max_grad")
     if amplitude_hz_per_m / ramp_time > system.max_slew * (1.0 + 1e-9):

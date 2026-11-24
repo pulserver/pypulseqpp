@@ -207,9 +207,22 @@ def test_a_spsp_slab_lengthens_its_ramps_only_as_far_as_the_slew_needs(thickness
         assert ramp > tenth
 
 
+@pytest.mark.parametrize("thickness", [24e-3, 128e-3])
+def test_a_spsp_lobe_spans_the_kz_of_its_slab_over_the_time_bandwidth_product(
+    thickness,
+):
+    """The subpulse is VERSEd over the whole lobe, so the lobe's area sets the slab."""
+    _, gz, _ = pp.make_spsp_pulse(np.deg2rad(20), thickness, WATER_FAT_HZ, system=SLOW)
+    tt, waveform = np.asarray(gz.tt), np.asarray(gz.waveform)
+    lobe = tt <= tt[np.flatnonzero(waveform[1:] == 0)[0] + 1]
+    area = np.trapezoid(waveform[lobe], tt[lobe])
+
+    assert area * thickness == pytest.approx(4.0, rel=1e-6)
+
+
 def test_a_spsp_slab_too_thin_for_the_slew_is_refused_saying_so():
     with pytest.raises(ValueError, match="too thin"):
-        pp.make_spsp_pulse(np.deg2rad(20), 12e-3, WATER_FAT_HZ, system=SLOW)
+        pp.make_spsp_pulse(np.deg2rad(20), 6e-3, WATER_FAT_HZ, system=SLOW)
 
 
 def test_sms_bands_are_symmetric_and_include_zero(system):
