@@ -56,13 +56,17 @@ excitation.
 ## Dummy repetitions
 
 A sequence function whose `n_dummy` is `None` plays as many dummy repetitions
-as bring its spoiled steady state within 1 % for a T1 of
-`STEADY_STATE_T1_S`, from its repetition time and flip angle.
+as bring its spoiled steady-state signal within 1 % for a T1 of
+`STEADY_STATE_T1_S` at `STEADY_STATE_B1` of its flip angle, from its
+repetition time; a balanced
+one counts for `STEADY_STATE_BALANCED_T1_S` and `STEADY_STATE_T2_S`.
 
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.steady_state_dummies` | Repetition time (s), flip angle (deg), T1 (s), T2 (s) for a balanced steady state, tolerance | Repetitions | The repetitions to play before acquiring. |
-| {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 1.5 s | T1 the dummies are counted for: grey matter at 3 T. |
+| {obj}`~pypulseqpp.sequences.STEADY_STATE_T1_S` | — | 4.4 s | T1 a spoiled steady state's dummies are counted for: CSF at 7 T. |
+| {obj}`~pypulseqpp.sequences.STEADY_STATE_B1` | — | 0.5 | Fraction of the flip a spoiled steady state is counted at: the 7 T transmit field in the temporal lobes and cerebellum. |
+| {obj}`~pypulseqpp.sequences.STEADY_STATE_BALANCED_T1_S` | — | 1.5 s | T1 a balanced steady state's dummies are counted for: grey matter at 3 T. |
 
 ## Receive-gain prescan
 
@@ -87,5 +91,7 @@ on the signal the scan acquires.
 | Object | Input | Returns | Purpose |
 | --- | --- | --- | --- |
 | {obj}`~pypulseqpp.sequences.fat_null_flip_deg` | Delay to the excitation (s), period (s), fat T1 (s) | Flip angle (deg) | The fat-saturation flip that leaves fat at zero at the excitation, in the steady state. |
+| {obj}`~pypulseqpp.sequences.fat_null_inversion_time` | Period (s), fat T1 (s) | Inversion time (s) | The time after a fat inversion at which fat crosses zero, in the steady state. |
 | {obj}`~pypulseqpp.sequences.FAT_T1_S` | — | 0.37 s | T1 of fat at 3 T. |
 | {obj}`~pypulseqpp.sequences.FAT_SAT_BANDWIDTH_PPM` | — | 2 ppm | Default passband of the fat saturation, as a span of the field. |
+| {obj}`~pypulseqpp.sequences.FAT_INVERSION_BANDWIDTH_PPM` | — | 2.2 ppm | Default inverted band of the fat inversion, as a span of the field. |

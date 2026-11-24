@@ -1284,6 +1284,16 @@ def test_a_2d_field_pair_at_a_given_tr_repeats_at_that_tr():
         assert scan.prescan(half).definitions["TR"][0] == pytest.approx(2.0)
 
 
+def test_a_2d_field_pair_counts_its_dummies_at_its_own_repetition_time():
+    scan = scan2d(n_dummy=None, tr=2.0, field_pair=True, flip_angle_deg=70.0)
+    forward = scan.prescan("field_forward")
+    shortest = written(forward, "TR")
+    settling = sequences.steady_state_dummies(shortest, 70.0)
+
+    assert shortest < scan.repetition_time
+    assert excitations(forward) == settling + scan.shots_per_volume
+
+
 def test_a_3d_field_pair_at_a_given_tr_repeats_at_that_tr():
     scan = scan3d(field_pair=True, field_pair_tr=3.0)
 
