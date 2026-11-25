@@ -183,8 +183,8 @@ def check_pns(
     TypeError
         If ``model`` is none of the accepted forms.
     ValueError
-        If a model coefficient is not positive, a SAFE axis lacks a field or
-        its ``a1 + a2 + a3`` is not 1, or ``rotation`` is not a 3x3
+        If a chronaxie coefficient or a SAFE ``stim_limit`` is not positive, a
+        SAFE axis lacks a field or its ``a1 + a2 + a3`` is not 1, or ``rotation`` is not a 3x3
         orthonormal matrix.
 
     Notes

@@ -76,14 +76,15 @@ preference:
 1. the shortest period of the block-definition stream from the first block
    that every later block repeats, the last copy possibly cut short;
 2. the shortest period dividing the table over which blocks match in duration
-   and in the channels they play;
+   and in the channels they play, any pure delay matching any other;
 3. the whole sequence.
 
 A slice acquired with its own preparation and dummy shots is one repetition,
-and a block played once makes the whole sequence one. A sequence with no
-blocks has size zero. A `TRSize` definition shorter than the sequence, dividing
-it and repeated by the blocks is taken instead, so a longer hyper-TR can be
-declared; one the blocks contradict is ignored. Nothing is written into the
+and a block played once makes the whole sequence one unless its duration and
+channels match a block that repeats. A sequence with no blocks has size zero. A
+`TRSize` definition shorter than the sequence, dividing it and over which the
+block definitions repeat, is taken instead, so a longer hyper-TR can be
+declared; any other value is ignored without warning. Nothing is written into the
 sequence, and the answer is recomputed after a native mutation (a block added,
 a block retimed, duplicates collapsed).
 

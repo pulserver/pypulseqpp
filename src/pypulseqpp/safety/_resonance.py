@@ -289,9 +289,9 @@ def check_mech_resonance(
     ValueError
         If ``min_threshold``, ``min_line``, ``window_width`` or ``stride`` is
         not positive, ``frequency_oversampling`` is below 1,
-        ``tolerance_limits`` is neither ``"line"`` nor ``"gradient"``, a
-        band's frequency range is empty or negative, or ``rotation`` is not a
-        3x3 orthonormal matrix.
+        ``tolerance_limits`` is neither ``"line"`` nor ``"gradient"``, or
+        ``rotation`` is not a 3x3 orthonormal matrix. A band's frequency
+        range is not validated.
 
     Notes
     -----
@@ -300,7 +300,9 @@ def check_mech_resonance(
     Hann-tapered and zero-padded before a real FFT, and a bin's amplitude is
     ``2 |X_k| / sum(w)``, so a sustained sinusoid of amplitude A at a bin
     frequency reads A. A band's threshold is its tolerance where that is
-    positive and ``min_threshold`` otherwise.
+    positive and ``min_threshold`` otherwise; with
+    ``tolerance_limits="gradient"``, a positive tolerance limits the gradient
+    and the threshold is ``min_line``.
 
     A wide band is read only up to the frequency the gradient can reach its
     threshold at: a window's reading at f is at most

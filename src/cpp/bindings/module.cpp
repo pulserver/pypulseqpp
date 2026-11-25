@@ -866,7 +866,8 @@ PYBIND11_MODULE(_ext, module)
                 return py::make_tuple(found.size, found.start);
             },
             py::arg("size"),
-            "Where a repeating unit of the given size starts, as (size, start).")
+            "Verify a known period: (size, 0) where every block repeats the one size "
+            "blocks before it and size divides the table, otherwise (0, 0).")
         .def(
             "detect_rf_uses", &Sequence::detect_rf_uses, py::arg("b0"), py::arg("gamma"),
             "Label every pulse the file did not, from what the pulse does. "
