@@ -138,8 +138,8 @@ NAME = "epi_3d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
 #: SLR design of the slab-selective pulse. A time-bandwidth product of 12
-#: keeps the slab profile's transition within the encoded margin of
-#: ``SLAB_OVERSAMPLING``.
+#: keeps the slab profile's transition within the margin ``z_oversampling``
+#: encodes.
 PULSE_DURATION = 4e-3
 TIME_BW_PRODUCT = 12.0
 #: Thickness of the excited slab, as a fraction of ``fov_z``.

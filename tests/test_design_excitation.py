@@ -387,3 +387,30 @@ def test_water_selective_designs_below_7t_are_tried_shortest_envelope_first():
     assert min(envelopes) > SPSP_MAX_ENVELOPE_S
     assert envelopes == sorted(envelopes)
     assert order[0] == (10, 3.0)
+
+
+def test_water_selective_slab_at_7t_keeps_fat_below_a_twentieth_of_water_across_and_beyond_the_slab():
+    system = pp.Opts(
+        max_grad=80, grad_unit="mT/m", max_slew=200, slew_unit="T/m/s", B0=7.0
+    )
+    fat_hz = -3.4e-6 * system.gamma * 7.0
+    slab = 0.1152
+    module = design.make_excitation(system, "spsp", 20.0, slab)
+    waves = module.seq.waveforms_and_times(append_RF=True)[0]
+    gz_time, gz = np.real(waves[2][0]), np.real(waves[2][1])
+    rf_time, rf = np.real(waves[3][0]), waves[3][1]
+    dt = 2e-6
+    time = np.arange(0.0, max(gz_time.max(), rf_time.max()) + dt, dt)
+    gradient = np.interp(time, gz_time, gz, left=0.0, right=0.0)
+    b1 = np.interp(time, rf_time, rf.real, left=0.0, right=0.0) + 1j * np.interp(
+        time, rf_time, rf.imag, left=0.0, right=0.0
+    )
+    z = np.linspace(-slab, slab, 97)
+
+    def transverse(offset_hz):
+        m = pp.sim_bloch(b1, np.outer(z, gradient) + offset_hz, dt)
+        return np.abs(m[:, 0] + 1j * m[:, 1])
+
+    water = transverse(0.0).max()
+    for offset in (-100.0, 0.0, 100.0, 300.0):
+        assert transverse(fat_hz + offset).max() < water / 20
