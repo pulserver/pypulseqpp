@@ -144,6 +144,60 @@ def calc_raga_angles(
     return support[visited]
 
 
+def calc_raga_size(n: int, *, tiny_index: int = 1) -> int:
+    """Return the RAGA support size nearest ``n``.
+
+    The support sizes are the generalized Fibonacci numbers of ``tiny_index``,
+    ``1, N, N + 1, 2N + 1, ...``; on one of them the RAGA order visits every
+    angle once and its first pass is the (tiny) golden-angle order.
+
+    Parameters
+    ----------
+    n : int
+        Wanted number of angles, at least 1.
+    tiny_index : int, default=1
+        Tiny-golden index ``N``, at least 1.
+
+    Returns
+    -------
+    int
+        The support size closest to ``n`` in ratio.
+
+    Raises
+    ------
+    ValueError
+        If ``n`` or ``tiny_index`` is below 1.
+
+    Examples
+    --------
+    >>> import pypulseqpp as pp
+    >>> pp.calc_raga_size(198), pp.calc_raga_size(198, tiny_index=5)
+    (233, 191)
+    """
+    n, tiny_index = int(n), int(tiny_index)
+    if n < 1 or tiny_index < 1:
+        raise ValueError("n and tiny_index must be >= 1")
+    order = 1
+    while _generalized_fibonacci(order + 1, tiny_index) < n:
+        order += 1
+    below = _generalized_fibonacci(order, tiny_index)
+    above = _generalized_fibonacci(order + 1, tiny_index)
+    return below if n * n <= below * above else above
+
+
+def _raga_order(n: int, tiny_index: int) -> int:
+    order = 1
+    while _generalized_fibonacci(order, tiny_index) < n:
+        order += 1
+    if order < 2 or _generalized_fibonacci(order, tiny_index) != n:
+        raise ValueError(
+            f"a RAGA order needs n_shots to be a generalized Fibonacci number "
+            f"of tiny_index={tiny_index}; the nearest to {n} is "
+            f"{calc_raga_size(n, tiny_index=tiny_index)}"
+        )
+    return order
+
+
 def calc_tiny_golden_angles(n: int, *, index: int = 2) -> np.ndarray:
     """Return tiny-golden rotations with increment ``pi / (phi + index - 1)``.
 
@@ -232,7 +286,14 @@ def calc_uniform_angles(n: int, *, span: float = 2.0 * np.pi) -> np.ndarray:
     return _accumulated(n, 0.0 if n == 0 else float(span) / n)
 
 
-def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spiral"):
+def calc_projection_shell(
+    n_views: int,
+    n_shots: int = 1,
+    *,
+    scheme: str = "spiral",
+    ordering: str = "sequential",
+    tiny_index: int = 1,
+):
     """Return a pole-to-pole base shell and z-axis rotations for each shot.
 
     Rotated shells share both poles; each nonpolar ring has one spoke per
@@ -253,21 +314,39 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
         stride across many rings' worth of azimuth. ``'meridian'`` is a half
         great circle in the x-z plane at equal polar steps, which is simpler
         and oversamples the poles.
+    ordering : {'sequential', 'golden', 'raga'}, default='sequential'
+        Order of the shots. ``'sequential'`` turns each shot ``2*pi/n_shots``
+        past the one before. ``'golden'`` plays the same set of turns with
+        shot ``j`` on the grid turn ranked as ``frac(j / (phi + tiny_index -
+        1))``, so the first shots, or any run of consecutive ones, spread
+        near-uniformly in azimuth. ``'raga'`` is the rational approximation
+        of the same golden step, as in :func:`calc_raga_angles`: ``n_shots``
+        must be a generalized Fibonacci number of ``tiny_index`` (see
+        :func:`calc_raga_size`), the grid is visited in steps of the preceding
+        Fibonacci number, and the order is cyclic, so a run of consecutive
+        shots that wraps past the last one into a repetition of the set is as
+        uniform as any other. On such an ``n_shots`` the first pass is the
+        ``'golden'`` order.
+    tiny_index : int, default=1
+        Tiny-golden index ``N`` of the golden step: 1 is the golden ratio,
+        larger indices turn consecutive shots by less.
 
     Returns
     -------
     directions : numpy.ndarray
         Unit spoke directions of the base shell, shape ``(n_views, 3)``.
     rotations : numpy.ndarray
-        Rotation matrices, shape ``(n_shots, 3, 3)``: rotations about the z
-        axis by ``2*pi*k/n_shots``, ``k = 0..n_shots-1``. Each maps the whole
-        base shell to the directions that shot samples.
+        Rotation matrices, shape ``(n_shots, 3, 3)``, in play order:
+        rotations about the z axis by ``2*pi*k/n_shots``, each ``k`` in
+        ``0..n_shots-1`` once. Each maps the whole base shell to the
+        directions that shot samples.
 
     Raises
     ------
     ValueError
-        If ``n_views`` is below 3, ``n_shots`` is below 1 or ``scheme`` is
-        unknown.
+        If ``n_views`` is below 3, ``n_shots`` is below 1, ``scheme`` or
+        ``ordering`` is unknown, or ``ordering`` is ``'raga'`` and ``n_shots``
+        is not a generalized Fibonacci number of ``tiny_index``.
 
     Examples
     --------
@@ -296,11 +375,26 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
     >>> bool(np.median(quiet_steps) < np.median(steps) / 2)
     True
 
+    Under ``'golden'`` the first quarter of the shots leaves no azimuth gap
+    wider than twice their mean spacing:
+
+    >>> _, golden = pp.calc_projection_shell(32, n_shots=40, ordering="golden")
+    >>> azimuth = np.sort(np.arctan2(golden[:10, 1, 0], golden[:10, 0, 0]))
+    >>> gaps = np.diff(np.append(azimuth, azimuth[0] + 2 * np.pi))
+    >>> bool(gaps.max() < 2 * 2 * np.pi / 10)
+    True
+
     See Also
     --------
     calc_golden_angles : in-plane spoke angles, one per shot, for 2D radial.
     """
     n_views, n_shots = int(n_views), int(n_shots)
+    if ordering not in ("sequential", "golden", "raga"):
+        raise ValueError(
+            f"ordering must be 'sequential', 'golden' or 'raga', got {ordering!r}"
+        )
+    if int(tiny_index) < 1:
+        raise ValueError("tiny_index must be >= 1")
     if n_views < 3:
         raise ValueError("a pole-to-pole shell needs at least three views")
     if n_shots < 1:
@@ -317,9 +411,16 @@ def calc_projection_shell(n_views: int, n_shots: int = 1, *, scheme: str = "spir
         raise ValueError(
             f"scheme must be 'spiral', 'quiet' or 'meridian', got {scheme!r}"
         )
-    return directions, _turns_about_z(
-        2.0 * np.pi * np.arange(n_shots, dtype=float) / n_shots
-    )
+    ratio = _PHI + int(tiny_index) - 1
+    slots = np.arange(n_shots, dtype=float)
+    if ordering == "golden":
+        slots = np.argsort(np.argsort(np.mod(slots / ratio, 1.0), kind="stable"))
+    elif ordering == "raga":
+        order = _raga_order(n_shots, int(tiny_index))
+        return directions, _turns_about_z(
+            calc_raga_angles(n_shots, tiny_index=tiny_index, approximation_order=order)
+        )
+    return directions, _turns_about_z(2.0 * np.pi * slots / n_shots)
 
 
 def _constant_step_spiral(n_views: int, shot_turn: float | None = None) -> np.ndarray:

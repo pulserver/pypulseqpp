@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pytest
 from scipy.spatial.transform import Rotation
 
 import pypulseqpp as pp
-from pypulseqpp import calc_projection_shell
+from pypulseqpp import calc_projection_shell, calc_raga_size
 from pypulseqpp import sequences as design
 
 FOV = 0.24
 MATRIX = 96
+#: The default grid of a turn's end ratio, within which a view lands on its direction.
+STEP = 1.0 / 128.0
 
 
 @pytest.fixture
@@ -110,14 +114,16 @@ def test_the_shell_carries_no_rotation_of_its_own(system, hard):
 def test_every_view_holds_its_own_direction(system, hard):
     zte = readout(system, hard)
     held = np.array([plateau(hold) for hold in zte.g_hold])
-    assert held == pytest.approx(zte.gradient_amplitude * zte.directions, rel=1e-9)
+    assert held == pytest.approx(
+        zte.gradient_amplitude * zte.directions, abs=STEP * zte.gradient_amplitude
+    )
 
 
 def test_the_shell_plays_the_directions_it_was_given(system, hard):
     zte = readout(system, hard, n_views=12)
     ends = spokes(zte)[:, -1, :]
     played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
-    assert played == pytest.approx(zte.directions, abs=1e-4)
+    assert played == pytest.approx(zte.directions, abs=2 * STEP)
 
 
 def test_a_rotated_shell_lands_where_the_shot_rotation_says(system, hard):
@@ -126,7 +132,7 @@ def test_a_rotated_shell_lands_where_the_shot_rotation_says(system, hard):
     seq = build_shot(system, zte, shot)
     ends = spokes(zte, seq)[:, -1, :]
     played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
-    assert played == pytest.approx(zte.directions @ shot.T, abs=1e-4)
+    assert played == pytest.approx(zte.directions @ shot.T, abs=2 * STEP)
 
 
 def test_an_ordering_whose_step_wanders_is_played_as_it_stands(system, hard):
@@ -142,7 +148,58 @@ def test_an_ordering_whose_step_wanders_is_played_as_it_stands(system, hard):
     zte = readout(system, hard, n_views=None, directions=phyllotaxis)
     ends = spokes(zte)[:, -1, :]
     played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
-    assert played == pytest.approx(zte.directions, abs=1e-4)
+    assert played == pytest.approx(zte.directions, abs=2 * STEP)
+
+
+def test_a_turned_shell_plays_the_turned_directions_without_a_rotation(system, hard):
+    zte = readout(system, hard, n_views=12, n_shots=5)
+    shot = zte.shot_rotations[3]
+    shell = zte.shell(shot)
+    seq = pp.Sequence(system)
+    seq.add_block(*shell.ramp)
+    for hold, read in zip(shell.hold, shell.read, strict=True):
+        seq.add_block(zte.rf, *hold)
+        seq.add_block(zte.adc, *read)
+    ends = spokes(zte, seq)[:, -1, :]
+    played = ends / np.linalg.norm(ends, axis=1, keepdims=True)
+    assert played == pytest.approx(zte.directions @ shot.T, abs=2 * STEP)
+    assert shell.directions == pytest.approx(zte.directions @ shot.T, abs=2 * STEP)
+    assert seq.check_timing()[0]
+
+
+def test_every_turn_on_an_axis_is_one_of_a_few_shapes_at_its_own_amplitude(
+    system, hard
+):
+    """A shape is fixed by the ratio of its two ends, on a grid of the turn step."""
+    zte = readout(system, hard, n_views=24, n_shots=60)
+    shapes = set()
+    for shot in zte.shot_rotations:
+        for read in zte.shell(shot).read:
+            for gradient in read:
+                waveform = np.asarray(gradient.waveform, dtype=float)
+                peak = np.abs(waveform).max()
+                if peak > 0.0:
+                    shapes.add((gradient.channel, *np.round(waveform / peak, 9)))
+    assert len(shapes) <= 3 * (4 / STEP + 2)
+
+
+def test_a_coarser_turn_step_shares_fewer_shapes(system, hard):
+    def count(step):
+        zte = readout(system, hard, n_views=24, n_shots=30, turn_step=step)
+        return len(
+            {
+                (
+                    g.channel,
+                    *np.round(np.asarray(g.waveform) / np.abs(g.waveform).max(), 9),
+                )
+                for shot in zte.shot_rotations
+                for read in zte.shell(shot).read
+                for g in read
+                if np.abs(g.waveform).max() > 0
+            }
+        )
+
+    assert count(1 / 16) < count(1 / 128)
 
 
 # ----------------------------------------------------------------------
@@ -167,10 +224,16 @@ def test_a_view_hands_the_gradient_to_the_next_without_passing_through_zero(
     for view in range(len(zte.directions) - 1):
         held = plateau(zte.g_read[view])
         handover = plateau(zte.g_read[view], -1)
-        assert np.linalg.norm(held) == pytest.approx(zte.gradient_amplitude)
-        assert np.linalg.norm(handover) == pytest.approx(zte.gradient_amplitude)
+        assert np.linalg.norm(held) == pytest.approx(
+            zte.gradient_amplitude, rel=2 * STEP
+        )
+        assert np.linalg.norm(handover) == pytest.approx(
+            zte.gradient_amplitude, rel=2 * STEP
+        )
         # It turned onto the next view rather than dropping and climbing again.
-        assert handover == pytest.approx(plateau(zte.g_hold[view + 1]), rel=1e-9)
+        assert handover == pytest.approx(
+            plateau(zte.g_hold[view + 1]), abs=STEP * zte.gradient_amplitude
+        )
 
 
 def test_only_the_last_view_ramps_down(system, hard):
@@ -261,7 +324,7 @@ def test_every_view_traces_the_same_spoke_from_the_centre(system, hard):
     """The trajectory has to restart at each pulse, not accumulate."""
     zte = readout(system, hard)
     radius = np.linalg.norm(spokes(zte), axis=-1)
-    assert radius[1] == pytest.approx(radius[0], rel=1e-9)
+    assert radius[1] == pytest.approx(radius[0], rel=2 * STEP)
 
 
 # ----------------------------------------------------------------------
@@ -429,6 +492,7 @@ def test_a_pulse_too_long_for_the_dwell_is_refused(system):
     [
         ({"fov": 0.0}, "fov"),
         ({"matrix": 1}, "matrix"),
+        ({"turn_step": 0.0}, "turn_step"),
         ({"oversampling": 0.5}, "oversampling"),
         ({"readout_bandwidth_hz": 0.0}, "readout_bandwidth_hz"),
         ({"dead_time_s": 0.0}, "dead_time_s"),
@@ -452,3 +516,131 @@ def test_two_views_in_a_row_may_not_coincide(system, hard):
             n_views=None,
             directions=[[0.0, 0.0, 1.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]],
         )
+
+
+# ----------------------------------------------------------------------
+# Shot ordering
+
+
+def _azimuths(rotations):
+    return np.mod(np.arctan2(rotations[:, 1, 0], rotations[:, 0, 0]), 2 * np.pi)
+
+
+def _widest_gap(azimuths):
+    """Widest azimuth gap of a set of shots, in units of their mean spacing."""
+    ordered = np.sort(azimuths)
+    gaps = np.diff(np.append(ordered, ordered[0] + 2 * np.pi))
+    return gaps.max() / (2 * np.pi / len(azimuths))
+
+
+@pytest.mark.parametrize("n_shots", [13, 40, 128, 401])
+def test_golden_ordering_plays_every_turn_of_the_set_once(n_shots):
+    _, sequential = calc_projection_shell(8, n_shots)
+    _, golden = calc_projection_shell(8, n_shots, ordering="golden")
+    assert np.sort(_azimuths(golden)) == pytest.approx(np.sort(_azimuths(sequential)))
+
+
+@pytest.mark.parametrize("n_shots", [40, 128, 401])
+@pytest.mark.parametrize("fraction", [8, 4, 2])
+def test_every_run_of_golden_shots_spreads_evenly_in_azimuth(n_shots, fraction):
+    _, golden = calc_projection_shell(8, n_shots, ordering="golden")
+    azimuths = _azimuths(golden)
+    run = n_shots // fraction
+    widest = max(
+        _widest_gap(azimuths[start : start + run]) for start in range(n_shots - run + 1)
+    )
+    assert widest <= 2.0 + 1e-9
+
+
+def test_the_first_sequential_shots_leave_a_wedge_of_the_sphere_unsampled():
+    _, sequential = calc_projection_shell(8, 128)
+    assert _widest_gap(_azimuths(sequential[:32])) > 20
+
+
+def test_an_unknown_shot_ordering_is_refused():
+    with pytest.raises(ValueError, match="ordering"):
+        calc_projection_shell(8, 4, ordering="random")
+
+
+def test_consecutive_gradients_of_a_turned_shell_meet_without_a_step(system, hard):
+    zte = readout(system, hard, n_views=24, n_shots=7)
+    for shot in zte.shot_rotations:
+        shell = zte.shell(shot)
+        events = [shell.ramp]
+        for hold, read in zip(shell.hold, shell.read, strict=True):
+            events += [hold, read]
+        for before, after in itertools.pairwise(events):
+            for left, right in zip(before, after, strict=True):
+                assert float(right.first) == pytest.approx(
+                    float(left.last), abs=1e-9 * zte.gradient_amplitude
+                )
+
+
+@pytest.mark.parametrize("ordering", ["golden", "raga"])
+@pytest.mark.parametrize("tiny_index", [1, 3, 5])
+def test_every_golden_ordering_plays_every_turn_of_the_set_once(ordering, tiny_index):
+    n_shots = calc_raga_size(198, tiny_index=tiny_index)
+    _, sequential = calc_projection_shell(8, n_shots)
+    _, played = calc_projection_shell(
+        8, n_shots, ordering=ordering, tiny_index=tiny_index
+    )
+    assert np.sort(_azimuths(played)) == pytest.approx(np.sort(_azimuths(sequential)))
+
+
+@pytest.mark.parametrize("tiny_index", [1, 3, 5])
+def test_raga_on_its_support_size_is_the_golden_order(tiny_index):
+    n_shots = calc_raga_size(198, tiny_index=tiny_index)
+    _, golden = calc_projection_shell(
+        8, n_shots, ordering="golden", tiny_index=tiny_index
+    )
+    _, raga = calc_projection_shell(8, n_shots, ordering="raga", tiny_index=tiny_index)
+    assert _azimuths(raga) == pytest.approx(_azimuths(golden))
+
+
+def test_raga_turns_every_shot_by_the_same_step_across_repetitions():
+    _, raga = calc_projection_shell(8, 191, ordering="raga", tiny_index=5)
+    azimuths = _azimuths(np.concatenate([raga, raga]))
+    steps = np.mod(np.diff(azimuths), 2 * np.pi)
+    assert np.ptp(steps) == pytest.approx(0.0, abs=1e-9)
+
+
+def test_raga_refuses_a_shot_count_off_its_support_and_names_the_nearest():
+    with pytest.raises(ValueError, match="nearest to 198 is 233"):
+        calc_projection_shell(8, 198, ordering="raga")
+
+
+@pytest.mark.parametrize(
+    ("n", "tiny_index", "size"),
+    [(198, 1, 233), (198, 5, 191), (1, 1, 1), (150, 1, 144)],
+)
+def test_the_raga_support_size_is_the_generalized_fibonacci_number_nearest_in_ratio(
+    n, tiny_index, size
+):
+    assert calc_raga_size(n, tiny_index=tiny_index) == size
+
+
+def test_the_raga_support_size_refuses_a_count_below_one():
+    with pytest.raises(ValueError, match="n and tiny_index"):
+        calc_raga_size(0)
+
+
+def test_a_raga_readout_without_a_shot_count_takes_the_nearest_support_size(
+    system, hard
+):
+    zte = readout(system, hard, matrix=64, n_views=8, ordering="raga", tiny_index=5)
+    assert len(zte.shot_rotations) == 191
+
+
+def test_a_larger_tiny_index_turns_consecutive_shots_by_less():
+    def median_turn(tiny_index):
+        _, played = calc_projection_shell(
+            8, 198, ordering="golden", tiny_index=tiny_index
+        )
+        return np.median(np.abs(np.angle(np.exp(1j * np.diff(_azimuths(played))))))
+
+    assert median_turn(5) < median_turn(3) < median_turn(1)
+
+
+def test_a_tiny_golden_index_below_one_is_refused():
+    with pytest.raises(ValueError, match="tiny_index"):
+        calc_projection_shell(8, 5, ordering="golden", tiny_index=0)
