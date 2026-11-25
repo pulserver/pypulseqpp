@@ -140,9 +140,10 @@ def read_vops(path: str | os.PathLike) -> VopModel:
     ------
     ValueError
         If the file holds no recognised VOP array, or one whose shape is not a
-        stack of square matrices, or a safety factor is below 1.
+        stack of square matrices, a safety factor is below 1, or the file is
+        MATLAB v7.3 (HDF5).
     OSError
-        If the file cannot be read, a MATLAB v7.3 file among them.
+        If the file cannot be read.
     """
     path = Path(path)
     if path.suffix.lower() == ".npz":

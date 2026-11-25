@@ -167,15 +167,17 @@ period is found in three steps:
 1. the shortest period of the block-definition stream from the first block that
    every later block repeats, the last copy possibly cut short;
 2. failing that, the shortest period dividing the block table over which blocks
-   match in duration and in the channels they play;
+   match in duration and in the channels they play, any pure delay matching any
+   other;
 3. failing both, the whole sequence, which is then one repetition.
 
 A phase encode changes an instance and not its definition, so the lines of a
 Cartesian acquisition are repetitions of one period. A slice acquired with its
 own preparation and dummy shots is one repetition, and a block played once
-makes the whole sequence one. A `TRSize` definition shorter than the sequence,
-over which the blocks repeat, takes precedence, so a longer period can be
-declared. The method writes nothing into the sequence. The SAR check averages
+makes the whole sequence one unless its duration and channels match a block
+that repeats. A `TRSize` definition shorter than the sequence, dividing it and
+over which the block definitions repeat, takes precedence, so a longer period
+can be declared; any other value is ignored without warning. The method writes nothing into the sequence. The SAR check averages
 over the repetitions it reports. What a repetition means for scanner execution
 is described in pulserver's [scanner
 representation](https://pulserver.github.io/pulserver/latest/explanations/scanner-representation.html).
@@ -349,7 +351,7 @@ what they achieved as `bandwidth_hz` rather than echoing the request.
 
 Three intervals in {class}`~pypulseqpp.Opts` state the settling times of the
 transmit and receive chains: `rf_dead_time` before a pulse, `rf_ringdown_time`
-after it, and `adc_dead_time` after an acquisition window. None of the three is
+after it, and `adc_dead_time` before and after an acquisition window. None of the three is
 a quantization constraint, so a sequence can satisfy every raster and still
 violate them.
 

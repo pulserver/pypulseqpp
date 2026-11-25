@@ -19,7 +19,10 @@ import pypulseqpp as pp  # in place of: import pypulseq as pp
 ```
 
 and it runs: the event factories, `Opts` and the `Sequence` methods keep
-PyPulseq's names, arguments and units. Underneath, the sequence is stored by a
+PyPulseq's names, arguments and units. The default rasters differ (20 µs for
+gradients and blocks, 2 µs for RF and ADC), and importing pypulseqpp makes
+them PyPulseq's defaults too, so set them in `Opts` to match a script that
+relies on PyPulseq's. Underneath, the sequence is stored by a
 C++ core, so a scan of a million blocks is built, deduplicated and written in
 seconds.
 
