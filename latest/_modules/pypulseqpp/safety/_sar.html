@@ -589,9 +589,10 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If the file holds no recognised VOP array, or one whose shape is not a</span>
-<span class="sd">        stack of square matrices, or a safety factor is below 1.</span>
+<span class="sd">        stack of square matrices, a safety factor is below 1, or the file is</span>
+<span class="sd">        MATLAB v7.3 (HDF5).</span>
 <span class="sd">    OSError</span>
-<span class="sd">        If the file cannot be read, a MATLAB v7.3 file among them.</span>
+<span class="sd">        If the file cannot be read.</span>
 <span class="sd">    """</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".npz"</span><span class="p">:</span>

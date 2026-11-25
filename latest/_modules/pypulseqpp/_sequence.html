@@ -2366,17 +2366,19 @@
 <span class="sd">        from the first block that every later block repeats, the last copy</span>
 <span class="sd">        possibly cut short; failing that, the shortest period dividing the</span>
 <span class="sd">        table over which blocks match in duration and in the channels they</span>
-<span class="sd">        play, and, for a multichannel (dynamic pTx) or shimmed pulse, in its</span>
+<span class="sd">        play, any pure delay matching any other, and, for a multichannel (dynamic pTx) or shimmed pulse, in its</span>
 <span class="sd">        RF definition and shim; failing both, the whole sequence. A pulse per</span>
 <span class="sd">        shot is therefore one repetition per shot when it is single-channel</span>
 <span class="sd">        and unshimmed, while shots that play different pTx pulses join into</span>
 <span class="sd">        one repetition holding each of them, since the pulse decides which</span>
 <span class="sd">        transmit channels are driven. A slice acquired with its own</span>
 <span class="sd">        preparation and dummy shots is therefore one repetition, and a block</span>
-<span class="sd">        played once makes the whole sequence one. A ``TRSize`` definition</span>
-<span class="sd">        shorter than the sequence, dividing it and repeated by the blocks, is</span>
-<span class="sd">        taken instead, so a longer hyper-TR can be declared. Nothing is</span>
-<span class="sd">        written into the sequence.</span>
+<span class="sd">        played once makes the whole sequence one unless its duration and</span>
+<span class="sd">        channels match a block that repeats. A ``TRSize`` definition shorter</span>
+<span class="sd">        than the sequence, dividing it and over which the block definitions</span>
+<span class="sd">        repeat, is taken instead, so a longer hyper-TR can be declared; any</span>
+<span class="sd">        other value is ignored without warning. Nothing is written into the</span>
+<span class="sd">        sequence.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>

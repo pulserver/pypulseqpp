@@ -744,9 +744,9 @@
 <span class="sd">    ValueError</span>
 <span class="sd">        If ``min_threshold``, ``min_line``, ``window_width`` or ``stride`` is</span>
 <span class="sd">        not positive, ``frequency_oversampling`` is below 1,</span>
-<span class="sd">        ``tolerance_limits`` is neither ``"line"`` nor ``"gradient"``, a</span>
-<span class="sd">        band's frequency range is empty or negative, or ``rotation`` is not a</span>
-<span class="sd">        3x3 orthonormal matrix.</span>
+<span class="sd">        ``tolerance_limits`` is neither ``"line"`` nor ``"gradient"``, or</span>
+<span class="sd">        ``rotation`` is not a 3x3 orthonormal matrix. A band's frequency</span>
+<span class="sd">        range is not validated.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -755,7 +755,9 @@
 <span class="sd">    Hann-tapered and zero-padded before a real FFT, and a bin's amplitude is</span>
 <span class="sd">    ``2 |X_k| / sum(w)``, so a sustained sinusoid of amplitude A at a bin</span>
 <span class="sd">    frequency reads A. A band's threshold is its tolerance where that is</span>
-<span class="sd">    positive and ``min_threshold`` otherwise.</span>
+<span class="sd">    positive and ``min_threshold`` otherwise; with</span>
+<span class="sd">    ``tolerance_limits="gradient"``, a positive tolerance limits the gradient</span>
+<span class="sd">    and the threshold is ``min_line``.</span>
 
 <span class="sd">    A wide band is read only up to the frequency the gradient can reach its</span>
 <span class="sd">    threshold at: a window's reading at f is at most</span>

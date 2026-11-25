@@ -540,7 +540,9 @@ needs in order to place its refocusing pulse midway.</p></li>
 <li><p><strong>fat_shift_ppm</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><em>default=-3.4</em>) – Methylene shift from water (ppm), converted with <code class="docutils literal notranslate"><span class="pre">system.gamma</span></code> and
 <code class="docutils literal notranslate"><span class="pre">system.B0</span></code> to the frequency band the <code class="docutils literal notranslate"><span class="pre">'spsp'</span></code> pulse rejects.
 The <code class="docutils literal notranslate"><span class="pre">'spsp'</span></code> pulse is the first design of <code class="docutils literal notranslate"><span class="pre">SPSP_DESIGNS</span></code> whose
-slab-selection ramps the slew allows.</p></li>
+spectral envelope fits <code class="docutils literal notranslate"><span class="pre">SPSP_MAX_ENVELOPE_S</span></code> and whose
+slab-selection ramps the slew allows; where no envelope fits, the
+designs are tried shortest envelope first.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

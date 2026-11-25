@@ -539,7 +539,10 @@ however long it is. Change one line of your script,</p>
 </pre></div>
 </div>
 <p>and it runs: the event factories, <code class="docutils literal notranslate"><span class="pre">Opts</span></code> and the <code class="docutils literal notranslate"><span class="pre">Sequence</span></code> methods keep
-PyPulseq’s names, arguments and units. Underneath, the sequence is stored by a
+PyPulseq’s names, arguments and units. The default rasters differ (20 µs for
+gradients and blocks, 2 µs for RF and ADC), and importing pypulseqpp makes
+them PyPulseq’s defaults too, so set them in <code class="docutils literal notranslate"><span class="pre">Opts</span></code> to match a script that
+relies on PyPulseq’s. Underneath, the sequence is stored by a
 C++ core, so a scan of a million blocks is built, deduplicated and written in
 seconds.</p>
 <p>You write the sequence; pypulseqpp does the rest. It stores and deduplicates

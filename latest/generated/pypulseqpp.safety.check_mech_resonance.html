@@ -570,9 +570,9 @@ guarded axis on its own.</p></li>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code>, <code class="docutils literal notranslate"><span class="pre">min_line</span></code>, <code class="docutils literal notranslate"><span class="pre">window_width</span></code> or <code class="docutils literal notranslate"><span class="pre">stride</span></code> is
     not positive, <code class="docutils literal notranslate"><span class="pre">frequency_oversampling</span></code> is below 1,
-    <code class="docutils literal notranslate"><span class="pre">tolerance_limits</span></code> is neither <code class="docutils literal notranslate"><span class="pre">&quot;line&quot;</span></code> nor <code class="docutils literal notranslate"><span class="pre">&quot;gradient&quot;</span></code>, a
-    band’s frequency range is empty or negative, or <code class="docutils literal notranslate"><span class="pre">rotation</span></code> is not a
-    3x3 orthonormal matrix.</p>
+    <code class="docutils literal notranslate"><span class="pre">tolerance_limits</span></code> is neither <code class="docutils literal notranslate"><span class="pre">&quot;line&quot;</span></code> nor <code class="docutils literal notranslate"><span class="pre">&quot;gradient&quot;</span></code>, or
+    <code class="docutils literal notranslate"><span class="pre">rotation</span></code> is not a 3x3 orthonormal matrix. A band’s frequency
+    range is not validated.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -581,7 +581,9 @@ raster, the one its definitions record. Each window is mean-subtracted,
 Hann-tapered and zero-padded before a real FFT, and a bin’s amplitude is
 <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">|X_k|</span> <span class="pre">/</span> <span class="pre">sum(w)</span></code>, so a sustained sinusoid of amplitude A at a bin
 frequency reads A. A band’s threshold is its tolerance where that is
-positive and <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> otherwise.</p>
+positive and <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> otherwise; with
+<code class="docutils literal notranslate"><span class="pre">tolerance_limits=&quot;gradient&quot;</span></code>, a positive tolerance limits the gradient
+and the threshold is <code class="docutils literal notranslate"><span class="pre">min_line</span></code>.</p>
 <p>A wide band is read only up to the frequency the gradient can reach its
 threshold at: a window’s reading at f is at most
 <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">V</span> <span class="pre">/</span> <span class="pre">(sum(w)</span> <span class="pre">sin(pi</span> <span class="pre">f</span> <span class="pre">dt))</span></code>, with V the total variation of the axis’s

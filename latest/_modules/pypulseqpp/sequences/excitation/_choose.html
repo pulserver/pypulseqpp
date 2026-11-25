@@ -461,13 +461,20 @@
 
 
 <span class="c1">#: Subpulse counts and spectral time-bandwidth products the water-selective</span>
-<span class="c1">#: slab pulse is tried with, shortest subpulses first: fewer subpulses, then a</span>
-<span class="c1">#: longer spectral envelope, give each subpulse longer to select a thin slab.</span>
-<span class="c1">#: The spectral bandwidth is the fat offset, so the passband's first alias</span>
-<span class="c1">#: lies at the subpulse rate, ``n_subpulses / time-bandwidth`` fat offsets</span>
-<span class="c1">#: from water; every design keeps it at two or more, fat midway or nearer</span>
-<span class="c1">#: water than the alias.</span>
-<span class="n">SPSP_DESIGNS</span> <span class="o">=</span> <span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
+<span class="c1">#: slab pulse is tried with. The spectral bandwidth is the fat offset, so the</span>
+<span class="c1">#: passband's first alias lies at the subpulse rate, ``n_subpulses /</span>
+<span class="c1">#: time-bandwidth`` fat offsets from water; every design keeps it at two or</span>
+<span class="c1">#: more, fat midway or nearer water than the alias. A spectral time-bandwidth</span>
+<span class="c1">#: product of 4 narrows the transition band on the fat side, which keeps the</span>
+<span class="c1">#: methylene peaks in the stopband for water up to about 300 Hz above</span>
+<span class="c1">#: resonance; fewer subpulses, then a longer spectral envelope, give each</span>
+<span class="c1">#: subpulse longer to select a thin slab.</span>
+<span class="n">SPSP_DESIGNS</span> <span class="o">=</span> <span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
+
+<span class="c1">#: Longest spectral envelope (s) a design is preferred with: at the fat offset</span>
+<span class="c1">#: of 7 T, the sharpest design fits it; at lower fields, where none does, the</span>
+<span class="c1">#: designs are tried shortest envelope first.</span>
+<span class="n">SPSP_MAX_ENVELOPE_S</span> <span class="o">=</span> <span class="mf">5e-3</span>
 
 
 <div class="viewcode-block" id="make_excitation">
@@ -512,7 +519,9 @@
 <span class="sd">        Methylene shift from water (ppm), converted with ``system.gamma`` and</span>
 <span class="sd">        ``system.B0`` to the frequency band the ``'spsp'`` pulse rejects.</span>
 <span class="sd">        The ``'spsp'`` pulse is the first design of ``SPSP_DESIGNS`` whose</span>
-<span class="sd">        slab-selection ramps the slew allows.</span>
+<span class="sd">        spectral envelope fits ``SPSP_MAX_ENVELOPE_S`` and whose</span>
+<span class="sd">        slab-selection ramps the slew allows; where no envelope fits, the</span>
+<span class="sd">        designs are tried shortest envelope first.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -552,7 +561,7 @@
             <span class="n">is_slab</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="n">fat_offset_hz</span> <span class="o">=</span> <span class="n">fat_shift_ppm</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">system</span><span class="o">.</span><span class="n">B0</span>
-    <span class="k">for</span> <span class="n">n_subpulses</span><span class="p">,</span> <span class="n">spectral_time_bw_product</span> <span class="ow">in</span> <span class="n">SPSP_DESIGNS</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">n_subpulses</span><span class="p">,</span> <span class="n">spectral_time_bw_product</span> <span class="ow">in</span> <span class="n">spsp_designs</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fat_offset_hz</span><span class="p">)):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">SpspExcitation</span><span class="p">(</span>
                 <span class="n">system</span><span class="p">,</span>
@@ -567,6 +576,20 @@
             <span class="n">refusal</span> <span class="o">=</span> <span class="n">error</span>
     <span class="k">raise</span> <span class="n">refusal</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">spsp_designs</span><span class="p">(</span><span class="n">spectral_bandwidth_hz</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Return ``SPSP_DESIGNS`` in the order :func:`make_excitation` tries them.</span>
+
+<span class="sd">    Designs whose spectral envelope, ``time-bandwidth / spectral_bandwidth_hz``</span>
+<span class="sd">    (s), fits ``SPSP_MAX_ENVELOPE_S`` come first in their listed order, then</span>
+<span class="sd">    the others, shortest envelope first.</span>
+<span class="sd">    """</span>
+    <span class="n">fits</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">SPSP_DESIGNS</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">spectral_bandwidth_hz</span> <span class="o">&lt;=</span> <span class="n">SPSP_MAX_ENVELOPE_S</span>
+    <span class="p">]</span>
+    <span class="n">longer</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">SPSP_DESIGNS</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fits</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fits</span> <span class="o">+</span> <span class="n">longer</span>
 </pre></div>
 
                 </article>

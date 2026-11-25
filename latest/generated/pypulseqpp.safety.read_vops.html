@@ -545,8 +545,9 @@ the metadata, for <a class="reference internal" href="pypulseqpp.safety.check_sa
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the file holds no recognised VOP array, or one whose shape is not a
-    stack of square matrices, or a safety factor is below 1.</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#OSError" title="(in Python v3.15)"><strong>OSError</strong></a> – If the file cannot be read, a MATLAB v7.3 file among them.</p></li>
+    stack of square matrices, a safety factor is below 1, or the file is
+    MATLAB v7.3 (HDF5).</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#OSError" title="(in Python v3.15)"><strong>OSError</strong></a> – If the file cannot be read.</p></li>
 </ul>
 </dd>
 </dl>

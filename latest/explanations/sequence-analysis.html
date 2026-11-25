@@ -656,7 +656,8 @@ cycles, ADC modulation and phase offsets in radians.</p>
 <p>A repetition is the shortest period of the block definitions from block 1
 that every later block repeats, so a phase-encode step or a spoke angle does
 not break it. A slice with its own preparation and dummy shots is one
-repetition, and a block played once makes the whole sequence one.</p>
+repetition, and a block played once makes the whole sequence one unless its
+duration and channels match a block that repeats.</p>
 <p>The units, the search and the translation algorithm are in
 <a class="reference internal" href="../developer-guide/internals/sequence-analysis.html"><span class="doc">Sequence-analysis computations</span></a>.</p>
 </section>
