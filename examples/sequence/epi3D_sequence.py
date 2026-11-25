@@ -137,9 +137,13 @@ def shell_bases(n: int, rz: int, partial_fourier: float) -> list[int]:
 NAME = "epi_3d"
 MAX_GRAD = 80.0
 MAX_SLEW = 200.0
-#: SLR design of the slab-selective pulse.
-PULSE_DURATION = 3e-3
-TIME_BW_PRODUCT = 4.0
+#: SLR design of the slab-selective pulse. A time-bandwidth product of 12
+#: keeps the slab profile's transition within the encoded margin of
+#: ``SLAB_OVERSAMPLING``.
+PULSE_DURATION = 4e-3
+TIME_BW_PRODUCT = 12.0
+#: Thickness of the excited slab, as a fraction of ``fov_z``.
+SLAB_COVERAGE = 0.9
 #: Duration of the nonselective hard pulse (s).
 HARD_PULSE_DURATION = 0.5e-3
 #: Fat methylene shift from water (ppm), converted against ``system.B0``
@@ -277,6 +281,7 @@ def epi3d(
     n_dummy: int | None = None,
     excitation: str = "slab",
     readout_oversampling: float = 1.0,
+    z_oversampling: float = 0.125,
     n_acs_y: int = 32,
     n_acs_z: int = 32,
     calibration: str = "fleet",
@@ -340,7 +345,9 @@ def epi3d(
         Field of view along the phase encode (m).
     fov_z : float, default=0.096
         Field of view along the partition encode (m). The slab excited is
-        ``fov_z`` thick.
+        ``SLAB_COVERAGE`` times ``fov_z`` thick, and ``z_oversampling``
+        encodes partitions beyond ``fov_z``; ``Matrix`` and ``FOV`` state the
+        prescription without them.
     n_x : int, default=128
         Matrix size along the readout.
     n_y : int, default=128
@@ -375,6 +382,12 @@ def epi3d(
     excitation : {'slab', 'nonselective', 'spsp'}, default='slab'
         A slab-selective SLR pulse, a hard pulse, or a slab- and
         water-selective spectral-spatial pulse.
+    z_oversampling : float, default=0.125
+        Partitions encoded beyond ``n_z``, as a fraction of it, half on each
+        side and rounded up to whole partitions. The slab profile's edges, and
+        tissue past them, are encoded in this margin instead of wrapping onto
+        the opposite edge, whose aliases under ``rz`` fall on the centre
+        partitions; the reconstruction crops it.
     readout_oversampling : float, default=1.0
         Minimum EPI readout oversampling factor, at least one. Additional
         samples preserve the requested dwell under the gradient limits.
@@ -444,13 +457,17 @@ def epi3d(
     >>> seq.definitions["Matrix"], seq.definitions["Name"]
     ([32.0, 16.0, 4.0], 'epi_3d')
     """
+    if z_oversampling < 0:
+        raise ValueError(f"z_oversampling must be at least 0, got {z_oversampling}")
+    margin = math.ceil(n_z * z_oversampling / 2)
     protocol = {
         "fov_x": fov_x,
         "fov_y": fov_y,
-        "fov_z": fov_z,
+        "fov_z": fov_z * (n_z + 2 * margin) / n_z,
         "n_x": n_x,
         "n_y": n_y,
-        "n_z": n_z,
+        "n_z": n_z + 2 * margin,
+        "prescribed_z": (n_z, fov_z),
         "flip_angle_deg": flip_angle_deg,
         "te": te,
         "tr": tr,
@@ -555,6 +572,7 @@ def _designed(
     n_x,
     n_y,
     n_z,
+    prescribed_z,
     flip_angle_deg,
     te,
     tr,
@@ -609,12 +627,14 @@ def _designed(
 
     fov = (fov_x, fov_y, fov_z)
     matrix = (n_x, n_y, n_z)
+    stated_fov = (fov_x, fov_y, prescribed_z[1])
+    stated_matrix = (n_x, n_y, prescribed_z[0])
     raster = system.block_duration_raster
     exc = sequences.make_excitation(
         system,
         excitation,
         flip_angle_deg,
-        fov_z,
+        SLAB_COVERAGE * prescribed_z[1],
         duration_s=PULSE_DURATION,
         time_bw_product=TIME_BW_PRODUCT,
         hard_duration_s=HARD_PULSE_DURATION,
@@ -714,7 +734,7 @@ def _designed(
             system,
             excitation,
             CALIBRATION_FLIP_DEG,
-            fov_z,
+            SLAB_COVERAGE * prescribed_z[1],
             duration_s=held or PULSE_DURATION,
             time_bw_product=TIME_BW_PRODUCT,
             hard_duration_s=held or HARD_PULSE_DURATION,
@@ -760,8 +780,8 @@ def _designed(
 
     def define(seq: pp.Sequence, **definitions) -> None:
         for key, value in {
-            "FOV": list(fov),
-            "Matrix": list(matrix),
+            "FOV": list(stated_fov),
+            "Matrix": list(stated_matrix),
             **definitions,
         }.items():
             seq.set_definition(key=key, value=value)
@@ -1048,8 +1068,8 @@ def _designed(
     # The volume's offset is applied to the finished sequence with
     # pp.TransformFOV (compat=False: the lines are sampled on the ramps).
     definitions = {
-        "FOV": list(fov),
-        "Matrix": [n_x, n_y, n_z],
+        "FOV": list(stated_fov),
+        "Matrix": list(stated_matrix),
         "Name": NAME,
         "TE": echo_time,
         "TR": repetition_time,
@@ -1059,7 +1079,7 @@ def _designed(
         "CaipiShift": shift,
         "kSpaceCenterLine": n_y // 2,
         "kSpaceCenterPartition": n_z // 2,
-        "SliceThickness": fov[2],
+        "SliceThickness": stated_fov[2],
     }
     if navigator_lines:
         # The reconstruction scales each excitation's navigator phase by
