@@ -23,9 +23,10 @@ EXCITATIONS = ("nonselective", "slab", "spsp")
 #: more, fat midway or nearer water than the alias. A spectral time-bandwidth
 #: product of 4 narrows the transition band on the fat side, which keeps the
 #: methylene peaks in the stopband for water up to about 300 Hz above
-#: resonance. Twenty subpulses keep the slab-selection gradient strong
-#: enough that fat, displaced along the slab by its offset, stays in the
-#: stopband across and beyond the slab; fewer subpulses, then a longer
+#: resonance. The alternating gradient adds a ghost passband at half the
+#: subpulse rate whose amplitude grows with distance from the slab centre;
+#: twenty subpulses place it at five fat offsets, which keeps fat in the
+#: stopband across and beyond the slab. Fewer subpulses, then a longer
 #: spectral envelope, give each subpulse longer to select a thin slab.
 SPSP_DESIGNS = ((20, 4.0), (16, 4.0), (10, 4.0), (10, 3.0), (8, 3.0), (8, 4.0))
 
