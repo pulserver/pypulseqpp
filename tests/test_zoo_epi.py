@@ -14,7 +14,7 @@ epi2d = sequences.epi2D_sequence
 epi3d = sequences.epi3D_sequence
 
 SMALL_2D = {"n_x": 32, "n_y": 16, "n_dummy": 0}
-SMALL_3D = {"n_x": 32, "n_y": 16, "n_z": 8, "n_dummy": 0}
+SMALL_3D = {"n_x": 32, "n_y": 16, "n_z": 8, "n_dummy": 0, "z_oversampling": 0.0}
 
 
 def written(seq, key):
@@ -1400,3 +1400,14 @@ def test_every_2d_gradient_echo_slice_is_rf_spoiled_by_its_own_excitation_count(
             wrapped = np.angle(np.exp(1j * (steps - np.deg2rad(117.0))))
             assert wrapped == pytest.approx(0.0, abs=1e-9), seq.definitions["Name"]
         assert mismatched == 0, seq.definitions["Name"]
+
+
+@pytest.mark.parametrize(("n_z", "encoded"), [(4, 6), (8, 10), (64, 72)])
+def test_a_3d_scan_encodes_its_slab_margin_and_states_its_prescription(n_z, encoded):
+    scan = scan3d(ry=2, rz=2, n_z=n_z, z_oversampling=0.125)
+    (par,) = labels(scan.main, "PAR")
+
+    assert par.min() >= 0 and par.max() + 1 == encoded
+    assert written(scan.main, "kSpaceCenterPartition") == encoded // 2
+    assert scan.matrix[2] == n_z
+    assert scan.fov[2] == pytest.approx(scan.prescription.get("fov_z", 0.096))

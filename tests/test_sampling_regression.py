@@ -14,6 +14,8 @@ in the second half of the train; their TE falls on echo 5 of 8. The
 bSSFP plays ``n_phases`` frames, which ``bssfp2D-frames`` records. Both
 were recorded again when a free-running slice became a chain of its dummies
 and its frames: the frames file, which they sample, carries no ``ONCE``.
+The ``epi3D-caipi`` fingerprint was recorded again when the 3D EPI began
+encoding ``z_oversampling`` partitions beyond its slab.
 
 A deliberate change to one of these sequences is recorded again with
 
