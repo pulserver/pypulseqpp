@@ -683,13 +683,13 @@ def wrapped(turns):
 def test_the_phase_a_readout_is_demodulated_with_is_the_shift_along_its_trajectory(
     system,
 ):
-    """``dr . k(t)`` at every sample, counted from the excitation.
+    """``dr . k(t)`` at every sample, absolutely, not up to a constant.
 
-    Absolutely, not up to a constant: the reference toolbox counts from an
-    origin of its own and so answers this plus a global phase per readout,
-    which is a choice rather than a difference. What is asked here is the
-    stronger of the two, because the trajectory a reconstructor is handed is
-    counted from the excitation.
+    The shift counts k from the start of the sequence, for an excitation and a
+    readout alike. With nothing played before the excitation that is the k
+    ``calculate_kspace`` returns, counted from the excitation. Where gradients
+    precede it, the readout carries a constant its excitation carries too, and
+    the two cancel (test_a_readout_is_acquired_against_the_phase_its_excitation_was_given).
     """
     shift = 0.011
     gx_pre = trap("x", -2500, system, duration=2e-3)
